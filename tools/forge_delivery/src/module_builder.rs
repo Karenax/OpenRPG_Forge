@@ -26,12 +26,26 @@ const SOURCE: &str = "_forge-export/source.json";
 const CREDITS: &str = "_forge-export/credits.txt";
 
 mod aggregate;
+mod companions;
+mod history;
+mod lights;
 mod origin;
-pub use aggregate::build_module_with_origin;
+mod placement_companions;
+mod sources;
+pub use aggregate::{
+    build_module_with_history, build_module_with_origin, build_module_with_reference,
+};
+pub use history::ExportHistoricalModel;
+
+pub enum CompanionInput<'a> {
+    Origin(Option<ExportOrigin>),
+    Reference(&'a crate::legacy_reference::ReferenceScene),
+}
 
 struct Prepared {
     module: ModulePackageManifest,
     payloads: BTreeMap<String, Vec<u8>>,
+    origin: Option<origin::PreparedOrigin>,
 }
 
 #[derive(Default)]
@@ -84,12 +98,21 @@ pub fn build_zone_with_origin(
         return Err("The native export root must be absolute".into());
     }
     crate::manifest::safe_chain(exports_root)?;
-    let prepared = prepare(archive, expected_head, metadata, catalog, payloads, origin)?;
+    let prepared = prepare(
+        archive,
+        expected_head,
+        metadata,
+        &catalog,
+        payloads,
+        CompanionInput::Origin(origin),
+        Vec::new(),
+    )?;
     publish_prepared(exports_root, prepared, expected_head)
 }
 
-/// The first Studio export supports a single RPG zone without raster/instance blobs.
-/// Rejections of unsupported canonical sources happen before creating an output.
+/// Export one RPG zone with its exact governed assets and immutable source closure.
+/// Blob payloads use `_forge-export/source-blobs/<sha256>.bin`; missing, corrupt
+/// or extra files are refused before creating an output.
 pub fn build_zone(
     exports_root: &Path,
     archive: &[u8],
@@ -162,19 +185,17 @@ fn prepare(
     archive: &[u8],
     expected_head: ContentHash,
     metadata: ExportMetadata,
-    catalog: GovernedImportCatalog,
+    catalog: &GovernedImportCatalog,
     mut payloads: BTreeMap<String, Vec<u8>>,
-    origin: Option<ExportOrigin>,
+    input: CompanionInput<'_>,
+    historical_models: Vec<ExportHistoricalModel>,
 ) -> Result<Prepared> {
     let zone = ZoneEditSession::from_archive_bytes(archive)?;
     if zone.head().content_hash()? != expected_head {
         return Err("The reviewed canonical zone has changed".into());
     }
-    if !zone.required_source_blobs()?.is_empty() {
-        return Err(
-            "This Studio export does not transport raster or imported-instance source blobs".into(),
-        );
-    }
+    let required_sources = zone.required_source_blobs()?;
+    sources::validate_budget(&required_sources, archive.len())?;
     let head = zone.head();
     let gameplay = head
         .corrections
@@ -191,16 +212,43 @@ fn prepare(
         return Err("A bounded, explicit UTF-8 module licence is required".into());
     }
     let publishing = metadata.rights == ModuleRights::Redistributable;
-    let origin = origin::prepare(origin, gameplay.module_id, metadata.rights)?;
-    if publishing {
-        catalog.validate_for_publication()
-    } else {
-        catalog.validate_for_local_use()
+    let reference_revision = match &input {
+        CompanionInput::Reference(scene) => Some(scene.revision()),
+        CompanionInput::Origin(_) => None,
+    };
+    let (origin, companions) = match input {
+        CompanionInput::Origin(origin) => {
+            let origin = origin::prepare(origin, gameplay.module_id, metadata.rights)?;
+            let companions = companions::prepare(origin.as_ref(), &zone, &mut payloads)?;
+            (origin, companions)
+        }
+        CompanionInput::Reference(scene) => (
+            None,
+            companions::prepare_reference(scene, &zone, &mut payloads)?,
+        ),
+    };
+    companions::supply_lights(origin.as_ref(), &zone, &mut payloads)?;
+    orpmod::validate_module_catalog(catalog, publishing)?;
+    validate_models(head, catalog, companions.objects.as_ref(), &companions.fish)?;
+    let light_packages = lights::prepare(&zone, &payloads)?;
+    let placement_packages = placement_companions::prepare(&zone, &payloads)?;
+    let has_placement_packages = !placement_packages.is_empty();
+    if publishing && !placement_packages.is_empty() {
+        return Err("Placement companion redistribution rights are not yet qualified".into());
     }
-    .map_err(|e| e.to_string())?;
-    validate_models(head, &catalog)?;
-    let mut inventory = inventory(&catalog, &payloads, publishing)?;
-    let catalog_bytes = serde_json::to_vec(&catalog).map_err(|e| e.to_string())?;
+    let mut inventory = inventory(
+        catalog,
+        &payloads,
+        publishing,
+        &required_sources,
+        &light_packages,
+        &placement_packages,
+        &companions,
+    )?;
+    let historical_models =
+        history::capture(historical_models, publishing, &mut payloads, &mut inventory)?;
+    let has_historical_models = !historical_models.is_empty();
+    let catalog_bytes = serde_json::to_vec(catalog).map_err(|e| e.to_string())?;
     if catalog_bytes.len() > MAX_MODULE_MANIFEST_BYTES {
         return Err("The exported governed catalogue exceeds its document budget".into());
     }
@@ -209,6 +257,10 @@ fn prepare(
         "project_id":head.base.terrain.project_id,"module_id":gameplay.module_id,
         "area_id":gameplay.area_id,"canonical_head_sha256":expected_head,
         "archive_sha256":bytes_sha256(archive),"publisher":metadata.publisher});
+    if let Some(revision) = reference_revision {
+        source["reference_assets_manifest_sha256"] =
+            serde_json::to_value(revision).map_err(|error| error.to_string())?;
+    }
     let mut credits = format!(
         "{}\n{}\nAsset authors, licences, lineage and preserved sources are recorded in the governed catalogue.",
         metadata.name, metadata.publisher
@@ -235,7 +287,7 @@ fn prepare(
         payloads.insert(path.into(), bytes);
         inventory.roles.insert(path.into(), role);
     }
-    if let Some(origin) = origin {
+    if let Some(origin) = &origin {
         origin.append(expected_head, &mut payloads, &mut inventory.roles)?;
     }
     let files = payloads
@@ -253,6 +305,15 @@ fn prepare(
         })
         .collect::<Result<Vec<_>>>()?;
     let module = ModulePackageManifest {
+        historical_models,
+        terrain_surfaces: companions.terrain.iter().cloned().collect(),
+        ocean_inputs: companions.ocean.iter().cloned().collect(),
+        local_light_packages: light_packages,
+        placement_companions: placement_packages,
+        environments: companions.environment.iter().cloned().collect(),
+        objects: companions.objects.iter().cloned().collect(),
+        fish_profiles: companions.fish.clone(),
+        vegetation: companions.vegetation.iter().cloned().collect(),
         creator: None,
         schema: MODULE_PACKAGE_SCHEMA.into(),
         version: MODULE_PACKAGE_VERSION,
@@ -262,7 +323,27 @@ fn prepare(
         module_version: metadata.version,
         compatibility: ModuleCompatibility {
             engine_version: orpmod::ENGINE_VERSION.into(),
-            module_api_version: orpmod::MODULE_API_VERSION,
+            module_api_version: (if zone.required_local_light_packages()?.is_empty() {
+                orpmod::MODULE_API_VERSION
+            } else {
+                MODULE_LOCAL_LIGHTS_API_VERSION
+            })
+            .max(companions.api_version())
+            .max(if zone.has_wind_history() {
+                MODULE_SCENE_WIND_API_VERSION
+            } else {
+                orpmod::MODULE_API_VERSION
+            })
+            .max(if has_placement_packages {
+                MODULE_PLACEMENT_COMPANIONS_API_VERSION
+            } else {
+                orpmod::MODULE_API_VERSION
+            })
+            .max(if has_historical_models {
+                MODULE_HISTORICAL_MODELS_API_VERSION
+            } else {
+                orpmod::MODULE_API_VERSION
+            }),
         },
         provenance: ModuleProvenance {
             publisher: metadata.publisher,
@@ -294,7 +375,7 @@ fn prepare(
             gameplay_sha256: Some(
                 forge_core::canonical_json_sha256(gameplay).map_err(|e| e.to_string())?,
             ),
-            source_blobs: vec![],
+            source_blobs: required_sources.keys().copied().collect(),
         }],
         assets: catalog
             .assets
@@ -315,6 +396,7 @@ fn prepare(
     module
         .validate_zone_archive(gameplay.area_id, archive)
         .map_err(|e| e.to_string())?;
+    validate_placement_payloads(&module, catalog, &payloads)?;
     for (path, bytes) in &payloads {
         orpmod::validate_payload_bytes(path, bytes, inventory.media.get(path).copied())?;
     }
@@ -322,13 +404,21 @@ fn prepare(
         MODULE_MANIFEST_PATH.into(),
         module.to_bytes().map_err(|e| e.to_string())?,
     );
-    Ok(Prepared { module, payloads })
+    Ok(Prepared {
+        module,
+        payloads,
+        origin,
+    })
 }
 
 fn inventory(
     catalog: &GovernedImportCatalog,
     payloads: &BTreeMap<String, Vec<u8>>,
     publishing: bool,
+    sources: &BTreeMap<ContentHash, usize>,
+    lights: &[ModuleLocalLightPackage],
+    placements: &[ModulePlacementCompanion],
+    companions: &companions::Companions,
 ) -> Result<Inventory> {
     let mut inventory = Inventory::default();
     for asset in &catalog.assets {
@@ -351,6 +441,12 @@ fn inventory(
             inventory.evidence(path, payloads)?;
         }
     }
+    sources::inventory(sources, payloads, &mut inventory)?;
+    lights::inventory(lights, &mut inventory)?;
+    placement_companions::inventory(placements, &mut inventory)?;
+    for (path, role) in &companions.roles {
+        inventory.role(path, *role)?;
+    }
     if payloads.len() != inventory.roles.len()
         || payloads
             .keys()
@@ -364,9 +460,25 @@ fn inventory(
     Ok(inventory)
 }
 
+fn validate_placement_payloads(
+    module: &ModulePackageManifest,
+    catalog: &GovernedImportCatalog,
+    payloads: &BTreeMap<String, Vec<u8>>,
+) -> Result<()> {
+    crate::module_placement_companions::validate(module, catalog, |path, maximum| {
+        let bytes = payloads.get(path).ok_or("Companion payload is missing")?;
+        if bytes.len() > maximum {
+            return Err("Companion payload exceeds its budget".into());
+        }
+        Ok(bytes.clone())
+    })
+}
+
 fn validate_models(
     head: &forge_project::zone_authoring::ZoneAuthoringHead,
     catalog: &GovernedImportCatalog,
+    objects: Option<&ModuleObjectBinding>,
+    fish: &[ModuleFishBinding],
 ) -> Result<()> {
     let require = |id, pin| {
         if catalog.assets.iter().any(|asset| {
@@ -386,26 +498,53 @@ fn validate_models(
         require(binding.asset.asset_id, binding.asset.sha256)?;
     }
     let require_placement = |p: &forge_project::zone_authoring::placements::ManualPlacement| {
+        if objects.is_some_and(|binding| match &binding.source {
+            ModuleObjectSource::SourceSurfaces { assets, .. } => assets
+                .iter()
+                .any(|asset| asset.asset_id == p.asset_id && asset.sha256 == p.asset_hash),
+        }) {
+            return Ok(());
+        }
+        if fish.iter().any(|binding| {
+            binding.area_id == head.base.terrain.area_id
+                && binding
+                    .assets
+                    .iter()
+                    .any(|asset| asset.asset_id == p.asset_id && asset.sha256 == p.asset_hash)
+        }) {
+            return Ok(());
+        }
         require(p.asset_id, p.asset_hash)
     };
     for placement in head.corrections.placements.as_deref().unwrap_or_default() {
         require_placement(placement)?;
     }
+    let require_source = |p: &forge_project::zone_authoring::placements::ManualPlacement| {
+        if forge_project::zone_authoring::imported_plants::is_source_asset(
+            head,
+            p.asset_id,
+            p.asset_hash,
+        ) {
+            Ok(())
+        } else {
+            require_placement(p)
+        }
+    };
     for edit in head
         .corrections
         .source_object_edits
         .as_deref()
         .unwrap_or_default()
     {
-        require_placement(&edit.source)?;
+        require_source(&edit.source)?;
         if let forge_project::zone_authoring::source_objects::SourceObjectState::Edited {
             placement,
         } = &edit.state
         {
-            require_placement(placement)?;
+            require_source(placement)?;
         }
         for placement in &edit.copies {
-            require_placement(placement)?;
+            require_source(placement)?;
         }
     }
     Ok(())

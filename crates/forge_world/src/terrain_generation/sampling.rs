@@ -13,6 +13,31 @@ const NOISE_OCTAVE_MIX: u64 = 0x94d0_49bb_1331_11eb;
 const MAX_EXACT_F64_INTEGER: f64 = 9_007_199_254_740_991.0;
 const F64_UNIT_FROM_53_BITS: f64 = 1.0 / MAX_EXACT_F64_INTEGER;
 
+/// The existing single-octave value-noise algorithm, independent of a terrain mesh extent.
+pub(crate) fn sample_brush_noise(
+    seed: u64,
+    position: [f64; 2],
+    amplitude_m: f32,
+    wavelength_m: f32,
+) -> Result<f64, String> {
+    if !amplitude_m.is_finite()
+        || !(0.0..=64.0).contains(&amplitude_m)
+        || !wavelength_m.is_finite()
+        || !(4.0..=256.0).contains(&wavelength_m)
+    {
+        return Err("Noise requires amplitude 0–64 m and wavelength 4–256 m".into());
+    }
+    let frequency = f64::from(1.0_f32 / wavelength_m);
+    let lattice = position.map(|value| value * frequency);
+    if lattice
+        .iter()
+        .any(|value| !value.is_finite() || value.abs() > MAX_EXACT_F64_INTEGER)
+    {
+        return Err("Noise brush coordinates exceed the exact lattice range".into());
+    }
+    Ok(f64::from(amplitude_m) * value_noise_2d(seed, lattice[0], lattice[1]))
+}
+
 pub(super) fn validate_arithmetic_contract(
     document: &TerrainDocument,
 ) -> Result<(), TerrainGenerationError> {
@@ -196,15 +221,19 @@ pub(super) fn sample_surface_with_shading_normal(
 }
 
 #[derive(Clone, Copy)]
-struct SurfaceVertex {
-    position_m: [f32; 3],
-    height_m: f32,
-    material_weights: TerrainMaterialWeights,
-    shading_normal: [f32; 3],
+pub(crate) struct SurfaceVertex {
+    pub(crate) position_m: [f32; 3],
+    pub(crate) height_m: f32,
+    pub(crate) material_weights: TerrainMaterialWeights,
+    pub(crate) shading_normal: [f32; 3],
 }
 
 #[must_use]
-fn surface_vertex(document: &TerrainDocument, sample_x: u16, sample_z: u16) -> SurfaceVertex {
+pub(crate) fn surface_vertex(
+    document: &TerrainDocument,
+    sample_x: u16,
+    sample_z: u16,
+) -> SurfaceVertex {
     let x_m = -TERRAIN_HALF_EXTENT_M + f32::from(sample_x) * TERRAIN_SAMPLE_SPACING_M;
     let z_m = -TERRAIN_HALF_EXTENT_M + f32::from(sample_z) * TERRAIN_SAMPLE_SPACING_M;
     let height_m = sample_height_unchecked(document, x_m, z_m);
@@ -215,6 +244,14 @@ fn surface_vertex(document: &TerrainDocument, sample_x: u16, sample_z: u16) -> S
         material_weights: material_weights_for(document, height_m, normal[1], sample_x, sample_z),
         shading_normal: normal,
     }
+}
+
+#[must_use]
+pub(crate) fn grid_uv(sample_x: u16, sample_z: u16) -> [f32; 2] {
+    [
+        f32::from(sample_x) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
+        f32::from(sample_z) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
+    ]
 }
 
 #[must_use]
@@ -391,7 +428,7 @@ pub(super) fn sample_normal(document: &TerrainDocument, x_m: f32, z_m: f32) -> [
 
 #[must_use]
 #[allow(clippy::cast_possible_truncation)]
-pub(super) fn material_weights_for(
+pub(crate) fn material_weights_for(
     document: &TerrainDocument,
     height_m: f32,
     normal_y: f32,

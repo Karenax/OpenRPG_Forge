@@ -5,14 +5,14 @@ use bevy::{
     prelude::*,
     render::gpu_readback::{Readback, ReadbackComplete},
 };
-use forge_tidewater::tidewater_plants::{
-    picking::{
-        decode,
-        occluders::Prepared,
-        render::{Pass, View},
-    },
-    scene::resident::Resident,
-};
+use forge_engine::source_vegetation::picking::decode;
+use forge_engine::source_vegetation::scene::resident::Resident;
+type Prepared = forge_engine::source_vegetation::picking::occluders::Prepared<
+    forge_engine::source_terrain::lod::LodMaterial,
+    forge_engine::source_surface::SourceSurfaceMaterial,
+>;
+use forge_engine::source_vegetation::picking::render::Pass;
+use forge_engine::source_vegetation::picking::render::View;
 use std::{collections::BTreeMap, io::Write};
 
 #[derive(Resource)]
@@ -54,7 +54,10 @@ pub(super) fn start_if_ready(world: &mut World) {
     }
 }
 
-fn start(world: &mut World, resident: &Resident) -> Result<(), String> {
+fn start(
+    world: &mut World,
+    resident: &Resident<super::CapturedPlantMaterial>,
+) -> Result<(), String> {
     let probe = world.resource::<Probe>();
     let view = View {
         width: 1920,
@@ -62,9 +65,12 @@ fn start(world: &mut World, resident: &Resident) -> Result<(), String> {
         transform: super::camera_transform(probe, Vec3::ZERO),
         projection: super::camera_projection(probe),
     };
-    let plain_snapshot = resident.picking_snapshot(world)?;
-    let masked_snapshot = resident.picking_snapshot(world)?;
-    let standard_snapshot = resident.picking_snapshot(world)?;
+    let plain_snapshot =
+        resident.picking_snapshot(world, forge_engine::source_vegetation::picking::material)?;
+    let masked_snapshot =
+        resident.picking_snapshot(world, forge_engine::source_vegetation::picking::material)?;
+    let standard_snapshot =
+        resident.picking_snapshot(world, forge_engine::source_vegetation::picking::material)?;
     let prepared = Prepared::from_world(world)?;
     let occluders = prepared.counts();
     let existing_standard = prepared.standard_count();

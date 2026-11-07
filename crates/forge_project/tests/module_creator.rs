@@ -598,6 +598,13 @@ fn gameplay(module: ModuleId, area: AreaId) -> GameplayDocument {
 }
 
 fn setup(key: &str) -> (PathBuf, FileWorkspaceSession, ModuleId, Vec<AreaId>) {
+    setup_with_raster(key, false)
+}
+
+fn setup_with_raster(
+    key: &str,
+    raster: bool,
+) -> (PathBuf, FileWorkspaceSession, ModuleId, Vec<AreaId>) {
     let root =
         std::env::temp_dir().join(format!("forge-module-creator-{key}-{}", std::process::id()));
     std::fs::create_dir(&root).unwrap();
@@ -627,7 +634,7 @@ fn setup(key: &str) -> (PathBuf, FileWorkspaceSession, ModuleId, Vec<AreaId>) {
     }
     let mut areas = Vec::new();
     for index in 0..2 {
-        let document = prepare_module_terrain(
+        let mut document = prepare_module_terrain(
             project,
             module,
             &format!("{key}-{index}"),
@@ -635,6 +642,17 @@ fn setup(key: &str) -> (PathBuf, FileWorkspaceSession, ModuleId, Vec<AreaId>) {
             NewTerrainSettings::default(),
         )
         .unwrap();
+        if raster {
+            let bytes = vec![0; 256 * 256 * 4];
+            let hash = forge_core::bytes_sha256(&bytes);
+            configure_raster(&mut document, hash);
+            forge_project::workspace::source_blobs::SourceBlobStore::open(
+                &root.join("workspace-v1"),
+            )
+            .unwrap()
+            .publish(hash, &bytes)
+            .unwrap();
+        }
         let area = document.area_id;
         let review = workspace.review_new_zone(module, document.clone()).unwrap();
         workspace
@@ -662,6 +680,132 @@ fn setup(key: &str) -> (PathBuf, FileWorkspaceSession, ModuleId, Vec<AreaId>) {
     }
     workspace.save().unwrap();
     (root, workspace, module, areas)
+}
+
+fn configure_raster(document: &mut forge_project::TerrainDocument, hash: forge_core::ContentHash) {
+    use forge_project::sampled_terrain::{
+        HeightEncoding, SAMPLED_TERRAIN_SCHEMA, SampledTerrainSource,
+    };
+    document.schema_version = 4;
+    document.extent_m = forge_project::TerrainExtent::new(512.0, 512.0);
+    document.height_sampling.algorithm = forge_project::HeightSamplingAlgorithm::SampledRasterV1;
+    document.height_sampling.sample_spacing_m = 2.0;
+    document.height_sampling.base_elevation_m = 0.0;
+    document.height_sampling.amplitude_m = 0.0;
+    document.height_sampling.base_frequency_cycles_per_m = 1.0;
+    document.height_sampling.octaves = 1;
+    document.height_sampling.lacunarity = 2.0;
+    document.height_sampling.persistence = 0.5;
+    document.sampled_source = Some(SampledTerrainSource {
+        schema: SAMPLED_TERRAIN_SCHEMA.into(),
+        schema_version: 1,
+        width: 256,
+        height: 256,
+        origin_xz_m: [-256.0; 2],
+        sample_spacing_m: 2.0,
+        outside_height_m: 0.0,
+        encoding: HeightEncoding::Float32Le,
+        samples_sha256: hash,
+    });
+}
+
+#[test]
+fn native_export_captures_shared_and_undo_only_sources_without_saving_or_repairing_them() {
+    use forge_project::workspace::source_blobs::SourceBlobStore;
+    let (root, mut workspace, module, areas) = setup_with_raster("export-sources", true);
+    let first = vec![0; 256 * 256 * 4];
+    let mut second = first.clone();
+    second[..4].copy_from_slice(&1_f32.to_le_bytes());
+    let first_hash = forge_core::bytes_sha256(&first);
+    let second_hash = forge_core::bytes_sha256(&second);
+    let blobs = SourceBlobStore::open_existing(&root.join("workspace-v1")).unwrap();
+    blobs.publish(second_hash, &second).unwrap();
+    for area in &areas {
+        let zone = workspace.read_zone(*area).unwrap();
+        let mut base = zone.head().base.clone();
+        configure_raster(&mut base.terrain, second_hash);
+        let request = zone
+            .head()
+            .prepare_regeneration(
+                base,
+                CommandId::deterministic(format!("export-sources/{area}")),
+            )
+            .unwrap();
+        let (review, _) = workspace
+            .preview_zone_edit(
+                *area,
+                &request,
+                CommandId::deterministic(format!("export-sources/root/{area}")),
+            )
+            .unwrap();
+        workspace
+            .apply_zone_edit(&review.request, &request)
+            .unwrap();
+    }
+    workspace.save().unwrap();
+    let head = workspace
+        .read_zone(areas[0])
+        .unwrap()
+        .head()
+        .content_hash()
+        .unwrap();
+    let expected = workspace.session().head().content_hash().unwrap();
+    let before = files(&root);
+    let snapshot = workspace
+        .module_export_snapshot(module, areas[0], head, expected)
+        .unwrap();
+    assert_eq!(snapshot.source_blobs.len(), 2);
+    assert_eq!(snapshot.source_blobs[&first_hash], first);
+    assert_eq!(snapshot.source_blobs[&second_hash], second);
+    assert_eq!(
+        snapshot.content_hash().unwrap(),
+        workspace.module_content_hash(module).unwrap()
+    );
+    assert_eq!(files(&root), before);
+    drop(workspace);
+    let mut host = AuthoringHost::new(&root).unwrap();
+    host.execute_workspace(W::Open).unwrap();
+    host.execute(A::OpenManaged { area_id: areas[0] }).unwrap();
+    let captured = host.module_export_snapshot(head, Some(expected)).unwrap();
+    assert_eq!(captured.source_blobs, snapshot.source_blobs);
+    assert_eq!(files(&root), before);
+    drop(host);
+
+    // The standalone route reads its own area's authority, not a same-hash
+    // managed store or any path supplied by a WebView request.
+    let standalone_root = root.join("standalone-export");
+    let legacy = standalone_root.join(areas[0].to_string());
+    std::fs::create_dir_all(&legacy).unwrap();
+    let store = forge_core::document_store::DocumentStore::open(&legacy).unwrap();
+    store.save(None, &snapshot.zones[0].bytes).unwrap();
+    drop(store);
+    let sources = SourceBlobStore::open(&legacy).unwrap();
+    sources.publish(first_hash, &first).unwrap();
+    sources.publish(second_hash, &second).unwrap();
+    let mut host = AuthoringHost::new(&standalone_root).unwrap();
+    host.execute(A::Open { area_id: areas[0] }).unwrap();
+    let before = files(&root);
+    let single = host.module_export_snapshot(head, None).unwrap();
+    assert_eq!(single.source_blobs, snapshot.source_blobs);
+    assert_eq!(single.zones.len(), 1);
+    assert_eq!(files(&root), before);
+    drop(host);
+
+    let damaged = root
+        .join("workspace-v1/source-blobs")
+        .join(format!("{first_hash}.bin"));
+    let workspace = FileWorkspaceSession::open(&root).unwrap();
+    std::fs::write(&damaged, &second).unwrap();
+    let before = files(&root);
+    assert!(
+        workspace
+            .module_export_snapshot(module, areas[0], head, expected)
+            .is_err()
+    );
+    assert_eq!(files(&root), before);
+    assert_eq!(std::fs::read(&damaged).unwrap(), second);
+    drop(workspace);
+    std::fs::remove_dir_all(root).unwrap();
 }
 
 fn definition(module: ModuleId) -> ModuleCreatorProfile {

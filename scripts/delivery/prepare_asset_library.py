@@ -13,6 +13,10 @@ import stat
 import time
 from pathlib import Path
 import subprocess
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "assets"))
+import vault_storage
 
 
 def digest(path):
@@ -36,7 +40,12 @@ def inventory(root, folder):
                 if stat.S_ISDIR(metadata.st_mode):
                     stack.append(path)
                 elif stat.S_ISREG(metadata.st_mode):
-                    entries.append(dict(path=path.relative_to(root).as_posix(), bytes=metadata.st_size))
+                    logical_bytes = metadata.st_size
+                    if path.suffix.lower() == '.glb':
+                        descriptor = vault_storage.read_descriptor(root, path, 16 * 1024**3)
+                        if descriptor is not None:
+                            logical_bytes = descriptor['bytes']
+                    entries.append(dict(path=path.relative_to(root).as_posix(), bytes=logical_bytes))
         if time.monotonic() - updated > 30:
             print(f"{folder.name}: {len(entries)} files inventoried", flush=True)
             updated = time.monotonic()

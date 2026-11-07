@@ -7,13 +7,18 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import ntpath
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
+import sys
+import tempfile
 
-from complete_rebuild import frontend_inputs, shared_source_inputs, source_inputs_equal
+from complete_rebuild import shared_source_inputs, source_inputs_equal
 import application_sources
+import runtime_notices
 
 
 def digest(path):
@@ -56,9 +61,11 @@ def run(executable, *args):
     return json.loads(result.stdout)
 
 
-def descriptor(id, label, kind, version, source_revision, product=None):
+def descriptor(id, label, kind, version, source_revision, product=None, *, platform='windows-x64'):
+    if platform not in ('windows-x64','linux-x64'):
+        raise ValueError('Unsupported application package platform')
     return dict(schema="forge.delivery.package.v1", id=id, label=label, version=version,
-                kind=kind, platform="windows-x64" if kind == "applications" else "any",
+                kind=kind, platform=platform if kind == "applications" else "any",
                 source_revision=source_revision, rights="private_local_only",
                 license_paths=["PROVENANCE.md"], files=[], product=product)
 
@@ -74,6 +81,382 @@ def package(cli, staging, delivery, d):
                 bytes=output.stat().st_size, rights=d["rights"], status="local_preview")
 
 
+def verify_package_stream(path, expected_descriptor, manifest_sha256, archive_sha256):
+    """Read every payload byte; the CLI's inspect operation checks only its header."""
+    path = Path(path)
+    application_sources.ordinary(path)
+    if not path.is_file():
+        raise ValueError('Package must be a physical file')
+    with path.open('rb') as stream:
+        if stream.read(8) != b'FORGEPK1':
+            raise ValueError('Package signature differs')
+        raw_size = stream.read(8)
+        if len(raw_size) != 8:
+            raise ValueError('Truncated package header')
+        size = int.from_bytes(raw_size, 'little')
+        if not 0 < size <= 64 * 1024 * 1024:
+            raise ValueError('Package manifest size exceeds its limit')
+        raw = stream.read(size)
+        if len(raw) != size or hashlib.sha256(raw).hexdigest() != manifest_sha256:
+            raise ValueError('Package manifest hash differs')
+        descriptor = json.loads(raw)
+        if descriptor != expected_descriptor:
+            raise ValueError('Package manifest differs from the pinned descriptor')
+        files = descriptor.get('files')
+        if not isinstance(files, list) or not 0 < len(files) <= 250_000:
+            raise ValueError('Invalid package inventory')
+        previous = ''
+        for entry in files:
+            if not isinstance(entry, dict) or set(entry) != {'path', 'bytes', 'sha256'}:
+                raise ValueError('Invalid package entry')
+            name = application_sources.relative(entry['path'])
+            length, pin = entry['bytes'], entry['sha256']
+            if (name <= previous or type(length) is not int or not 0 <= length <= 16 * 1024**3 or
+                    not isinstance(pin, str) or not re.fullmatch(r'[0-9a-f]{64}', pin)):
+                raise ValueError('Invalid or unordered package entry')
+            previous, remaining, hasher = name, length, hashlib.sha256()
+            while remaining:
+                block = stream.read(min(1024 * 1024, remaining))
+                if not block:
+                    raise ValueError(f'Truncated package file: {name}')
+                hasher.update(block)
+                remaining -= len(block)
+            if hasher.hexdigest() != pin:
+                raise ValueError(f'Package file hash differs: {name}')
+        if stream.read(1):
+            raise ValueError('Package contains trailing data')
+    if digest(path) != archive_sha256:
+        raise ValueError('Package archive hash differs')
+    return descriptor
+
+
+def verify_studio_notice_audit(repo, source, verified_kit, audit_path, audit_sha256):
+    """Tie the existing Studio metadata audit to this checkout and staged notice index."""
+    import game_kit
+    if not isinstance(audit_sha256, str) or not re.fullmatch(r'[0-9a-f]{64}', audit_sha256):
+        raise ValueError('Explicit Studio notice audit SHA-256 is required')
+    audit_path = game_kit.physical_file(audit_path)
+    if digest(audit_path) != audit_sha256:
+        raise ValueError('Studio notice audit pin differs')
+    audit = game_kit.read_document(audit_path)
+    inputs = audit.get('inputs_sha256_before')
+    if (audit.get('schema') != 'forge.gate7.studio-notice-scope-audit.v1' or
+            audit.get('changed_inputs') != [] or not isinstance(inputs, dict) or
+            inputs != audit.get('inputs_sha256_after') or
+            audit.get('index_sha256_matches_recalculation') is not True or
+            audit.get('distribution_qualified') is not False or audit.get('gate_closed') is not False):
+        raise ValueError('Studio notice audit is incomplete or claims qualification')
+    special = {'collector', 'index', 'recalculation_receipt', 'graph_receipt'}
+    for name, pin in inputs.items():
+        if name in special:
+            continue
+        relative = application_sources.relative(name)
+        path = game_kit.physical_file(repo / relative)
+        if digest(path) != pin or (name in source['files'] and source['files'][name]['sha256'] != pin):
+            raise ValueError(f'Studio notice audit input differs: {name}')
+    required = {'.cargo/config.toml', 'Cargo.toml', 'Cargo.lock', 'apps/forge_studio/Cargo.toml'}
+    if not required.issubset(inputs) or inputs.get('collector') != source.get('files', {}).get(
+            'scripts/tidewater/collect_rust_notices.py', {}).get('sha256'):
+        raise ValueError('Studio notice audit is not linked to its collector and Cargo inputs')
+    index_path = verified_kit.kit_root / 'licenses/rust-runtime-candidate/INDEX.json'
+    if (digest(index_path) != inputs.get('index') or
+            verified_kit.receipt.get('runtime_notices', {}).get('graph_receipt_sha256') != inputs.get('graph_receipt')):
+        raise ValueError('Studio notice audit does not match the kit notice chain')
+    index = game_kit.read_document(index_path)
+    supplemental_indices = (
+        game_kit.read_document(index_path.with_name('SUPPLEMENT-NOTICES.json')),
+        game_kit.read_document(index_path.with_name('FORGE-ORIGINAL-NOTICES.json')),
+    )
+    covered_ids = {item['package_id'] for notice_index in (index, *supplemental_indices)
+                   for item in notice_index.get('packages', []) if item.get('notices')}
+    results = audit.get('results')
+    if not isinstance(results, list) or len(results) != 2:
+        raise ValueError('Studio native and Web notice scopes are required')
+    unresolved = []
+    for target, features, request_features, no_default in (
+            ('x86_64-pc-windows-msvc', ['tauri/custom-protocol'], [], False),
+            ('wasm32-unknown-unknown', ['web'], ['forge_studio/web'], True)):
+        matches = [item for item in results if isinstance(item, dict) and item.get('target') == target]
+        requests = [item for item in index.get('requests', []) if item.get('package') == 'forge_studio' and
+                    item.get('target') == target and item.get('features') == request_features and
+                    item.get('no_default_features') is no_default and item.get('include_root_dev') is False]
+        if len(matches) != 1 or len(requests) != 1:
+            raise ValueError('Studio notice scope is missing or ambiguous')
+        result, request = matches[0], requests[0]
+        ids = request.get('package_ids')
+        if not isinstance(ids, list) or not ids or len(ids) != len(set(ids)):
+            raise ValueError('Studio notice inventory IDs are invalid')
+        ids_sha = hashlib.sha256(json.dumps(sorted(ids)).encode()).hexdigest()
+        missing_notices = sorted(set(ids) - covered_ids)
+        if (Path(request.get('manifest', '')).resolve() != repo / 'Cargo.toml' or
+                Path(result.get('manifest', '')).resolve() != repo / 'apps/forge_studio/Cargo.toml' or
+                result.get('features') != features or result.get('index_request_features') != request_features or
+                result.get('no_default_features') is not no_default or result.get('include_root_dev') is not False or
+                result.get('ids_equal') is not True or result.get('resolved_only') != [] or
+                result.get('index_only') != [] or result.get('resolved_ids_missing_from_bundle') != [] or
+                result.get('resolved_package_count') != len(ids) or result.get('index_package_count') != len(ids) or
+                result.get('resolved_ids_sha256') != ids_sha or result.get('index_ids_sha256') != ids_sha or
+                result.get('unresolved_identity_cases') != missing_notices):
+            raise ValueError('Studio notice scope does not match the pinned index')
+        unresolved.extend(missing_notices)
+    return {'audit_sha256': audit_sha256, 'index_sha256': inputs['index'],
+            'unresolved_identity_cases': sorted(unresolved), 'asset_rights_qualified': False,
+            'distribution_qualified': False}
+
+
+def verify_linux_studio_notice_audit(repo, source, verified_kit, audit_path, audit_sha256, graph_path, observed):
+    """Bind the existing notice audit to this ZIP, then replay both native Linux closures offline."""
+    import game_kit
+    if not isinstance(audit_sha256,str) or not re.fullmatch(r'[0-9a-f]{64}',audit_sha256):
+        raise ValueError('Explicit Linux Studio notice audit SHA-256 is required')
+    audit_path=game_kit.physical_file(audit_path)
+    if digest(audit_path) != audit_sha256:
+        raise ValueError('Linux Studio notice audit pin differs')
+    audit=game_kit.read_document(audit_path)
+    pins=audit.get('cargo_input_sha256_before')
+    notices=verified_kit.receipt.get('runtime_notices',{})
+    index_path=verified_kit.kit_root/'licenses/rust-runtime-candidate/INDEX.json'
+    graph_path=game_kit.physical_file(graph_path)
+    if (audit.get('schema') != 'forge.gate7.linux-studio-cli-notice-preflight.v1' or
+            audit.get('passed') is not True or audit.get('distribution_qualified') is not False or
+            audit.get('gate_closed') is not False or audit.get('linux_snapshot_or_cargo_replayed') is not False or
+            not isinstance(pins,dict) or not pins or pins != audit.get('cargo_input_sha256_after') or
+            audit.get('candidate_sha256') != notices.get('candidate_receipt_sha256') or
+            audit.get('graph_sha256') != notices.get('graph_receipt_sha256') or
+            audit.get('graph_sha256') != digest(graph_path) or audit.get('index_sha256') != digest(index_path) or
+            audit.get('runtime_notices_sha256') != source.get('files',{}).get('scripts/delivery/runtime_notices.py',{}).get('sha256')):
+        raise ValueError('Linux Studio notice audit does not match the pinned candidate')
+    for name, pin in pins.items():
+        application_sources.relative(name)
+        if (source.get('files',{}).get(name,{}).get('sha256') != pin or
+                runtime_notices.sha(runtime_notices._snapshot_file(repo,source,name)) != pin):
+            raise ValueError(f'Linux Studio notice source pin differs: {name}')
+    index=game_kit.read_document(index_path); graph=game_kit.read_document(graph_path)
+    scopes=audit.get('scopes')
+    if not isinstance(scopes,dict):
+        raise ValueError('Linux Studio notice scopes are missing')
+    original=source.get('repository')
+    windows_origin=isinstance(original,str) and bool(ntpath.splitdrive(original)[0])
+    if not isinstance(original,str) or not original:
+        raise ValueError('Linux snapshot original source root is missing')
+    specifications=(
+        ('studio-custom-protocol','forge_studio','x86_64-unknown-linux-gnu',['tauri/custom-protocol'],False,'Cargo.toml'),
+        ('delivery-cli','forge_delivery','x86_64-unknown-linux-gnu',[],False,'tools/forge_delivery/Cargo.toml'),
+        ('studio-wasm','forge_studio','wasm32-unknown-unknown',['forge_studio/web'],True,'Cargo.toml'),
+        ('launcher-standalone','forge_launcher_prototype','x86_64-unknown-linux-gnu',['standalone'],False,
+         'apps/forge_launcher/Cargo.toml'))
+    for role,package,target,features,no_default,cargo_manifest in specifications:
+        scope=scopes.get(role,{})
+        expected_manifest=(ntpath.join(original,*cargo_manifest.split('/')) if windows_origin else
+                           str(Path(original)/cargo_manifest))
+        actual_manifest=scope.get('manifest')
+        same_manifest=(isinstance(actual_manifest,str) and
+            (ntpath.normcase(ntpath.normpath(actual_manifest)) == ntpath.normcase(ntpath.normpath(expected_manifest))
+             if windows_origin else actual_manifest == expected_manifest))
+        ids=scope.get('package_ids')
+        matches=[request for request in index.get('requests',[]) if isinstance(request,dict) and
+                 request.get('package') == package and request.get('target') == target and
+                 request.get('features') == features and request.get('no_default_features') is no_default and
+                 request.get('include_root_dev') is False]
+        command=['cargo','metadata','--manifest-path',actual_manifest,'--format-version','1','--locked','--offline',
+                 '--filter-platform',target]
+        if features: command += ['--features',','.join(features)]
+        if no_default: command.append('--no-default-features')
+        if (not same_manifest or scope.get('package') != package or scope.get('target') != target or
+                scope.get('features') != features or scope.get('no_default_features') is not no_default or
+                scope.get('metadata_command') != command or not isinstance(ids,list) or not ids or
+                len(ids) != len(set(ids)) or scope.get('package_count') != len(ids) or
+                scope.get('package_ids_sha256') != hashlib.sha256(json.dumps(sorted(ids)).encode()).hexdigest() or
+                len(matches) != 1 or set(matches[0].get('package_ids',[])) != set(ids)):
+            raise ValueError(f'Linux Studio notice scope differs: {role}')
+    registry=Path(observed['cargo_home'])/'registry'; target=Path(observed['cargo_target'])
+    if (not game_kit.linux_build_evidence.physical(registry) or not registry.is_dir() or
+            not game_kit.linux_build_evidence.physical(target) or not target.is_dir()):
+        raise ValueError('Linux Studio notice replay needs the original Cargo registry and target')
+    env={key:value for key,value in os.environ.items() if not key.upper().startswith(
+        ('CARGO_','RUSTC','RUSTDOC','RUSTFLAGS','RUSTUP_TOOLCHAIN'))}
+    env.update(CARGO_HOME=str(registry.parent),CARGO_TARGET_DIR=str(target),CARGO_NET_OFFLINE='true')
+    replay={}
+    for role,package,features,cargo_manifest in (
+            ('studio-custom-protocol','forge_studio',['tauri/custom-protocol'],'Cargo.toml'),
+            ('delivery-cli','forge_delivery',[],'tools/forge_delivery/Cargo.toml')):
+        replay[role]=runtime_notices._linux_notice_scope(repo,source,graph,index,original,windows_origin,env,
+            name=role,package=package,cargo_manifest=cargo_manifest,features=features,no_default=False)
+        if replay[role]['captured_package_ids_sha256'] != scopes[role]['package_ids_sha256']:
+            raise ValueError(f'Linux Studio notice replay differs: {role}')
+    if digest(audit_path) != audit_sha256 or digest(graph_path) != audit['graph_sha256'] or digest(index_path) != audit['index_sha256']:
+        raise ValueError('Linux Studio notice evidence changed during replay')
+    return {'audit_sha256':audit_sha256,'index_sha256':audit['index_sha256'],
+            'native_linux_offline_replay':replay,'wasm_scope':'pinned-preflight',
+            'asset_rights_qualified':False,'distribution_qualified':False}
+
+
+def studio_product(platform='windows-x64'):
+    if platform not in ('windows-x64','linux-x64'):
+        raise ValueError('Unsupported Studio platform')
+    suffix = '' if platform == 'linux-x64' else '.exe'
+    return {'schema':'forge.delivery.product.v3', 'id':'openrpg-forge', 'title':'OpenRPG Forge Studio',
+            'apps':{'editor':{'executable':'bin/forge-studio'+suffix, 'args':[], 'env':{
+                'FORGE_AUTHORING_ROOT':'{workspace}',
+                'FORGE_NATIVE_GAME_EXECUTABLE':'{app}/bin/game-export-kit/bin/forge-module'+suffix,
+                'FORGE_NATIVE_GAME_CONTENT_ROOT':'{app}/bin/game-export-kit',
+                'FORGE_NATIVE_GAME_SESSION_ROOT':'{user}/game-sessions',
+                'OPENRPG_ASSET_VAULT':'{pack:asset-library}'},
+                'clear_env_prefixes':['FORGE_AUTHORING_', 'FORGE_TIDEWATER_', 'FORGE_NATIVE_GAME_',
+                                      'FORGE_MODULE_ASSET_', 'OPENRPG_ASSET_VAULT', 'WEBVIEW2_']}},
+            'required_packs':[], 'optional_packs':['asset-library', 'reference-assets'], 'authoring_seed':None}
+
+
+def assemble_studio_only(args, *, repo=None):
+    """Stage a private editor package from platform-matched build receipts."""
+    import game_kit
+    platform=getattr(args,'platform','windows-x64')
+    if platform not in ('windows-x64','linux-x64'):
+        raise ValueError('Unsupported Studio platform')
+    repo = (repo or Path(__file__).resolve().parents[2]).resolve(strict=True)
+    output = Path(args.output)
+    if (not output.is_absolute() or '..' in output.parts or not output.parent.is_dir() or
+            output.exists() or output.is_symlink() or output.parent.resolve().is_relative_to(repo)):
+        raise ValueError('Choose a fresh absolute output outside the checkout')
+    application_sources.ordinary(output.parent)
+    if not isinstance(args.version, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}', args.version):
+        raise ValueError('Studio package version is invalid')
+    source_path = game_kit.physical_file(args.source_manifest)
+    cli = game_kit.physical_file(args.delivery_cli)
+    cli_proof_path = game_kit.physical_file(args.delivery_cli_proof)
+    studio = game_kit.physical_file(args.studio)
+    studio_proof = game_kit.physical_file(args.studio_proof)
+    for value in (args.delivery_cli_proof_sha256, args.studio_proof_sha256, args.kit_receipt_sha256):
+        if not isinstance(value, str) or not re.fullmatch(r'[0-9a-f]{64}', value):
+            raise ValueError('Explicit lowercase SHA-256 receipt pins are required')
+    linux_fields=('linux_source_zip','linux_started','linux_capture_receipt','linux_started_sha256','linux_capture_sha256')
+    linux_values=[getattr(args,name,None) for name in linux_fields]
+    if (platform == 'linux-x64' and (sys.platform != 'linux' or not all(linux_values))) or \
+            (platform == 'windows-x64' and any(linux_values)):
+        raise ValueError('Linux Studio packaging requires its native ZIP, launch and capture receipts')
+    linux_context=({'source_zip':args.linux_source_zip,'started_path':args.linux_started,
+                    'capture_path':args.linux_capture_receipt,'started_sha256':args.linux_started_sha256,
+                    'capture_sha256':args.linux_capture_sha256} if platform == 'linux-x64' else None)
+
+    def check_inputs():
+        source_hash = digest(source_path)
+        source = game_kit.read_document(source_path)
+        if platform == 'linux-x64':
+            if (source.get('schema') != 'forge.gate7.vm-source-snapshot.v1' or
+                    cli_proof_path != studio_proof or args.delivery_cli_proof_sha256 != args.studio_proof_sha256 or
+                    source_path != studio_proof.parent/'source-manifest.json' or
+                    cli != studio_proof.parent/'forge_delivery' or studio != studio_proof.parent/'forge-studio'):
+                raise ValueError('Linux Studio and delivery service must use the same verified run')
+            if digest(cli_proof_path) != args.delivery_cli_proof_sha256:
+                raise ValueError('Native build proof pin differs')
+            reader=runtime_notices._snapshot_module(repo,source,'scripts/gate6/capture_inputs.py',
+                                                     'forge_linux_delivery_snapshot_capture')
+            runtime_notices._verify_extracted_snapshot(repo,source,reader)
+            observed=game_kit.linux_build_evidence.verify_linux_studio(studio_proof.parent,args.linux_source_zip,
+                args.linux_started,args.linux_capture_receipt,expected_result_sha256=args.studio_proof_sha256,
+                expected_started_sha256=args.linux_started_sha256,expected_capture_sha256=args.linux_capture_sha256,
+                expected_kit_receipt_sha256=args.kit_receipt_sha256)
+            game_kit.linux_build_evidence.linux_elf_x64(cli)
+            game_kit.linux_build_evidence.linux_elf_x64(studio,require_executable=False)
+            if (observed['source_manifest_sha256'] != source_hash or observed['studio_sha256'] != digest(studio) or
+                    observed['delivery_cli_sha256'] != digest(cli)):
+                raise ValueError('Linux Studio or delivery executable differs from its build proof')
+            verified=game_kit.read_assembled(args.kit_root,args.kit_receipt_sha256,source_hash,
+                                             expected_platform=game_kit.LINUX_PLATFORM)
+            audit=verify_linux_studio_notice_audit(repo,source,verified,args.studio_notice_audit,
+                args.studio_notice_audit_sha256,studio_proof.parent/'linux-kit-notice-graph.json',observed)
+            return source_hash,observed['delivery_cli_sha256'],verified,audit
+        if (source.get('schema') != 'forge.delivery.shared-source-inputs.v1' or
+                Path(source.get('source_root', '')).resolve() != repo or
+                not source_inputs_equal(shared_source_inputs(repo), source)):
+            raise ValueError('Current shared source inventory required')
+        if digest(cli_proof_path) != args.delivery_cli_proof_sha256 or digest(studio_proof) != args.studio_proof_sha256:
+            raise ValueError('Native build proof pin differs')
+        proof = game_kit.read_document(cli_proof_path)
+        validate_shared_native_application(repo, cli, proof, source_hash)
+        command = proof.get('commands')
+        expected = ['cargo', 'build', '--manifest-path', str(repo / 'tools/forge_delivery/Cargo.toml'),
+                    '--bin', 'forge_delivery', '--release', '--locked', '--offline', '-j']
+        if (proof.get('application_role') != 'delivery-cli' or proof.get('profile') != 'release' or
+                proof.get('built_executable_sha256') != proof['executable_sha256'] or
+                proof.get('orchestrator_sha256') != source.get('files', {}).get(
+                    'scripts/delivery/complete_rebuild.py', {}).get('sha256') or
+                not isinstance(command, list) or len(command) != 1 or
+                command[0].get('cwd') != str(repo / 'tools/forge_delivery') or
+                command[0].get('arguments', [])[:-1] != expected or
+                not str(command[0].get('arguments', [])[-1:][0] if command[0].get('arguments') else '').isdigit() or
+                not 1 <= int(command[0]['arguments'][-1]) <= 64):
+            raise ValueError('Delivery CLI build proof does not match the dedicated release stage')
+        game_kit.require_windows_x64_executable(cli)
+        verified = game_kit.read_assembled(args.kit_root, args.kit_receipt_sha256, source_hash)
+        audit = verify_studio_notice_audit(repo, source, verified, args.studio_notice_audit,
+                                           args.studio_notice_audit_sha256)
+        registry = getattr(args, 'cargo_cache', None)
+        if registry is None:
+            raise ValueError('Windows Studio packaging requires the delivery build Cargo registry')
+        replay = runtime_notices.windows_delivery_cli_scope(repo, source, registry,
+            verified.kit_root / 'licenses/rust-runtime-candidate/INDEX.json')
+        built_home = proof.get('build_environment', {}).get('CARGO_HOME')
+        if not isinstance(built_home, str) or Path(built_home).resolve() != Path(replay['cargo_home']):
+            raise ValueError('Windows delivery notice registry differs from its build Cargo home')
+        audit['windows_delivery_cli_offline_replay'] = replay
+        return source_hash, proof['executable_sha256'], verified, audit
+
+    before = check_inputs()
+    temp = Path(tempfile.mkdtemp(prefix='.forge-game-kit-', dir=output.parent.resolve()))
+    try:
+        work, payload = temp / 'applications', temp / 'payload'
+        bins = work / 'bin'
+        bins.mkdir(parents=True)
+        payload.mkdir()
+        suffix='' if platform == 'linux-x64' else '.exe'
+        copy(studio, bins / ('forge-studio'+suffix))
+        adjacent = game_kit.stage_studio_adjacent(args.kit_root, studio, studio_proof, source_path,
+                    args.kit_receipt_sha256, args.studio_proof_sha256, bins, repo=repo,
+                    expected_platform=platform,linux_context=linux_context)
+        (work / 'PROVENANCE.md').write_text(
+            'Private local preparation. Runtime, installation, asset rights and redistribution are not qualified.\n',
+            encoding='utf-8')
+        description = descriptor('forge-studio', 'OpenRPG Forge Studio', 'applications', args.version,
+                                 before[0], studio_product(platform),platform=platform)
+        description['license_paths'] += ['bin/game-export-kit/' + name for name in before[2].manifest['license_paths']]
+        package_entry = package(cli, work, payload, description)
+        packed = game_kit.read_document(payload / 'forge-studio.manifest.json')
+        expected = {**description, 'files': game_kit.inventory(work)}
+        verify_package_stream(payload / package_entry['file'], expected, package_entry['manifest_sha256'],
+                              package_entry['archive_sha256'])
+        if packed != expected:
+            raise ValueError('Reported package descriptor differs from staged Studio')
+        delivery_path=payload / ('forge-delivery'+suffix)
+        copy(cli, delivery_path)
+        if platform == 'linux-x64':
+            os.chmod(delivery_path,0o755)
+        if digest(delivery_path) != before[1]:
+            raise ValueError('Staged delivery CLI differs')
+        write(payload / 'delivery.json', {'schema':'forge.delivery.index.v1', 'packages':[package_entry]})
+        assembly_receipt={
+            'schema':'forge.delivery.private-studio-assembly.v1', 'status':'PRIVATE_STAGED_ONLY',
+            'source_manifest_sha256':before[0], 'delivery_cli_sha256':before[1],
+            'delivery_cli_proof_sha256':args.delivery_cli_proof_sha256,
+            'studio_proof_sha256':args.studio_proof_sha256, 'kit_assembly_receipt_sha256':args.kit_receipt_sha256,
+            'notice_audit':before[3], 'adjacent_kit':adjacent, 'package':package_entry,
+            'runtime_verified':False, 'installation_verified':False, 'distribution_qualified':False}
+        if platform == 'linux-x64':
+            assembly_receipt['platform']=platform
+        write(payload / 'studio-assembly-receipt.json', assembly_receipt)
+        if check_inputs() != before or game_kit.inventory(work) != expected['files']:
+            raise ValueError('Inputs changed during Studio package preparation')
+        if output.exists() or output.is_symlink():
+            raise ValueError('Studio package output appeared during assembly')
+        os.rename(payload, output)
+        return {'schema':'forge.delivery.private-studio-assembly-result.v1',
+                'receipt_sha256':digest(output / 'studio-assembly-receipt.json'),
+                'package_sha256':package_entry['archive_sha256'], 'distribution_qualified':False}
+    finally:
+        if temp.exists():
+            game_kit.cleanup_owned(temp, temp.parent)
+
+
 def covers_source_scope(manifest, scope):
     scopes = [value.rstrip('/') for value in manifest.get('scope', [])]
     declared = any(scope == value or scope.startswith(value + '/') for value in scopes)
@@ -83,289 +466,33 @@ def covers_source_scope(manifest, scope):
     return declared and f'{scope}/Cargo.toml' in files
 
 
-def validate_shared_applications(args, manifest, applications, launcher_proof):
-    repo = Path(__file__).resolve().parents[2]
-    if (manifest.get('schema') != 'forge.delivery.shared-source-inputs.v1' or
-            Path(manifest.get('source_root', '')).resolve() != repo or
-            not source_inputs_equal(shared_source_inputs(repo), manifest)):
-        raise ValueError('Application sources differ from the shared input receipt')
-    manifest_hash = digest(args.source_manifest)
-    for executable, proof in applications:
-        if (proof.get('schema') != 'forge.delivery.native-build.v1' or
-                proof.get('status') != 'BUILD_ONLY' or not proof.get('shared_working_tree') or
-                proof.get('source_root') != str(repo) or
-                not proof.get('source_stable_during_build') or
-                proof.get('source_manifest_sha256') != manifest_hash or
-                Path(proof.get('executable', '')).resolve() != executable.resolve() or
-                proof.get('executable_sha256') != digest(executable)):
-            raise ValueError('Current Studio/Game receipt required; historical application refused')
-    if (not launcher_proof.get('shared_working_tree') or
-            launcher_proof.get('source_root') != str(repo) or
-            launcher_proof.get('status') != 'BUILD_ONLY' or not launcher_proof.get('production') or
-            not launcher_proof.get('source_stable_during_build') or
-            launcher_proof.get('source_manifest_sha256') != manifest_hash or
-            launcher_proof.get('current_source_manifest_sha256') != manifest_hash):
-        raise ValueError('Launcher/Hub/CLI must have a current shared build receipt')
-    for name, executable in [('forge-launcher.exe', args.launcher), ('forge-hub.exe', args.hub),
-                             ('forge-delivery.exe', args.delivery_cli)]:
-        if (launcher_proof.get('outputs', {}).get(name) != digest(executable) or
-                Path(launcher_proof.get('output_paths', {}).get(name, '')).resolve() != executable.resolve()):
-            raise ValueError(f'Current shared native output changed: {name}')
-    for scope in ('apps/forge_launcher', 'apps/forge_hub', 'tools/forge_delivery'):
-        if not covers_source_scope(manifest, scope):
-            raise ValueError(f'Shared source manifest does not cover {scope}')
-    launcher_frontend = repo / 'apps/forge_launcher/dist'
-    if (launcher_proof.get('frontend') != str(launcher_frontend) or
-            launcher_proof.get('frontend_pins') != frontend_inputs(launcher_frontend)):
-        raise ValueError('Aube production frontend differs from the embedded build inputs')
-    studio_proof = applications[1][1]
-    frontend = repo / 'apps/forge_studio/dist'
-    if (studio_proof.get('frontend') != str(frontend) or
-            studio_proof.get('frontend_pins') != frontend_inputs(frontend)):
-        raise ValueError('Canonical Studio frontend differs from the embedded build inputs')
-    static_receipt = frontend / 'forge-studio-local-assets-manifest.json'
-    receipt = json.loads(static_receipt.read_text(encoding='utf-8-sig'))
-    staged = {entry['path']: entry['sha256'] for entry in frontend_inputs(frontend)
-              if entry['path'].startswith(('forge-imports/', 'forge-kit/'))}
-    imports = sum(name.startswith('forge-imports/') for name in staged)
-    kit = sum(name.startswith('forge-kit/') for name in staged)
-    if (receipt.get('schema') != 'forge.studio.local-assets.v1' or
-            receipt.get('status') != 'STAGED' or not receipt.get('assets_present') or
-            not receipt.get('source_unchanged_during_staging') or
-            not receipt.get('destination_verified') or receipt.get('files') != staged or
-            receipt.get('import_files') != imports or receipt.get('kit_files') != kit or
-            not imports or not kit):
-        raise ValueError('Complete authenticated Studio static assets are required for installation')
-    static_manifest = Path(receipt['asset_root']) / 'frontend-static-inputs.json'
-    if digest(static_manifest) != receipt.get('source_manifest_sha256'):
-        raise ValueError('Studio static source manifest differs from its staging receipt')
+def validate_shared_native_application(repo, executable, proof, manifest_hash):
+    if (proof.get('schema') != 'forge.delivery.native-build.v1' or
+            proof.get('status') != 'BUILD_ONLY' or not proof.get('shared_working_tree') or
+            proof.get('source_root') != str(repo) or
+            not proof.get('source_stable_during_build') or
+            proof.get('source_manifest_sha256') != manifest_hash or
+            Path(proof.get('executable', '')).resolve() != executable.resolve() or
+            proof.get('executable_sha256') != digest(executable)):
+        raise ValueError('Current application receipt required; historical or mismatched binary refused')
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--delivery-cli", required=True, type=Path)
-    parser.add_argument("--hub", required=True, type=Path)
-    parser.add_argument("--launcher", required=True, type=Path, help="Actual Aube production launcher, distinct from the content manager")
-    parser.add_argument("--aube-proof", required=True, type=Path, help="Production installed-launcher build proof; portable launchers are not installation adapters")
-    parser.add_argument("--studio", required=True, type=Path)
-    parser.add_argument("--studio-proof", required=True, type=Path)
-    parser.add_argument("--playtest", required=True, type=Path)
-    parser.add_argument("--runtime", type=Path, help="Explicit freshly rebuilt game; defaults to the playtest runtime")
-    parser.add_argument("--source-manifest", type=Path, help="Hash-pinned build input inventory")
-    parser.add_argument("--runtime-proof", type=Path)
-    parser.add_argument("--launcher-proof", type=Path)
-    parser.add_argument("--area-id")
-    parser.add_argument("--webview2", required=True, type=Path)
-    parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--version", default="0.1.0-preview.20261008")
-    parser.add_argument("--source-revision", required=True)
-    parser.add_argument("--cargo-cache", type=Path,
-                        help="Cargo registry root for pinned application sources; required for shared assembly, offline only")
-    mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument('--shared-working-tree', action='store_true')
-    mode.add_argument('--frozen-archive', action='store_true', help='Historical assembly inputs only')
-    args = parser.parse_args()
-    assemble(args)
-
-
-def assemble(args):
-    if args.shared_working_tree and not all((args.runtime, args.runtime_proof,
-                                           args.source_manifest, args.launcher_proof)):
-        raise ValueError('Shared assembly requires current Game, Studio and launcher build receipts')
-    source_bundle = (application_sources.prepare_for_assembly(args, Path(__file__).resolve().parents[2])
-                     if args.shared_working_tree else None)
-    aube_proof = json.loads(args.aube_proof.read_bytes())
-    aube_sources = args.aube_proof.parent / "source-inputs.json"
-    if (aube_proof.get("outputs", {}).get("forge-launcher.exe") != digest(args.launcher) or
-        not aube_proof.get("source_stable_during_build") or
-        aube_proof.get("source_manifest_sha256") != digest(aube_sources) or
-        not covers_source_scope(json.loads(aube_sources.read_bytes()), "apps/forge_launcher")):
-        raise ValueError("Installed Aube launcher does not match its source build proof")
-    runtime = args.runtime or args.playtest / "runtime/tidewater.exe"
-    if args.runtime and (not args.runtime_proof or not args.source_manifest):
-        raise ValueError("A rebuilt runtime requires its proof and source manifest")
-    if args.runtime_proof:
-        runtime_proof = json.loads(args.runtime_proof.read_bytes())
-        if digest(runtime) != runtime_proof["executable_sha256"].lower():
-            raise ValueError("Game does not match its build proof")
-    args.output = args.output.absolute()
-    if args.output.exists():
-        raise ValueError("Output exists; choose a new delivery revision")
-    proof = json.loads(args.studio_proof.read_bytes())
-    if digest(args.studio) != proof["executable_sha256"].lower():
-        raise ValueError("Studio does not match its build proof")
-    if args.runtime:
-        source_manifest_hash = digest(args.source_manifest)
-        source_manifest = json.loads(args.source_manifest.read_bytes())
-        if source_manifest["head"] != args.source_revision:
-            raise ValueError("Source revision differs from the frozen manifest")
-        for build in (runtime_proof, proof):
-            if (build.get("schema") != "forge.delivery.native-build.v1" or
-                build.get("status") != "BUILD_ONLY" or not build.get("source_stable_during_build") or
-                build.get("source_manifest_sha256") != source_manifest_hash):
-                raise ValueError("Rebuilt application proof does not match the frozen sources")
-    if args.launcher_proof:
-        launcher_proof = json.loads(args.launcher_proof.read_bytes())
-        if (launcher_proof.get("current_source_manifest_sha256") != digest(args.source_manifest) or
-            launcher_proof["outputs"]["forge-hub.exe"] != digest(args.hub) or
-            launcher_proof["outputs"]["forge-delivery.exe"] != digest(args.delivery_cli)):
-            raise ValueError("Launcher/installer build proof mismatch")
-    if args.shared_working_tree:
-        if aube_proof != launcher_proof or digest(aube_sources) != digest(args.source_manifest):
-            raise ValueError('All installed applications must use the same shared source manifest')
-        validate_shared_applications(args, source_manifest,
-                                     [(runtime, runtime_proof), (args.studio, proof)], launcher_proof)
-    launcher_check = subprocess.run([str(args.launcher), "--verify-distributable"], capture_output=True, text=True)
-    if launcher_check.returncode or "FORGE_LAUNCHER_AUBE_FRONTEND_READY" not in launcher_check.stdout or digest(args.launcher) == digest(args.hub):
-        raise ValueError("An embedded Aube launcher distinct from the Hub is required")
-    markers = ["data/scene/fixture.json", "data/scene/LICENSE-Tidewater.txt",
-               "data/scene/CREDITS-Tidewater.md", "data/workspace", "licenses"]
-    if not args.runtime:
-        markers.append('runtime/tidewater.exe')
-    for marker in markers:
-        if not (args.playtest / marker).exists():
-            raise ValueError(f"Missing runtime input: {marker}")
-    module_catalog = args.playtest / "data/scene/static-assets.json"
-    if not module_catalog.is_file():
-        raise ValueError(f"Missing regular Studio module asset catalog: {module_catalog}")
-    regular(module_catalog)
-    args.output.mkdir(parents=True)
-    work = args.output / "build-inputs"
-    work.mkdir()
-    assets = work / "assets"
-    assets.mkdir()
-    for path in sorted((args.playtest / "data").iterdir()):
-        if path.name != "workspace":
-            copy(path, assets / "data" / path.name)
-    copy(args.playtest / "content", assets / "content")
-    copy(args.playtest / "licenses", assets / "licenses")
-    (assets / "PROVENANCE.md").write_text(
-        "# Assets de la scène de référence\n\nSnapshot local des données et crédits du playtest existant.\n"
-        f"Source : {args.playtest.name}\nRévision de livraison : {args.source_revision}\n"
-        "Les licences et métadonnées originales sont conservées.\n"
-        "Droits de redistribution globale : non qualifiés ; utilisation privée locale.\n", encoding="utf-8")
-    asset_entry = package(args.delivery_cli, assets, args.output,
-                          descriptor("reference-assets", "Assets de l’aventure de référence", "assets", args.version, args.source_revision))
-    module = work / "module"
-    module.mkdir()
-    copy(args.playtest / "data/workspace", module / "workspace")
-    (module / "PROVENANCE.md").write_text(
-        "# Sources authorées du module\n\nCopie immuable de l’autorité workspace existante.\n"
-        "Création d’une copie utilisateur une seule fois lors de l’installation ; mises à jour sans écrasement des retouches.\n"
-        "Les sauvegardes personnelles sont exclues. Le module conserve IDs, journaux et archives d’auteur.\n", encoding="utf-8")
-    module_entry = package(args.delivery_cli, module, args.output,
-                           descriptor("reference-module", "Module de référence", "module", args.version, args.source_revision))
-    core = work / "applications"
-    core.mkdir()
-    copy(args.delivery_cli, core / "bin/forge-delivery.exe")
-    copy(args.hub, core / "bin/forge-hub.exe")
-    copy(args.launcher, core / "bin/forge-launcher.exe")
-    copy(args.aube_proof, core / "provenance/aube-build-proof.json")
-    copy(args.studio, core / "bin/forge-studio.exe")
-    copy(runtime, core / "bin/forge-game.exe")
-    copy(args.studio_proof, core / "provenance/studio-build-proof.json")
-    if args.runtime_proof:
-        copy(args.runtime_proof, core / "provenance/game-build-proof.json")
-    if args.source_manifest:
-        copy(args.source_manifest, core / "provenance/source-inputs.json")
-    if args.launcher_proof:
-        copy(args.launcher_proof, core / "provenance/launcher-build-proof.json")
-    if args.shared_working_tree:
-        receipt = Path(proof['frontend']) / 'forge-studio-local-assets-manifest.json'
-        copy(receipt, core / 'provenance/studio-local-assets-manifest.json')
-        static_manifest = Path(json.loads(receipt.read_text(encoding='utf-8-sig'))['asset_root']) / 'frontend-static-inputs.json'
-        copy(static_manifest, core / 'provenance/studio-static-inputs.json')
-    copy(args.playtest / "licenses", core / "licenses")
-    source_receipt = (application_sources.stage_sources(source_bundle, core)
-                      if source_bundle is not None else None)
-    (core / "PROVENANCE.md").write_text(
-        "# Applications natives de la livraison locale\n\n"
-        "Launcher : L’Aube des royaumes. Hub : gestionnaire de contenu séparé. Studio et jeu sont identifiés par leurs preuves de build.\n"
-        "Jeu natif : promenade Tidewater existante, pas la qualification de l’aventure RPG Gate 3.\n"
-        "La compilation et le packaging ne constituent pas une qualification de release.\n"
-        "Windows x64 et WebView2 sont requis. Aucun Cargo, Node ou Python requis côté client.\n", encoding="utf-8")
-    data = "{pack:reference-assets}/data"
-    content = "{pack:reference-assets}/content"
-    scene = json.loads((assets / "data/scene/fixture.json").read_bytes())
-    areas = []
-    for terrain in sorted((module / "workspace").glob("*/authoring.json")):
-        document = json.loads(terrain.read_bytes())
-        area_id = document.get("head", {}).get("base", {}).get("terrain", {}).get("area_id")
-        if area_id:
-            if area_id != terrain.parent.name:
-                raise ValueError("Authoring area identity differs from its directory")
-            areas.append(area_id)
-    if args.area_id:
-        if args.area_id not in areas:
-            raise ValueError("Requested authoring area missing from the module")
-        area = args.area_id
-    elif len(areas) == 1:
-        area = areas[0]
-    else:
-        raise ValueError("Select one authoring area explicitly with --area-id")
-    # The current native entry-point ABI lives in this recipe, never in installer code.
-    building_pin = digest(assets / 'data/buildings/package.json') if args.shared_working_tree else "a53b6987563b0b0d5bb5b9113e1c3f27142baf53658a9e1a78338854f99599e6"
-    launch = dict(executable="bin/forge-game.exe", args=[f"{data}/scene", "{user}/captures/game-{session}.png",
-                  "--water-spray-clouds", f"{data}/ocean", f"{data}/shore", f"{data}/spray", f"{data}/clouds",
-                  "--workspace-vegetation", "{workspace}", area, "--building-package", f"{data}/buildings", building_pin, "--walk"],
-                  env={"FORGE_TIDEWATER_DEBRIS_ROOT":f"{content}/debris/procedural",
-                       "FORGE_TIDEWATER_SCANNED_ROOT":f"{content}/debris/scanned",
-                       "FORGE_TIDEWATER_GAME_FISH_ROOT":f"{content}/fish/game",
-                       "FORGE_TIDEWATER_FISH_PROP_ROOT":f"{content}/fish/surface",
-                       "FORGE_TIDEWATER_PEBBLE_PROGRAM_ROOT":f"{content}/debris/pebbles",
-                       "FORGE_TIDEWATER_SCANNED_PROGRAM":f"{content}/debris/scanned.wgsl"},
-                  clear_env_prefixes=["FORGE_TIDEWATER_"])
-    product = dict(schema="forge.delivery.product.v1", id="openrpg-forge", title="OpenRPG Forge",
-                   apps={"launcher":dict(executable="bin/forge-launcher.exe", args=["--root", "{install}"], env={}, clear_env_prefixes=[]),
-                         "content-manager":dict(executable="bin/forge-hub.exe", args=["--root", "{install}"], env={}, clear_env_prefixes=[]),
-                         "game":launch, "editor":dict(executable="bin/forge-studio.exe", args=[],
-                         env={"FORGE_AUTHORING_ROOT":"{workspace}", "OPENRPG_ASSET_VAULT":"{pack:asset-library}",
-                              "FORGE_NATIVE_GAME_EXECUTABLE":"{app}/bin/forge-game.exe",
-                              "FORGE_NATIVE_GAME_CONTENT_ROOT":"{pack:reference-assets}",
-                              "FORGE_NATIVE_GAME_SESSION_ROOT":"{user}/game-sessions",
-                              "FORGE_MODULE_ASSET_ROOT":f"{data}/scene",
-                              "FORGE_MODULE_ASSET_CATALOG":"static-assets.json",
-                              "FORGE_MODULE_ASSET_CATALOG_SHA256":digest(assets / "data/scene/static-assets.json")},
-                         clear_env_prefixes=["FORGE_AUTHORING_","FORGE_TIDEWATER_","FORGE_NATIVE_GAME_","FORGE_MODULE_ASSET_","WEBVIEW2_"])},
-                   required_packs=[dict(id=p["id"],manifest_sha256=p["manifest_sha256"],kind=p["kind"])
-                                   for p in (asset_entry,module_entry)], optional_packs=["asset-library"],
-                   authoring_seed=dict(pack_id="reference-module",path="workspace"))
-    application_descriptor = descriptor("forge-applications", "Launcher, éditeur et jeu", "applications", args.version, args.source_revision, product)
-    if source_receipt is not None:
-        application_descriptor["license_paths"].extend([
-            "licenses/native-media/NOTICE.txt", "licenses/native-media/manifest.json"])
-    application_entry = package(args.delivery_cli, core, args.output, application_descriptor)
-    copy(args.hub, args.output / "ForgeSetup.exe")
-    copy(args.delivery_cli, args.output / "forge-delivery.exe")
-    copy(args.webview2, args.output / "prerequisites/MicrosoftEdgeWebView2RuntimeInstallerX64.exe")
-    copy(Path(__file__).parent / "Start-Forge.ps1", args.output / "Start-Forge.ps1")
-    copy(Path(__file__).parent / "Start-Forge.cmd", args.output / "Start-Forge.cmd")
-    write(args.output / "delivery.json", dict(schema="forge.delivery.index.v1", version=args.version,
-          platform="windows-x64", status="local_preview", packages=[asset_entry,module_entry,application_entry],
-          setup_sha256=digest(args.output/"ForgeSetup.exe"), library_index="asset-library-transfer.json",
-          prerequisites={"webview2":{"file":"prerequisites/MicrosoftEdgeWebView2RuntimeInstallerX64.exe", "sha256":digest(args.webview2), "mode":"offline_installer"}}))
-    (args.output / "LISEZ-MOI.txt").write_text(
-        "OpenRPG Forge — livraison locale préparatoire\n\n"
-        "1. Conserver ForgeSetup.exe et les trois .forgepack dans le même dossier.\n"
-        "2. Ouvrir Start-Forge.cmd (vérifie WebView2), puis Préparer cette livraison et Installer ces packages.\n"
-        "3. Jouer ouvre le jeu natif actuel ; Ouvrir l’éditeur lance le Studio.\n"
-        "Les fichiers sont vérifiés. Les versions précédentes, projets et sauvegardes sont conservés.\n"
-        "Les assets sont séparés des applications. La bibliothèque privée complète se prépare à part.\n"
-        "Cette livraison locale n’est pas une release qualifiée ni une clôture de Gate 3.\n", encoding="utf-8")
-    write(args.output / "input-provenance.json", dict(schema="forge.delivery.inputs.v1",
-          assembly_script_sha256=digest(Path(__file__)),
-          source_revision=args.source_revision, studio_sha256=digest(args.studio),
-          studio_build_proof_sha256=digest(args.studio_proof), game_sha256=digest(runtime),
-          source_manifest_sha256=digest(args.source_manifest) if args.source_manifest else None,
-          game_build_proof_sha256=digest(args.runtime_proof) if args.runtime_proof else None,
-          launcher_sha256=digest(args.launcher), content_manager_sha256=digest(args.hub), cli_sha256=digest(args.delivery_cli),
-          shared_working_tree=args.shared_working_tree,
-          **({"application_sources": source_receipt} if source_receipt is not None else {}),
-          game_capability="native_walk_preview", gate3_closed=False, release_qualified=False))
-    if args.shared_working_tree:
-        validate_shared_applications(args, source_manifest,
-                                     [(runtime, runtime_proof), (args.studio, proof)], launcher_proof)
-    print(json.dumps(dict(output=str(args.output), packages=3, status="local_preview")))
+    parser = argparse.ArgumentParser(description='Assemble the private Forge Studio package')
+    parser.add_argument('mode', choices=('studio-only',))
+    for name in ('delivery-cli', 'delivery-cli-proof', 'studio', 'studio-proof', 'source-manifest',
+                 'kit-root', 'studio-notice-audit', 'output'):
+        parser.add_argument('--'+name, required=True, type=Path)
+    for name in ('delivery-cli-proof-sha256', 'studio-proof-sha256', 'kit-receipt-sha256',
+                 'studio-notice-audit-sha256', 'version'):
+        parser.add_argument('--'+name, required=True)
+    parser.add_argument('--platform', choices=('windows-x64','linux-x64'),default='windows-x64')
+    parser.add_argument('--cargo-cache', type=Path, help='Cargo registry used for the Windows delivery build')
+    for name in ('linux-source-zip','linux-started','linux-capture-receipt'):
+        parser.add_argument('--'+name,type=Path)
+    for name in ('linux-started-sha256','linux-capture-sha256'):
+        parser.add_argument('--'+name)
+    print(json.dumps(assemble_studio_only(parser.parse_args()), ensure_ascii=False))
 
 
 if __name__ == "__main__":

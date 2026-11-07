@@ -126,6 +126,7 @@ fn candidate_zone() -> (forge_core::AreaId, Vec<u8>, ReviewedZone, WorkspaceHead
         projects: vec![ProjectEntry {
             id: object.project_id(),
             name: "Recovered project".into(),
+            game: None,
             modules: vec![ModuleEntry {
                 creator: None,
                 id: ModuleId::deterministic("recovery-module"),

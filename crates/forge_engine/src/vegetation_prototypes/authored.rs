@@ -2,7 +2,6 @@
 use forge_assets::{
     GovernedAssetKitBuildReport, VegetationPrototypeCatalog, VegetationPrototypeSelection,
 };
-use forge_core::canonical_json_sha256;
 use forge_project::{VegetationKind, zone_authoring::ZoneAuthoringHead};
 
 pub struct PromotedTreeAsset {
@@ -63,9 +62,6 @@ pub fn resolve_authored_species(
     if selections.is_empty() {
         return Ok(None);
     }
-    if sources.len() > 64 || sources.iter().any(|source| source.bindings.len() > 64) {
-        return Err("Authored species catalog quota exceeded".into());
-    }
     let (_, vegetation) = head.effective()?;
     let vegetation = vegetation.ok_or("Authored species require vegetation")?;
     let target = vegetation.content_hash().map_err(|e| e.to_string())?;
@@ -75,55 +71,22 @@ pub fn resolve_authored_species(
         .filter(|layer| layer.kind == VegetationKind::Tree)
         .map(|layer| layer.id.as_str())
         .collect();
-    let indexed = sources
+    let selections = selections
         .iter()
-        .map(|source| {
-            canonical_json_sha256(source)
-                .map(|hash| (hash, source))
-                .map_err(|e| e.to_string())
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    let mut bindings = Vec::new();
-    for layer in selections {
-        for reference in &layer.prototypes {
-            let source = indexed
-                .iter()
-                .find(|(hash, _)| *hash == reference.catalog_sha256)
-                .map(|(_, source)| *source)
-                .ok_or_else(|| {
-                    format!(
-                        "Missing pinned species catalog {}",
-                        reference.catalog_sha256
-                    )
-                })?;
-            let selected = VegetationPrototypeSelection {
-                source_layer_id: reference.source_layer_id.as_str().into(),
-                asset_id: reference.asset_id.clone(),
-                target_layer_id: layer.layer_id.as_str().into(),
-            };
-            let resolved = source
-                .prepare_pinned_selection(
+        .flat_map(|layer| {
+            layer.prototypes.iter().map(|reference| {
+                (
                     reference.catalog_sha256,
-                    target,
-                    &[layer.layer_id.as_str()],
-                    &[selected],
-                    kit,
+                    VegetationPrototypeSelection {
+                        source_layer_id: reference.source_layer_id.as_str().into(),
+                        asset_id: reference.asset_id.clone(),
+                        target_layer_id: layer.layer_id.as_str().into(),
+                    },
                 )
-                .map_err(|e| e.to_string())?;
-            bindings.extend(resolved.bindings);
-        }
-    }
-    bindings.sort_by(|a, b| (&a.layer_id, &a.asset_id).cmp(&(&b.layer_id, &b.asset_id)));
-    let catalog = VegetationPrototypeCatalog {
-        schema: "forge.vegetation-prototype-catalog".into(),
-        schema_version: 2,
-        vegetation_sha256: target,
-        asset_kit_id: kit.asset_kit_id.clone(),
-        asset_kit_revision: kit.asset_kit_revision,
-        bindings,
-    };
-    catalog
-        .validate_against(target, &tree_ids, kit)
-        .map_err(|e| e.to_string())?;
-    Ok(Some(catalog))
+            })
+        })
+        .collect::<Vec<_>>();
+    forge_assets::resolve_pinned_vegetation_catalogs(sources, target, &tree_ids, &selections, kit)
+        .map(Some)
+        .map_err(|error| error.to_string())
 }

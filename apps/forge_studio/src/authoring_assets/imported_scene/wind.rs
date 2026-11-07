@@ -1,25 +1,22 @@
 //! Shared imported-scene wind clock and shader upload, derived from source Frame.
 use bevy::prelude::*;
-use forge_tidewater::{
-    scene_wind::{AcquiredFrame, WindFrame},
-    tidewater_debris::nature::NatureMaterial,
-    tidewater_material::VillageMaterial,
-    tidewater_plants::PlantMaterial,
-    tidewater_terrain::{TerrainMaterial, lod::LodMaterial},
-};
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::nature::NatureMaterial;
+use forge_engine::source_terrain::TerrainMaterial;
+use forge_engine::source_terrain::lod::LodMaterial;
+use forge_engine::source_vegetation::captured::CapturedPlantMaterial;
+use forge_engine::source_wind::AcquiredFrame;
+use forge_engine::source_wind::WindFrame;
 use std::cell::RefCell;
 
 thread_local! {
     static READY: RefCell<Result<bool,String>> = const { RefCell::new(Ok(false)) };
 }
 
-pub(super) fn install(app: &mut App) -> Result<(), String> {
+pub(super) fn install(app: &mut App, acquired: &AcquiredFrame) -> Result<(), String> {
     READY.with(|slot| *slot.borrow_mut() = Ok(false));
-    // Resume the captured global phase; acquired pendulums keep their own phases.
-    let acquired = {
-        let (bytes, frame) = forge_tidewater_assets::tidewater_environment::animation_reference()?;
-        AcquiredFrame::from_json(&bytes, frame)?
-    };
+    // The caller supplies either a verified content phase or the neutral scene state.
+    let acquired = acquired.clone();
     app.insert_resource(acquired.wind_frame()?)
         .insert_resource(acquired)
         .add_systems(Update, advance_clock)
@@ -61,13 +58,18 @@ fn upload(world: &mut World) {
     }
     let uniform = world.resource::<WindFrame>().material_uniform();
     if world.contains_resource::<crate::authoring_render::FastEditing>() {
-        upload_static::<VillageMaterial>(
+        upload_static::<SourceSurfaceMaterial>(
             world,
             uniform,
             |m| m.settings.wind,
             |m, v| m.settings.wind = v,
         );
-        upload_static::<PlantMaterial>(world, uniform, |m| m.params.wind, |m, v| m.params.wind = v);
+        upload_static::<CapturedPlantMaterial>(
+            world,
+            uniform,
+            |m| m.params.wind,
+            |m, v| m.params.wind = v,
+        );
         upload_static::<TerrainMaterial>(
             world,
             uniform,
@@ -90,12 +92,12 @@ fn upload(world: &mut World) {
     }
     // Refresh already-resident materials as well as those created this frame.
     // Their shared input changes without rebuilding meshes or source textures.
-    if let Some(mut materials) = world.get_resource_mut::<Assets<VillageMaterial>>() {
+    if let Some(mut materials) = world.get_resource_mut::<Assets<SourceSurfaceMaterial>>() {
         for (_, material) in materials.iter_mut() {
             material.settings.wind = uniform;
         }
     }
-    if let Some(mut materials) = world.get_resource_mut::<Assets<PlantMaterial>>() {
+    if let Some(mut materials) = world.get_resource_mut::<Assets<CapturedPlantMaterial>>() {
         for (_, material) in materials.iter_mut() {
             material.params.wind = uniform;
         }

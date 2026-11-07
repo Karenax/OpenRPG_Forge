@@ -2,11 +2,11 @@
 use super::super::{imported_buildings, placements};
 use bevy::{ecs as bevy_ecs, prelude::*};
 use forge_core::{AssetId, ContentHash, EntityId};
-use forge_project::zone_authoring::placements::ManualPlacement;
-use forge_tidewater::{
-    source_local_lights::{collection::Collection, projection::ResidentSourceLights},
-    tidewater_assets::local_lights::BuildingLightBindings,
+use forge_engine::source_lighting::local_lights::projection::source_object::SourceObjectLightBindings;
+use forge_engine::source_lighting::local_lights::{
+    collection::Collection, projection::ResidentSourceLights,
 };
+use forge_project::zone_authoring::placements::ManualPlacement;
 use std::{cell::RefCell, collections::BTreeMap};
 
 type Receipt = (u64, forge_core::ContentHash, Vec<ManualPlacement>);
@@ -25,7 +25,17 @@ struct State {
 
 pub(super) fn install(app: &mut App) {
     READY.with(|slot| *slot.borrow_mut() = Ok(None));
-    if let Err(error) = forge_tidewater::tidewater_material::local_lights::gpu::register(app) {
+    if let Err(error) = forge_engine::source_lighting::local_lights::gpu::register_with_temporal::<
+        forge_engine::source_temporal::frame::ViewPacket,
+        forge_engine::source_temporal::render_owned::Control,
+    >(app)
+    {
+        READY.with(|slot| *slot.borrow_mut() = Err(error));
+        return;
+    }
+    if let Err(error) =
+        forge_engine::source_lighting::local_lights::collection::claim_producer(app.world_mut())
+    {
         READY.with(|slot| *slot.borrow_mut() = Err(error));
         return;
     }
@@ -61,48 +71,18 @@ fn collect(world: &mut World) {
         .copied()
         .collect::<Vec<_>>();
     orders.sort_unstable();
-    let mut query = world.query_filtered::<(Entity, &Camera), (
-        With<Camera3d>,
-        Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
-        Without<forge_tidewater::tidewater_sky::preview::PreviewCamera>,
-    )>();
-    let mut active = query.iter(world).filter(|(_, camera)| camera.is_active);
-    let Some((camera, _)) = active.next() else {
+    let Ok(Some(frame)) = forge_engine::source_lighting::local_lights::frame::from_scene(
+        world,
+        true,
+        1.0,
+        forge_engine::source_lighting::local_lights::Flashlight::default(),
+    ) else {
         return;
-    };
-    if active.next().is_some() {
-        return;
-    }
-    // Read the same night value as the live sky shader, not a second solar clock.
-    let mut query = world.query::<&MeshMaterial3d<forge_tidewater::tidewater_sky::SkyMaterial>>();
-    let mut skies = query.iter(world);
-    let Some(sky) = skies.next() else {
-        return;
-    };
-    if skies.next().is_some() {
-        return;
-    }
-    let Some(material) = world
-        .get_resource::<Assets<forge_tidewater::tidewater_sky::SkyMaterial>>()
-        .and_then(|materials| materials.get(&sky.0))
-    else {
-        return;
-    };
-    let night = f64::from(material.settings.stars_time_night.z);
-    let Some(time) = world.get_resource::<Time>() else {
-        return;
-    };
-    let settings = forge_tidewater::source_local_lights::Settings {
-        delta_seconds: time.delta_secs_f64(),
-        night,
-        enabled: true,
-        strength: 1.0,
-        flashlight: forge_tidewater::source_local_lights::Flashlight::default(),
     };
     world.resource_scope(|world, mut collection: Mut<Collection>| {
         // collect invalidates on every refusal, including foreign or missing lamps.
         // Readiness of a queue write remains separate from geometric readiness.
-        let _ = collection.collect(world, camera, settings, &orders);
+        let _ = collection.collect(world, frame.camera, frame.settings, &orders);
     });
 }
 
@@ -169,7 +149,7 @@ fn reconcile(world: &mut World) {
         retire(world, &mut state);
         READY.with(|slot| *slot.borrow_mut() = Ok(None));
         if world
-            .get_resource::<forge_tidewater::tidewater_assets::scene::ResidentScene>()
+            .get_resource::<forge_engine::source_surface::objects::ResidentScene>()
             .is_none_or(|scene| !scene.is_synchronized(world))
         {
             // Geometry may have been rebuilt after this frame's propagation.
@@ -179,7 +159,11 @@ fn reconcile(world: &mut World) {
         let result = (|| -> Result<(), String> {
             let buildings = imported_buildings::building_package()
                 .ok_or("Building geometry package is unavailable for local lights")?;
-            let bindings = BuildingLightBindings::from_packages(&buildings, &package)?;
+            let bindings = SourceObjectLightBindings::from_sources(
+                buildings.source_commit(),
+                forge_engine::source_lighting::local_lights::projection::source_object::sources_from_surfaces(&buildings)?,
+                &package,
+            )?;
             let stride = package
                 .descriptor()
                 .document()

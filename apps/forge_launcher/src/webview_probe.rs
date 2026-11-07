@@ -55,6 +55,13 @@ pub struct Report {
 }
 
 impl Probe {
+    #[cfg(all(windows, feature = "standalone"))]
+    pub fn profile(&self) -> Option<PathBuf> {
+        self.0
+            .as_ref()
+            .and_then(|active| active.output.parent())
+            .map(|parent| parent.join("webview-profile"))
+    }
     pub fn parse() -> Result<Self, String> {
         let mode = std::env::args_os().nth(1);
         let exit_menu = mode.as_deref() == Some(std::ffi::OsStr::new("--verify-exit-menu"));
@@ -88,7 +95,9 @@ impl Probe {
     pub fn configure(&self, context: &mut tauri::Context<tauri::Wry>) {
         if let Some(active) = &self.0 {
             for window in &mut context.config_mut().app.windows {
-                window.visible = false;
+                // WebKitGTK needs a mapped window to observe modal geometry.
+                // This is the explicitly requested CLI diagnostic only.
+                window.visible = cfg!(target_os = "linux");
                 window.maximized = false;
                 window.data_directory = Some(
                     active
@@ -246,7 +255,7 @@ pub fn complete_launcher_probe(
         } else {
             report
                 .status
-                .contains("Les fichiers du jeu sont absents ou incomplets.")
+                .contains("Les fichiers de l’île sont absents ou incomplets.")
         };
     let failure = if pass {
         None

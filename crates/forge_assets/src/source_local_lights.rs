@@ -157,6 +157,42 @@ pub struct SourceLocalLights {
 }
 
 impl SourceLocalLights {
+    /// Complete parent closure for an explicit source selection. Shared by
+    /// transport admission and the live model projector; capture poses stay data.
+    pub fn selected_frame_parents(
+        &self,
+        ids: &[ContentHash],
+    ) -> Result<BTreeMap<String, Option<String>>, SourceLocalLightsError> {
+        if ids.is_empty() || ids.windows(2).any(|pair| pair[0] >= pair[1]) {
+            return invalid("source selection must be nonempty, unique and sorted");
+        }
+        let selected: BTreeSet<_> = ids.iter().copied().collect();
+        let records = &self.document.lights;
+        if records.iter().filter(|l| selected.contains(&l.id)).count() != selected.len() {
+            return invalid("unknown selected source light");
+        }
+        let all: BTreeMap<_, _> = self
+            .document
+            .frames
+            .iter()
+            .map(|f| (f.id.clone(), f.parent.clone()))
+            .collect();
+        let mut required = BTreeMap::new();
+        for record in records.iter().filter(|l| selected.contains(&l.id)) {
+            let mut current = Some(record.owner_frame.as_str());
+            while let Some(id) = current {
+                if required.contains_key(id) {
+                    break;
+                }
+                let parent = all.get(id).ok_or_else(|| {
+                    SourceLocalLightsError::Invalid("selected frame is absent".into())
+                })?;
+                required.insert(id.to_owned(), parent.clone());
+                current = parent.as_deref();
+            }
+        }
+        Ok(required)
+    }
     pub fn load(bytes: &[u8], expected: ContentHash) -> Result<Self, SourceLocalLightsError> {
         if bytes.len() > MAX_BYTES || bytes_sha256(bytes) != expected {
             return Err(SourceLocalLightsError::PinMismatch);

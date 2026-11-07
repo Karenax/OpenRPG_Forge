@@ -8,7 +8,8 @@ use forge_assets::{
     governed_import::{
         DurableAssetSource, GovernedAssetFile, GovernedAssetKind, GovernedImportCatalog,
     },
-    media_validation::{MediaFormat, MediaLimits, validate_media},
+    media_validation::{MediaFormat, MediaLimits, validate_declared_media},
+    source_graph_glb::SourceGraphGlbReadBudget,
 };
 use forge_core::ContentHash;
 use forge_project::module_package::{
@@ -25,15 +26,57 @@ use std::{
 
 /// Exact versions supported by this adapter; compatibility is never inferred.
 pub const ENGINE_VERSION: &str = "0.1.0";
-pub const MODULE_API_VERSION: u32 = 1;
+pub const MODULE_API_VERSION: u32 =
+    forge_project::module_package::MODULE_ARCHIVE_SOURCES_API_VERSION;
+
+/// A closed module may legitimately contain no governed assets. Import
+/// catalogues elsewhere retain their stricter non-empty contract.
+pub fn validate_module_catalog(catalog: &GovernedImportCatalog, publishing: bool) -> Result<()> {
+    if catalog.assets.is_empty() {
+        if catalog.schema != forge_assets::governed_import::GOVERNED_IMPORT_SCHEMA
+            || catalog.schema_version != forge_assets::governed_import::GOVERNED_IMPORT_VERSION
+        {
+            return Err("Unsupported empty module asset catalog".into());
+        }
+        return Ok(());
+    }
+    if publishing {
+        catalog.validate_for_publication()
+    } else {
+        catalog.validate_for_local_use()
+    }
+    .map_err(|error| error.to_string())
+}
 
 /// Exact rights documents from an admitted, bounded in-memory origin package.
 pub struct OriginDocuments {
+    source: Source,
     pub module: ModulePackageManifest,
     pub descriptor: Descriptor,
     pub module_manifest: Vec<u8>,
     pub transport_manifest: Vec<u8>,
     pub evidence: BTreeMap<String, Vec<u8>>,
+}
+
+impl OriginDocuments {
+    /// Read an inventory member from the immutable, semantically admitted source.
+    /// The caller's bound is enforced before allocation; metadata is not a payload.
+    pub fn read_payload(&self, path: &str, maximum: usize) -> Result<Vec<u8>> {
+        let file = self
+            .module
+            .files
+            .iter()
+            .find(|file| file.path == path)
+            .ok_or("Origin payload is outside its admitted inventory")?;
+        if file.bytes > maximum as u64 {
+            return Err("Origin payload exceeds the caller's budget".into());
+        }
+        let bytes = self.source.small(path, maximum)?;
+        if bytes.len() as u64 != file.bytes || forge_core::bytes_sha256(&bytes) != file.sha256 {
+            return Err("Origin payload differs from its admitted size or pin".into());
+        }
+        Ok(bytes)
+    }
 }
 
 /// Admit the exact immutable buffer without publishing files or touching a cache.
@@ -64,6 +107,7 @@ pub fn read_origin_documents(bytes: Arc<[u8]>) -> Result<OriginDocuments> {
         evidence.insert(path.clone(), document);
     }
     Ok(OriginDocuments {
+        source,
         module,
         descriptor,
         module_manifest,
@@ -109,10 +153,19 @@ pub fn pack(
 }
 
 pub fn inspect(path: &Path, publication: bool) -> Result<ModulePackageManifest> {
+    inspect_with_transport(path, publication).map(|(module, _, _)| module)
+}
+
+/// Inspect semantic contents and transport identity from the same open archive.
+pub(crate) fn inspect_with_transport(
+    path: &Path,
+    publication: bool,
+) -> Result<(ModulePackageManifest, Descriptor, String)> {
     let (source, descriptor) = Source::archive(path)?;
+    let revision = crate::hash(&crate::json(&descriptor)?);
     let module = validate(&source, publication)?;
     check_descriptor(&descriptor, &module)?;
-    Ok(module)
+    Ok((module, descriptor, revision))
 }
 
 /// Called by installation verification before a package can become active.
@@ -418,12 +471,36 @@ impl<R: Read> Read for HashingReader<R> {
 fn validate(source: &Source, publication: bool) -> Result<ModulePackageManifest> {
     let module_bytes = source.small(MODULE_MANIFEST_PATH, MAX_MODULE_MANIFEST_BYTES)?;
     let module = ModulePackageManifest::from_bytes(&module_bytes).map_err(|e| e.to_string())?;
+    if !matches!(
+        module.compatibility.module_api_version,
+        1 | MODULE_API_VERSION
+            | forge_project::module_package::MODULE_VEGETATION_API_VERSION
+            | forge_project::module_package::MODULE_ENVIRONMENT_API_VERSION
+            | forge_project::module_package::MODULE_LOCAL_LIGHTS_API_VERSION
+            | forge_project::module_package::MODULE_SOLAR_CLOCK_API_VERSION
+            | forge_project::module_package::MODULE_OBJECTS_API_VERSION
+            | forge_project::module_package::MODULE_TERRAIN_API_VERSION
+            | forge_project::module_package::MODULE_OCEAN_API_VERSION
+            | forge_project::module_package::MODULE_OCEAN_SURFACE_API_VERSION
+            | forge_project::module_package::MODULE_SCENE_WIND_API_VERSION
+            | forge_project::module_package::MODULE_FISH_API_VERSION
+            | forge_project::module_package::MODULE_PLACEMENT_COMPANIONS_API_VERSION
+            | forge_project::module_package::MODULE_HISTORICAL_MODELS_API_VERSION
+    ) {
+        return Err("Unsupported module API version".into());
+    }
     module
-        .check_compatibility(ENGINE_VERSION, MODULE_API_VERSION)
+        .check_compatibility(ENGINE_VERSION, module.compatibility.module_api_version)
         .map_err(|e| e.to_string())?;
     let publishing = publication || module.provenance.rights == ModuleRights::Redistributable;
     if publication && module.provenance.rights != ModuleRights::Redistributable {
         return Err("Module is private, publication refused".into());
+    }
+    if publishing && !module.fish_profiles.is_empty() {
+        return Err("Fish profile redistribution rights are not yet qualified".into());
+    }
+    if publishing && !module.placement_companions.is_empty() {
+        return Err("Placement companion redistribution rights are not yet qualified".into());
     }
     if source.files.len() != module.files.len() + 1 {
         return Err("Module payload inventory is not closed".into());
@@ -436,12 +513,7 @@ fn validate(source: &Source, publication: bool) -> Result<ModulePackageManifest>
     let catalog: GovernedImportCatalog =
         serde_json::from_slice(&source.document(catalog_file, MAX_MODULE_MANIFEST_BYTES)?)
             .map_err(|e| e.to_string())?;
-    if publishing {
-        catalog.validate_for_publication()
-    } else {
-        catalog.validate_for_local_use()
-    }
-    .map_err(|e| e.to_string())?;
+    validate_module_catalog(&catalog, publishing)?;
     for binding in &module.gameplay_visuals {
         if !catalog.assets.iter().any(|asset| {
             asset.id == binding.asset.asset_id
@@ -451,7 +523,11 @@ fn validate(source: &Source, publication: bool) -> Result<ModulePackageManifest>
             return Err("Gameplay visual must reference an exact governed mesh pin".into());
         }
     }
-    let mut kinds = BTreeMap::new();
+    let mut kinds: BTreeMap<_, _> = module
+        .historical_models
+        .iter()
+        .map(|model| (model.payload.path.clone(), GovernedAssetKind::Mesh))
+        .collect();
     let mut auxiliaries = BTreeSet::new();
     for asset in &catalog.assets {
         for (path, kind) in std::iter::once((&asset.payload.path, asset.kind)).chain(
@@ -523,13 +599,93 @@ fn validate(source: &Source, publication: bool) -> Result<ModulePackageManifest>
             .iter()
             .find(|f| f.path == zone.archive_path)
             .ok_or("Missing zone file")?;
+        let archive = source.document(file, forge_project::zone_authoring::MAX_ZONE_HEAD_BYTES)?;
         module
-            .validate_zone_archive(
-                zone.area_id,
-                &source.document(file, forge_project::zone_authoring::MAX_ZONE_HEAD_BYTES)?,
-            )
+            .validate_zone_archive(zone.area_id, &archive)
             .map_err(|e| e.to_string())?;
+        if module.compatibility.module_api_version
+            >= forge_project::module_package::MODULE_VEGETATION_API_VERSION
+        {
+            let session =
+                forge_project::zone_authoring::session::ZoneEditSession::from_archive_bytes(
+                    &archive,
+                )?;
+            crate::module_vegetation::validate_companions(
+                &module,
+                session.head(),
+                &catalog,
+                |path, maximum| {
+                    let file = module
+                        .files
+                        .iter()
+                        .find(|file| file.path == path)
+                        .ok_or("Missing vegetation document")?;
+                    source.document(file, maximum)
+                },
+            )?;
+            crate::module_local_lights::resolve_zone(&module, &session, |path, maximum| {
+                let file = module
+                    .files
+                    .iter()
+                    .find(|f| f.path == path)
+                    .ok_or("Missing source-light document")?;
+                source.document(file, maximum)
+            })?;
+            let terrain = session.head().effective()?.0;
+            crate::module_terrain::resolve(&module, zone.area_id, &terrain, |path, maximum| {
+                let file = module
+                    .files
+                    .iter()
+                    .find(|file| file.path == path)
+                    .ok_or("Missing terrain resource")?;
+                source.document(file, maximum)
+            })?;
+        }
     }
+    for binding in &module.ocean_inputs {
+        crate::module_ocean::resolve(&module, binding.area_id, |path, maximum| {
+            let file = actual_index.get(path).ok_or("Missing ocean resource")?;
+            source.document(file, maximum)
+        })?;
+    }
+    for zone in &module.zones {
+        crate::module_objects::resolve(&module, zone.area_id, |path, maximum| {
+            let file = module
+                .files
+                .iter()
+                .find(|file| file.path == path)
+                .ok_or("Missing object resource")?;
+            source.document(file, maximum)
+        })?;
+        crate::module_environment::resolve(&module, zone.area_id, |path, maximum| {
+            let file = module
+                .files
+                .iter()
+                .find(|file| file.path == path)
+                .ok_or("Missing environment document")?;
+            source.document(file, maximum)
+        })?;
+        if module
+            .fish_profiles
+            .iter()
+            .any(|binding| binding.area_id == zone.area_id)
+        {
+            crate::module_fish::resolve(&module, zone.area_id, |path, maximum| {
+                let file = module
+                    .files
+                    .iter()
+                    .find(|file| file.path == path)
+                    .ok_or("Missing fish profile document")?;
+                source.document(file, maximum)
+            })?;
+        }
+    }
+    crate::module_placement_companions::validate(&module, &catalog, |path, maximum| {
+        let file = actual_index
+            .get(path)
+            .ok_or("Missing placement companion document")?;
+        source.document(file, maximum)
+    })?;
     if catalog.assets.len() != module.assets.len() {
         return Err("Module and catalog asset inventories disagree".into());
     }
@@ -700,13 +856,22 @@ fn media(
     if bytes.len() as u64 != length {
         return Err(format!("Media length changed while decoding: {path}"));
     }
-    validate_media(&bytes, format, limits).map_err(|e| format!("{path}: {e}"))?;
+    validate_declared_media(&bytes, format, limits, SourceGraphGlbReadBudget::Standard)
+        .map_err(|e| format!("{path}: {e}"))?;
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn source_scripts_and_executable_magic_remain_forbidden_in_modules() {
+        assert!(reject_program("fish/source.js", b"source text").is_err());
+        assert!(reject_program("fish/source.JS", b"source text").is_err());
+        assert!(reject_program("fish/data.bin", b"MZ executable").is_err());
+        assert!(reject_program("fish/surface.wgsl", b"fn shade() {}").is_ok());
+    }
 
     #[test]
     fn corrupt_png_with_a_plausible_header_is_not_admitted() {

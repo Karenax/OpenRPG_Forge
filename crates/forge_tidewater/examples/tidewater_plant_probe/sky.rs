@@ -1,7 +1,8 @@
 //! Prototype scene settings and cloud bindings for the shared sky renderer.
 use bevy::prelude::*;
-pub use forge_tidewater::tidewater_sky::SkyMaterial;
-use forge_tidewater::tidewater_sky::{self, Settings};
+use forge_engine::source_sky as tidewater_sky;
+use forge_engine::source_sky::Settings;
+pub use forge_engine::source_sky::SkyMaterial;
 #[derive(Resource)]
 pub struct CloudInputs {
     pub params: [Vec4; 5],
@@ -67,8 +68,8 @@ pub fn setup(
 #[allow(clippy::needless_pass_by_value)]
 fn bind_opaque_clouds(
     clouds: Res<CloudInputs>,
-    mut plants: ResMut<Assets<super::PlantMaterial>>,
-    mut village: ResMut<Assets<super::village::VillageMaterial>>,
+    mut plants: ResMut<Assets<super::CapturedPlantMaterial>>,
+    mut village: ResMut<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>,
     mut terrain: ResMut<Assets<super::terrain_surface::TerrainMaterial>>,
     mut lod: ResMut<Assets<super::terrain_lod::LodMaterial>>,
 ) {

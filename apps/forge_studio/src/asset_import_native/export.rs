@@ -15,13 +15,21 @@ pub struct ImportedExportSnapshot {
     pub files: BTreeMap<String, Vec<u8>>,
 }
 
+/// Intermediate selection. Missing pins must be resolved and the merged catalogue
+/// validated before packaging; an empty partial catalogue is not a valid export.
+pub struct AvailableExportSnapshot {
+    pub snapshot: ImportedExportSnapshot,
+    pub unresolved: Vec<(AssetId, ContentHash)>,
+}
+
 impl AssetImportStore {
     pub fn export_snapshot(
         &self,
         required_pins: &[(AssetId, ContentHash)],
         publish: bool,
     ) -> Result<ImportedExportSnapshot, String> {
-        self.export_selection(required_pins, None, publish)
+        self.export_selection(required_pins, None, publish, false)
+            .map(|selection| selection.snapshot)
     }
 
     /// Preserve the module's still-available origin catalogue and referenced pins,
@@ -36,7 +44,25 @@ impl AssetImportStore {
             return Err("Too many retained module asset identities".into());
         }
         let retained: BTreeSet<_> = retained_assets.iter().copied().collect();
-        self.export_selection(required_pins, Some(&retained), publish)
+        self.export_selection(required_pins, Some(&retained), publish, false)
+            .map(|selection| selection.snapshot)
+    }
+
+    /// Native export may complete only unresolved pins from another trusted,
+    /// read-only source. The user import store is never implicitly populated.
+    pub fn export_available_snapshot(
+        &self,
+        required_pins: &[(AssetId, ContentHash)],
+        retained_assets: Option<&[AssetId]>,
+        publish: bool,
+    ) -> Result<AvailableExportSnapshot, String> {
+        if retained_assets
+            .is_some_and(|assets| assets.len() > forge_assets::governed_import::MAX_IMPORT_ASSETS)
+        {
+            return Err("Too many retained module asset identities".into());
+        }
+        let retained = retained_assets.map(|assets| assets.iter().copied().collect());
+        self.export_selection(required_pins, retained.as_ref(), publish, true)
     }
 
     fn export_selection(
@@ -44,7 +70,8 @@ impl AssetImportStore {
         required_pins: &[(AssetId, ContentHash)],
         retained: Option<&BTreeSet<AssetId>>,
         publish: bool,
-    ) -> Result<ImportedExportSnapshot, String> {
+        allow_missing: bool,
+    ) -> Result<AvailableExportSnapshot, String> {
         let _lock = self.lock()?;
         let head = self.head()?;
         let required = requested(required_pins)?;
@@ -81,10 +108,18 @@ impl AssetImportStore {
                 }
             }
         }
-        if let Some((id, pin)) = unresolved.first_key_value() {
+        if let Some((id, pin)) = unresolved.first_key_value().filter(|_| !allow_missing) {
             return Err(format!(
                 "No preserved imported asset {id} with content pin {pin}"
             ));
+        }
+        if allow_missing {
+            // Do not include a newer seeded revision in place of a missing pin.
+            // A descendant requiring that seeded revision must still fail below.
+            for id in unresolved.keys() {
+                selected.assets.remove(id);
+                selected.parents.remove(id);
+            }
         }
         selected.verify_lineage()?;
         let catalog = GovernedImportCatalog {
@@ -92,15 +127,20 @@ impl AssetImportStore {
             schema_version: GOVERNED_IMPORT_VERSION,
             assets: selected.assets.into_values().collect(),
         };
-        if catalog.assets.is_empty() {
+        if catalog.assets.is_empty() && !allow_missing {
             return Err("No imported assets to export".into());
         }
-        if publish {
-            catalog.validate_for_publication()
+        if catalog.assets.is_empty() {
+            // Only this explicitly partial native result may be empty.
+        } else if publish {
+            catalog
+                .validate_for_publication()
+                .map_err(|e| e.to_string())?;
         } else {
-            catalog.validate_for_local_use()
+            catalog
+                .validate_for_local_use()
+                .map_err(|e| e.to_string())?;
         }
-        .map_err(|e| e.to_string())?;
         if serde_json::to_vec(&catalog)
             .map_err(|e| e.to_string())?
             .len()
@@ -110,7 +150,10 @@ impl AssetImportStore {
         }
         let mut files = self.export_pinned_files(&catalog)?;
         self.export_evidence(&catalog, &mut files)?;
-        Ok(ImportedExportSnapshot { catalog, files })
+        Ok(AvailableExportSnapshot {
+            snapshot: ImportedExportSnapshot { catalog, files },
+            unresolved: unresolved.into_iter().collect(),
+        })
     }
 
     fn export_pinned_files(

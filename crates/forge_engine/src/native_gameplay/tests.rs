@@ -1,4 +1,5 @@
 use super::*;
+mod streaming;
 use forge_core::{EntityId, ModuleId};
 use forge_gameplay::{
     ActorDefinition, ActorRole, ObjectDefinition, ObjectKind, ObjectPhysics, RulesProfile,
@@ -7,6 +8,7 @@ use forge_project::zone_authoring::session::{ZoneAction, ZoneRequest};
 use std::{
     fs,
     path::PathBuf,
+    sync::atomic::{AtomicU64, Ordering},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -16,17 +18,24 @@ pub(super) struct Directory {
 }
 impl Directory {
     pub(super) fn new() -> Self {
+        static NEXT_DIRECTORY: AtomicU64 = AtomicU64::new(0);
         let parent = std::env::temp_dir().canonicalize().unwrap();
         let stamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let root = parent.join(format!(
-            "forge-native-gameplay-test-{}-{stamp}",
-            std::process::id()
-        ));
-        fs::create_dir(&root).unwrap();
-        Self { root, parent }
+        loop {
+            let sequence = NEXT_DIRECTORY.fetch_add(1, Ordering::Relaxed);
+            let root = parent.join(format!(
+                "forge-native-gameplay-test-{}-{stamp}-{sequence}",
+                std::process::id()
+            ));
+            match fs::create_dir(&root) {
+                Ok(()) => return Self { root, parent },
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+                Err(error) => panic!("Cannot create isolated gameplay test directory: {error}"),
+            }
+        }
     }
 }
 impl Drop for Directory {
@@ -177,6 +186,428 @@ fn native_save_is_separate_and_resume_requires_an_explicit_request() {
         .unwrap()
         .unwrap();
     assert!(!fresh.resumed);
+}
+
+#[test]
+fn shared_resume_inspection_and_pinned_request_preserve_the_saved_game() {
+    use forge_gameplay::native_storage::{GameStorage, ResumeRequestDisposition};
+    let directory = Directory::new();
+    let (zone, document) = fixture();
+    let root = directory.root.join("saves");
+    let source = zone.head().content_hash().unwrap();
+    assert!(
+        GameStorage::open_existing(&root, &document)
+            .unwrap()
+            .is_none()
+    );
+    assert!(
+        !root.exists(),
+        "inspection must not create a save directory"
+    );
+
+    let archive = zone.archive_bytes().unwrap();
+    let mut game = PreparedNativeGameplay::from_archive(&archive, &root, None)
+        .unwrap()
+        .unwrap();
+    game.runtime
+        .session
+        .observe_position(document.player, forge_core::Vec3::new(5.0, 1.0, 8.0))
+        .unwrap();
+    let saved = game.runtime.session.save_bytes().unwrap();
+    game.storage.save(&saved).unwrap();
+    drop(game);
+
+    let area = root
+        .join(document.module_id.to_string())
+        .join(document.area_id.to_string());
+    let save_path = area.join("authoring.json");
+    let request_path = area.join("resume.json");
+    let mut store = GameStorage::open_existing(&root, &document)
+        .unwrap()
+        .unwrap();
+    let pin = store
+        .resume_candidate(&document, source, false)
+        .unwrap()
+        .unwrap();
+    assert_eq!(pin, forge_core::bytes_sha256(&saved));
+    let mut foreign = document.clone();
+    foreign.module_id = ModuleId::deterministic("native/foreign-module");
+    assert!(store.resume_candidate(&foreign, source, false).is_err());
+    assert!(
+        store
+            .resume_candidate(&document, ContentHash::from_bytes([7; 32]), false)
+            .is_err()
+    );
+    assert!(!request_path.exists());
+    let mut changed = saved.clone();
+    changed.push(b' ');
+    fs::write(&save_path, &changed).unwrap();
+    assert!(
+        store
+            .request_pinned_resume(&document, source, false, pin)
+            .is_err()
+    );
+    assert!(!request_path.exists());
+    assert_eq!(fs::read(&save_path).unwrap(), changed);
+    fs::write(&save_path, &saved).unwrap();
+
+    assert_eq!(
+        store
+            .request_pinned_resume(&document, source, false, pin)
+            .unwrap(),
+        ResumeRequestDisposition::Created
+    );
+    let request = fs::read(&request_path).unwrap();
+    assert_eq!(
+        store
+            .request_pinned_resume(&document, source, false, pin)
+            .unwrap(),
+        ResumeRequestDisposition::Existing
+    );
+    assert!(store.cancel_resume(&document).is_err());
+    assert_eq!(fs::read(&request_path).unwrap(), request);
+    assert!(
+        store
+            .request_pinned_resume(&document, source, true, pin)
+            .is_err()
+    );
+    assert_eq!(fs::read(&request_path).unwrap(), request);
+    drop(store);
+
+    let resumed = PreparedNativeGameplay::from_archive(&archive, &root, None)
+        .unwrap()
+        .unwrap();
+    assert!(resumed.resumed);
+    assert_eq!(
+        resumed.runtime.session().state().actors[&document.player].position,
+        forge_core::Vec3::new(5.0, 1.0, 8.0)
+    );
+    assert_eq!(fs::read(save_path).unwrap(), saved);
+}
+
+#[test]
+fn standalone_start_intent_preserves_pending_requests_and_save_bytes() {
+    use forge_gameplay::native_storage::{GameStorage, StartIntent, has_pending_resume};
+    let directory = Directory::new();
+    let (zone, document) = fixture();
+    let root = directory.root.join("intent-saves");
+    let source = zone.head().content_hash().unwrap();
+    let archive = zone.archive_bytes().unwrap();
+    assert!(!has_pending_resume(&root, document.module_id, document.area_id).unwrap());
+    assert!(!root.exists());
+    let mut fresh =
+        PreparedNativeGameplay::from_archive_with_intent(&archive, &root, None, StartIntent::Fresh)
+            .unwrap()
+            .unwrap();
+    let saved = fresh.runtime.session.save_bytes().unwrap();
+    fresh.storage.save(&saved).unwrap();
+    drop(fresh);
+    let pin = forge_core::bytes_sha256(&saved);
+    // A new standalone game cannot later overwrite an existing save, even
+    // when there is no pending resume request yet.
+    assert!(PreparedNativeGameplay::from_archive_with_intent(
+        &archive,
+        &root,
+        None,
+        StartIntent::Fresh,
+    )
+    .is_err());
+    assert!(
+        PreparedNativeGameplay::from_archive_with_intent(
+            &archive,
+            &root,
+            None,
+            StartIntent::Resume(pin),
+        )
+        .is_err()
+    );
+
+    let mut storage = GameStorage::open_existing(&root, &document)
+        .unwrap()
+        .unwrap();
+    storage
+        .request_pinned_resume(&document, source, false, pin)
+        .unwrap();
+    drop(storage);
+    let area = root
+        .join(document.module_id.to_string())
+        .join(document.area_id.to_string());
+    let save_path = area.join("authoring.json");
+    let request_path = area.join("resume.json");
+    let request = fs::read(&request_path).unwrap();
+    assert!(has_pending_resume(&root, document.module_id, document.area_id).unwrap());
+    // A pending request is still visible if its save was removed externally.
+    let held_save = area.join("held-save.json");
+    fs::rename(&save_path, &held_save).unwrap();
+    assert!(has_pending_resume(&root, document.module_id, document.area_id).unwrap());
+    fs::rename(&held_save, &save_path).unwrap();
+    for intent in [
+        StartIntent::Fresh,
+        StartIntent::Resume(ContentHash::from_bytes([7; 32])),
+    ] {
+        assert!(
+            PreparedNativeGameplay::from_archive_with_intent(&archive, &root, None, intent)
+                .is_err()
+        );
+        assert_eq!(fs::read(&request_path).unwrap(), request);
+        assert_eq!(fs::read(&save_path).unwrap(), saved);
+    }
+    let mut compatible: serde_json::Value = serde_json::from_slice(&request).unwrap();
+    compatible["allow_compatible_edits"] = true.into();
+    let compatible = serde_json::to_vec(&compatible).unwrap();
+    fs::write(&request_path, &compatible).unwrap();
+    assert!(
+        PreparedNativeGameplay::from_archive_with_intent(
+            &archive,
+            &root,
+            None,
+            StartIntent::Resume(pin),
+        )
+        .is_err()
+    );
+    assert_eq!(fs::read(&request_path).unwrap(), compatible);
+    fs::write(&request_path, &request).unwrap();
+    let resumed = PreparedNativeGameplay::from_archive_with_intent(
+        &archive,
+        &root,
+        None,
+        StartIntent::Resume(pin),
+    )
+    .unwrap()
+    .unwrap();
+    assert!(resumed.resumed);
+    assert_eq!(fs::read(save_path).unwrap(), saved);
+}
+
+#[test]
+fn multi_zone_storage_refuses_foreign_save_without_touching_committed_bytes() {
+    let directory = Directory::new();
+    let (zone, document) = fixture();
+    let source = zone.head().content_hash().unwrap();
+    let original = forge_gameplay::GameSession::new(document.clone(), source)
+        .unwrap()
+        .save_bytes()
+        .unwrap();
+    let mut storage = storage::GameStorage::open(&directory.root, &document).unwrap();
+    storage.save(&original).unwrap();
+    let path = directory
+        .root
+        .join(document.module_id.to_string())
+        .join(document.area_id.to_string())
+        .join("authoring.json");
+    for different_module in [false, true] {
+        let mut foreign = document.clone();
+        if different_module {
+            foreign.module_id = ModuleId::deterministic("multi-zone/other-module");
+        } else {
+            foreign.area_id = forge_core::AreaId::deterministic("multi-zone/other-area");
+        }
+        // Deliberately reuse every local gameplay ID. Ownership must bind the
+        // envelope to the storage slot, not infer it from actor/object IDs.
+        let foreign = forge_gameplay::GameSession::new(foreign, source)
+            .unwrap()
+            .save_bytes()
+            .unwrap();
+        assert!(
+            storage.save(&foreign).is_err(),
+            "Foreign zone/module save was accepted"
+        );
+        assert_eq!(fs::read(&path).unwrap(), original);
+        assert!(!path.with_file_name("authoring.pending").exists());
+    }
+    for malformed in [b"{".as_slice(), b"[]", b"null", b"{}"] {
+        assert!(storage.save(malformed).is_err());
+        assert_eq!(fs::read(&path).unwrap(), original);
+    }
+    assert!(storage.save(&vec![0; 4 * 1024 * 1024 + 1]).is_err());
+    storage.save(&original).unwrap();
+    assert_eq!(fs::read(path).unwrap(), original);
+    assert_eq!(zone.head().content_hash().unwrap(), source);
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "One A/B/A persistence scenario checks the entire state and repeated local IDs across both zones and another module"
+)]
+fn multi_zone_a_b_a_resume_retains_inventory_receipts_and_consumed_pickups_without_duplication() {
+    let directory = Directory::new();
+    let (_, mut a) = fixture();
+    let item = EntityId::deterministic("multi-zone/shared-local-item");
+    a.items = vec![forge_gameplay::ItemDefinition {
+        id: item,
+        name: "Jeton".into(),
+        max_stack: 20,
+    }];
+    a.objects[0].kind = ObjectKind::Pickup { item, quantity: 2 };
+    let mut b = a.clone();
+    b.area_id = forge_core::AreaId::deterministic("multi-zone/b");
+    b.objects[0].kind = ObjectKind::Pickup { item, quantity: 5 };
+    let a_bytes = serde_json::to_vec(&a).unwrap();
+    let b_bytes = serde_json::to_vec(&b).unwrap();
+    let a_source = forge_core::bytes_sha256(&a_bytes);
+    let b_source = forge_core::bytes_sha256(&b_bytes);
+    let request = |document: &GameplayDocument| GameRequest {
+        command_id: CommandId::deterministic("multi-zone/reused-local-request"),
+        expected_sequence: 0,
+        actor: document.player,
+        action: GameAction::Pickup {
+            object: document.objects[0].id,
+        },
+    };
+    let observation = forge_gameplay::ActionObservation {
+        line_of_sight: true,
+        ..default()
+    };
+    let mut first =
+        PreparedNativeGameplay::from_document(a.clone(), a_source, a_source, &directory.root, None)
+            .unwrap();
+    first
+        .runtime
+        .session
+        .execute(&request(&a), observation)
+        .unwrap();
+    first
+        .runtime
+        .session
+        .observe_position(a.player, forge_core::Vec3::new(1.0, 1.0, 2.0))
+        .unwrap();
+    let expected_a = first.runtime.session.state().clone();
+    first
+        .storage
+        .save(&first.runtime.session.save_bytes().unwrap())
+        .unwrap();
+    first.storage.request_resume(&a, a_source, false).unwrap();
+    drop(first);
+
+    let mut second =
+        PreparedNativeGameplay::from_document(b.clone(), b_source, b_source, &directory.root, None)
+            .unwrap();
+    assert!(!second.resumed);
+    assert!(
+        second.runtime.session.state().actors[&b.player]
+            .inventory
+            .is_empty()
+    );
+    second
+        .runtime
+        .session
+        .execute(&request(&b), observation)
+        .unwrap();
+    let expected_b = second.runtime.session.state().clone();
+    second
+        .storage
+        .save(&second.runtime.session.save_bytes().unwrap())
+        .unwrap();
+    second.storage.request_resume(&b, b_source, false).unwrap();
+    drop(second);
+
+    let mut returned =
+        PreparedNativeGameplay::from_document(a.clone(), a_source, a_source, &directory.root, None)
+            .unwrap();
+    assert!(returned.resumed);
+    assert_eq!(returned.runtime.session.state(), &expected_a);
+    assert_eq!(
+        returned.runtime.session.state().actors[&a.player].inventory[&item],
+        2
+    );
+    // Replaying the same journalled command is idempotent. A distinct second
+    // pickup is refused because this zone's object was already consumed.
+    returned
+        .runtime
+        .session
+        .execute(&request(&a), observation)
+        .unwrap();
+    let duplicate = GameRequest {
+        command_id: CommandId::deterministic("multi-zone/new-duplicate"),
+        expected_sequence: expected_a.sequence,
+        ..request(&a)
+    };
+    assert!(
+        returned
+            .runtime
+            .session
+            .execute(&duplicate, observation)
+            .is_err()
+    );
+    assert_eq!(returned.runtime.session.state(), &expected_a);
+    returned.storage.consume_resume_request().unwrap();
+    drop(returned);
+
+    let mut returned_b =
+        PreparedNativeGameplay::from_document(b.clone(), b_source, b_source, &directory.root, None)
+            .unwrap();
+    assert!(returned_b.resumed);
+    assert_eq!(returned_b.runtime.session.state(), &expected_b);
+    assert_eq!(
+        returned_b.runtime.session.state().actors[&b.player].inventory[&item],
+        5
+    );
+    returned_b.storage.consume_resume_request().unwrap();
+    drop(returned_b);
+
+    let mut other = a.clone();
+    other.module_id = ModuleId::deterministic("multi-zone/other-module");
+    let source = forge_core::canonical_json_sha256(&other).unwrap();
+    let foreign =
+        PreparedNativeGameplay::from_document(other, source, source, &directory.root, None)
+            .unwrap();
+    assert!(!foreign.resumed);
+    assert!(
+        foreign.runtime.session.state().actors[&a.player]
+            .inventory
+            .is_empty()
+    );
+    assert_eq!(serde_json::to_vec(&a).unwrap(), a_bytes);
+    assert_eq!(serde_json::to_vec(&b).unwrap(), b_bytes);
+}
+
+#[test]
+fn multi_zone_interrupted_staging_preserves_committed_save_and_does_not_block_another_zone() {
+    let directory = Directory::new();
+    let (zone, a) = fixture();
+    let mut b = a.clone();
+    b.area_id = forge_core::AreaId::deterministic("multi-zone/staging-b");
+    let source = zone.head().content_hash().unwrap();
+    let session_a = forge_gameplay::GameSession::new(a.clone(), source).unwrap();
+    let mut session_b = forge_gameplay::GameSession::new(b.clone(), source).unwrap();
+    let saved_a = session_a.save_bytes().unwrap();
+    let mut store_a = storage::GameStorage::open(&directory.root, &a).unwrap();
+    let mut store_b = storage::GameStorage::open(&directory.root, &b).unwrap();
+    store_a.save(&saved_a).unwrap();
+    store_b.save(&session_b.save_bytes().unwrap()).unwrap();
+    let a_directory = directory
+        .root
+        .join(a.module_id.to_string())
+        .join(a.area_id.to_string());
+    let pending = a_directory.join("authoring.pending");
+    fs::write(&pending, b"{\"interrupted\":").unwrap();
+    drop(store_a);
+    let mut reopened = storage::GameStorage::open(&directory.root, &a).unwrap();
+    reopened.request_resume(&a, source, false).unwrap();
+    let (bytes, compatible) = reopened.requested_resume(&a).unwrap();
+    assert!(!compatible);
+    let resumed = forge_gameplay::GameSession::resume(a, source, &bytes.unwrap(), false).unwrap();
+    assert_eq!(resumed.state(), session_a.state());
+    reopened.consume_resume_request().unwrap();
+    assert!(reopened.save(&saved_a).is_err());
+    assert_eq!(
+        fs::read(a_directory.join("authoring.json")).unwrap(),
+        saved_a
+    );
+    assert_eq!(fs::read(pending).unwrap(), b"{\"interrupted\":");
+    session_b
+        .observe_position(b.player, forge_core::Vec3::new(3.0, 1.0, 4.0))
+        .unwrap();
+    let changed_b = session_b.save_bytes().unwrap();
+    store_b.save(&changed_b).unwrap();
+    drop(store_b);
+    let mut reopened_b = storage::GameStorage::open(&directory.root, &b).unwrap();
+    reopened_b.request_resume(&b, source, false).unwrap();
+    assert_eq!(
+        reopened_b.requested_resume(&b).unwrap().0.unwrap(),
+        changed_b
+    );
 }
 
 #[test]
@@ -484,6 +915,7 @@ enum ExitTrigger {
     CloseWindow,
     NativeQuit,
     LateLast,
+    MixedOutcomes,
 }
 
 fn trigger_exit(app: &mut App, trigger: ExitTrigger, window: Entity) {
@@ -515,6 +947,12 @@ fn trigger_exit(app: &mut App, trigger: ExitTrigger, window: Entity) {
                 .after(observations::exit)
                 .after(report::exit),
             );
+        }
+        ExitTrigger::MixedOutcomes => {
+            app.add_systems(PostUpdate, |mut exits: MessageWriter<AppExit>| {
+                exits.write(AppExit::Success);
+                exits.write(AppExit::error());
+            });
         }
     }
 }
@@ -561,7 +999,15 @@ fn assert_exit_reports_in_one_update(trigger: ExitTrigger) {
     trigger_exit(&mut app, trigger, window);
     assert!(fs::read(&report_path).unwrap().is_empty());
     app.update();
-    assert_eq!(app.should_exit(), Some(AppExit::Success));
+    let success = !matches!(trigger, ExitTrigger::MixedOutcomes);
+    assert_eq!(
+        app.should_exit(),
+        Some(if success {
+            AppExit::Success
+        } else {
+            AppExit::error()
+        })
+    );
     assert_eq!(
         app.world().get::<Window>(window).is_none(),
         matches!(trigger, ExitTrigger::CloseWindow)
@@ -593,8 +1039,8 @@ fn assert_exit_reports_in_one_update(trigger: ExitTrigger) {
     assert_eq!(report["functional_hash"], functional.to_string());
     assert_eq!(report["tick"], 0);
     assert_eq!(report["sequence"], 0);
-    assert_eq!(report["exit_success"], true);
-    assert_eq!(exit["exit_success"], true);
+    assert_eq!(report["exit_success"], success);
+    assert_eq!(exit["exit_success"], success);
     assert!(exit["observation_error"].is_null());
     assert_eq!(zone.archive_bytes().unwrap(), archive);
 }
@@ -612,4 +1058,9 @@ fn native_exit_reports_native_quit_with_window_still_open() {
 #[test]
 fn native_exit_reports_late_last_writer_in_same_update() {
     assert_exit_reports_in_one_update(ExitTrigger::LateLast);
+}
+
+#[test]
+fn native_exit_reports_multiple_outcomes_once_and_prioritizes_failure() {
+    assert_exit_reports_in_one_update(ExitTrigger::MixedOutcomes);
 }

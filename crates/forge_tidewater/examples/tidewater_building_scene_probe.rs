@@ -4,23 +4,27 @@ use bevy_rapier3d::{
     plugin::context::{DefaultRapierContext, RapierContextColliders},
     prelude::{QueryFilter, ReadRapierContext},
 };
+use forge_assets::source_surface_package::SurfacePackage;
+use forge_engine::source_lighting::SceneLighting;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::geometry::ResidentMeshes;
+use forge_engine::source_surface::objects::PreparedScene;
+use forge_engine::source_surface::objects::ResidentScene;
+use forge_engine::source_surface::package::PreparedLibrary;
 use forge_project::zone_authoring::{placements::ManualPlacement, session::ZoneEditSession};
-use forge_tidewater::tidewater_assets::{
-    PreparedLibrary, PreparedMeshes, ResidentMeshes, materials,
-    scene::{PreparedScene, ResidentScene},
-};
-use forge_tidewater::tidewater_material::{SceneLighting, VillageMaterial};
-use forge_tidewater_assets::tidewater_package::BuildingPackage;
+use forge_tidewater::tidewater_assets::materials;
 use std::{collections::BTreeMap, error::Error, fs, io::Read, path::Path};
 
 #[path = "tidewater_building_scene_probe/shadows.rs"]
 mod shadows;
+#[path = "tidewater_building_scene_probe/source_fixture.rs"]
+mod source_fixture;
 
-type MaterialHandles = BTreeMap<String, Handle<VillageMaterial>>;
+type MaterialHandles = BTreeMap<String, Handle<SourceSurfaceMaterial>>;
 
-fn package(root: &Path, pin: forge_core::ContentHash) -> Result<BuildingPackage, Box<dyn Error>> {
+fn package(root: &Path, pin: forge_core::ContentHash) -> Result<SurfacePackage, Box<dyn Error>> {
     let root = root.canonicalize()?;
-    Ok(BuildingPackage::load(
+    Ok(SurfacePackage::load(
         &fs::read(root.join("package.json"))?,
         pin,
         |name, limit| {
@@ -48,7 +52,7 @@ fn prepare(
         app.world().resource::<ResidentMeshes>(),
         materials,
         app.world().resource::<Assets<Mesh>>(),
-        app.world().resource::<Assets<VillageMaterial>>(),
+        app.world().resource::<Assets<SourceSurfaceMaterial>>(),
     )
 }
 fn ready(app: &App) -> bool {
@@ -121,7 +125,7 @@ fn ray(app: &mut App) {
     assert_eq!(entity, part);
     assert!(distance <= 1.01);
 }
-fn setup(package: &BuildingPackage) -> Result<(App, MaterialHandles), Box<dyn Error>> {
+fn setup(package: &SurfacePackage) -> Result<(App, MaterialHandles), Box<dyn Error>> {
     let mut app = App::new();
     app.add_plugins((
         MinimalPlugins,
@@ -131,14 +135,14 @@ fn setup(package: &BuildingPackage) -> Result<(App, MaterialHandles), Box<dyn Er
     forge_engine::sampled_terrain_physics::register(&mut app);
     app.init_resource::<Assets<Mesh>>()
         .init_resource::<Assets<Image>>()
-        .init_resource::<Assets<VillageMaterial>>();
-    let meshes =
-        PreparedMeshes::load(package)?.stage(&mut app.world_mut().resource_mut::<Assets<Mesh>>());
+        .init_resource::<Assets<SourceSurfaceMaterial>>();
+    let meshes = forge_engine::source_surface::package::prepare_meshes(package)?
+        .stage(&mut app.world_mut().resource_mut::<Assets<Mesh>>());
     app.insert_resource(meshes);
     let library =
         PreparedLibrary::load(package)?.stage(&mut app.world_mut().resource_mut::<Assets<Image>>());
     // Material assets validate identity only; these placeholders are not a rendered scene.
-    let lighting = materials::LightingBindings {
+    let lighting = forge_engine::source_surface::LightingBindings {
         scene_lighting: SceneLighting::new([0.0, 1.0, 0.0], [1.0; 3], [[0.0; 3]; 9])?,
         environment: default(),
         hill_shadow: default(),
@@ -150,7 +154,7 @@ fn setup(package: &BuildingPackage) -> Result<(App, MaterialHandles), Box<dyn Er
         flags: Vec4::ZERO,
         ground_bounce: None,
         bounce_settings: Vec4::ZERO,
-        caustics: forge_tidewater::tidewater_caustics::CausticMaterialInputs::disabled(
+        caustics: forge_engine::source_surface::underwater::CausticMaterialInputs::disabled(
             &mut app.world_mut().resource_mut::<Assets<Image>>(),
         ),
     };
@@ -160,7 +164,7 @@ fn setup(package: &BuildingPackage) -> Result<(App, MaterialHandles), Box<dyn Er
         handles.insert(
             name.clone(),
             app.world_mut()
-                .resource_mut::<Assets<VillageMaterial>>()
+                .resource_mut::<Assets<SourceSurfaceMaterial>>()
                 .add(material),
         );
     }
@@ -170,17 +174,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     if !(3..=4).contains(&args.len()) {
         return Err(
-            "PACKAGE_ROOT PIN CANONICAL_ZONE [NEW_SHADOW_OUTPUT_DIRECTORY] required".into(),
+            "PACKAGE_ROOT PIN CANONICAL_ZONE_OR_--package-source [NEW_SHADOW_OUTPUT_DIRECTORY] required".into(),
         );
     }
     let package = package(Path::new(&args[0]), args[1].parse()?)?;
-    let zone = ZoneEditSession::from_archive_bytes(&fs::read(&args[2])?)?;
-    let original = zone
-        .head()
-        .corrections
-        .placements
-        .clone()
-        .ok_or("placements")?;
+    let original = if args[2] == "--package-source" {
+        println!("SOURCE_DERIVED_QUALIFICATION_FIXTURE: not an authored-map read");
+        source_fixture::placements(&package)?
+    } else {
+        ZoneEditSession::from_archive_bytes(&fs::read(&args[2])?)?
+            .head()
+            .corrections
+            .placements
+            .clone()
+            .ok_or("placements")?
+    };
     assert_eq!(original.len(), 23);
     let (mut app, materials) = setup(&package)?;
     prepare(&app, &original, &materials)?.stage(app.world_mut());

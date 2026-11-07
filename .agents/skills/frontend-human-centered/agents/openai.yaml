@@ -1,0 +1,4 @@
+interface:
+  display_name: "frontend-human-centered"
+  short_description: "Qualité UX adaptée aux utilisateurs de Forge"
+  default_prompt: "Utiliser $frontend-human-centered pour cette interface."

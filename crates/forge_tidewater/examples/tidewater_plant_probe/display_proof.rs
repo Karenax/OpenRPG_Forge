@@ -79,7 +79,7 @@ fn drive(world: &mut World) {
         world.resource_mut::<ButtonInput<KeyCode>>().reset(KeyCode::Escape);
         let image=world.resource::<crate::Probe>().screenshot.clone();
         match proof.phase {
-            0=>{proof.images=world.resource::<forge_tidewater::tidewater_atmosphere::Targets>().images.iter().map(Handle::id).collect();world.resource_mut::<ButtonInput<KeyCode>>().press(KeyCode::Escape);},
+            0=>{proof.images=world.resource::<forge_engine::source_atmosphere::Targets>().images.iter().map(Handle::id).collect();world.resource_mut::<ButtonInput<KeyCode>>().press(KeyCode::Escape);},
             1=>{if !world.resource::<State>().open || world.resource::<PlayerInputFocus>().0 {return Err("display menu/input failed".into());} proof.checks.push("escape_opens_display_menu");press(world,Action::Toggle(Indicator::Fps))?;},
             2=>{check_hud(world,[false,true,true])?;press(world,Action::Toggle(Indicator::Frame))?;},
             3=>{check_hud(world,[false,false,true])?;press(world,Action::Toggle(Indicator::Clock))?;},
@@ -89,7 +89,7 @@ fn drive(world: &mut World) {
                 if world.resource::<State>().preferences.minutes!=720 {return Err("slider did not select noon".into());}
                 if world.resource::<daylight::Daylight>().completed_hours!=Some(12.0) {return Ok(());}
                 let frame=solar_frame(world).ok_or("clock absent")?;
-                proof.day=Some(forge_tidewater::tidewater_atmosphere::readback::latest(world,frame).ok_or("noon GPU completion absent")??.lighting.sun_color);
+                proof.day=Some(forge_engine::source_atmosphere::readback::latest(world,frame).ok_or("noon GPU completion absent")??.lighting.sun_color);
                 proof.checks.push("slider_updates_real_solar_and_gpu_lighting");
                 world.spawn(Screenshot::primary_window()).observe(save_to_disk(image.with_extension("noon-menu.png")));proof.wait=15;
             },
@@ -101,10 +101,10 @@ fn drive(world: &mut World) {
                 if world.resource::<State>().preferences.minutes!=1380 {return Err("night slider failed".into());}
                 if world.resource::<daylight::Daylight>().completed_hours!=Some(23.0) {return Ok(());}
                 let frame=solar_frame(world).ok_or("clock absent")?;
-                let night=forge_tidewater::tidewater_atmosphere::readback::latest(world,frame).ok_or("night GPU completion absent")??.lighting.sun_color;
+                let night=forge_engine::source_atmosphere::readback::latest(world,frame).ok_or("night GPU completion absent")??.lighting.sun_color;
                 if frame.night<0.9 || Some(night)==proof.day || night.iter().any(|v|!v.is_finite()) {return Err("day/night lighting failed".into());}
                 if config::load()!=world.resource::<State>().preferences {return Err("display preferences did not persist".into());}
-                let images:Vec<_>=world.resource::<forge_tidewater::tidewater_atmosphere::Targets>().images.iter().map(Handle::id).collect();
+                let images:Vec<_>=world.resource::<forge_engine::source_atmosphere::Targets>().images.iter().map(Handle::id).collect();
                 if images!=proof.images {return Err("clock recreated resident atmosphere images".into());}
                 proof.checks.push("night_light_and_persistence_with_resident_images");
                 world.spawn(Screenshot::primary_window()).observe(save_to_disk(image.with_extension("night-menu.png")));proof.wait=15;

@@ -1,7 +1,7 @@
 //! Filesystem adapter for the shared authored terrain shadow preparation.
 use super::checked_file;
-use forge_tidewater::sun_cascades::CascadeView;
-pub(super) use forge_tidewater::tidewater_object_shadow::terrain::Input as Terrain;
+pub(super) use forge_engine::source_shadows::casters::terrain::Input as Terrain;
+use forge_engine::sun_cascades::CascadeView;
 use serde_json::Value;
 use std::{error::Error, path::Path};
 
@@ -9,10 +9,8 @@ pub(super) fn source(
     root: &Path,
     fixture: &Value,
     scene_files: Option<&std::collections::BTreeMap<String, Vec<u8>>>,
-) -> Result<
-    forge_tidewater::tidewater_object_shadow::terrain::authored::PreparedSource,
-    Box<dyn Error>,
-> {
+) -> Result<forge_engine::source_shadows::casters::terrain::authored::PreparedSource, Box<dyn Error>>
+{
     let read = |name: &str| -> Result<Vec<u8>, Box<dyn Error>> {
         match scene_files {
             Some(files) => files
@@ -26,7 +24,7 @@ pub(super) fn source(
     let doc =
         forge_project::TerrainDocument::from_json(std::str::from_utf8(&read("terrain.json")?)?)?;
     let shader = String::from_utf8(checked_file(root, fixture, "terrain-lod.wgsl")?)?;
-    forge_tidewater::tidewater_object_shadow::terrain::authored::PreparedSource::new(
+    forge_engine::source_shadows::casters::terrain::authored::PreparedSource::new(
         &doc, heights, &shader,
     )
 }

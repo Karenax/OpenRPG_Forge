@@ -39,6 +39,45 @@ impl Drop for Fixture {
         let _ = fs::remove_dir_all(&self.root);
     }
 }
+#[test]
+fn partial_native_export_reports_only_missing_pins_and_does_not_adopt_assets() {
+    let fixture = Fixture::new();
+    let candidate = candidate("partial");
+    let plan = fixture.import(&candidate);
+    let before = fixture.store.state().unwrap();
+    let unknown = AssetId::deterministic("missing-vault-reference");
+    let unknown_pin = bytes_sha256(b"missing-vault-model");
+    let selected = fixture
+        .store
+        .export_available_snapshot(
+            &[
+                (plan.asset.id, plan.asset.payload.sha256),
+                (unknown, unknown_pin),
+            ],
+            Some(&[]),
+            false,
+        )
+        .unwrap();
+    assert_eq!(selected.unresolved, vec![(unknown, unknown_pin)]);
+    assert_eq!(selected.snapshot.catalog.assets.len(), 1);
+    assert_eq!(selected.snapshot.catalog.assets[0], plan.asset);
+    assert_eq!(fixture.store.state().unwrap(), before);
+    assert!(
+        fixture
+            .store
+            .export_module_snapshot(&[(unknown, unknown_pin)], &[], false)
+            .is_err()
+    );
+    let empty = fixture
+        .store
+        .export_available_snapshot(&[(unknown, unknown_pin)], Some(&[]), false)
+        .unwrap();
+    assert!(empty.snapshot.catalog.assets.is_empty());
+    assert!(empty.snapshot.files.is_empty());
+    assert_eq!(empty.unresolved, vec![(unknown, unknown_pin)]);
+    assert!(empty.snapshot.catalog.validate_for_local_use().is_err());
+}
+
 fn glb(generator: &str) -> Vec<u8> {
     let mut json =
         serde_json::to_vec(&serde_json::json!({"asset":{"version":"2.0","generator":generator}}))

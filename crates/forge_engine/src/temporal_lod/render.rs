@@ -41,6 +41,8 @@ pub(crate) struct BatchMembers {
 #[derive(Clone, Copy, Default, PartialEq, ShaderType)]
 struct Record {
     codes: IVec4,
+    // Slot zero stays inactive; Y/Z carry current/previous Time as f32 bits.
+    // Other slots retain the existing per-object LOD metadata contract.
     metadata: UVec4,
 }
 
@@ -301,6 +303,9 @@ pub(crate) fn update(world: &mut World) {
         .get_resource::<FrameCount>()
         .map_or(0, |frame| frame.0);
     let delta = world.get_resource::<Time>().map_or(0.0, Time::delta_secs);
+    let times = world
+        .get_resource::<Time>()
+        .map_or([0.0; 2], crate::vegetation::vegetation_frame_times);
     let mut cameras = world.query_filtered::<(&Camera, &GlobalTransform), With<Camera3d>>();
     let mut active = cameras.iter(world).filter(|(camera, _)| camera.is_active);
     let camera = active.next().map(|(_, transform)| transform.translation());
@@ -319,6 +324,14 @@ pub(crate) fn update(world: &mut World) {
     let (completed, prepared) = (None::<u32>, None::<u64>);
     world.resource_scope(|world, mut groups: Mut<Groups>| {
         groups.frame = frame;
+        if groups.records.is_empty() {
+            groups.records.push(Record::default());
+        }
+        let clock = UVec4::new(0, times[0].to_bits(), times[1].to_bits(), 0);
+        if groups.records[0].metadata != clock {
+            groups.records[0].metadata = clock;
+            groups.dirty = true;
+        }
         let mut live = std::mem::take(&mut groups.live);
         live.clear();
         groups.levels.clear();
@@ -442,6 +455,35 @@ pub(crate) fn update(world: &mut World) {
 mod tests {
     use super::*;
 
+    #[test]
+    fn shared_shader_clock_wraps_without_allocating_object_slots() {
+        let mut world = World::new();
+        world.init_resource::<Groups>();
+        let mut buffers = Assets::<ShaderBuffer>::default();
+        buffers
+            .insert(BUFFER.id(), ShaderBuffer::from(vec![Record::default()]))
+            .unwrap();
+        world.insert_resource(buffers);
+        let mut time = Time::<()>::default();
+        time.set_wrap_period(std::time::Duration::from_secs(4));
+        time.advance_by(std::time::Duration::from_millis(3900));
+        world.insert_resource(time);
+        update(&mut world);
+        world
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_millis(200));
+        update(&mut world);
+        let groups = world.resource::<Groups>();
+        let clock = groups.record(0).unwrap();
+        assert_eq!(clock.codes, IVec4::ZERO);
+        assert!(!groups.active(0));
+        assert!((f32::from_bits(clock.metadata.y) - 0.1).abs() < 1e-6);
+        assert!((f32::from_bits(clock.metadata.z) - 3.9).abs() < 1e-6);
+        assert!(groups.groups.is_empty());
+        assert_eq!(groups.uploaded_records, 1);
+        assert!(!groups.dirty);
+    }
+
     fn policy() -> TemporalLodPolicy {
         TemporalLodPolicy::new(&[24.0, 80.0], 2.0, 0.2).unwrap()
     }
@@ -555,10 +597,12 @@ mod tests {
             world.resource::<Groups>().record(slot).unwrap().metadata.y,
             42
         );
+        #[cfg(feature = "physics-rapier")]
         assert!(!gpu_ready(None, 100, 1));
     }
 
     #[test]
+    #[cfg(feature = "physics-rapier")]
     #[allow(
         clippy::too_many_lines,
         reason = "One fixture verifies acquisition, renewal during a fade, and subsequent invalidation"

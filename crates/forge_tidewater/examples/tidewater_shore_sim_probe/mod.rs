@@ -31,7 +31,6 @@ use std::{
     },
     time::Duration,
 };
-use wgpu::util::DeviceExt;
 const SNAPSHOTS: [u32; 5] = [0, 1, 120, 540, 1080];
 #[allow(dead_code)]
 mod authored;
@@ -139,7 +138,7 @@ fn load(root: &Path, kind: &str, frames: u32) -> Result<Input, Box<dyn Error>> {
     }
     let adapted = original.replace(
         hash_definition,
-        include_str!("../../../../scripts/tidewater/native-shore-hash.wgsl"),
+        forge_engine::source_shore_sim::SHORE_HASH_SOURCE,
     );
     files.insert("kernel.wgsl".into(), adapted.into_bytes());
     Ok(Input { frames, files })
@@ -245,7 +244,13 @@ fn install_input(
     app.sub_app_mut(RenderApp)
         .insert_resource(input)
         .insert_resource(targets.clone())
-        .add_systems(RenderGraph, compute.before(camera_driver));
+        .add_systems(
+            RenderGraph,
+            compute
+                .in_set(forge_engine::source_water_schedule::ShoreComputeSet)
+                .after(forge_engine::source_water_schedule::OceanComputeSet)
+                .before(camera_driver),
+        );
     if let Some(output) = output {
         fs::create_dir(&output)?;
         app.insert_resource(Output {
@@ -266,274 +271,41 @@ fn initialize(
     queue: &RenderQueue,
     shared_deposit: Option<wgpu::Buffer>,
 ) -> Simulation {
-    let texture = |side, format, mips, usage| {
-        device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("shore simulation"),
-            size: wgpu::Extent3d {
-                width: side,
-                height: side,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: mips,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format,
-            usage,
-            view_formats: &[],
-        })
-    };
-    let sample_usage = wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST;
-    let state_a = texture(
-        768,
-        wgpu::TextureFormat::Rgba16Float,
-        1,
-        sample_usage | wgpu::TextureUsages::COPY_SRC,
-    );
-    let state_b = texture(
-        768,
-        wgpu::TextureFormat::Rgba16Float,
-        1,
-        wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::COPY_SRC,
-    );
-    let height = texture(2048, wgpu::TextureFormat::R32Float, 1, sample_usage);
-    let shore = texture(512, wgpu::TextureFormat::Rgba32Float, 1, sample_usage);
-    let dir = texture(1, wgpu::TextureFormat::Rgba32Float, 1, sample_usage);
-    let lace = texture(512, wgpu::TextureFormat::Rgba8Unorm, 10, sample_usage);
-    // Unreachable terrain shading resources are declared by the original module.
-    // They are valid dummy bindings; the compute entry point never reads them.
-    let dummy = texture(1, wgpu::TextureFormat::Rgba8Unorm, 1, sample_usage);
-    let delta_bytes = input
+    let delta = input
         .files
         .get("authored-height-deltas.bin")
         .map_or(&[0_u8; 4][..], Vec::as_slice);
-    let delta_side = if delta_bytes.len() == 4 { 1 } else { 2049 };
-    let deltas = texture(delta_side, wgpu::TextureFormat::R32Float, 1, sample_usage);
-    let upload = |tex: &wgpu::Texture, mip, side, bpp, data: &[u8]| {
-        queue.write_texture(
-            wgpu::TexelCopyTextureInfo {
-                texture: tex,
-                mip_level: mip,
-                origin: wgpu::Origin3d::ZERO,
-                aspect: wgpu::TextureAspect::All,
-            },
-            data,
-            wgpu::TexelCopyBufferLayout {
-                offset: 0,
-                bytes_per_row: Some(side * bpp),
-                rows_per_image: Some(side),
-            },
-            wgpu::Extent3d {
-                width: side,
-                height: side,
-                depth_or_array_layers: 1,
-            },
-        );
-    };
-    upload(&state_a, 0, 768, 8, &vec![0; STATE_BYTES]);
-    upload(&height, 0, 2048, 4, &input.files["heights.f32.bin"]);
-    upload(&deltas, 0, delta_side, 4, delta_bytes);
-    upload(&shore, 0, 512, 16, &input.files["shore-field.rgba32.bin"]);
-    upload(&dir, 0, 1, 16, &input.files["shore-direction.rgba32.bin"]);
-    for i in 0..10 {
-        upload(
-            &lace,
-            i,
-            512 >> i,
-            4,
-            &input.files[&format!("lace-m{i}.rgba8.bin")],
-        );
-    }
-    let uniform = |data: &[u8]| {
-        device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shore simulation uniform"),
-            contents: data,
-            usage: wgpu::BufferUsages::UNIFORM,
-        })
-    };
-    let sim_p = uniform(&input.files["simulation-params.bin"]);
-    let terrain_p = uniform(&input.files["terrain-params.bin"]);
-    let shore_p = uniform(&input.files["shore-params.bin"]);
-    let deposit = shared_deposit.unwrap_or_else(|| {
-        device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("zero shore deposition"),
-            contents: &vec![0; DEPOSIT_BYTES],
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        })
-    });
-    let ub = wgpu::BindingType::Buffer {
-        ty: wgpu::BufferBindingType::Uniform,
-        has_dynamic_offset: false,
-        min_binding_size: None,
-    };
-    let tex = |filterable| wgpu::BindingType::Texture {
-        sample_type: wgpu::TextureSampleType::Float { filterable },
-        view_dimension: wgpu::TextureViewDimension::D2,
-        multisampled: false,
-    };
-    let entry = |binding, ty| wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty,
-        count: None,
-    };
-    let mut e0 = vec![entry(0, ub)];
-    for i in 1..10 {
-        e0.push(entry(
-            i,
-            wgpu::BindingType::Sampler(if i == 9 {
-                wgpu::SamplerBindingType::Comparison
-            } else if i >= 7 {
-                wgpu::SamplerBindingType::NonFiltering
+    let gpu = forge_engine::source_shore_sim::GpuInputs {
+        generation: None,
+        kernel: std::str::from_utf8(&input.files["kernel.wgsl"]).expect("validated WGSL"),
+        heights: &input.files["heights.f32.bin"],
+        shore: &input.files["shore-field.rgba32.bin"],
+        direction: &input.files["shore-direction.rgba32.bin"],
+        lace: std::array::from_fn(|i| input.files[&format!("lace-m{i}.rgba8.bin")].as_slice()),
+        simulation_params: &input.files["simulation-params.bin"],
+        terrain_params: &input.files["terrain-params.bin"],
+        shore_params: &input.files["shore-params.bin"],
+        deltas: delta,
+        layout: forge_engine::source_breaker_gpu::TerrainTextureLayout {
+            heights: [2048, 2048],
+            shore_side: 512,
+            deltas: if delta.len() == 4 {
+                [1, 1]
             } else {
-                wgpu::SamplerBindingType::Filtering
-            }),
-        ));
-    }
-    let layout0 = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("shore frame"),
-        entries: &e0,
-    });
-    let e1: Vec<_> = (0..15)
-        .map(|i| {
-            entry(
-                i,
-                match i {
-                    2 | 9 | 11 => ub,
-                    12 => wgpu::BindingType::StorageTexture {
-                        access: wgpu::StorageTextureAccess::WriteOnly,
-                        format: wgpu::TextureFormat::Rgba16Float,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                    },
-                    13 => wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: false },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    3 | 6 | 7 | 10 => tex(false),
-                    _ => tex(true),
-                },
-            )
-        })
-        .collect();
-    let layout1 = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("shore resources"),
-        entries: &e1,
-    });
-    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("shore simulation"),
-        bind_group_layouts: &[Some(&layout0), Some(&layout1)],
-        immediate_size: 0,
-    });
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("original ShoreSim"),
-        source: wgpu::ShaderSource::Wgsl(
-            std::str::from_utf8(&input.files["kernel.wgsl"])
-                .expect("validated WGSL")
-                .into(),
-        ),
-    });
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("ShoreSim"),
-        layout: Some(&layout),
-        module: &shader,
-        entry_point: Some("main"),
-        compilation_options: default(),
-        cache: None,
-    });
-    let samplers: Vec<_> = (1..10)
-        .map(|i| {
-            let address = match i {
-                1 | 4 | 6 | 8 => wgpu::AddressMode::Repeat,
-                3 => wgpu::AddressMode::MirrorRepeat,
-                _ => wgpu::AddressMode::ClampToEdge,
-            };
-            let filter = if i >= 7 {
-                wgpu::FilterMode::Nearest
-            } else {
-                wgpu::FilterMode::Linear
-            };
-            device.create_sampler(&wgpu::SamplerDescriptor {
-                address_mode_u: address,
-                address_mode_v: address,
-                address_mode_w: address,
-                min_filter: filter,
-                mag_filter: filter,
-                mipmap_filter: if i >= 7 {
-                    wgpu::MipmapFilterMode::Nearest
-                } else {
-                    wgpu::MipmapFilterMode::Linear
-                },
-                anisotropy_clamp: match i {
-                    4 | 5 => 8,
-                    6 => 4,
-                    _ => 1,
-                },
-                compare: if i == 9 {
-                    Some(wgpu::CompareFunction::LessEqual)
-                } else {
-                    None
-                },
-                ..default()
-            })
-        })
-        .collect();
-    let views: Vec<_> = [
-        &state_a, &lace, &height, &dummy, &shore, &dir, &state_b, &deltas,
-    ]
-    .into_iter()
-    .map(|t| t.create_view(&default()))
-    .collect();
-    let view = |i| wgpu::BindingResource::TextureView(&views[i]);
-    let resources = [
-        view(0),
-        view(1),
-        sim_p.as_entire_binding(),
-        view(2),
-        view(3),
-        view(3),
-        view(7),
-        view(4),
-        view(3),
-        terrain_p.as_entire_binding(),
-        view(5),
-        shore_p.as_entire_binding(),
-        view(6),
-        deposit.as_entire_binding(),
-        view(1),
-    ];
-    let entries: Vec<_> = resources
-        .into_iter()
-        .enumerate()
-        .map(|(i, resource)| wgpu::BindGroupEntry {
-            binding: u32::try_from(i).expect("binding"),
-            resource,
-        })
-        .collect();
-    let group1 = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("shore resources"),
-        layout: &layout1,
-        entries: &entries,
-    });
+                [2049, 2049]
+            },
+        },
+        water_level: 0.0,
+    };
     Simulation {
-        state_a,
-        state_b,
-        deposit,
-        pipeline,
-        group1,
-        layout0,
-        samplers,
+        gpu: forge_engine::source_shore_sim::initialize_gpu(&gpu, device, queue, shared_deposit)
+            .expect("validated reference shore fits the render device"),
         next_step: 0,
         time: 0.0,
     }
 }
 struct Simulation {
-    state_a: wgpu::Texture,
-    state_b: wgpu::Texture,
-    deposit: wgpu::Buffer,
-    pipeline: wgpu::ComputePipeline,
-    group1: wgpu::BindGroup,
-    layout0: wgpu::BindGroupLayout,
-    samplers: Vec<wgpu::Sampler>,
+    gpu: forge_engine::source_shore_sim::GpuSimulation,
     next_step: u32,
     time: f64,
 }
@@ -581,11 +353,12 @@ fn compute(
             #[allow(clippy::cast_possible_truncation)]
             frame[580..584].copy_from_slice(&(sim.time as f32).to_le_bytes());
             frame[584..588].copy_from_slice(&(1.0_f32 / 60.0).to_le_bytes());
-            sim.encode_step(device, context.command_encoder(), &frame);
+            sim.gpu
+                .encode_frame(device, context.command_encoder(), &frame);
         }
         if let Some(i) = SNAPSHOTS.iter().position(|&v| v == step) {
             context.command_encoder().copy_texture_to_buffer(
-                sim.state_a.as_image_copy(),
+                sim.gpu.state_texture().as_image_copy(),
                 wgpu::TexelCopyBufferInfo {
                     buffer: &gpu[i * 2].buffer,
                     layout: wgpu::TexelCopyBufferLayout {
@@ -597,7 +370,7 @@ fn compute(
                 extent,
             );
             context.command_encoder().copy_buffer_to_buffer(
-                &sim.deposit,
+                sim.gpu.deposit_buffer(),
                 0,
                 &gpu[i * 2 + 1].buffer,
                 0,
@@ -609,7 +382,7 @@ fn compute(
     if end == input.frames + 1 {
         // GPU-only publication: scene materials never consume CPU oracle states.
         context.command_encoder().copy_texture_to_texture(
-            sim.state_a.as_image_copy(),
+            sim.gpu.state_texture().as_image_copy(),
             shared_state.texture.as_image_copy(),
             extent,
         );
@@ -740,100 +513,11 @@ impl CoupledInput {
         device: &wgpu::Device,
         queue: &RenderQueue,
         deposit: wgpu::Buffer,
-    ) -> CoupledSimulation {
-        CoupledSimulation(initialize(&self.0, device, queue, Some(deposit)))
+    ) -> forge_engine::source_shore_sim::OrderedSimulation {
+        let simulation = initialize(&self.0, device, queue, Some(deposit));
+        forge_engine::source_shore_sim::OrderedSimulation::new(simulation.gpu, 0)
     }
 }
-#[allow(dead_code)]
-pub struct CoupledSimulation(Simulation);
-#[allow(dead_code)]
-impl CoupledSimulation {
-    pub fn publish(&self, encoder: &mut wgpu::CommandEncoder, texture: &wgpu::Texture) {
-        encoder.copy_texture_to_texture(
-            self.0.state_a.as_image_copy(),
-            texture.as_image_copy(),
-            wgpu::Extent3d {
-                width: 768,
-                height: 768,
-                depth_or_array_layers: 1,
-            },
-        );
-    }
-    pub fn step(
-        &mut self,
-        device: &wgpu::Device,
-        encoder: &mut wgpu::CommandEncoder,
-        frame: &[u8],
-    ) {
-        let step = u32::from_le_bytes(frame[576..580].try_into().expect("frame index"));
-        assert_eq!(step, self.0.next_step + 1, "missed shore step");
-        self.0.encode_step(device, encoder, frame);
-        self.0.next_step = step;
-    }
-    pub fn copy_state(&self, encoder: &mut wgpu::CommandEncoder, buffer: &wgpu::Buffer) {
-        encoder.copy_texture_to_buffer(
-            self.0.state_a.as_image_copy(),
-            wgpu::TexelCopyBufferInfo {
-                buffer,
-                layout: wgpu::TexelCopyBufferLayout {
-                    offset: 0,
-                    bytes_per_row: Some(768 * 8),
-                    rows_per_image: Some(768),
-                },
-            },
-            wgpu::Extent3d {
-                width: 768,
-                height: 768,
-                depth_or_array_layers: 1,
-            },
-        );
-    }
-}
-impl Simulation {
-    fn encode_step(&self, device: &wgpu::Device, encoder: &mut wgpu::CommandEncoder, frame: &[u8]) {
-        let extent = wgpu::Extent3d {
-            width: 768,
-            height: 768,
-            depth_or_array_layers: 1,
-        };
-        let frame_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shore step"),
-            contents: frame,
-            usage: wgpu::BufferUsages::UNIFORM,
-        });
-        let mut entries = vec![wgpu::BindGroupEntry {
-            binding: 0,
-            resource: frame_buffer.as_entire_binding(),
-        }];
-        for (i, s) in self.samplers.iter().enumerate() {
-            entries.push(wgpu::BindGroupEntry {
-                binding: u32::try_from(i + 1).expect("binding"),
-                resource: wgpu::BindingResource::Sampler(s),
-            });
-        }
-        let group0 = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("shore step"),
-            layout: &self.layout0,
-            entries: &entries,
-        });
-        {
-            let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-                label: Some("shore step"),
-                ..default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &group0, &[]);
-            pass.set_bind_group(1, &self.group1, &[]);
-            pass.dispatch_workgroups(96, 96, 1);
-        }
-        encoder.copy_texture_to_texture(
-            self.state_b.as_image_copy(),
-            self.state_a.as_image_copy(),
-            extent,
-        );
-    }
-}
-
 /// Expose a caller-produced GPU state to existing shore materials, without another simulation.
 #[allow(dead_code)]
 pub fn install_external(

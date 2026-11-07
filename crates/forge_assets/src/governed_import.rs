@@ -15,6 +15,12 @@ pub const MAX_IMPORT_FILE_BYTES: u64 = 256 * 1024 * 1024;
 pub const MAX_IMPORT_TOTAL_BYTES: u64 = 16 * 1024 * 1024 * 1024;
 pub const MAX_IMPORT_THUMBNAIL_BYTES: u64 = 2 * 1024 * 1024;
 
+/// Stable identity namespace for an asset named by the local Vault catalogue.
+#[must_use]
+pub fn vault_asset_id(id: &str) -> AssetId {
+    AssetId::deterministic(format!("asset-vault/v1:{id}"))
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GovernedAssetKind {

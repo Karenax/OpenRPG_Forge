@@ -61,6 +61,7 @@ fn promotion_persists_origin_atomically_across_codecs_undo_and_regeneration() {
     let placement = ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id,
         name: "Promoted tree".into(),
         asset_id: AssetId::deterministic("oak"),
@@ -324,6 +325,7 @@ fn promotion_quota_refusals_leave_the_authoritative_head_unchanged() {
     let placement = |i| ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic(format!("quota-placement-{i}")),
         name: "Tree".into(),
         asset_id: AssetId::deterministic("oak"),

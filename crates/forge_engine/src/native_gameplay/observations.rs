@@ -3,6 +3,8 @@ use crate::gameplay::GameplayRuntime;
 use bevy::prelude::*;
 use forge_core::ContentHash;
 use std::{fs::File, io::Write, path::Path, time::Instant};
+mod presentation;
+pub(super) use presentation::PresentationObservation;
 
 const MAX_OBSERVATION_BYTES: usize = 64 * 1024 * 1024;
 #[derive(Resource)]
@@ -118,13 +120,21 @@ impl ObservationSink {
     }
 }
 
-#[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
+#[allow(
+    clippy::needless_pass_by_value,
+    clippy::too_many_arguments,
+    reason = "Bevy supplies separate observation resources and queries"
+)]
 pub(super) fn record(
     runtime: Res<GameplayRuntime>,
     mut sink: ResMut<ObservationSink>,
     navigation: Res<crate::navigation::NavigationRuntime>,
     player: Res<crate::PlayerRuntimeSnapshot>,
+    presentation: PresentationObservation,
     motion: Query<(&crate::DomainEntityId, &crate::gameplay::DangerMotionState)>,
+    graphics: Option<Res<super::NativeGraphicsStatus>>,
+    amphibious: Option<Res<crate::amphibious_player::AmphibiousPlayerState>>,
+    underwater: Option<Res<crate::source_underwater::UnderwaterObservation>>,
 ) {
     let state = runtime.session().state();
     if sink.error.is_some() || sink.last_tick == state.tick {
@@ -157,19 +167,54 @@ pub(super) fn record(
         "escape_target":motion.escape_target.map(|p|p.to_array()) })
         })
         .collect::<Vec<_>>();
-    let value = serde_json::json!({
+    let mut value = serde_json::json!({
         "schema":"forge.native-gameplay.observation","version":1,"kind":"frame","qualification":"observations_only",
         "pid":std::process::id(),"elapsed_ms":sink.started.elapsed().as_secs_f64()*1000.0,
         "source_hash":sink.source,"archive_hash":sink.archive,"functional_hash":sink.functional,
         "tick":state.tick,"sequence":state.sequence,"ready":runtime.is_ready(),"error":runtime.error(),
         "feedback":runtime.feedback(),"pending_actions":runtime.has_queued_actions(),
+        "graphics":graphics.as_deref(),
         "actors":state.actors,"objects":state.objects,"quests":state.quests,
         "last_action_receipt":state.receipts.last(),"last_frame":state.last_frame,
         "last_events":runtime.last_events(),"navigation":navigation.actors(),"npc_motion":motions,
+        "static_hlod":presentation.static_hlod.as_deref(),"static_hlod_gpu":presentation.static_gpu.as_deref(),
+        "presentation":presentation.snapshot(),
         "player":{"position":player.player_position.to_array(),"grounded":player.grounded,"last_applied_sequence":player.last_applied_sequence,
             "desired_translation":player.desired_translation.to_array(),"effective_translation":player.effective_translation.to_array(),
             "backend_identity_stable":player.backend_identity_stable}
     });
+    if let Some(amphibious) = amphibious {
+        value["player"]["amphibious"] = serde_json::json!({
+            "mode": match amphibious.motion.mode {
+                crate::amphibious_locomotion::Mode::Walk => "walk",
+                crate::amphibious_locomotion::Mode::Swim => "swim",
+            },
+            "anchor": amphibious.motion.position.to_array(),
+            "water_height": amphibious.motion.water_h,
+            "water_query_step": amphibious.water_query_step,
+            "water_query_time": amphibious.water_query_time,
+            "water_query_position": amphibious.water_query_position,
+            "ground_height": amphibious.ground_height,
+            "swim_entries": amphibious.swim_entries,
+            "walk_returns": amphibious.walk_returns,
+        });
+    }
+    if let Some(underwater) = underwater {
+        value["player"]["underwater"] = serde_json::json!({
+            "immersion": match underwater.immersion {
+                crate::source_underwater::Immersion::Unavailable => "unavailable",
+                crate::source_underwater::Immersion::Air => "air",
+                crate::source_underwater::Immersion::SurfaceBand => "surface_band",
+                crate::source_underwater::Immersion::FullyImmersed => "fully_immersed",
+            },
+            "effect_active": underwater.effect_active(),
+            "camera_depth_m": underwater.camera_depth_m,
+            "sample_step": underwater.sample_step,
+            "encoded_frames": underwater.encoded_frames,
+            "encoded_enabled_frames": underwater.encoded_enabled_frames,
+            "encoded_shaft_frames": underwater.encoded_shaft_frames,
+        });
+    }
     if let Err(error) = sink.write(&value) {
         tracing::error!(%error, "native gameplay evidence stopped");
         sink.error = Some(error);
@@ -206,12 +251,12 @@ pub(super) fn exit(
     runtime: Res<GameplayRuntime>,
     mut sink: ResMut<ObservationSink>,
 ) {
-    for exit in exits.read() {
+    if let Some(exit_success) = super::exit_outcome(&mut exits) {
         let value = serde_json::json!({"schema":"forge.native-gameplay.observation","version":1,"kind":"exit",
             "qualification":"observations_only","pid":std::process::id(),"source_hash":sink.source,"archive_hash":sink.archive,
             "functional_hash":sink.functional,"elapsed_ms":sink.started.elapsed().as_secs_f64()*1000.0,
             "tick":runtime.session().state().tick,"sequence":runtime.session().state().sequence,
-            "exit_success":exit.is_success(),"observation_error":sink.error,"simulation_error":runtime.error()});
+            "exit_success":exit_success,"observation_error":sink.error,"simulation_error":runtime.error()});
         // Even a quota failure has a small terminal marker. The reader must refuse it.
         let terminal = serde_json::to_vec(&value).map_err(|e| e.to_string());
         if let Ok(mut bytes) = terminal {
@@ -424,5 +469,46 @@ mod tests {
             line_of_sight: false,
         });
         assert!(frame_is_causal(&receipt, session.state()));
+    }
+
+    #[test]
+    fn native_presentation_uses_the_actual_camera_and_keeps_legacy_observation_fields() {
+        let directory = super::super::tests::Directory::new();
+        let (mut app, _, _, _) = sampling_app(&directory);
+        app.world_mut()
+            .resource_mut::<crate::PlayerRuntimeSnapshot>()
+            .player_position = Vec3::splat(99.0);
+        app.world_mut().spawn((
+            crate::ForgePlayerCamera,
+            Camera3d::default(),
+            Camera::default(),
+            Projection::Perspective(PerspectiveProjection {
+                fov: 1.1,
+                aspect_ratio: 1.6,
+                ..default()
+            }),
+            Transform::from_xyz(3.0, 4.0, 5.0),
+        ));
+        app.world_mut().run_system_once(record).unwrap();
+        let row: serde_json::Value = serde_json::from_str(
+            std::fs::read_to_string(directory.root.join("observations.jsonl"))
+                .unwrap()
+                .lines()
+                .next()
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            row["player"]["position"],
+            serde_json::json!([99.0, 99.0, 99.0])
+        );
+        assert_eq!(
+            row["presentation"]["camera"]["position"],
+            serde_json::json!([3.0, 4.0, 5.0])
+        );
+        assert_eq!(row["presentation"]["camera"]["parented"], false);
+        assert_eq!(row["presentation"]["camera"]["active"], true);
+        assert!(row["static_hlod"].is_null() && row["static_hlod_gpu"].is_null());
+        assert!(row["presentation"]["governed_wind_parameters"].is_null());
     }
 }

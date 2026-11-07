@@ -2,9 +2,89 @@ use super::{
     MediaFormat, MediaInfo, MediaLimits, MediaValidationError, bounded_add, error, number,
 };
 use crate::{governed_glb_json_length, validate_governed_glb_json};
+use std::{borrow::Cow, collections::BTreeSet};
 const FORMAT: MediaFormat = MediaFormat::Glb;
 
 pub(super) fn decode(bytes: &[u8], limits: MediaLimits) -> Result<MediaInfo, MediaValidationError> {
+    preflight(bytes)?;
+    // The ordinary adapter still refuses a full source graph; it must never be
+    // rendered through glTF fallback when the declared source program is needed.
+    let source =
+        crate::source_fragment_glb::prepare(bytes).map_err(|reason| error(FORMAT, reason))?;
+    let (document, blob) = checked_document(&source.bytes, false)?;
+    validate_document(&document, &blob, &source.source_pngs, limits)
+}
+
+pub(super) fn decode_source_graph(
+    bytes: &[u8],
+    limits: MediaLimits,
+    carrier_budget: crate::source_graph_glb::SourceGraphGlbReadBudget,
+) -> Result<MediaInfo, MediaValidationError> {
+    preflight(bytes)?;
+    let graph = crate::source_graph_glb::read_source_graph_glb_with_budget(bytes, carrier_budget)
+        .map_err(|reason| error(FORMAT, reason))?
+        .ok_or_else(|| error(FORMAT, "a complete declared source graph is required"))?;
+    if has_source_fragment(graph.document()) {
+        return Err(error(
+            FORMAT,
+            "mixed source-graph and source-fragment materials require a shared renderer",
+        ));
+    }
+    let mut seen = BTreeSet::new();
+    let mut pngs = Vec::new();
+    for (_, contract) in &graph.materials {
+        for texture in &contract.textures {
+            if seen.insert(texture.png.buffer_view) {
+                pngs.push(
+                    *graph
+                        .views
+                        .get(texture.png.buffer_view)
+                        .ok_or_else(|| error(FORMAT, "source graph image view absent"))?,
+                );
+            }
+        }
+    }
+    let (document, blob) = checked_document(bytes, true)?;
+    let info = validate_document(&document, &blob, &pngs, limits)?;
+    let materials: BTreeSet<_> = graph.materials.iter().map(|(index, _)| *index).collect();
+    let maximum = usize::try_from(limits.max_decoded_bytes).unwrap_or(usize::MAX);
+    for mesh in document.meshes() {
+        for primitive in mesh.primitives() {
+            if primitive
+                .material()
+                .index()
+                .is_some_and(|index| materials.contains(&index))
+            {
+                crate::source_graph_attributes::read_source_graph_primitive_geometry_with_budget(
+                    &graph,
+                    mesh.index(),
+                    primitive.index(),
+                    maximum,
+                )
+                .map_err(|reason| error(FORMAT, reason))?;
+            }
+        }
+    }
+    Ok(info)
+}
+
+fn has_source_fragment(document: &serde_json::Value) -> bool {
+    let name = crate::source_fragment::SOURCE_FRAGMENT_EXTENSION;
+    ["extensionsUsed", "extensionsRequired"]
+        .iter()
+        .any(|field| {
+            document[*field]
+                .as_array()
+                .is_some_and(|entries| entries.iter().any(|entry| entry.as_str() == Some(name)))
+        })
+        || document["materials"].as_array().is_some_and(|materials| {
+            materials
+                .iter()
+                .any(|material| material["extensions"].get(name).is_some())
+        })
+}
+
+fn preflight(bytes: &[u8]) -> Result<(), MediaValidationError> {
     let header: &[u8; 20] = bytes
         .get(..20)
         .ok_or_else(|| error(FORMAT, "truncated GLB header"))?
@@ -17,11 +97,17 @@ pub(super) fn decode(bytes: &[u8], limits: MediaLimits) -> Result<MediaInfo, Med
             .get(20..20 + length)
             .ok_or_else(|| error(FORMAT, "truncated GLB JSON"))?,
     )
-    .map_err(|e| error(FORMAT, e.to_string()))?;
-    let gltf = checked_document(bytes)?;
-    let blob = gltf.blob.as_deref().unwrap_or_default();
+    .map_err(|e| error(FORMAT, e.to_string()))
+}
+
+fn validate_document(
+    document: &gltf::Document,
+    blob: &[u8],
+    source_pngs: &[&[u8]],
+    limits: MediaLimits,
+) -> Result<MediaInfo, MediaValidationError> {
     let mut buffers = 0;
-    for buffer in gltf.buffers() {
+    for buffer in document.buffers() {
         buffers += 1;
         if buffers > 1
             || !matches!(buffer.source(), gltf::buffer::Source::Bin)
@@ -33,7 +119,7 @@ pub(super) fn decode(bytes: &[u8], limits: MediaLimits) -> Result<MediaInfo, Med
             ));
         }
     }
-    for view in gltf.views() {
+    for view in document.views() {
         view_bytes(&view, blob)?;
         if view
             .offset()
@@ -43,18 +129,30 @@ pub(super) fn decode(bytes: &[u8], limits: MediaLimits) -> Result<MediaInfo, Med
             return Err(error(FORMAT, "buffer view exceeds its declared buffer"));
         }
     }
-    let decoded = validate_accessors(&gltf.document, blob, limits)?;
-    validate_nodes(&gltf.document, limits)?;
-    validate_rig_layout(&gltf.document)?;
-    validate_images(&gltf.document, blob, limits, decoded)?;
-    validate_meshes(&gltf.document, blob, limits)
+    let decoded = validate_accessors(document, blob, limits)?;
+    validate_nodes(document, limits)?;
+    validate_rig_layout(document)?;
+    let decoded = validate_images(document, blob, limits, decoded)?;
+    validate_source_pngs(
+        source_pngs,
+        number(document.images().len(), FORMAT)?,
+        limits,
+        decoded,
+    )?;
+    validate_meshes(document, blob, limits)
 }
 
-fn checked_document(bytes: &[u8]) -> Result<gltf::Gltf, MediaValidationError> {
+fn checked_document(
+    bytes: &[u8],
+    admitted_graph: bool,
+) -> Result<(gltf::Document, Cow<'_, [u8]>), MediaValidationError> {
     use gltf::json::validation::Validate;
-    let raw = gltf::Gltf::from_slice_without_validation(bytes)
+    // Parse the same typed glTF document while borrowing the embedded BIN.
+    // `Gltf::from_slice_without_validation` otherwise copies the whole BIN.
+    let glb = gltf::binary::Glb::from_slice(bytes)
         .map_err(|e| error(FORMAT, format!("glTF structure: {e}")))?;
-    let root = raw.document.as_json();
+    let mut root: gltf::json::Root = gltf::json::deserialize::from_slice(&glb.json)
+        .map_err(|e| error(FORMAT, format!("glTF structure: {e}")))?;
     // gltf-json 1.4's primitive validation hook indexes POSITION directly, even
     // after the index validator reports an error. Refuse that reference before
     // calling the hook; all other schema validation still runs afterwards.
@@ -78,7 +176,7 @@ fn checked_document(bytes: &[u8]) -> Result<gltf::Gltf, MediaValidationError> {
             let mut invalid = None;
             channel
                 .target
-                .validate(root, gltf::json::Path::new, &mut |path, issue| {
+                .validate(&root, gltf::json::Path::new, &mut |path, issue| {
                     invalid.get_or_insert_with(|| {
                         format!(
                             "animation target {animation_index}/{channel_index} {:?}: {issue:?}",
@@ -91,12 +189,15 @@ fn checked_document(bytes: &[u8]) -> Result<gltf::Gltf, MediaValidationError> {
             }
         }
     }
-    let document = gltf::Document::from_json(raw.document.into_json())
+    if admitted_graph {
+        // Only after the original graph contract and pins were authenticated;
+        // every other required extension remains subject to the typed validator.
+        root.extensions_required
+            .retain(|name| name != crate::source_graph_bundle::SOURCE_GRAPH_EXTENSION);
+    }
+    let document = gltf::Document::from_json(root)
         .map_err(|e| error(FORMAT, format!("glTF structure: {e}")))?;
-    Ok(gltf::Gltf {
-        document,
-        blob: raw.blob,
-    })
+    Ok((document, glb.bin.unwrap_or(Cow::Borrowed(&[]))))
 }
 
 fn primitive_layout(primitive: &gltf::Primitive<'_>) -> Result<(), MediaValidationError> {
@@ -201,7 +302,7 @@ fn validate_images(
     blob: &[u8],
     limits: MediaLimits,
     mut decoded: u64,
-) -> Result<(), MediaValidationError> {
+) -> Result<u64, MediaValidationError> {
     if number(document.images().len(), FORMAT)? > limits.max_mesh_primitives {
         return Err(error(FORMAT, "embedded image count budget exceeded"));
     }
@@ -222,6 +323,45 @@ fn validate_images(
         let image = super::images::decode(
             encoded,
             format,
+            MediaLimits {
+                max_decoded_bytes: remaining,
+                ..limits
+            },
+        )?;
+        if let MediaInfo::Image { decoded_bytes, .. } = image {
+            decoded = bounded_add(
+                decoded,
+                decoded_bytes,
+                limits.max_decoded_bytes,
+                FORMAT,
+                "GLB decoded bytes",
+            )?;
+        }
+    }
+    Ok(decoded)
+}
+
+fn validate_source_pngs(
+    images: &[&[u8]],
+    existing_images: u64,
+    limits: MediaLimits,
+    mut decoded: u64,
+) -> Result<(), MediaValidationError> {
+    bounded_add(
+        existing_images,
+        number(images.len(), FORMAT)?,
+        limits.max_mesh_primitives,
+        FORMAT,
+        "GLB image count",
+    )?;
+    for bytes in images {
+        let remaining = limits
+            .max_decoded_bytes
+            .checked_sub(decoded)
+            .ok_or_else(|| error(FORMAT, "GLB decoded byte budget exceeded"))?;
+        let image = super::images::decode(
+            bytes,
+            MediaFormat::Png,
             MediaLimits {
                 max_decoded_bytes: remaining,
                 ..limits
@@ -551,4 +691,26 @@ fn validate_nodes(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn typed_validation_borrows_the_original_binary_chunk() {
+        let mut json = br#"{"asset":{"version":"2.0"},"buffers":[{"byteLength":4}]}"#.to_vec();
+        json.resize(json.len().next_multiple_of(4), b' ');
+        let mut bytes = b"glTF".to_vec();
+        bytes.extend(2_u32.to_le_bytes());
+        bytes.extend(u32::try_from(28 + json.len() + 4).unwrap().to_le_bytes());
+        bytes.extend(u32::try_from(json.len()).unwrap().to_le_bytes());
+        bytes.extend(b"JSON");
+        bytes.extend(json);
+        bytes.extend(4_u32.to_le_bytes());
+        bytes.extend(b"BIN\0");
+        bytes.extend([1, 2, 3, 4]);
+        let (_, blob) = checked_document(&bytes, false).unwrap();
+        assert!(matches!(blob, Cow::Borrowed([1, 2, 3, 4])));
+    }
 }

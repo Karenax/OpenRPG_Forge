@@ -5,21 +5,19 @@ use bevy::{
     prelude::*,
     render::render_resource::TextureFormat,
 };
+use forge_engine::ManualPlacementCollisionStatus;
+use forge_engine::ManualPlacementProjection;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::nature::{self, NatureExtension, NatureMaterial};
+use forge_engine::source_surface::objects::props::ResidentScene;
+use forge_engine::source_terrain::lod::LodMaterial;
+use forge_engine::source_terrain::scene::ResidentTerrain;
 use forge_project::zone_authoring::placements::ManualPlacement;
+use forge_tidewater::tidewater_debris::PreparedDebris;
+use forge_tidewater::tidewater_debris::scene::PreparedScene;
+use forge_tidewater::tidewater_debris::scene::ResidentMaterials;
 use forge_tidewater_assets::tidewater_debris::collisions::CollisionFrames;
 use std::{cell::RefCell, collections::BTreeMap};
-use {
-    forge_engine::{ManualPlacementCollisionStatus, ManualPlacementProjection},
-    forge_tidewater::{
-        tidewater_debris::{
-            PreparedDebris,
-            nature::{self, NatureExtension, NatureMaterial},
-            scene::{PreparedScene, ResidentMaterials, ResidentScene},
-        },
-        tidewater_material::VillageMaterial,
-        tidewater_terrain::{lod::LodMaterial, scene::ResidentTerrain},
-    },
-};
 
 type Receipt = (u64, Vec<ManualPlacement>);
 thread_local! {
@@ -56,7 +54,7 @@ pub(super) fn project(
     shader: &str,
     generation: u64,
     sources: &[ManualPlacement],
-    shared: &BTreeMap<String, Handle<VillageMaterial>>,
+    shared: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
 ) -> Result<bool, String> {
     // Library availability alone must not require imported terrain in another zone.
     if sources.is_empty() {
@@ -172,7 +170,7 @@ fn synchronized(world: &World, sources: &[ManualPlacement]) -> Result<bool, Stri
 fn prepare_materials(
     world: &mut World,
     state: &State,
-    shared: &BTreeMap<String, Handle<VillageMaterial>>,
+    shared: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
 ) -> Result<Option<ResidentMaterials>, String> {
     let (Some(wood), Some(hard), Some(fabric)) = (
         shared.get("material-0"),
@@ -182,7 +180,7 @@ fn prepare_materials(
         return Ok(None);
     };
     let Some(base) = world
-        .get_resource::<Assets<VillageMaterial>>()
+        .get_resource::<Assets<SourceSurfaceMaterial>>()
         .and_then(|assets| assets.get(wood))
         .cloned()
     else {

@@ -3,21 +3,18 @@
 // See third_party/tidewater/LICENSE; upstream 1438b1abfcaee3267092b75573014f4d9b4a983c.
 //! Native scene adapter for shared terrain rendering.
 use super::Probe;
-use bevy::{
-    math::{DMat4, DQuat, DVec3, DVec4},
-    prelude::*,
-};
-pub use forge_tidewater::tidewater_terrain::lod::{LodMaterial, install_shader};
-use forge_tidewater::tidewater_terrain::{
+use bevy::prelude::*;
+pub use forge_engine::source_terrain::lod::{LodMaterial, install_shader};
+use forge_engine::source_terrain::{
     TerrainSettings,
     scene::{Bindings, PreparedTerrain},
 };
-use forge_tidewater_assets::cdlod::CdlodView;
+use forge_world::terrain_lod::CdlodView;
 
 /// Convert the already verified native fixture into the same bounded package used by Studio.
 pub fn package(
     files: &std::collections::BTreeMap<String, Vec<u8>>,
-) -> Result<forge_tidewater_assets::tidewater_terrain::TerrainPackage, String> {
+) -> Result<forge_assets::source_terrain_package::TerrainPackage, String> {
     let mut entries = serde_json::Map::new();
     for name in [
         "terrain.wgsl",
@@ -40,7 +37,7 @@ pub fn package(
         "source_commit":"1438b1abfcaee3267092b75573014f4d9b4a983c", "files":entries
     }))
     .map_err(|e| e.to_string())?;
-    forge_tidewater_assets::tidewater_terrain::TerrainPackage::load(
+    forge_assets::source_terrain_package::TerrainPackage::load(
         &manifest,
         forge_core::bytes_sha256(&manifest),
         |name, _| {
@@ -53,18 +50,50 @@ pub fn package(
 }
 
 pub fn setup(world: &mut World) {
-    let (prepared, coverage) = {
-        let probe = world.resource::<Probe>();
-        if matches!(
-            probe.mode,
-            super::ProbeMode::VillageAlbedo
-                | super::ProbeMode::Silhouette
-                | super::ProbeMode::VegetationDirect
-                | super::ProbeMode::VegetationEnvironment
-                | super::ProbeMode::GrassCoverage
-        ) {
+    setup_with_reuse(world, true);
+}
+
+/// Explicit comparison control for the edit-cycle probe; production consumers reuse.
+pub(super) fn setup_full(world: &mut World) {
+    setup_with_reuse(world, false);
+}
+
+fn setup_with_reuse(world: &mut World, reuse: bool) {
+    if matches!(
+        world.resource::<Probe>().mode,
+        super::ProbeMode::VillageAlbedo
+            | super::ProbeMode::Silhouette
+            | super::ProbeMode::VegetationDirect
+            | super::ProbeMode::VegetationEnvironment
+            | super::ProbeMode::GrassCoverage
+    ) {
+        return;
+    }
+    if reuse {
+        let repaint = {
+            let probe = world.resource::<Probe>();
+            probe
+                .terrain
+                .as_ref()
+                .zip(probe.terrain_package.as_ref())
+                .zip(world.get_resource::<forge_engine::source_terrain::scene::ResidentTerrain>())
+                .and_then(|((plan, package), current)| {
+                    forge_engine::source_terrain::scene::PreparedRepaint::new(
+                        plan,
+                        package,
+                        current,
+                        Some(0.0),
+                    )
+                    .expect("admitted terrain repaint inputs")
+                })
+        };
+        if let Some(repaint) = repaint {
+            repaint.stage(world).expect("owned native terrain repaint");
             return;
         }
+    }
+    let (prepared, coverage) = {
+        let probe = world.resource::<Probe>();
         let Some(bytes) = &probe.lod_heights else {
             return;
         };
@@ -100,7 +129,7 @@ pub fn setup(world: &mut World) {
         shore_lace: placeholder,
         shore_params: [UVec4::ZERO; 3],
         caustics: world
-            .get_resource::<forge_tidewater::tidewater_caustics::CausticMaterialInputs>()
+            .get_resource::<forge_engine::source_surface::underwater::CausticMaterialInputs>()
             .cloned(),
         settings: TerrainSettings {
             wind: Vec4::new(1.0, 0.0, 6.0, 2.0),
@@ -114,43 +143,17 @@ pub fn setup(world: &mut World) {
         .expect("registered native terrain renderer");
 }
 
-/// Source finite-far reversed-Z frustum, derived independently from the native pose.
+/// Adapt a caller-validated diagnostic pose to the shared finite source view.
 pub(super) fn source_view(transform: &Transform, projection: &PerspectiveProjection) -> CdlodView {
-    let near = f64::from(projection.near);
-    let far = f64::from(projection.far);
-    let y = 1.0 / (f64::from(projection.fov) * 0.5).tan();
-    let clip = DMat4::from_cols(
-        DVec4::new(y / f64::from(projection.aspect_ratio), 0.0, 0.0, 0.0),
-        DVec4::new(0.0, y, 0.0, 0.0),
-        DVec4::new(0.0, 0.0, near / (far - near), -1.0),
-        DVec4::new(0.0, 0.0, near * far / (far - near), 0.0),
-    );
-    let position = DVec3::from_array(transform.translation.to_array().map(f64::from));
-    let world = DMat4::from_rotation_translation(
-        DQuat::from_array(transform.rotation.to_array().map(f64::from)).normalize(),
-        position,
-    );
-    let rows = (clip * world.inverse())
-        .transpose()
-        .to_cols_array_2d()
-        .map(DVec4::from_array);
-    CdlodView {
-        position: position.to_array(),
-        planes: [
-            rows[3] + rows[0],
-            rows[3] - rows[0],
-            rows[3] + rows[1],
-            rows[3] - rows[1],
-            rows[3] - rows[2],
-            rows[2],
-        ]
-        .map(|p| (p / p.truncate().length()).to_array()),
-    }
+    forge_engine::scene_camera::source_view(transform, projection).unwrap_or_else(|error| {
+        panic!("invalid source camera: {error}; transform={transform:?}; projection={projection:?}")
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::math::{DVec3, DVec4};
 
     fn contains(view: CdlodView, point: DVec3) -> bool {
         view.planes

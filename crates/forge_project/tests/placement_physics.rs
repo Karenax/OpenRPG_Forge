@@ -10,6 +10,7 @@ use forge_project::{
 fn object() -> ManualPlacement {
     ManualPlacement {
         particles: None,
+        local_lights: None,
         id: EntityId::deterministic("physical-object"),
         name: "Retouche conservée".into(),
         asset_id: AssetId::deterministic("physical-asset"),
@@ -37,6 +38,20 @@ fn apply(session: &mut ZoneEditSession, edit: PlacementEdit, key: &str) {
         .unwrap();
     session.execute(&request).unwrap();
 }
+fn apply_corrections(
+    session: &mut ZoneEditSession,
+    corrections: forge_project::zone_authoring::ZoneCorrections,
+    key: &str,
+) {
+    session
+        .execute(&ZoneRequest {
+            command_id: CommandId::deterministic(key),
+            expected_hash: session.head().content_hash().unwrap(),
+            expected_revision: session.head().revision,
+            action: ZoneAction::edit(corrections),
+        })
+        .unwrap();
+}
 fn undo(session: &mut ZoneEditSession, key: &str) {
     session
         .execute(&ZoneRequest {
@@ -54,6 +69,8 @@ fn replacement(
     physics: Option<Box<PhysicsPackageReference>>,
 ) -> PlacementEdit {
     PlacementEdit::ReplacePinnedAsset {
+        expected_local_lights: None,
+        local_lights: None,
         ids,
         expected_asset_id: source.asset_id,
         expected_asset_hash: source.asset_hash,
@@ -63,6 +80,94 @@ fn replacement(
         asset_hash: source.asset_hash,
         physics,
         particles: source.particles.clone(),
+    }
+}
+
+#[test]
+fn companion_inventory_keeps_copy_revisions_through_archive_history() {
+    use forge_project::zone_authoring::{
+        placements::ParticlePackageReference,
+        session::SourceCompanionPin,
+        source_objects::{SourceObjectEdit, SourceObjectState},
+    };
+    use std::collections::BTreeSet;
+
+    let mut session = session();
+    let mut source = object();
+    source.physics = None;
+    let mut copy = object();
+    copy.id = EntityId::deterministic("source-copy-physical-and-particle");
+    copy.particles = Some(Box::new(ParticlePackageReference {
+        schema_version: 1,
+        carrier_sha256: copy.asset_hash,
+        manifest_sha256: ContentHash::from_bytes([6; 32]),
+        package_sha256: ContentHash::from_bytes([7; 32]),
+    }));
+    let asset_id = copy.asset_id;
+    let carrier_sha256 = copy.asset_hash;
+    let pin = |manifest_sha256, package_sha256| SourceCompanionPin {
+        asset_id,
+        carrier_sha256,
+        manifest_sha256,
+        package_sha256,
+    };
+    let first_physics = copy.physics.as_ref().unwrap();
+    let first_particles = copy.particles.as_ref().unwrap();
+    let mut physics = BTreeSet::from([pin(
+        first_physics.manifest_sha256,
+        first_physics.package_sha256,
+    )]);
+    let mut particles = BTreeSet::from([pin(
+        first_particles.manifest_sha256,
+        first_particles.package_sha256,
+    )]);
+    let mut corrections = session.head().corrections.clone();
+    corrections.source_object_edits = Some(vec![SourceObjectEdit {
+        source,
+        state: SourceObjectState::Removed,
+        copies: vec![copy],
+    }]);
+    apply_corrections(&mut session, corrections, "insert-source-companion-copy");
+    let mut corrections = session.head().corrections.clone();
+    let changed = &mut corrections.source_object_edits.as_mut().unwrap()[0].copies[0];
+    changed.physics.as_mut().unwrap().package_sha256 = ContentHash::from_bytes([8; 32]);
+    changed.particles.as_mut().unwrap().package_sha256 = ContentHash::from_bytes([9; 32]);
+    physics.insert(pin(
+        changed.physics.as_ref().unwrap().manifest_sha256,
+        changed.physics.as_ref().unwrap().package_sha256,
+    ));
+    particles.insert(pin(
+        changed.particles.as_ref().unwrap().manifest_sha256,
+        changed.particles.as_ref().unwrap().package_sha256,
+    ));
+    apply_corrections(&mut session, corrections, "replace-source-companion-copy");
+    let mut corrections = session.head().corrections.clone();
+    corrections.source_object_edits.as_mut().unwrap()[0]
+        .copies
+        .clear();
+    apply_corrections(&mut session, corrections, "remove-source-companion-copy");
+
+    for bytes in [
+        session.archive_bytes().unwrap(),
+        session.compact_archive_bytes().unwrap(),
+        session.delta_archive_bytes().unwrap(),
+    ] {
+        let mut reopened = ZoneEditSession::from_archive_bytes(&bytes).unwrap();
+        for action in [None, Some(ZoneAction::Undo), Some(ZoneAction::Redo)] {
+            if let Some(action) = action {
+                reopened
+                    .execute(&ZoneRequest {
+                        command_id: CommandId::deterministic(format!("history-{action:?}")),
+                        expected_hash: reopened.head().content_hash().unwrap(),
+                        expected_revision: reopened.head().revision,
+                        action,
+                    })
+                    .unwrap();
+            }
+            let required = reopened.required_source_companions().unwrap();
+            assert_eq!(required.physics, physics);
+            assert_eq!(required.particles, particles);
+        }
     }
 }
 

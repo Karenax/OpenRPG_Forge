@@ -4,17 +4,17 @@ use bevy_rapier3d::prelude::{Collider, Sensor};
 use forge_core::{
     AssetId, EntityId, Transform as ForgeTransform, UnitQuaternion, Vec3 as ForgeVec3,
 };
+use forge_engine::ManualPlacementCollision;
+use forge_engine::ManualPlacementCollisionExpected;
+use forge_engine::ManualPlacementPart;
+use forge_engine::ManualPlacementProjection;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::mesh::SourceMeshBytes;
 use forge_project::zone_authoring::placements::{MAX_MANUAL_PLACEMENTS, ManualPlacement};
-use forge_tidewater_assets::tidewater_pier::{self as pier, PierPackage};
+use forge_tidewater_assets::tidewater_pier as pier;
+use forge_tidewater_assets::tidewater_pier::PierPackage;
 use serde::Deserialize;
 use std::collections::BTreeMap;
-use {
-    crate::{tidewater_material::VillageMaterial, tidewater_mesh::VillageMeshBytes},
-    forge_engine::{
-        ManualPlacementCollision, ManualPlacementCollisionExpected, ManualPlacementPart,
-        ManualPlacementProjection,
-    },
-};
 
 #[derive(Deserialize)]
 struct Description {
@@ -273,7 +273,7 @@ impl PreparedPier {
     pub fn stage(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
     ) -> Result<ResidentPier, String> {
         self.stage_instances(world, materials, None)
     }
@@ -281,7 +281,7 @@ impl PreparedPier {
     pub fn stage_authored(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
         placements: &[ManualPlacement],
     ) -> Result<ResidentPier, String> {
         self.stage_instances(world, materials, Some(placements))
@@ -294,7 +294,7 @@ impl PreparedPier {
     fn stage_instances(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
         placements: Option<&[ManualPlacement]>,
     ) -> Result<ResidentPier, String> {
         let source_instances = placements.is_none();
@@ -356,7 +356,9 @@ impl PreparedPier {
         };
         resident.meshes.clone_from(&meshes);
         for placement in instances {
-            let frame = placement.map_or(self.frame, |value| project(value.transform));
+            let frame = placement.map_or(self.frame, |value| {
+                forge_engine::domain_transform_to_bevy(value.transform)
+            });
             let root = world
                 .spawn((
                     Name::new(self.source_id.clone()),
@@ -505,7 +507,7 @@ fn prepare_parts(
                 .ok_or("Pier mesh attribute absent")
                 .and_then(&file)
         };
-        let mut mesh = VillageMeshBytes {
+        let mut mesh = SourceMeshBytes {
             positions: attr("pos")?,
             normals: attr("nrm")?,
             uv: attr("uv")?,
@@ -542,7 +544,7 @@ fn stage_part(
     part: &PreparedPart,
     mesh: &Handle<Mesh>,
     placement: Option<&ManualPlacement>,
-    materials: &BTreeMap<String, Handle<VillageMaterial>>,
+    materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
 ) {
     resident.triangles += part.mesh.indices().map_or(0, |indices| indices.len() / 3);
     let material = materials[&part.material].clone();
@@ -661,23 +663,6 @@ fn forge_transform(transform: Transform) -> ForgeTransform {
     }
 }
 
-fn project(transform: ForgeTransform) -> Transform {
-    Transform {
-        translation: Vec3::new(
-            transform.translation_m.x,
-            transform.translation_m.y,
-            transform.translation_m.z,
-        ),
-        rotation: Quat::from_xyzw(
-            transform.rotation.x,
-            transform.rotation.y,
-            transform.rotation.z,
-            transform.rotation.w,
-        ),
-        scale: Vec3::new(transform.scale.x, transform.scale.y, transform.scale.z),
-    }
-}
-
 #[allow(
     clippy::cast_possible_truncation,
     reason = "Narrows source coordinates to Bevy float32 and rejects non-finite results."
@@ -770,7 +755,7 @@ mod tests {
         }
     }
 
-    fn fixture_materials() -> BTreeMap<String, Handle<VillageMaterial>> {
+    fn fixture_materials() -> BTreeMap<String, Handle<SourceSurfaceMaterial>> {
         BTreeMap::from([("fixture".into(), Handle::default())])
     }
 
@@ -816,6 +801,7 @@ mod tests {
             .map(|index| ManualPlacement {
                 particles: None,
                 physics: None,
+                local_lights: None,
                 id: EntityId::deterministic(format!("pier-common-{index}")),
                 name: "Fixture pier".into(),
                 asset_id: pier::asset_id(),
@@ -883,15 +869,15 @@ mod tests {
         assert!(forge_engine::manual_placements_ready(app.world_mut(), &[]));
     }
 
-    fn shadow_materials(world: &mut World) -> BTreeMap<String, Handle<VillageMaterial>> {
-        use crate::tidewater_assets::{
-            MaterialParameters,
-            materials::{self, LightingBindings},
-        };
-        use crate::tidewater_material::{ObjectShadowSettings, SceneLighting};
+    fn shadow_materials(world: &mut World) -> BTreeMap<String, Handle<SourceSurfaceMaterial>> {
+        use crate::tidewater_assets::materials;
+        use forge_engine::source_lighting::SceneLighting;
+        use forge_engine::source_shadows::ObjectShadowSettings;
+        use forge_engine::source_surface::LightingBindings;
+        use forge_engine::source_surface::package::MaterialParameters;
         world.insert_resource(Assets::<Image>::default());
-        world.insert_resource(Assets::<VillageMaterial>::default());
-        let caustics = crate::tidewater_caustics::CausticMaterialInputs::disabled(
+        world.insert_resource(Assets::<SourceSurfaceMaterial>::default());
+        let caustics = forge_engine::source_surface::underwater::CausticMaterialInputs::disabled(
             &mut world.resource_mut::<Assets<Image>>(),
         );
         let lighting = LightingBindings {
@@ -923,7 +909,7 @@ mod tests {
                 (
                     format!("material-{kind}"),
                     world
-                        .resource_mut::<Assets<VillageMaterial>>()
+                        .resource_mut::<Assets<SourceSurfaceMaterial>>()
                         .add(material),
                 )
             })
@@ -957,6 +943,7 @@ mod tests {
         let placement = ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: EntityId::deterministic("pier-authored-test"),
             name: "Quai déplacé".into(),
             asset_id: template.asset_id,

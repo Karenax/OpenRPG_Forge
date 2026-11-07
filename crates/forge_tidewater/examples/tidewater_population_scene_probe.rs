@@ -1,11 +1,13 @@
 //! Portable package + canonical population identities through real ECS projection.
 use bevy::{ecs::world::CommandQueue, prelude::*, render::storage::ShaderBuffer};
+use forge_engine::source_vegetation::Params;
+use forge_engine::source_vegetation::captured::CapturedPlantMaterial;
 use forge_project::{
     authoring::{AuthoringRequest, host::AuthoringHost, workspace::WorkspaceHostRequest},
     workspace::source_blobs::SourceBlobStore,
     zone_authoring::ZoneAuthoringHead,
 };
-use forge_tidewater::tidewater_plants::{Params, PlantMaterial, canonical, scene};
+use forge_tidewater::tidewater_plants::canonical;
 use forge_tidewater_assets::tidewater_plants::PlantPackage;
 use forge_world::imported_vegetation::ImportedPopulation;
 use std::{collections::BTreeSet, error::Error, fs, io::Read, path::Path};
@@ -59,7 +61,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_eq!(prepared.identities, shifted.identities);
     assert_ne!(prepared.streams, shifted.streams);
     assert_ne!(prepared.head_hash, shifted.head_hash);
-    let scene = scene::from_population(&package, &population, head, &heights)?;
+    let scene = forge_engine::source_vegetation::scene::from_population(
+        &package,
+        &population,
+        head,
+        &heights,
+    )?;
     check_authored_copy(&population, &package, head, &heights, ids.len())?;
     let mut counts = Vec::new();
     for camera in [
@@ -142,7 +149,9 @@ fn check_authored_copy(
             .flatten()
             .any(|id| *id == authored_id)
     );
-    let authored_scene = scene::from_population(package, population, &authored, heights)?;
+    let authored_scene = forge_engine::source_vegetation::scene::from_population(
+        package, population, &authored, heights,
+    )?;
     let nearby = project(
         &authored_scene,
         bevy::math::DVec3::new(x + 1.0, y + 10.0, z).as_vec3(),
@@ -164,7 +173,12 @@ fn check_authored_copy(
         authored_population.identities
     );
     assert_ne!(transformed_population.streams, authored_population.streams);
-    let transformed_scene = scene::from_population(package, population, &transformed, heights)?;
+    let transformed_scene = forge_engine::source_vegetation::scene::from_population(
+        package,
+        population,
+        &transformed,
+        heights,
+    )?;
     let transformed_nearby = project(
         &transformed_scene,
         bevy::math::DVec3::new(x + 1.0, y + 10.0, z).as_vec3(),
@@ -179,19 +193,23 @@ fn check_authored_copy(
 }
 
 fn check_resident(
-    scene: scene::Vegetation,
+    scene: forge_engine::source_vegetation::scene::Vegetation,
     expected: &[Vec<forge_core::EntityId>],
 ) -> Result<(), String> {
     let mut world = World::new();
     world.init_resource::<Assets<Mesh>>();
-    world.init_resource::<Assets<PlantMaterial>>();
+    world.init_resource::<Assets<CapturedPlantMaterial>>();
     world.init_resource::<Assets<ShaderBuffer>>();
-    let mut resident = scene::resident::Resident::stage(&mut world, scene, &material())?;
+    let mut resident = forge_engine::source_vegetation::scene::resident::Resident::stage(
+        &mut world,
+        scene,
+        &material(),
+    )?;
     let handles = resident.materials();
     let sizes = |world: &World| {
         (
             world.resource::<Assets<Mesh>>().len(),
-            world.resource::<Assets<PlantMaterial>>().len(),
+            world.resource::<Assets<CapturedPlantMaterial>>().len(),
             world.resource::<Assets<ShaderBuffer>>().len(),
         )
     };
@@ -205,7 +223,7 @@ fn check_resident(
     .into_iter()
     .enumerate()
     {
-        let view = scene::View {
+        let view = forge_engine::source_vegetation::scene::View {
             camera,
             visibility: Visibility::Visible,
         };
@@ -214,7 +232,12 @@ fn check_resident(
         let entities = resident.entities();
         let ids = entities
             .iter()
-            .map(|e| world.get::<scene::ImportedPlant>(*e).expect("identity").id)
+            .map(|e| {
+                world
+                    .get::<forge_engine::source_vegetation::scene::ImportedPlant>(*e)
+                    .expect("identity")
+                    .id
+            })
             .collect::<Vec<_>>();
         assert_eq!(ids, expected[index]);
         check_picking(&resident, &mut world, &ids)?;
@@ -229,7 +252,7 @@ fn check_resident(
             resident
                 .select(
                     &mut world,
-                    scene::View {
+                    forge_engine::source_vegetation::scene::View {
                         camera: Vec3::splat(f32::NAN),
                         visibility: Visibility::Visible
                     }
@@ -242,7 +265,10 @@ fn check_resident(
     assert!(total_retained > 0);
     resident.retire(&mut world);
     assert_eq!(
-        world.query::<&scene::ImportedPlant>().iter(&world).count(),
+        world
+            .query::<&forge_engine::source_vegetation::scene::ImportedPlant>()
+            .iter(&world)
+            .count(),
         0
     );
     println!(
@@ -252,11 +278,12 @@ fn check_resident(
 }
 
 fn check_picking(
-    resident: &scene::resident::Resident,
+    resident: &forge_engine::source_vegetation::scene::resident::Resident<CapturedPlantMaterial>,
     world: &mut World,
     expected: &[forge_core::EntityId],
 ) -> Result<(), String> {
-    let snapshot = resident.picking_snapshot(world)?;
+    let snapshot =
+        resident.picking_snapshot(world, forge_engine::source_vegetation::picking::material)?;
     let mapped = snapshot
         .batches
         .iter()
@@ -296,9 +323,17 @@ fn check_picking(
     world
         .entity_mut(entity)
         .insert(bevy::mesh::MeshTag(u32::MAX));
-    assert!(resident.picking_snapshot(world).is_err());
+    assert!(
+        resident
+            .picking_snapshot(world, forge_engine::source_vegetation::picking::material)
+            .is_err()
+    );
     world.entity_mut(entity).insert(bevy::mesh::MeshTag(tag));
-    assert!(resident.picking_snapshot(world).is_ok());
+    assert!(
+        resident
+            .picking_snapshot(world, forge_engine::source_vegetation::picking::material)
+            .is_ok()
+    );
     println!(
         "PLANT_PICKING_TABLE_PASS draws={} batches={} stale_and_corrupt_refused",
         mapped.len(),
@@ -307,18 +342,21 @@ fn check_picking(
     Ok(())
 }
 
-fn project(scene: &scene::Vegetation, camera: Vec3) -> Result<Vec<scene::ImportedPlant>, String> {
+fn project(
+    scene: &forge_engine::source_vegetation::scene::Vegetation,
+    camera: Vec3,
+) -> Result<Vec<forge_engine::source_vegetation::scene::ImportedPlant>, String> {
     let mut world = World::new();
     let mut queue = CommandQueue::default();
     let mut commands = Commands::new(&mut queue, &world);
     let mut meshes = Assets::<Mesh>::default();
-    let mut materials = Assets::<PlantMaterial>::default();
+    let mut materials = Assets::<CapturedPlantMaterial>::default();
     let mut buffers = Assets::<ShaderBuffer>::default();
-    let entities = scene::spawn(
+    let entities = forge_engine::source_vegetation::scene::spawn(
         &mut commands,
         scene,
         &material(),
-        scene::View {
+        forge_engine::source_vegetation::scene::View {
             camera,
             visibility: Visibility::Visible,
         },
@@ -331,17 +369,17 @@ fn project(scene: &scene::Vegetation, camera: Vec3) -> Result<Vec<scene::Importe
         .into_iter()
         .map(|e| {
             world
-                .get::<scene::ImportedPlant>(e)
+                .get::<forge_engine::source_vegetation::scene::ImportedPlant>(e)
                 .copied()
                 .ok_or_else(|| "Missing canonical identity on plant mesh".into())
         })
         .collect()
 }
 
-fn material() -> PlantMaterial {
-    PlantMaterial {
-        scene_lighting: forge_tidewater::tidewater_material::scene_buffer::HANDLE.clone(),
-        motion: forge_tidewater::tidewater_plants::motion::DEFAULT_BUFFER.clone(),
+fn material() -> CapturedPlantMaterial {
+    CapturedPlantMaterial {
+        scene_lighting: forge_engine::source_lighting::scene_buffer::HANDLE.clone(),
+        motion: forge_engine::source_vegetation::motion::DEFAULT_BUFFER.clone(),
         params: Params {
             i_pos: Vec4::ZERO,
             i_dat: Vec4::ZERO,
@@ -362,7 +400,8 @@ fn material() -> PlantMaterial {
         clouds: [Vec4::ZERO; 5],
         cloud_shadow: None,
         object_settings: default(),
-        live_shadows: forge_tidewater::tidewater_object_shadow::receiver::DEFAULT_BUFFER.clone(),
+        live_shadows: forge_engine::source_shadows::receiver::DEFAULT_BUFFER.clone(),
+        local_lights: forge_engine::source_lighting::local_lights::gpu::BUFFER,
         grass_heights: default(),
         grass_mask: default(),
         kind: 0,

@@ -183,6 +183,18 @@ if ((Get-FileHash -LiteralPath (Join-Path $debrisDestination 'scanned.wgsl') -Al
     (Get-FileHash -LiteralPath $scannedProgram -Algorithm SHA256).Hash) { throw 'Copie du shader scanné modifiée.' }
 Copy-Item -LiteralPath (Join-Path $bundle 'scene/LICENSE-Tidewater.txt') -Destination (Join-Path $partial 'licenses/Tidewater-MIT.txt')
 Copy-Item -LiteralPath (Join-Path $bundle 'scene/CREDITS-Tidewater.md') -Destination (Join-Path $partial 'licenses/Tidewater-CREDITS.md')
+$projectNotices = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../THIRD_PARTY_NOTICES.md'))
+$projectNoticeItem = Get-Item -LiteralPath $projectNotices -Force
+if ($projectNoticeItem.PSIsContainer -or ($projectNoticeItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+    throw 'Le fichier de notices du projet doit être un fichier physique.'
+}
+$projectNoticesHash = (Get-FileHash -LiteralPath $projectNotices -Algorithm SHA256).Hash
+$projectNoticesCopy = Join-Path $partial 'licenses/THIRD_PARTY_NOTICES.md'
+Copy-Item -LiteralPath $projectNotices -Destination $projectNoticesCopy
+if ((Get-FileHash -LiteralPath $projectNotices -Algorithm SHA256).Hash -ne $projectNoticesHash -or
+    (Get-FileHash -LiteralPath $projectNoticesCopy -Algorithm SHA256).Hash -ne $projectNoticesHash) {
+    throw 'La copie des notices du projet a changé pendant la préparation.'
+}
 $forgeManifest = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Cargo.toml'))
 $launcherManifest = Join-Path $launcherSource 'Cargo.toml'
 & $python (Join-Path $PSScriptRoot 'collect_rust_notices.py') $forgeManifest $launcherManifest (Join-Path $partial 'licenses/rust')
@@ -214,7 +226,7 @@ Le lanceur et le jeu n'exigent ni Cargo, ni Node, ni clone Tidewater.
 Les captures et journaux sont écrits dans
 %LOCALAPPDATA%\OpenRPG Forge\Tidewater\captures.
 
-Licence et crédits de la référence Tidewater : dossier licenses/.
+Licences et crédits : dossier licenses/.
 '@
 [IO.File]::WriteAllText((Join-Path $partial 'LISEZ-MOI.txt'), $readme, [Text.UTF8Encoding]::new($false))
 

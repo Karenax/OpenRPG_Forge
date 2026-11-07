@@ -35,6 +35,7 @@ pub(in crate::authoring_assets) fn prepare_with_packages(
         placement: ManualPlacement {
             particles: packages.1,
             physics: packages.0,
+            local_lights: None,
             id: EntityId::deterministic(format!("manual-placement:{key}")),
             name: name.to_owned(),
             asset_id: reference.0,

@@ -16,6 +16,28 @@ use std::{
 };
 
 static NEXT: AtomicU64 = AtomicU64::new(0);
+#[path = "module_builder/light_packages.rs"]
+mod light_packages;
+#[path = "module_builder/object_packages.rs"]
+mod object_packages;
+#[path = "module_builder/fish_packages.rs"]
+mod fish_packages;
+#[path = "support/ocean_package.rs"]
+mod ocean_fixture;
+#[path = "module_builder/ocean_packages.rs"]
+mod ocean_packages;
+#[path = "module_builder/origin_companions.rs"]
+mod origin_companions;
+#[path = "module_builder/rectangular_runtime.rs"]
+mod rectangular_runtime;
+#[path = "module_builder/terrain_packages.rs"]
+mod terrain_packages;
+#[path = "module_builder/vault_packages.rs"]
+mod vault_packages;
+#[path = "support/water_package.rs"]
+mod water_fixture;
+#[path = "module_builder/wind.rs"]
+mod wind;
 struct Temp(PathBuf);
 impl Temp {
     fn new() -> Self {
@@ -58,7 +80,7 @@ impl Fixture {
                 sample_spacing_m: 2.,
                 outside_height_m: 0.,
                 encoding: forge_project::sampled_terrain::HeightEncoding::Float32Le,
-                samples_sha256: bytes_sha256(b"not-transported-raster"),
+                samples_sha256: bytes_sha256(&vec![0; 256 * 256 * 4]),
             });
         }
         let mut zone = ZoneEditSession::from_initial_terrain(terrain).unwrap();
@@ -586,7 +608,7 @@ fn publication_requires_explicit_asset_rights_and_embedded_evidence_before_outpu
 }
 
 #[test]
-fn unsupported_raster_or_missing_rpg_is_refused_without_creating_an_export() {
+fn missing_raster_or_missing_rpg_is_refused_without_creating_an_export() {
     let temp = Temp::new();
     let fixture = Fixture::new(true);
     let root = temp.0.join("exports");
@@ -609,6 +631,202 @@ fn unsupported_raster_or_missing_rpg_is_refused_without_creating_an_export() {
         .is_err()
     );
     assert!(!root.exists());
+}
+
+#[test]
+fn a_single_raster_export_transports_the_exact_source_and_preserves_legacy_api_admission() {
+    let temp = Temp::new();
+    let mut fixture = Fixture::new(true);
+    let raster = vec![0; 256 * 256 * 4];
+    let hash = bytes_sha256(&raster);
+    let path = format!("_forge-export/source-blobs/{hash}.bin");
+    fixture.payloads.insert(path.clone(), raster.clone());
+    let before = fixture.zone.archive_bytes().unwrap();
+    let exported = fixture.build(&temp.0.join("exports")).unwrap();
+    let loaded = module_runtime::load(
+        &exported.package_path,
+        exported.area_id,
+        Some(&temp.0.join("cache")),
+    )
+    .unwrap();
+    assert_eq!(loaded.archive, before);
+    assert_eq!(loaded.source_blobs, BTreeMap::from([(hash, raster)]));
+    assert_eq!(loaded.manifest.zones[0].source_blobs, vec![hash]);
+    assert_eq!(loaded.manifest.compatibility.module_api_version, 2);
+    assert_eq!(fixture.zone.archive_bytes().unwrap(), before);
+
+    // A v1 current-only module remains a distinct supported input. Repack this
+    // no-history fixture with its original API contract rather than relabeling
+    // any historical receipt or previously installed package.
+    let mut legacy = loaded.manifest;
+    legacy.compatibility.module_api_version = 1;
+    fs::write(
+        exported.source_root.join("module.json"),
+        legacy.to_bytes().unwrap(),
+    )
+    .unwrap();
+    let descriptor = forge_delivery::archive::inspect(&exported.package_path)
+        .unwrap()
+        .0;
+    let legacy_path = temp.0.join("legacy-api1.orpmod");
+    orpmod::pack(&exported.source_root, descriptor, &legacy_path, false).unwrap();
+    assert_eq!(orpmod::inspect(&legacy_path, false).unwrap(), legacy);
+}
+
+#[test]
+fn invalid_or_extra_raster_payloads_never_create_an_export() {
+    let temp = Temp::new();
+    let raster = vec![0; 256 * 256 * 4];
+    let path = format!("_forge-export/source-blobs/{}.bin", bytes_sha256(&raster));
+    for fault in 0..4 {
+        let mut fixture = Fixture::new(true);
+        match fault {
+            0 => (),
+            1 => {
+                let mut bytes = raster.clone();
+                bytes[0] = 1;
+                fixture.payloads.insert(path.clone(), bytes);
+            }
+            2 => {
+                fixture
+                    .payloads
+                    .insert(path.clone(), raster[..raster.len() - 1].to_vec());
+            }
+            _ => {
+                fixture.payloads.insert(path.clone(), raster.clone());
+                fixture.payloads.insert(
+                    "_forge-export/source-blobs/unused.bin".into(),
+                    b"unused".to_vec(),
+                );
+            }
+        }
+        let root = temp.0.join(format!("fault-{fault}"));
+        assert!(fixture.build(&root).is_err(), "fault {fault}");
+        assert!(!root.exists(), "fault {fault}");
+    }
+}
+
+fn regenerate_raster(zone: &mut ZoneEditSession, hash: forge_core::ContentHash, key: &str) {
+    assert!(zone.head().base.terrain.sampled_source.is_some());
+    let mut base = zone.head().base.clone();
+    configure_raster(&mut base.terrain, hash);
+    let request = zone
+        .head()
+        .prepare_regeneration(base, CommandId::deterministic(key))
+        .unwrap();
+    zone.execute(&request).unwrap();
+}
+
+fn configure_raster(document: &mut forge_project::TerrainDocument, hash: forge_core::ContentHash) {
+    let raster = Fixture::new(true).zone.head().base.terrain.clone();
+    document.schema_version = raster.schema_version;
+    document.height_sampling = raster.height_sampling;
+    document.extent_m = raster.extent_m;
+    document.sampled_source = raster.sampled_source;
+    document.sampled_source.as_mut().unwrap().samples_sha256 = hash;
+}
+
+#[test]
+fn aggregate_export_deduplicates_sources_and_keeps_undo_only_sources_in_every_area_closure() {
+    let temp = Temp::new();
+    let mut fixture = Fixture::new(true);
+    let mut snapshot = aggregate_snapshot(&mut fixture);
+    let first = vec![0; 256 * 256 * 4];
+    let mut second = first.clone();
+    second[..4].copy_from_slice(&1_f32.to_le_bytes());
+    let mut third = first.clone();
+    third[..4].copy_from_slice(&2_f32.to_le_bytes());
+    let first_hash = bytes_sha256(&first);
+    let second_hash = bytes_sha256(&second);
+    let third_hash = bytes_sha256(&third);
+    for (index, source) in snapshot.zones.iter_mut().enumerate() {
+        let mut zone = ZoneEditSession::from_archive_bytes(&source.bytes).unwrap();
+        regenerate_raster(
+            &mut zone,
+            if index == 1 { third_hash } else { second_hash },
+            &format!("raster/current/{index}"),
+        );
+        source.head_hash = zone.head().content_hash().unwrap();
+        source.bytes = zone.archive_bytes().unwrap();
+    }
+    snapshot.primary_head = snapshot.zones[0].head_hash;
+    snapshot.source_blobs = BTreeMap::from([
+        (first_hash, first),
+        (second_hash, second),
+        (third_hash, third),
+    ]);
+    assert_eq!(snapshot.source_requirements().unwrap().len(), 3);
+    let mut missing = snapshot.source_blobs.remove(&first_hash).unwrap();
+    let rejected = temp.0.join("missing-undo-source");
+    assert!(
+        build_module_with_origin(
+            &rejected,
+            &snapshot,
+            Fixture::metadata(),
+            fixture.catalog.clone(),
+            fixture.payloads.clone(),
+            None
+        )
+        .is_err()
+    );
+    assert!(!rejected.exists());
+    snapshot.source_blobs.insert(first_hash, missing.clone());
+    missing[0] = 1;
+    snapshot.source_blobs.insert(first_hash, missing);
+    let rejected = temp.0.join("corrupt-undo-source");
+    assert!(
+        build_module_with_origin(
+            &rejected,
+            &snapshot,
+            Fixture::metadata(),
+            fixture.catalog.clone(),
+            fixture.payloads.clone(),
+            None
+        )
+        .is_err()
+    );
+    assert!(!rejected.exists());
+    snapshot
+        .source_blobs
+        .insert(first_hash, vec![0; 256 * 256 * 4]);
+    let exported = build_module_with_origin(
+        &temp.0.join("exports"),
+        &snapshot,
+        Fixture::metadata(),
+        fixture.catalog,
+        fixture.payloads,
+        None,
+    )
+    .unwrap();
+    let manifest = orpmod::inspect(&exported.package_path, false).unwrap();
+    assert_eq!(
+        manifest
+            .files
+            .iter()
+            .filter(|file| file.role == forge_project::module_package::ModuleFileRole::SourceBlob)
+            .count(),
+        3
+    );
+    for source in &snapshot.zones {
+        let loaded = module_runtime::load(
+            &exported.package_path,
+            source.area_id,
+            Some(&temp.0.join("cache")),
+        )
+        .unwrap();
+        let required = ZoneEditSession::from_archive_bytes(&source.bytes)
+            .unwrap()
+            .required_source_blobs()
+            .unwrap();
+        assert_eq!(loaded.archive, source.bytes);
+        assert_eq!(
+            loaded.source_blobs.keys().copied().collect::<Vec<_>>(),
+            required.keys().copied().collect::<Vec<_>>()
+        );
+        for (hash, bytes) in loaded.source_blobs {
+            assert_eq!(bytes, snapshot.source_blobs[&hash]);
+        }
+    }
 }
 
 fn aggregate_snapshot(
@@ -643,10 +861,15 @@ fn aggregate_snapshot(
         )
         .unwrap();
     fixture.zone.execute(&request).unwrap();
-    let mut second = ZoneEditSession::from_initial_terrain(
-        new_terrain("builder-review", "second", "Second").unwrap(),
-    )
-    .unwrap();
+    let terrain_for_area = |key, name| {
+        let mut document = new_terrain("builder-review", key, name).unwrap();
+        if let Some(source) = &fixture.zone.head().base.terrain.sampled_source {
+            configure_raster(&mut document, source.samples_sha256);
+        }
+        document
+    };
+    let mut second =
+        ZoneEditSession::from_initial_terrain(terrain_for_area("second", "Second")).unwrap();
     let mut document = document;
     document.area_id = second.head().base.terrain.area_id;
     document.actors[1].name = "Second keeper".into();
@@ -655,11 +878,9 @@ fn aggregate_snapshot(
         .prepare_gameplay(Some(document), CommandId::deterministic("builder/second"))
         .unwrap();
     second.execute(&request).unwrap();
-    let blank = ZoneEditSession::from_initial_terrain(
-        new_terrain("builder-review", "blank", "Blank").unwrap(),
-    )
-    .unwrap();
+    let blank = ZoneEditSession::from_initial_terrain(terrain_for_area("blank", "Blank")).unwrap();
     ModuleExportSnapshot {
+        source_blobs: BTreeMap::new(),
         module_id: original.module_id,
         project_id: fixture.zone.head().base.terrain.project_id,
         primary_area: fixture.zone.head().base.terrain.area_id,
@@ -768,4 +989,151 @@ fn module_export_refuses_revised_duplicate_and_inconsistent_areas_before_output(
         .is_err()
     );
     assert!(!root.exists());
+}
+
+#[test]
+fn export_refuses_unsupported_companions_retained_only_in_undo_history() {
+    use forge_project::zone_authoring::placements::{
+        ManualPlacement, ParticlePackageReference, PhysicsPackageReference, PlacementEdit,
+    };
+
+    let temp = Temp::new();
+    for particle in [false, true] {
+        let mut fixture = Fixture::new(false);
+        let asset = &fixture.catalog.assets[0];
+        let mut object = ManualPlacement {
+            id: EntityId::deterministic("history-only-companion"),
+            name: "Historical companion".into(),
+            asset_id: asset.id,
+            asset_hash: asset.payload.sha256,
+            physics: None,
+            particles: None,
+            local_lights: None,
+            transform: Transform::IDENTITY,
+            locked: false,
+        };
+        if particle {
+            object.particles = Some(Box::new(ParticlePackageReference {
+                schema_version: 1,
+                carrier_sha256: object.asset_hash,
+                manifest_sha256: bytes_sha256(b"particle-manifest"),
+                package_sha256: bytes_sha256(b"particle-package"),
+            }));
+        } else {
+            object.physics = Some(Box::new(PhysicsPackageReference {
+                schema_version: 1,
+                carrier_sha256: object.asset_hash,
+                manifest_sha256: bytes_sha256(b"physics-manifest"),
+                package_sha256: bytes_sha256(b"physics-package"),
+            }));
+        }
+        for (key, action) in [
+            (
+                "insert",
+                PlacementEdit::Insert {
+                    placement: object.clone(),
+                },
+            ),
+            ("remove", PlacementEdit::Remove { id: object.id }),
+        ] {
+            let request = fixture
+                .zone
+                .head()
+                .prepare_placement(CommandId::deterministic(key), action)
+                .unwrap();
+            fixture.zone.execute(&request).unwrap();
+        }
+        let output = temp.0.join(if particle { "particle" } else { "physics" });
+        let error = fixture.build(&output).unwrap_err();
+        assert!(error.contains("physics and particle companion"));
+        assert!(!output.exists());
+    }
+}
+
+#[test]
+fn procedural_module_allows_only_a_valid_empty_catalog_without_asset_references() {
+    let temp = Temp::new();
+    let terrain = new_terrain("procedural-empty", "start", "Carte").unwrap();
+    let mut zone = ZoneEditSession::from_initial_terrain(terrain).unwrap();
+    let area = zone.head().base.terrain.area_id;
+    let module = ModuleId::deterministic("procedural-empty-module");
+    let player = EntityId::deterministic("procedural-empty-player");
+    let npc = EntityId::deterministic("procedural-empty-npc");
+    let gameplay = serde_json::from_value(json!({
+        "schema":"forge.gameplay","version":1,"module_id":module,"area_id":area,"player":player,
+        "profile":{"id":"forge.gate3-minimal","version":1,"interaction_range_m":3.0,
+            "attack_range_m":2.0,"attack_damage":20,"attack_stamina_cost":5,"max_stamina":100,
+            "max_action_receipts":512,"max_events_per_tick":128},
+        "actors":[{"id":player,"name":"Player","role":"player","position":{"x":0.0,"y":0.0,"z":0.0},
+            "max_vitality":100,"protection":0,"inventory_capacity":12,"dialogue":null,"patrol":[],"flees_danger":false},
+            {"id":npc,"name":"Keeper","role":"friendly","position":{"x":0.0,"y":0.0,"z":-2.0},
+            "max_vitality":100,"protection":0,"inventory_capacity":12,"dialogue":null,"patrol":[],"flees_danger":false}],
+        "objects":[],"items":[],"places":[],"dialogues":[],"quests":[]
+    })).unwrap();
+    let request = zone
+        .head()
+        .prepare_gameplay(
+            Some(gameplay),
+            CommandId::deterministic("procedural-empty-gameplay"),
+        )
+        .unwrap();
+    zone.execute(&request).unwrap();
+    let catalog = GovernedImportCatalog {
+        schema: GOVERNED_IMPORT_SCHEMA.into(),
+        schema_version: GOVERNED_IMPORT_VERSION,
+        assets: Vec::new(),
+    };
+    let exported = build_zone(
+        &temp.0.join("valid"),
+        &zone.archive_bytes().unwrap(),
+        zone.head().content_hash().unwrap(),
+        Fixture::metadata(),
+        catalog.clone(),
+        BTreeMap::new(),
+    )
+    .unwrap();
+    let admitted = orpmod::inspect(&exported.package_path, false).unwrap();
+    assert!(admitted.assets.is_empty());
+    let mut invalid = catalog.clone();
+    invalid.schema_version += 1;
+    assert!(
+        build_zone(
+            &temp.0.join("bad-schema"),
+            &zone.archive_bytes().unwrap(),
+            zone.head().content_hash().unwrap(),
+            Fixture::metadata(),
+            invalid,
+            BTreeMap::new()
+        )
+        .is_err()
+    );
+    let pin = VisualAssetPin {
+        asset_id: AssetId::deterministic("absent-mesh"),
+        sha256: bytes_sha256(b"absent"),
+    };
+    let binding = GameplayVisualBinding {
+        area_id: area,
+        entity_id: npc,
+        asset: pin,
+        local_transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+    };
+    let request = zone
+        .head()
+        .prepare_gameplay_visuals(
+            Some(vec![binding]),
+            &[pin],
+            CommandId::deterministic("procedural-empty-missing-asset"),
+        )
+        .unwrap();
+    zone.execute(&request).unwrap();
+    let error = build_zone(
+        &temp.0.join("missing-asset"),
+        &zone.archive_bytes().unwrap(),
+        zone.head().content_hash().unwrap(),
+        Fixture::metadata(),
+        catalog,
+        BTreeMap::new(),
+    )
+    .unwrap_err();
+    assert!(error.contains("no exact governed mesh revision"));
 }

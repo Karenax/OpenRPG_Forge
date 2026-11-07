@@ -1,6 +1,7 @@
 //! Requires a real source package root: never skips or substitutes fixture data.
 use forge_core::bytes_sha256;
-use forge_tidewater_assets::tidewater_boat::{BoatPackage, package_hash};
+use forge_tidewater_assets::tidewater_boat::BoatPackage;
+use forge_tidewater_assets::tidewater_boat::package_hash;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::future::Future;

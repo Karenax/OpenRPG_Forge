@@ -134,10 +134,53 @@ fn run() -> Result<()> {
             print(&plan)
         }
         Some("apply") if args.len() == 2 => print(&install::apply(&forge_delivery::read_json(Path::new(&args[1]))?)?),
+        Some("plan-studio-installer") if args.len() == 4 => {
+            let legacy = std::env::var_os("FORGE_STUDIO_LEGACY_INSTALL_ROOT")
+                .filter(|path| !path.is_empty())
+                .map(PathBuf::from);
+            let plan = install::prepare_studio_installer(
+                Path::new(&args[1]),
+                Path::new(&args[3]),
+                legacy.as_deref(),
+            )?;
+            install::write_plan_file(&plan, Path::new(&args[2]))?;
+            print(&plan)
+        }
+        Some("apply-studio-installer") if args.len() == 2 => {
+            print(&install::apply_studio_installer(&forge_delivery::read_json(Path::new(&args[1]))?)?)
+        }
         Some("verify") if args.len() == 2 => print(&install::verify(Path::new(&args[1]))?),
+        Some("recover-legacy-modules") if args.len() == 2 => {
+            print(&installed_modules::recover_legacy_modules(Path::new(&args[1]))?)
+        }
+        Some("recover-legacy-modules") if args.len() == 3 => {
+            print(&installed_modules::recover_legacy_modules_for_studio(Path::new(&args[1]), Path::new(&args[2]))?)
+        }
+        Some("import-legacy-save") if args.len() == 6 => {
+            let game = args[3].parse().map_err(|error| format!("Invalid game ID: {error}"))?;
+            let selection = module_selection(&args[4], &args[5])?;
+            let hash = forge_delivery::standalone::import_legacy_save(
+                Path::new(&args[1]), Path::new(&args[2]), game, selection,
+            )?;
+            print(&serde_json::json!({"save_sha256":hash}))
+        }
+        Some("import-recovered-save") if args.len() == 6 => {
+            use forge_delivery::standalone::{LegacySaveAction, LegacySaveSource};
+            let game = args[3].parse().map_err(|error| format!("Invalid game ID: {error}"))?;
+            let selection = module_selection(&args[4], &args[5])?;
+            let hash = forge_delivery::standalone::migrate_legacy_save_for_profile(
+                Path::new(&args[1]), LegacySaveSource::RecoveredProfile(Path::new(&args[2])),
+                game, None, selection, LegacySaveAction::Import { reviewed_save: None },
+            )?;
+            print(&serde_json::json!({"save_sha256":hash}))
+        }
+        Some("check-studio-reinstall-root") if matches!(args.len(), 2 | 3) => {
+            install::check_studio_reinstall_root(Path::new(&args[1]), args.get(2).map(Path::new))
+        }
         Some("status") if args.len() == 2 => print(&install::state(Path::new(&args[1]))?),
         Some("rollback-plan") if args.len() == 2 => print(&install::prepare_rollback(Path::new(&args[1]))?),
         Some("uninstall") if args.len() == 2 => print(&install::uninstall(Path::new(&args[1]))?),
+        Some("uninstall-studio") if args.len() == 2 => print(&install::uninstall_studio(Path::new(&args[1]))?),
         Some("launch") if args.len() == 3 => print(&serde_json::json!({"process_id":launch::start(Path::new(&args[1]), &args[2])?.id()})),
         Some("launch-plan") if args.len() == 3 => {
             let command = launch::command(Path::new(&args[1]), &args[2])?;
@@ -169,7 +212,7 @@ fn run() -> Result<()> {
             }
             menu(&root)
         }
-        _ => Err("Usage: forge_delivery module-check PACKAGE AREA_ID CACHE_ABSOLUTE | modules ROOT | module-launch-plan ROOT MODULE_ID AREA_ID | module-launch ROOT MODULE_ID AREA_ID | pack SOURCE DESCRIPTOR OUTPUT | inspect PACKAGE | plan ROOT PACKAGE... | plan-file ROOT OUTPUT PACKAGE... | apply PLAN | uninstall ROOT | setup ROOT PACKAGE... | status ROOT | verify ROOT | rollback-plan ROOT | launch ROOT game|editor | launcher ROOT".into()),
+        _ => Err("Usage: forge_delivery module-check PACKAGE AREA_ID CACHE_ABSOLUTE | modules ROOT | module-launch-plan ROOT MODULE_ID AREA_ID | module-launch ROOT MODULE_ID AREA_ID | pack SOURCE DESCRIPTOR OUTPUT | inspect PACKAGE | plan ROOT PACKAGE... | plan-file ROOT OUTPUT PACKAGE... | apply PLAN | uninstall ROOT | uninstall-studio ROOT | setup ROOT PACKAGE... | status ROOT | verify ROOT | rollback-plan ROOT | launch ROOT game|editor | launcher ROOT".into()),
     }
 }
 

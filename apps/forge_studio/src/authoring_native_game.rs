@@ -88,6 +88,14 @@ fn diagnostic_view() -> Option<DiagnosticView> {
     DIAGNOSTICS.with(|slot| slot.get().and_then(|value| value.get()))
 }
 
+pub(crate) fn closed_game_status() -> String {
+    match diagnostic_view().and_then(|view| view.exit_success) {
+        Some(true) => "Le jeu est fermé.".to_owned(),
+        Some(false) => "Le jeu s’est arrêté sur une erreur.".to_owned(),
+        None => "Le jeu est fermé ; son bilan est indisponible.".to_owned(),
+    }
+}
+
 fn set_diagnostics(value: Option<DiagnosticView>) {
     DIAGNOSTICS.with(|slot| {
         if let Some(signal) = slot.get() {
@@ -229,10 +237,15 @@ pub(super) fn LaunchGame(
                             launched.set(true);
                         }
                         Err(error) => {
-                            status.set(error);
+                            status.set(error.clone());
                             match refresh_diagnostics().await {
                                 Ok(true) => (),
-                                Ok(false) => diagnostic_unavailable("aucun bilan fourni après le refus de lancement"),
+                                Ok(false) => set_diagnostics(Some(DiagnosticView {
+                                    summary: "Le jeu n’a pas pu démarrer. Consulter les détails du refus.".into(),
+                                    details: error,
+                                    exit_success: None,
+                                    attention: true,
+                                })),
                                 Err(error) => diagnostic_unavailable(&error),
                             }
                         },
@@ -241,11 +254,7 @@ pub(super) fn LaunchGame(
                 });
             }>{move || if launching.get() { "Lancement…" } else { "Lancer le jeu" }}</button>
         <output aria-live="polite">{move || if launched.get() && !paused() {
-            match diagnostic_view().and_then(|view| view.exit_success) {
-                Some(true) => "Le jeu est fermé.".to_owned(),
-                Some(false) => "Le jeu s’est arrêté sur une erreur.".to_owned(),
-                None => "Le jeu est fermé ; son bilan est indisponible.".to_owned(),
-            }
+            closed_game_status()
         } else { status.get() }}</output>
         <GameDiagnostics/>
         </div>

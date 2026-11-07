@@ -11,7 +11,11 @@ mod imported_catalog;
 pub mod media_validation;
 pub mod source_collision_geometry;
 pub mod source_decal_lifetime;
+pub mod source_environment_package;
+pub mod source_fish_package;
+pub mod source_fish_payload;
 pub mod source_fragment;
+pub mod source_fragment_glb;
 pub mod source_geometry;
 pub mod source_graph_attributes;
 pub mod source_graph_bundle;
@@ -19,16 +23,24 @@ pub mod source_graph_glb;
 pub mod source_local_lights;
 pub mod source_material_parameters;
 pub mod source_mesh_shaders;
+pub mod source_ocean;
+pub mod source_ocean_package;
 pub mod source_particle_emission;
 pub mod source_particle_package;
 pub mod source_particle_transport;
 pub mod source_physics_package;
 pub mod source_physics_transport;
+pub mod source_shore_sim_package;
+pub mod source_surface_package;
+pub mod source_terrain_package;
+pub mod source_vegetation_geometry;
+pub mod source_vegetation_package;
+pub mod source_water_surface_package;
 mod vegetation_prototypes;
 pub use glb_preflight::{GovernedGlbError, governed_glb_json_length, validate_governed_glb_json};
 pub use vegetation_prototypes::{
     VegetationPrototypeBinding, VegetationPrototypeCatalog, VegetationPrototypeError,
-    VegetationPrototypeSelection,
+    VegetationPrototypeSelection, resolve_pinned_vegetation_catalogs,
 };
 
 pub use governed_asset_kit::{

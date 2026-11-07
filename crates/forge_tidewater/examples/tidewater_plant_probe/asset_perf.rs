@@ -92,25 +92,21 @@ pub(super) fn install(app: &mut App) {
         };
     }
     material!(StandardMaterial, 2, 1);
-    material!(crate::PlantMaterial, 3, 2);
+    material!(crate::CapturedPlantMaterial, 3, 2);
     material!(crate::terrain_surface::TerrainMaterial, 4, 3);
     material!(crate::terrain_lod::LodMaterial, 5, 4);
-    material!(crate::village::VillageMaterial, 6, 5);
+    material!(forge_engine::source_surface::SourceSurfaceMaterial, 6, 5);
     material!(crate::water_optics::WaterMaterial, 7, 6);
-    material!(crate::ocean_geometry::OceanGeometryMaterial, 8, 7);
+    material!(
+        forge_engine::source_ocean_geometry::DiagnosticMaterial,
+        8,
+        7
+    );
     material!(crate::spray_sprites::SprayMaterial, 9, 8);
-    material!(crate::breaker_lip::LipMaterial, 10, 9);
+    material!(forge_engine::source_breaker_render::LipMaterial, 10, 9);
     material!(crate::sky::SkyMaterial, 11, 10);
-    material!(
-        forge_tidewater::tidewater_fish_props::material::FishMaterial,
-        12,
-        11
-    );
-    material!(
-        forge_tidewater::tidewater_debris::nature::NatureMaterial,
-        13,
-        12
-    );
+    material!(forge_engine::source_fish::material::FishMaterial, 12, 11);
+    material!(forge_engine::source_surface::nature::NatureMaterial, 13, 12);
     material!(
         forge_tidewater::tidewater_debris::scanned_material::ScannedMaterial,
         14,

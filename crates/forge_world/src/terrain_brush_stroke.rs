@@ -4,6 +4,7 @@ use forge_project::{TerrainDocument, terrain_edit::TerrainEdit};
 
 pub const MAX_STROKE_POINTS: usize = 1024;
 const MAX_DABS: usize = 128;
+pub(crate) const MAX_SAMPLED_STROKE_VISITS: usize = 2_000_000;
 
 #[derive(Clone, Debug)]
 pub struct TerrainBrushStroke {
@@ -40,14 +41,72 @@ impl TerrainBrushStroke {
         })
     }
 
+    /// Prepare the complete gesture over the verified source's actual corner grid.
+    /// Intermediate plans share immutable raster samples; no partial edit is published.
+    pub fn prepare_sampled(
+        &self,
+        source: &crate::sampled_terrain::SampledTerrainPlan,
+    ) -> Result<TerrainEdit, String> {
+        let metadata = source.raster().source();
+        let dimensions = [metadata.width, metadata.height];
+        let maximum = std::array::from_fn(|axis| {
+            metadata.origin_xz_m[axis] + f64::from(dimensions[axis]) * metadata.sample_spacing_m
+        });
+        let centres = self.centres_in(metadata.origin_xz_m, maximum)?;
+        let mut visits = 0_usize;
+        for &[x_m, z_m] in &centres {
+            let dab = TerrainBrush {
+                x_m,
+                z_m,
+                ..self.brush
+            };
+            visits = visits
+                .checked_add(dab.sampled_visits(source)?)
+                .ok_or("Raster brush visit count overflow")?;
+            if visits > MAX_SAMPLED_STROKE_VISITS {
+                return Err("Le tracé exige trop d’échantillons du raster ; raccourcir le geste ou réduire le rayon.".into());
+            }
+        }
+        let mut plan = source
+            .with_document(source.document())
+            .map_err(|e| e.to_string())?;
+        for [x_m, z_m] in centres {
+            let TerrainEdit::SetHeightDeltas { samples } = TerrainBrush {
+                x_m,
+                z_m,
+                ..self.brush
+            }
+            .prepare_sampled(&plan)?
+            else {
+                return Err("Unexpected sampled brush edit".into());
+            };
+            let mut candidate = plan.document().clone();
+            candidate.height_deltas = samples;
+            plan = plan.with_document(&candidate).map_err(|e| e.to_string())?;
+        }
+        Ok(TerrainEdit::SetHeightDeltas {
+            samples: plan.document().height_deltas.clone(),
+        })
+    }
+
     pub(crate) fn centres(&self) -> Result<Vec<[f32; 2]>, String> {
+        self.centres_in([-256.0; 2], [256.0; 2])
+    }
+
+    pub(crate) fn centres_in(
+        &self,
+        minimum: [f64; 2],
+        maximum: [f64; 2],
+    ) -> Result<Vec<[f32; 2]>, String> {
         if self.points.is_empty()
             || self.points.len() > MAX_STROKE_POINTS
-            || self
-                .points
-                .iter()
-                .flatten()
-                .any(|n| !n.is_finite() || n.abs() > 256.0)
+            || self.points.iter().any(|point| {
+                point.iter().enumerate().any(|(axis, &value)| {
+                    !value.is_finite()
+                        || f64::from(value) < minimum[axis]
+                        || f64::from(value) > maximum[axis]
+                })
+            })
             || !self.brush.radius_m.is_finite()
             || !(2.0..=128.0).contains(&self.brush.radius_m)
         {

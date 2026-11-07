@@ -1,5 +1,8 @@
 use super::{GovernedAssetKind, ImportSource, ImportSourceKind, ImportUpload, MAX_UPLOAD_BYTES};
-use forge_assets::media_validation::{MediaFormat, MediaLimits, validate_media};
+use forge_assets::{
+    media_validation::{MediaFormat, MediaLimits, validate_declared_media},
+    source_graph_glb::SourceGraphGlbReadBudget,
+};
 
 pub(super) fn extension(upload: &ImportUpload) -> Result<String, String> {
     if upload.name.is_empty()
@@ -41,7 +44,13 @@ pub(super) fn media(upload: &ImportUpload, kind: GovernedAssetKind) -> Result<St
         (GovernedAssetKind::Audio, "flac") => MediaFormat::Flac,
         _ => return Err("File format differs from the selected media type".into()),
     };
-    validate_media(&upload.bytes, format, MediaLimits::default()).map_err(|e| e.to_string())?;
+    validate_declared_media(
+        &upload.bytes,
+        format,
+        MediaLimits::default(),
+        SourceGraphGlbReadBudget::Standard,
+    )
+    .map_err(|e| e.to_string())?;
     Ok(ext)
 }
 pub(super) fn source(upload: &ImportSource) -> Result<String, String> {

@@ -1,6 +1,7 @@
 """Adapt the original water optical shader to native scene/FFT/atmosphere inputs."""
 from pathlib import Path
 import hashlib,json,re,shutil,sys
+shore_hash_path=Path(__file__).resolve().parents[2]/"crates/forge_engine/src/source_shore_hash.wgsl"
 scene,material,reference,target=map(lambda x:Path(x).resolve(),sys.argv[1:5])
 assert len(sys.argv)==5 and not target.exists() and not target.is_relative_to(scene)
 fixture=json.loads((scene/'fixture.json').read_text());meta=json.loads((material/'water-material.json').read_text())
@@ -86,7 +87,7 @@ for name in ['common','waterFresnel','waterHelpers','whaleWater','ocean','cdlod'
  if name=='shore':
   original='fn shoreHash1( x: f32 ) -> f32 { return fract( sin( x * 127.1 + 311.7 ) * 43758.5453 ); }'
   assert code.count(original)==1
-  code=code.replace(original,Path(__file__).with_name('native-shore-hash.wgsl').read_text())
+  code=code.replace(original,shore_hash_path.read_text())
  shader+=code+'\n'
 shadow=(scene/'object-shadow.wgsl').read_text()
 shader+=shadow[:shadow.index('fn interleavedGradientNoise(')]+shadow[shadow.index('fn shadowCascadeOf('):]
@@ -172,7 +173,7 @@ if 'water_debug' in ref: fixture['water_optics_probe']['diagnostic']=ref['water_
 if 'terrain_debug' in ref: fixture['water_optics_probe']['terrain_diagnostic']=ref['terrain_debug']
 fixture['preparation'][Path(__file__).name]=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 if shore:
- fixture['preparation']['native-shore-hash.wgsl']=hashlib.sha256(Path(__file__).with_name('native-shore-hash.wgsl').read_bytes()).hexdigest()
+ fixture['preparation']['native-shore-hash.wgsl']=hashlib.sha256(shore_hash_path.read_bytes()).hexdigest()
 fixture['files']={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in target.iterdir()}
 (target/'fixture.json').write_text(json.dumps(fixture,indent=2),encoding='utf-8')
 print(json.dumps(dict(output=str(target))))

@@ -16,6 +16,68 @@ pub struct RenderVegetationPrototype {
     pub lods: [Vec<RenderVegetationPrimitive>; 3],
 }
 
+impl RenderVegetationPrototype {
+    /// Read the actual normalized geometry of all three LODs under one immutable borrow.
+    /// No asset is cloned or allocated; callers must rebuild this envelope after source edits.
+    /// This proves a CPU bound only, not loading provenance, material readiness or GPU presentation.
+    pub fn streaming_envelope(
+        &self,
+        meshes: &Assets<Mesh>,
+        maximum_deformation_m: f64,
+    ) -> Result<forge_world::imported_vegetation::streaming::PrototypeEnvelope, String> {
+        if !maximum_deformation_m.is_finite()
+            || !(0.0..=128.0).contains(&maximum_deformation_m)
+            || self.lods.iter().any(Vec::is_empty)
+        {
+            return Err("Incomplete vegetation LODs or invalid deformation bound".into());
+        }
+        let mut visited = std::collections::BTreeSet::new();
+        let mut vertex_count = 0_usize;
+        let mut radius_m = 0.0_f64;
+        for primitive in self.lods.iter().flatten() {
+            if !visited.insert(primitive.mesh.id()) {
+                continue;
+            }
+            if visited.len() > 256 {
+                return Err("Vegetation prototype envelope exceeds 256 unique meshes".into());
+            }
+            let mesh = meshes
+                .get(&primitive.mesh)
+                .ok_or("Missing normalized vegetation mesh")?;
+            if mesh.try_attributes().is_err() {
+                return Err("Vegetation envelope requires retained CPU geometry".into());
+            }
+            let Some(VertexAttributeValues::Float32x3(positions)) =
+                mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+            else {
+                return Err("Vegetation envelope requires float32 positions".into());
+            };
+            vertex_count = vertex_count
+                .checked_add(positions.len())
+                .ok_or("Vegetation envelope vertex accounting overflow")?;
+            if positions.is_empty() || vertex_count > 1_000_000 {
+                return Err("Vegetation prototype envelope exceeds its vertex budget".into());
+            }
+            for position in positions {
+                if position.iter().any(|value| !value.is_finite()) {
+                    return Err("Nonfinite vegetation envelope position".into());
+                }
+                let [x, y, z] = position.map(f64::from);
+                radius_m = radius_m.max(x.hypot(y).hypot(z));
+            }
+        }
+        if radius_m > 10_000.0 {
+            return Err("Vegetation prototype envelope exceeds the world bound".into());
+        }
+        Ok(
+            forge_world::imported_vegetation::streaming::PrototypeEnvelope {
+                radius_m,
+                deformation_m: maximum_deformation_m,
+            },
+        )
+    }
+}
+
 type MeshKey = (AssetId<Mesh>, [u32; 12]);
 
 /// Validate all derived meshes before adding any of them to the asset store.
@@ -130,6 +192,82 @@ mod tests {
             .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.2, 0.7]; 3])
             .with_inserted_attribute(Mesh::ATTRIBUTE_UV_1, vec![[0.8, 0.3]; 3])
             .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, vec![[0.2, 0.3, 0.4, 0.6]; 3])
+    }
+
+    #[test]
+    fn streaming_envelope_covers_every_lod_and_observes_geometry_changes() {
+        let mut meshes = Assets::<Mesh>::default();
+        let source = meshes.add(mesh());
+        let primitive = RenderVegetationPrimitive {
+            mesh: source.clone(),
+            material: Handle::default(),
+        };
+        let mut prototype = RenderVegetationPrototype {
+            target_height_m: 8.0,
+            lods: std::array::from_fn(|_| vec![primitive.clone()]),
+        };
+        let envelope = prototype.streaming_envelope(&meshes, 0.55).unwrap();
+        assert!((envelope.radius_m - 1.0_f64.hypot(8.0).hypot(3.0)).abs() < 1e-12);
+        assert_eq!(envelope.deformation_m.to_bits(), 0.55_f64.to_bits());
+        assert_eq!(meshes.len(), 1);
+        let mut distant = mesh();
+        distant.insert_attribute(Mesh::ATTRIBUTE_POSITION, vec![[0.0, 0.0, 20.0]; 3]);
+        prototype.lods[2][0].mesh = meshes.add(distant);
+        assert_eq!(
+            prototype
+                .streaming_envelope(&meshes, 0.0)
+                .unwrap()
+                .radius_m
+                .to_bits(),
+            20.0_f64.to_bits()
+        );
+        meshes
+            .get_mut(&source)
+            .unwrap()
+            .insert_attribute(Mesh::ATTRIBUTE_POSITION, vec![[0.0, 30.0, 0.0]; 3]);
+        assert_eq!(
+            prototype
+                .streaming_envelope(&meshes, 0.0)
+                .unwrap()
+                .radius_m
+                .to_bits(),
+            30.0_f64.to_bits()
+        );
+        meshes.remove(source.id());
+        assert!(prototype.streaming_envelope(&meshes, 0.0).is_err());
+    }
+
+    #[test]
+    fn streaming_envelope_refuses_incomplete_lods_nonfinite_positions_and_unbounded_work() {
+        let mut meshes = Assets::<Mesh>::default();
+        let source = meshes.add(mesh());
+        let primitive = RenderVegetationPrimitive {
+            mesh: source.clone(),
+            material: Handle::default(),
+        };
+        let mut prototype = RenderVegetationPrototype {
+            target_height_m: 8.0,
+            lods: std::array::from_fn(|_| vec![primitive.clone()]),
+        };
+        assert!(prototype.streaming_envelope(&meshes, f64::NAN).is_err());
+        prototype.lods[2].clear();
+        assert!(prototype.streaming_envelope(&meshes, 0.0).is_err());
+        prototype.lods[2].push(primitive);
+        meshes
+            .get_mut(&source)
+            .unwrap()
+            .insert_attribute(Mesh::ATTRIBUTE_POSITION, vec![[f32::NAN, 0.0, 0.0]; 3]);
+        assert!(prototype.streaming_envelope(&meshes, 0.0).is_err());
+        meshes
+            .get_mut(&source)
+            .unwrap()
+            .insert_attribute(Mesh::ATTRIBUTE_POSITION, vec![[0.0; 3]; 1_000_001]);
+        assert!(prototype.streaming_envelope(&meshes, 0.0).is_err());
+        meshes
+            .get_mut(&source)
+            .unwrap()
+            .insert_attribute(Mesh::ATTRIBUTE_POSITION, vec![[0.0, 10_001.0, 0.0]; 3]);
+        assert!(prototype.streaming_envelope(&meshes, 0.0).is_err());
     }
 
     #[test]

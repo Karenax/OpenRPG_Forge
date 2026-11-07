@@ -14,6 +14,8 @@ pub struct SceneItem {
 #[serde(deny_unknown_fields)]
 pub struct CatalogItem {
     pub id: String,
+    #[serde(default)]
+    pub label: String,
     pub category: String,
 }
 
@@ -49,6 +51,7 @@ impl Snapshot {
             if item.id.is_empty()
                 || item.id.len() > 256
                 || item.category.len() > 128
+                || item.label.len() > 512
                 || !assets.insert(&item.id)
             {
                 return Err("Catalogue de présentation invalide".into());
@@ -282,6 +285,7 @@ mod tests {
         let mut snapshot = sample();
         snapshot.catalog.push(CatalogItem {
             id: "tree-a".into(),
+            label: "Arbre A".into(),
             category: "Arbres".into(),
         });
         relay.publish(snapshot.clone()).unwrap();

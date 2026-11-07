@@ -29,6 +29,7 @@ pub mod species;
 pub mod start;
 pub mod terrain_commands;
 pub mod vegetation_commands;
+pub mod wind;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -60,6 +61,9 @@ pub struct DensityOverride {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ZoneCorrections {
+    /// Scene-wide wind, independent of whether the zone contains vegetation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wind: Option<wind::SceneWindSettings>,
     /// Governed visuals share zone review/history. Omission preserves historical hashes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub gameplay_visuals: Option<Vec<crate::module_gameplay_visuals::GameplayVisualBinding>>,
@@ -125,6 +129,9 @@ impl ZoneAuthoringHead {
             return Err("Unsupported zone authoring schema/version".into());
         }
         let stamp = &self.base.generator;
+        if let Some(wind) = self.corrections.wind {
+            wind.validate()?;
+        }
         if let Some(settings) = &self.corrections.physics {
             settings.validate()?;
         }
@@ -280,9 +287,23 @@ impl ZoneAuthoringHead {
 }
 
 impl ZoneCorrections {
+    #[must_use]
+    pub fn has_local_light_references(&self) -> bool {
+        self.placements.as_deref().unwrap_or_default().iter().any(|p| p.local_lights.is_some())
+            || self.source_object_edits.as_deref().unwrap_or_default().iter().any(|edit|
+                edit.source.local_lights.is_some() || matches!(&edit.state,
+                    source_objects::SourceObjectState::Edited { placement } if placement.local_lights.is_some()))
+    }
+
     /// Minimum head version required by the present authoring domains.
     #[must_use]
     pub fn schema_version(&self) -> u32 {
+        if self.wind.is_some() {
+            return 19;
+        }
+        if self.has_local_light_references() {
+            return 18;
+        }
         if self.gameplay_visuals.is_some() {
             return 17;
         }

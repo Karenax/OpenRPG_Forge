@@ -4,75 +4,12 @@ use bevy::{
     asset::RenderAssetUsages,
     camera::visibility::NoFrustumCulling,
     light::NotShadowCaster,
-    mesh::{Indices, MeshVertexAttribute, MeshVertexBufferLayoutRef},
-    pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
-    render::render_resource::{
-        AsBindGroup, Extent3d, PrimitiveTopology, RenderPipelineDescriptor, TextureDimension,
-        TextureFormat, VertexFormat,
-    },
-    shader::ShaderRef,
+    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
-use forge_tidewater_assets::cdlod::{CdlodConfig, CdlodNode, CdlodRoot, select_nodes};
 #[derive(Component)]
 pub(super) struct OceanSurface;
-
-fn config() -> CdlodConfig {
-    CdlodConfig {
-        grid_size: 32,
-        leaf_size_m: 8.0,
-        levels: 12,
-        range_factor: 2.5,
-        morph_start_ratio: 0.66,
-        max_nodes: 1500,
-    }
-}
-
-pub(super) fn view_nodes(
-    transform: &Transform,
-    projection: &PerspectiveProjection,
-) -> Result<Vec<CdlodNode>, String> {
-    select_nodes(
-        config(),
-        CdlodRoot::CameraFollowing,
-        super::terrain_lod::source_view(transform, projection),
-        |_, _| Ok([-25.0, 25.0]),
-    )
-    .map_err(|e| e.to_string())
-}
-
-#[allow(clippy::cast_possible_truncation)] // Bounded CDLOD source coordinates.
-pub(super) fn node_mesh(nodes: &[CdlodNode]) -> Mesh {
-    let grid = config().grid().expect("validated grid");
-    let mut positions = vec![];
-    let mut data = vec![];
-    let mut indices = vec![];
-    for node in nodes {
-        let offset = u32::try_from(positions.len()).expect("bounded ocean vertices");
-        positions.extend_from_slice(&grid.positions);
-        data.extend(std::iter::repeat_n(
-            [
-                node.origin_xz[0] as f32,
-                node.origin_xz[1] as f32,
-                node.size_m as f32,
-                f32::from(node.lod),
-            ],
-            grid.positions.len(),
-        ));
-        indices.extend(grid.indices.iter().map(|i| i + offset));
-    }
-    Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    )
-    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
-    .with_inserted_attribute(NODE, data)
-    .with_inserted_indices(Indices::U32(indices))
-}
-const GEOMETRY_SHADER: Handle<Shader> =
-    bevy::asset::uuid_handle!("5b5af56a-2eeb-45fa-b7f2-26f3e85fcd21");
-pub(super) const OPTICS_SHADER: Handle<Shader> =
-    bevy::asset::uuid_handle!("6f2a6373-301f-4918-862a-d234f3240578");
+pub(super) const OPTICS_SHADER: Handle<Shader> = forge_engine::source_water_optics::SHADER;
 pub(super) const UNDERWATER_SURFACE_SHADER: Handle<Shader> =
     bevy::asset::uuid_handle!("4d4b4a40-9aac-45d4-b880-9f49238efcef");
 
@@ -82,8 +19,14 @@ pub fn install_shaders(
     document: &forge_project::TerrainDocument,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let corrections = crate::terrain_edits::Corrections::from_document(document)?;
+    if !corrections.supports_fixed_source_profile() {
+        return Err("Ocean source shaders require their admitted fixed raster profile".into());
+    }
     for (name, handle) in [
-        ("ocean-geometry.wgsl", GEOMETRY_SHADER),
+        (
+            "ocean-geometry.wgsl",
+            forge_engine::source_ocean_geometry::DIAGNOSTIC_SHADER,
+        ),
         ("water-optics.wgsl", OPTICS_SHADER),
     ] {
         if let Some(source) = files.get(name) {
@@ -95,23 +38,19 @@ pub fn install_shaders(
             } else {
                 corrections.shader(original, "#{MATERIAL_BIND_GROUP}", 50)?
             };
-            let adapted =
-                forge_tidewater::tidewater_object_shadow::receiver::shader_source(&adapted)?;
             let adapted = if name == "water-optics.wgsl" {
-                forge_tidewater::tidewater_refraction::water_shader_source(
-                    &encode_visible_water_mask(&adapted)?,
-                )?
+                forge_engine::source_water_optics::prepare_optical_shader(&adapted)?
             } else {
-                adapted
+                forge_engine::source_shadows::receiver::shader_source(&adapted)?
             };
-            forge_tidewater::tidewater_object_shadow::receiver::install(app.world_mut())?;
+            forge_engine::source_shadows::receiver::install(app.world_mut())?;
             if name == "water-optics.wgsl" {
-                forge_tidewater::tidewater_underwater_lighting::install_shader(
+                forge_engine::source_underwater_lighting::install_shader(
                     app.world_mut(),
                     &adapted,
                 )?;
                 let source =
-                    forge_tidewater::tidewater_underwater::surface_query_shader_source(&adapted)?;
+                    forge_engine::source_underwater::surface_query_shader_source(&adapted)?;
                 app.world_mut().resource_mut::<Assets<Shader>>().insert(
                     UNDERWATER_SURFACE_SHADER.id(),
                     Shader::from_wgsl(source, "water-underwater-query.wgsl"),
@@ -125,68 +64,8 @@ pub fn install_shaders(
     Ok(())
 }
 
-// Bevy's main HDR target has one color attachment. Preserve Tidewater's
-// visible-surface mask in its otherwise unused alpha channel until the
-// underwater pass consumes it immediately after the main pass. The water
-// material already computes the source RG mask from the actual displaced
-// mesh, including folded faces and shore waves.
-fn encode_visible_water_mask(source: &str) -> Result<String, String> {
-    forge_tidewater::tidewater_underwater::visible_water_mask_shader_source(source)
-}
-const NODE: MeshVertexAttribute =
-    MeshVertexAttribute::new("OceanLodNode", 0x7457_0005, VertexFormat::Float32x4);
 #[derive(Resource)]
 pub struct Enabled(pub u32);
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
-pub struct OceanGeometryMaterial {
-    #[uniform(0)]
-    pub(super) morph: [Vec4; 12],
-    #[uniform(1)]
-    sizes: [Vec4; 4],
-    #[uniform(2)]
-    pub(super) surface: [Vec4; 2],
-    #[texture(3, filterable = false)]
-    pub(super) height: Handle<Image>,
-    #[texture(50, filterable = false)]
-    pub(super) corrections: Handle<Image>,
-    #[texture(4, dimension = "2d_array")]
-    #[sampler(5)]
-    displacement: Handle<Image>,
-    #[texture(6, sample_type = "depth")]
-    scene_depth: Handle<Image>,
-    #[uniform(7)]
-    diagnostic: UVec4,
-}
-impl Material for OceanGeometryMaterial {
-    fn reads_view_transmission_texture(&self) -> bool {
-        true
-    }
-    fn vertex_shader() -> ShaderRef {
-        GEOMETRY_SHADER.into()
-    }
-    fn fragment_shader() -> ShaderRef {
-        GEOMETRY_SHADER.into()
-    }
-    fn enable_prepass() -> bool {
-        false
-    }
-    fn enable_shadows() -> bool {
-        false
-    }
-    fn specialize(
-        _: &MaterialPipeline,
-        descriptor: &mut RenderPipelineDescriptor,
-        layout: &MeshVertexBufferLayoutRef,
-        _: MaterialPipelineKey<Self>,
-    ) -> Result<(), bevy::material::specialize::SpecializedMeshPipelineError> {
-        descriptor.vertex.buffers = vec![layout.0.get_layout(&[
-            Mesh::ATTRIBUTE_POSITION.at_shader_location(0),
-            NODE.at_shader_location(1),
-        ])?];
-        descriptor.primitive.cull_mode = None;
-        Ok(())
-    }
-}
 #[allow(
     clippy::needless_pass_by_value,
     clippy::too_many_arguments,
@@ -201,24 +80,22 @@ pub fn setup(
     scene_depth: Option<Res<super::water_scene::SceneDepth>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut images: ResMut<Assets<Image>>,
-    mut materials: ResMut<Assets<OceanGeometryMaterial>>,
+    mut materials: ResMut<Assets<forge_engine::source_ocean_geometry::DiagnosticMaterial>>,
 ) {
     let Some(enabled) = enabled else {
         return;
     };
     let ocean = ocean.expect("ocean graph installed");
-    let config = config();
+    let config = forge_engine::source_ocean_geometry::config();
     let base = Vec3::new(probe.instance.x, probe.instance.y, probe.instance.z);
     let transform = super::camera_transform(&probe, base);
     let Projection::Perspective(projection) = super::camera_projection(&probe) else {
         unreachable!()
     };
-    let nodes = select_nodes(
-        config,
-        CdlodRoot::CameraFollowing,
-        super::terrain_lod::source_view(&transform, &projection),
-        |_, _| Ok([-25.0, 25.0]),
-    )
+    let nodes = forge_engine::source_ocean_geometry::view_nodes(super::terrain_lod::source_view(
+        &transform,
+        &projection,
+    ))
     .expect("bounded ocean selection");
     println!("native ocean nodes: {}", nodes.len());
     println!(
@@ -233,7 +110,7 @@ pub fn setup(
     if nodes.is_empty() {
         return;
     }
-    let mesh = node_mesh(&nodes);
+    let mesh = forge_engine::source_ocean_geometry::node_mesh(&nodes).expect("bounded ocean mesh");
     let height = images.add(Image::new(
         Extent3d {
             width: 2048,
@@ -261,8 +138,8 @@ pub fn setup(
     .expect("validated ocean terrain document");
     let corrections = images.add(Image::new(
         Extent3d {
-            width: edit.side,
-            height: edit.side,
+            width: edit.width,
+            height: edit.height,
             depth_or_array_layers: 1,
         },
         TextureDimension::D2,
@@ -270,7 +147,7 @@ pub fn setup(
         TextureFormat::R32Float,
         RenderAssetUsages::default(),
     ));
-    let material = materials.add(OceanGeometryMaterial {
+    let material = materials.add(forge_engine::source_ocean_geometry::DiagnosticMaterial {
         morph: morph.try_into().expect("12 levels"),
         sizes: ocean.sizes,
         surface: [

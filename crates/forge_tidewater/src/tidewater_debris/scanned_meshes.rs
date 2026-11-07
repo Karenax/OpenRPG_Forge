@@ -1,10 +1,12 @@
 //! Shared acquired scanned prototypes; placement transforms and variation stay separate.
-use crate::tidewater_mesh::{DATA, TINT};
 use bevy::{
     asset::RenderAssetUsages, mesh::Indices, prelude::Mesh,
     render::render_resource::PrimitiveTopology,
 };
-use forge_tidewater_assets::tidewater_debris::scanned::{ScannedPackage, geometry};
+use forge_engine::source_surface::mesh::DATA;
+use forge_engine::source_surface::mesh::TINT;
+use forge_tidewater_assets::tidewater_debris::scanned::ScannedPackage;
+use forge_tidewater_assets::tidewater_debris::scanned::geometry;
 
 pub struct Prototype {
     pub asset: u8,

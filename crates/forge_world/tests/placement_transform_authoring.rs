@@ -87,6 +87,7 @@ fn exercise_transform_history(local_snap: bool) {
                 placement: ManualPlacement {
                     particles: None,
                     physics: None,
+                    local_lights: None,
                     id,
                     name: "Fixture".into(),
                     asset_id: AssetId::deterministic("fixture"),

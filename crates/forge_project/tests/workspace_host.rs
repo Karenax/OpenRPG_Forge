@@ -69,20 +69,183 @@ fn workspace_protocol_preview_apply_save_close_reopen() {
 }
 
 #[test]
+fn managed_edit_can_repeat_after_module_undo_and_reopen() {
+    let root = std::env::temp_dir().join(format!("forge-managed-repeat-{}", std::process::id()));
+    std::fs::create_dir(&root).unwrap();
+    let areas = prepare_browser_fixture(&root);
+    let mut host = AuthoringHost::new(&root).unwrap();
+    host.execute_workspace(Request::Open).unwrap();
+    let original = host.execute(A::OpenManaged { area_id: areas[0] }).unwrap();
+    let head = original.zone_head.as_ref().unwrap();
+    let mut corrections = head.corrections.clone();
+    corrections.name = Some("Repeated retouch".into());
+    let request = ZoneRequest {
+        command_id: CommandId::deterministic("repeated-retouch"),
+        expected_hash: head.content_hash().unwrap(),
+        expected_revision: head.revision,
+        action: ZoneAction::edit(corrections),
+    };
+    host.execute(A::PreviewZone {
+        request: request.clone(),
+    })
+    .unwrap();
+    let first = host
+        .execute(A::ApplyZone {
+            request: request.clone(),
+        })
+        .unwrap();
+    let undo = host
+        .execute(A::PreviewModuleHistory {
+            expected_workspace_hash: first.module_creator_context.unwrap().workspace_hash,
+            redo: false,
+            command_id: CommandId::deterministic("undo-repeated-retouch"),
+        })
+        .unwrap()
+        .module_history_receipt
+        .unwrap();
+    let restored = host
+        .execute(A::ApplyModuleHistory {
+            request: Box::new(undo.request),
+        })
+        .unwrap();
+    assert_eq!(restored.zone_head, original.zone_head);
+    host.execute(A::Save).unwrap();
+    drop(host);
+
+    let mut host = AuthoringHost::new(&root).unwrap();
+    host.execute_workspace(Request::Open).unwrap();
+    assert_eq!(
+        host.execute(A::OpenManaged { area_id: areas[0] })
+            .unwrap()
+            .zone_head,
+        original.zone_head
+    );
+    host.execute(A::PreviewZone {
+        request: request.clone(),
+    })
+    .unwrap();
+    let repeated = host
+        .execute(A::ApplyZone {
+            request: request.clone(),
+        })
+        .unwrap();
+    assert_eq!(repeated.zone_head, first.zone_head);
+    let workspace = host.execute_workspace(Request::Inspect).unwrap().head;
+    let replay = host
+        .execute(A::ApplyZone {
+            request: request.clone(),
+        })
+        .unwrap();
+    assert_eq!(replay.zone_head, repeated.zone_head);
+    assert_eq!(
+        host.execute_workspace(Request::Inspect).unwrap().head,
+        workspace
+    );
+    let mut conflicting = request;
+    conflicting.action = ZoneAction::Undo;
+    assert!(
+        host.execute(A::PreviewZone {
+            request: conflicting
+        })
+        .is_err()
+    );
+    host.execute(A::Save).unwrap();
+    assert_eq!(
+        host.execute(A::OpenManaged { area_id: areas[1] })
+            .unwrap()
+            .document
+            .unwrap()
+            .name,
+        "South map"
+    );
+    drop(host);
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn assistant_uses_managed_workspace_transactions_and_preserves_neighbour() {
+    use forge_project::{
+        assistant::ScopePolicy,
+        audit::AuditStamp,
+        terrain_edit::{TerrainAction, TerrainEdit},
+    };
+    let root = std::env::temp_dir().join(format!("forge-assistant-managed-{}", std::process::id()));
+    std::fs::create_dir(&root).unwrap();
+    let areas = prepare_browser_fixture(&root);
+    let mut host = AuthoringHost::new(&root).unwrap();
+    host.execute_workspace(Request::Open).unwrap();
+    let head = host
+        .execute(A::OpenManaged { area_id: areas[0] })
+        .unwrap()
+        .zone_head
+        .unwrap();
+    let policy = ScopePolicy::new(vec!["/corrections/name".into()], vec![]).unwrap();
+    let request = head
+        .prepare_terrain_action(
+            TerrainAction::Edit(TerrainEdit::Rename {
+                name: "Assistant managed variant".into(),
+            }),
+            CommandId::deterministic("assistant-managed-rename"),
+        )
+        .unwrap();
+    let before = disk_inventory(&root);
+    let review = host
+        .prepare_assistant(
+            request,
+            &policy,
+            AuditStamp::ai("synthetic-managed-test", "2026-10-22T12:00:00Z").unwrap(),
+        )
+        .unwrap();
+    assert_eq!(disk_inventory(&root), before);
+    let approval = review.approve(review.content_hash().unwrap()).unwrap();
+    let applied = host.apply_assistant(&policy, &review, &approval).unwrap();
+    assert_eq!(applied.zone_receipt.as_ref(), Some(review.receipt()));
+    assert!(applied.dirty);
+    host.execute_workspace(Request::Save).unwrap();
+    drop(host);
+    let mut reopened = AuthoringHost::new(&root).unwrap();
+    reopened.execute_workspace(Request::Open).unwrap();
+    let state = reopened
+        .execute(A::OpenManaged { area_id: areas[0] })
+        .unwrap();
+    assert_eq!(state.document.unwrap().name, "Assistant managed variant");
+    assert!(!state.dirty);
+    let replay = reopened
+        .apply_assistant(&policy, &review, &approval)
+        .unwrap();
+    assert!(!replay.dirty);
+    let neighbour = reopened
+        .execute(A::OpenManaged { area_id: areas[1] })
+        .unwrap();
+    assert_eq!(neighbour.document.unwrap().name, "South map");
+    assert!(!neighbour.dirty);
+    assert!(
+        reopened
+            .apply_assistant(&policy, &review, &approval)
+            .is_err()
+    );
+    drop(reopened);
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn browse_absent_workspace_never_creates_an_authority() {
     let root = std::env::temp_dir().join(format!("forge-browse-absent-{}", std::process::id()));
     std::fs::create_dir(&root).unwrap();
     let mut host = AuthoringHost::new(&root).unwrap();
     for _ in 0..2 {
-        assert!(host.execute_workspace(Request::Browse).is_err());
-        assert!(
-            host.execute_workspace(Request::Inspect)
-                .unwrap()
-                .head
-                .is_none()
-        );
+        let state = host.execute_workspace(Request::Browse).unwrap();
+        assert!(state.head.is_none());
+        assert!(state.modules.is_empty());
+        assert!(!state.dirty);
+        assert_eq!(host.execute_workspace(Request::Inspect).unwrap(), state);
         assert_eq!(std::fs::read_dir(&root).unwrap().count(), 0);
     }
+    assert!(host.execute_workspace(Request::Open).is_err());
+    let invalid_authority = root.join("workspace-v1");
+    std::fs::write(&invalid_authority, b"preserve").unwrap();
+    assert!(host.execute_workspace(Request::Browse).is_err());
+    assert_eq!(std::fs::read(invalid_authority).unwrap(), b"preserve");
     drop(host);
     std::fs::remove_dir_all(root).unwrap();
 }

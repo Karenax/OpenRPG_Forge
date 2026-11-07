@@ -44,7 +44,7 @@ pub(super) fn install(app: &mut App) {
 
 fn request(
     mut commands: Commands,
-    targets: Res<forge_tidewater::tidewater_clouds::Targets>,
+    targets: Res<forge_engine::source_clouds::Targets>,
     smoke: Res<super::Smoke>,
     mut started: Local<bool>,
 ) {
@@ -62,7 +62,7 @@ fn request(
 fn receive(
     event: On<ReadbackComplete>,
     kinds: Query<&Kind>,
-    targets: Res<forge_tidewater::tidewater_clouds::Targets>,
+    targets: Res<forge_engine::source_clouds::Targets>,
     mut proof: ResMut<Proof>,
     mut commands: Commands,
 ) {

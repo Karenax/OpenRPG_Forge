@@ -184,7 +184,10 @@ pub(super) fn launch(game: &Mutex<Option<Child>>) -> LauncherResponse {
         Ok(child) => {
             let process_id = child.id();
             *current = Some(child);
-            LauncherResponse::LaunchStarted { process_id }
+            LauncherResponse::LaunchStarted {
+                process_id,
+                launch_id: None,
+            }
         }
         Err(reason) => blocked("runtime-missing", reason),
     }

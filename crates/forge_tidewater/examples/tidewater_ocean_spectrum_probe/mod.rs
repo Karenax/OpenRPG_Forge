@@ -18,7 +18,8 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::ocean_spectrum::{OceanFrame, OceanSpectrum};
+use forge_engine::ocean_spectrum::{OceanFrame, OceanSpectrum};
+use forge_engine::source_ocean::kernels::{self, NAMES};
 use serde_json::Value;
 use std::{
     collections::BTreeSet,
@@ -32,17 +33,6 @@ use std::{
     },
     time::Duration,
 };
-const NAMES: [&str; 9] = [
-    "initSpectrum",
-    "conjugate",
-    "copyH0",
-    "row",
-    "column",
-    "mipA-0",
-    "mipA-1",
-    "mipB-0",
-    "mipB-1",
-];
 const TOTAL: usize = 256 * 256 * 4;
 pub mod acquired;
 /// Dependents may consume the published FFT images after this render-system set.
@@ -63,9 +53,8 @@ pub fn enable_stepping(app: &mut App) {
     dead_code,
     reason = "Clock controls and snapshots are used by the shared plant probes and clock tests; the static spectrum example only offers and acknowledges frames"
 )]
-pub mod live_clock;
 #[derive(Resource, Clone, Default, Deref)]
-pub struct LiveClock(live_clock::LiveClock);
+pub struct LiveClock(forge_engine::source_ocean::live_clock::LiveClock);
 
 #[derive(Resource)]
 pub struct LiveCoupled;
@@ -199,6 +188,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             RenderGraph,
             compute
                 .in_set(OceanComputeSet)
+                .in_set(forge_engine::source_water_schedule::OceanComputeSet)
                 .in_set(RenderGraphSystems::Render)
                 .before(camera_driver),
         );
@@ -253,6 +243,7 @@ pub fn install(
             RenderGraph,
             compute
                 .in_set(OceanComputeSet)
+                .in_set(forge_engine::source_water_schedule::OceanComputeSet)
                 .in_set(RenderGraphSystems::Render)
                 .before(camera_driver),
         );
@@ -488,43 +479,29 @@ fn compute(
     if gpu.len() != targets.buffers.len() || textures.len() != targets.images.len() {
         return;
     }
-    let views: Vec<Vec<_>> = textures
-        .iter()
-        .map(|t| {
-            (0..9)
-                .map(|mip| {
-                    t.texture.create_view(&wgpu::TextureViewDescriptor {
-                        dimension: Some(wgpu::TextureViewDimension::D2Array),
-                        base_mip_level: mip,
-                        mip_level_count: Some(1),
-                        ..default()
-                    })
-                })
-                .collect()
-        })
-        .collect();
+    // The remaining buffers are readback destinations, not FFT inputs.
+    let Some(ocean_buffers) = gpu.get(..6) else {
+        error!("Ocean GPU simulation buffers are incomplete");
+        return;
+    };
+    let views = match kernels::views(&textures) {
+        Ok(views) => views,
+        Err(reason) => {
+            error!(%reason, "Ocean GPU views unavailable");
+            return;
+        }
+    };
     let count = if input.frames == 0 { 3 } else { 9 };
-    let pipelines = cached.get_or_insert_with(|| {
-        input.shaders[..count]
-            .iter()
-            .enumerate()
-            .map(|(index, source)| {
-                let shader =
-                    device.create_and_validate_shader_module(wgpu::ShaderModuleDescriptor {
-                        label: Some(NAMES[index]),
-                        source: wgpu::ShaderSource::Wgsl(source.as_str().into()),
-                    });
-                device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                    label: Some(NAMES[index]),
-                    layout: None,
-                    module: &shader,
-                    entry_point: Some("main"),
-                    compilation_options: default(),
-                    cache: None,
-                })
-            })
-            .collect()
-    });
+    if cached.is_none() {
+        match kernels::pipelines(&device, &input.shaders, count) {
+            Ok(pipelines) => *cached = Some(pipelines),
+            Err(reason) => {
+                error!(%reason, "Ocean GPU kernels unavailable");
+                return;
+            }
+        }
+    }
+    let pipelines = cached.as_ref().expect("prepared ocean GPU kernels");
     // Only frame.dt is read by these kernels. Static acquisition retains its
     // fixed source snapshot; live runs exactly one offered source-frame update.
     let mut time = stepping.as_ref().map_or(0.0, |s| s.time);
@@ -578,109 +555,21 @@ fn compute(
         }
         #[allow(clippy::cast_possible_truncation)]
         params[212..216].copy_from_slice(&(time as f32).to_le_bytes());
-        let frame_uniform = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
-            label: Some("native ocean frame dt"),
-            contents: &frame_bytes,
-            usage: wgpu::BufferUsages::UNIFORM,
-        });
-        let uniform = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
-            label: Some("native ocean step"),
-            contents: &params,
-            usage: wgpu::BufferUsages::UNIFORM,
-        });
-        let range = if step == 0 { 0..3 } else { 3..9 };
-        for index in range {
-            let pipeline = &pipelines[index];
-            let frame_entries = if index == 4 {
-                vec![wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: frame_uniform.as_entire_binding(),
-                }]
-            } else {
-                vec![]
-            };
-            let group0 = device.create_bind_group(
-                NAMES[index],
-                &pipeline.get_bind_group_layout(0).into(),
-                &frame_entries,
-            );
-            let buffer_binding = |i: usize| gpu[i].buffer.as_entire_binding();
-            let texture_binding =
-                |tex: usize, mip: usize| wgpu::BindingResource::TextureView(&views[tex][mip]);
-            let resources = match index {
-                0 => vec![
-                    uniform.as_entire_binding(),
-                    buffer_binding(0),
-                    buffer_binding(1),
-                ],
-                1 => vec![buffer_binding(0), buffer_binding(2)],
-                2 => vec![buffer_binding(0), buffer_binding(2), buffer_binding(3)],
-                3 => vec![
-                    uniform.as_entire_binding(),
-                    buffer_binding(0),
-                    buffer_binding(1),
-                    buffer_binding(2),
-                ],
-                4 => vec![
-                    uniform.as_entire_binding(),
-                    buffer_binding(2),
-                    buffer_binding(3),
-                    buffer_binding(4),
-                    texture_binding(0, 0),
-                    texture_binding(1, 0),
-                ],
-                5 | 6 => {
-                    let tex = index - 5;
-                    vec![
-                        buffer_binding(4),
-                        buffer_binding(5),
-                        texture_binding(tex, 1),
-                        texture_binding(tex, 2),
-                        texture_binding(tex, 3),
-                        texture_binding(tex, 4),
-                        texture_binding(tex, 5),
-                    ]
-                }
-                _ => {
-                    let tex = index - 7;
-                    vec![
-                        buffer_binding(5),
-                        texture_binding(tex, 6),
-                        texture_binding(tex, 7),
-                        texture_binding(tex, 8),
-                    ]
-                }
-            };
-            let entries: Vec<_> = resources
-                .into_iter()
-                .enumerate()
-                .map(|(i, resource)| wgpu::BindGroupEntry {
-                    binding: u32::try_from(i).expect("small binding index"),
-                    resource,
-                })
-                .collect();
-            let group1 = device.create_bind_group(
-                NAMES[index],
-                &pipeline.get_bind_group_layout(1).into(),
-                &entries,
-            );
-            let mut pass =
-                context
-                    .command_encoder()
-                    .begin_compute_pass(&wgpu::ComputePassDescriptor {
-                        label: Some(NAMES[index]),
-                        ..default()
-                    });
-            pass.set_pipeline(pipeline);
-            pass.set_bind_group(0, &*group0, &[]);
-            pass.set_bind_group(1, &*group1, &[]);
-            let (x, y, z) = match index {
-                0..=2 => (16, 16, 4),
-                3 | 4 => (256, 4, 1),
-                5 | 6 => (8, 8, 4),
-                _ => (1, 1, 4),
-            };
-            pass.dispatch_workgroups(x, y, z);
+        if let Err(reason) = kernels::encode(
+            &device,
+            &mut context,
+            kernels::Step {
+                pipelines,
+                buffers: ocean_buffers,
+                views: &views,
+                frame: &frame_bytes,
+                parameters: &params,
+                index: step,
+            },
+        ) {
+            compute_span.end(context.command_encoder());
+            error!(%reason, "Ocean GPU step refused");
+            return;
         }
     }
     compute_span.end(context.command_encoder());
@@ -689,8 +578,10 @@ fn compute(
         state.next = last + 1;
         state.time = time;
     }
-    if was_ready && coupled_live.is_none() {
-        live.expect("live continuation").acknowledge(last);
+    if was_ready {
+        live.expect("live continuation")
+            .fft_encoded(last, coupled_live.is_some())
+            .expect("encoded ocean matches the pending live step");
     }
     if was_ready {
         return;

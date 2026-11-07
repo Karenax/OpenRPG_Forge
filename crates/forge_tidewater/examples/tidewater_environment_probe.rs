@@ -1,5 +1,5 @@
 //! Verify the acquired scene cubemap through the shared native/WebGPU decoder.
-use forge_tidewater::tidewater_environment::cube_rgba16f;
+use forge_engine::source_environment::cube_rgba16f;
 use std::{error::Error, fs::File, io::Read};
 
 fn main() -> Result<(), Box<dyn Error>> {

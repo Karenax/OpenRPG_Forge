@@ -105,9 +105,13 @@ fn build_wind_cache(
 ) -> Result<(WindLayers, usize), String> {
     let mut prepared = BTreeMap::new();
     for prototype in layers.values() {
-        let extension =
+        let mut extension =
             VisualValleyVegetationExtension::from_profile_and_interaction(profile, interaction)
                 .with_governed_prototype_height(prototype.target_height_m)?;
+        // Reuse the renderer's frame clock without changing a shared material
+        // asset (and all its instance pipeline keys) on every presented frame.
+        extension.temporal_parameters.z = 1.0;
+        extension.wind_parameters.w = Time::<()>::default().wrap_period().as_secs_f32();
         for primitive in prototype.lods.iter().flatten() {
             let key = (primitive.material.id(), prototype.target_height_m.to_bits());
             if let std::collections::btree_map::Entry::Vacant(entry) = prepared.entry(key) {

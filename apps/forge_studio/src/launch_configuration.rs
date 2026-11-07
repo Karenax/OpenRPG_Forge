@@ -25,6 +25,33 @@ struct Configuration {
     asset_vault: Option<PathBuf>,
     module_assets: Option<ModuleConfiguration>,
     game: Option<GameConfiguration>,
+    assistant: Option<AssistantConfiguration>,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AssistantConfiguration {
+    pub base_url: String,
+    pub model: String,
+    pub api_kind: forge_project::assistant::provider::ApiKind,
+    pub enable_reasoning: bool,
+    pub limits: forge_project::assistant::jobs::JobLimits,
+    pub api_key_environment: Option<String>,
+}
+
+pub fn assistant() -> Result<AssistantConfiguration, String> {
+    if let Ok(json) = std::env::var("FORGE_ASSISTANT_CONFIGURATION") {
+        if json.len() > 16 * 1024 {
+            return Err("Configuration native d'assistant trop volumineuse.".into());
+        }
+        return serde_json::from_str(&json)
+            .map_err(|_| "Configuration native d'assistant invalide.".into());
+    }
+    configuration()?
+        .and_then(|configuration| configuration.assistant.clone())
+        .ok_or_else(|| {
+            "Configurer assistant dans forge-studio.local.json pour utiliser un fournisseur.".into()
+        })
 }
 
 #[derive(Clone, Deserialize)]

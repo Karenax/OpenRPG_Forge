@@ -18,6 +18,7 @@ fn fixture() -> ZoneAuthoringHead {
     let placement = ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic("source"),
         name: "Synthetic panel".into(),
         asset_id: AssetId::deterministic("test-only-asset"),

@@ -84,6 +84,7 @@ mod tests {
             .map(|index| ManualPlacement {
                 particles: None,
                 physics: None,
+                local_lights: None,
                 id: EntityId::deterministic(format!("late-object-{index}")),
                 name: format!("Objet {index}"),
                 asset_id: AssetId::deterministic(format!("late-asset-{index}")),

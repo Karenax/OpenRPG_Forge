@@ -88,6 +88,19 @@ impl VegetationQualityBindings {
         self.attempted_policy.clone_from(&request.hash);
     }
 
+    pub(in crate::vegetation) fn with_authoring_sources(
+        mut self,
+        sources: &crate::vegetation::AuthoringSources,
+        plan: &forge_world::VegetationGenerationPlan,
+    ) -> Self {
+        self.paths.clone_from(&sources.paths);
+        self.rivers.clone_from(&sources.rivers);
+        self.buildings.clone_from(&sources.buildings);
+        self.promotions.clone_from(&sources.promotions);
+        self.path_source_key = (!sources.is_empty()).then(|| plan.source_hash().to_string());
+        self
+    }
+
     fn vegetation_key(&self) -> Result<String, String> {
         self.path_source_key.clone().map_or_else(
             || {

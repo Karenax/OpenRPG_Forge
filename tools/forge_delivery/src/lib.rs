@@ -5,15 +5,32 @@
 #[cfg(test)]
 extern crate self as forge_delivery;
 
+#[cfg(test)]
+#[path = "../tests/support/standalone_fixture.rs"]
+mod standalone_fixture;
+
 pub mod archive;
+pub mod game_builder;
+pub mod game_presentation;
 pub mod install;
 pub mod installed_modules;
 pub mod launch;
+pub mod legacy_reference;
 pub mod manifest;
 pub mod module_builder;
+pub mod module_environment;
+pub mod module_fish;
+pub mod module_local_lights;
+pub mod module_objects;
+pub mod module_ocean;
+pub mod module_placement_companions;
 pub mod module_runtime;
+pub mod module_terrain;
+pub mod module_vegetation;
 pub mod orpmod;
 pub mod selected_legacy_dialogue;
+pub mod standalone;
+pub mod vault_storage;
 
 pub type Result<T> = std::result::Result<T, String>;
 

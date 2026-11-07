@@ -1,6 +1,10 @@
 //! Bevy UI for normal authored commands. Range and LOS are still rechecked by simulation.
 use super::{NativeGameplayCommand, NativeGameplayUi};
-use crate::{PlayerInputFocus, gameplay::GameplayRuntime};
+use crate::{
+    PlayerInputFocus,
+    cell_streaming::{TerrainRetryUiStatus, retry_failed_terrain},
+    gameplay::GameplayRuntime,
+};
 use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
     prelude::*,
@@ -25,6 +29,10 @@ pub(super) struct Hud;
 pub(super) struct Panel;
 #[derive(Component)]
 pub(super) struct ActionArea;
+#[derive(Component)]
+pub(super) struct RecoveryTerrainStatus;
+#[derive(Component)]
+pub(super) struct RecoveryTerrainRetry;
 #[derive(Component, Clone)]
 pub(super) struct UiCommand(NativeGameplayCommand);
 #[derive(Resource, Default)]
@@ -66,6 +74,15 @@ pub(super) fn spawn(mut commands: Commands, mut fonts: ResMut<Assets<Font>>) {
             ScrollPosition::default(),
     )).with_children(|panel| {
         panel.spawn((Text::new("PARTIE · G ferme ce panneau"), TextFont { font: font.clone(), font_size: FontSize::Px(19.0), ..default() }, TextColor(Color::srgb(0.95, 0.75, 0.42))));
+        panel.spawn((RecoveryTerrainStatus, Text::new(""),
+            TextFont { font: font.clone(), font_size: FontSize::Px(16.0), ..default() },
+            TextColor(Color::WHITE), Node { display: Display::None, ..default() }));
+        panel.spawn((Button, RecoveryTerrainRetry,
+            bevy::ui::prelude::AccessibleLabel::new("Réessayer le terrain (R)"),
+            Node { display: Display::None, padding: UiRect::all(Val::Px(10.0)), width: Val::Percent(100.0), ..default() },
+            BackgroundColor(Color::srgb(0.09, 0.17, 0.19))))
+            .with_child((Text::new("Réessayer le terrain (R)"),
+                TextFont { font: font.clone(), font_size: FontSize::Px(16.0), ..default() }, TextColor(Color::WHITE)));
         panel.spawn((ActionArea, Node { flex_direction: FlexDirection::Column, row_gap: Val::Px(8.0), ..default() }));
         button(panel, "Sauvegarder cette partie (F5)", NativeGameplayCommand::Save, &font);
         button(panel, "Reprendre au prochain lancement (F9)", NativeGameplayCommand::ResumeNextLaunch { allow_compatible_edits: false }, &font);
@@ -105,19 +122,44 @@ fn button(
         ));
 }
 
-#[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
+#[allow(
+    clippy::needless_pass_by_value,
+    clippy::too_many_arguments,
+    reason = "Bevy system parameters"
+)]
 pub(super) fn input(
     keys: Res<ButtonInput<KeyCode>>,
     mut ui: ResMut<NativeGameplayUi>,
     mut messages: MessageWriter<NativeGameplayCommand>,
     mut focus: ResMut<PlayerInputFocus>,
     buttons: Query<(&Interaction, &UiCommand), Changed<Interaction>>,
+    graphics: Option<Res<super::NativeGraphicsStatus>>,
+    terrain: Option<Res<TerrainRetryUiStatus>>,
+    retry_buttons: Query<&Interaction, (With<RecoveryTerrainRetry>, Changed<Interaction>)>,
+    mut commands: Commands,
 ) {
+    if graphics.as_ref().is_some_and(|status| status.menu_open) && ui.recovery.is_none() {
+        focus.0 = false;
+        return;
+    }
     if keys.just_pressed(KeyCode::KeyG) && ui.recovery.is_none() {
         ui.open = !ui.open;
     }
     if ui.recovery.is_some() {
         ui.open = true;
+    }
+    if ui.recovery.is_some()
+        && terrain.as_ref().is_some_and(|status| status.retryable)
+        && (keys.just_pressed(KeyCode::KeyR)
+            || retry_buttons
+                .iter()
+                .any(|interaction| *interaction == Interaction::Pressed))
+    {
+        commands.queue(|world: &mut World| {
+            let _ = retry_failed_terrain(world);
+        });
+        focus.0 = false;
+        return;
     }
     if keys.just_pressed(KeyCode::F5) {
         messages.write(NativeGameplayCommand::Save);
@@ -164,12 +206,17 @@ pub(super) fn scroll(
     }
 }
 
-type HudQuery<'w, 's> =
-    Query<'w, 's, (&'static mut Text, &'static mut Visibility), (With<Hud>, Without<Panel>)>;
+type HudQuery<'w, 's> = Query<
+    'w,
+    's,
+    (&'static mut Text, &'static mut Visibility),
+    (With<Hud>, Without<Panel>, Without<RecoveryTerrainStatus>),
+>;
 
 #[allow(
     clippy::needless_pass_by_value,
     clippy::too_many_arguments,
+    clippy::type_complexity,
     reason = "One native view reads simulation and current Rapier visibility; UI never fabricates observations"
 )]
 pub(super) fn refresh(
@@ -182,7 +229,31 @@ pub(super) fn refresh(
     mut hud: HudQuery,
     mut panels: Query<&mut Visibility, With<Panel>>,
     area: Query<(Entity, Option<&Children>), With<ActionArea>>,
-    mut recovery_buttons: Query<(&UiCommand, &mut Node)>,
+    mut recovery_buttons: Query<
+        (&UiCommand, &mut Node),
+        (
+            Without<RecoveryTerrainRetry>,
+            Without<RecoveryTerrainStatus>,
+        ),
+    >,
+    terrain: Option<Res<TerrainRetryUiStatus>>,
+    mut terrain_text: Query<
+        (&mut Text, &mut Node),
+        (
+            With<RecoveryTerrainStatus>,
+            Without<Hud>,
+            Without<UiCommand>,
+            Without<RecoveryTerrainRetry>,
+        ),
+    >,
+    mut retry_buttons: Query<
+        &mut Node,
+        (
+            With<RecoveryTerrainRetry>,
+            Without<UiCommand>,
+            Without<RecoveryTerrainStatus>,
+        ),
+    >,
 ) {
     let mut view = game_view(runtime.session());
     view.feedback = format!(
@@ -194,6 +265,30 @@ pub(super) fn refresh(
     let player = player.single().ok();
     filter_visibility(&mut view, &runtime, context.as_ref(), player);
     refresh_panels(&ui, &mut recovery_buttons, &mut panels);
+    let terrain = terrain
+        .as_deref()
+        .filter(|status| ui.recovery.is_some() && status.failed);
+    for (mut text, mut node) in &mut terrain_text {
+        node.display = if terrain.is_some() {
+            Display::Flex
+        } else {
+            Display::None
+        };
+        text.0 = if terrain.is_some_and(|status| status.waiting) {
+            "Vérification du terrain en cours. Si la partie reste bloquée, fermez puis relancez le jeu. La progression non sauvegardée peut être perdue.".into()
+        } else if terrain.is_some_and(|status| status.retryable) {
+            "La partie est en pause. Le terrain n’a pas pu être chargé.".into()
+        } else {
+            "La partie est en pause. Le terrain ne peut pas être repris ici. Fermez puis relancez le jeu. La progression non sauvegardée peut être perdue.".into()
+        };
+    }
+    for mut node in &mut retry_buttons {
+        node.display = if terrain.is_some_and(|status| status.retryable) {
+            Display::Flex
+        } else {
+            Display::None
+        };
+    }
     if let Ok((mut text, mut visibility)) = hud.single_mut() {
         *visibility = if ui.open {
             Visibility::Hidden
@@ -266,9 +361,19 @@ fn filter_visibility(
     view.dialogues
         .retain(|(speaker, _)| visible_target(*speaker));
 }
+#[allow(
+    clippy::type_complexity,
+    reason = "Disjoint Bevy recovery control filters"
+)]
 fn refresh_panels(
     ui: &NativeGameplayUi,
-    recovery_buttons: &mut Query<(&UiCommand, &mut Node)>,
+    recovery_buttons: &mut Query<
+        (&UiCommand, &mut Node),
+        (
+            Without<RecoveryTerrainRetry>,
+            Without<RecoveryTerrainStatus>,
+        ),
+    >,
     panels: &mut Query<&mut Visibility, With<Panel>>,
 ) {
     for (command, mut node) in recovery_buttons.iter_mut() {
@@ -542,4 +647,68 @@ fn distance_squared(a: forge_core::Vec3, b: forge_core::Vec3) -> f32 {
 }
 fn quest_status_label(status: QuestStatus) -> &'static str {
     status.label()
+}
+
+#[cfg(test)]
+mod terrain_retry_tests {
+    use super::*;
+    use crate::native_gameplay::{NativeGameplayUi, NativeGraphicsStatus};
+    use forge_project::VisualQualityTier;
+
+    #[test]
+    fn recovery_keeps_its_commands_while_the_graphics_panel_is_open() {
+        let mut app = App::new();
+        app.init_resource::<ButtonInput<KeyCode>>()
+            .insert_resource(NativeGameplayUi {
+                open: true,
+                feedback: String::new(),
+                last_view: None,
+                recovery: Some("saved party requires a choice".into()),
+            })
+            .insert_resource(PlayerInputFocus(true))
+            .insert_resource(TerrainRetryUiStatus {
+                failed: true,
+                retryable: true,
+                waiting: false,
+                request_queued: false,
+            })
+            .insert_resource(NativeGraphicsStatus {
+                request_sequence: 1,
+                requested: VisualQualityTier::High,
+                applied: None,
+                persisted: None,
+                menu_open: true,
+                ready: false,
+                error: None,
+            })
+            .add_message::<NativeGameplayCommand>()
+            .add_systems(Update, input);
+        // A stale terrain retry is safely refused; recovery and its saved-party choice remain.
+        let mut keys = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+        keys.press(KeyCode::KeyR);
+        keys.press(KeyCode::F9);
+        app.update();
+        assert!(app.world().resource::<NativeGameplayUi>().is_recovering());
+        assert!(
+            app.world_mut()
+                .resource_mut::<Messages<NativeGameplayCommand>>()
+                .drain()
+                .next()
+                .is_none()
+        );
+        let mut keys = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+        keys.reset_all();
+        keys.press(KeyCode::F9);
+        app.update();
+        assert!(matches!(
+            app.world_mut()
+                .resource_mut::<Messages<NativeGameplayCommand>>()
+                .drain()
+                .next(),
+            Some(NativeGameplayCommand::ResumeNextLaunch {
+                allow_compatible_edits: false
+            })
+        ));
+        assert!(app.world().resource::<NativeGameplayUi>().is_recovering());
+    }
 }

@@ -1,5 +1,17 @@
 # ADR-0026 — Séparation stricte du moteur et de la carte intégrée
 
+**Actualisation propriétaire — 24–25 octobre, rappelée le 2 novembre 2026 :**
+les mécanismes réutilisables construits pour Tidewater appartiennent au moteur
+commun et doivent être appelés par tous les modules concernés. L'exclusion
+générale des ports de carte décrite dans la décision du 18 octobre ne s'applique
+donc pas aux capacités qui peuvent être rendues génériques et paramétrables.
+Tidewater conserve ses données, ses ressources et ses réglages ; le moteur ne
+dépend pas du crate ni de l'identité d'un module pour sélectionner un comportement.
+Les notices de provenance et de licence requises sont conservées avec le code
+concerné : leur présence ne constitue pas une dépendance d'exécution. Les
+résultats et chiffres du 18 octobre ci-dessous restent historiques et ne prouvent
+pas la parité actuelle entre modules.
+
 Validation du 18 octobre : [rapport de séparation moteur/carte](../evidence/architecture/STRICT_MAP_SEPARATION_20261018.md) ;
 14 contrôles réussis et 2 232 tests du workspace réussis. Les preuves de runtime
 générique et des extensions optiques gardent des périmètres distincts.

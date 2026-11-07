@@ -1,6 +1,6 @@
 //! Reopen an explicitly pinned package without upstream or rendering fixtures.
+use forge_assets::source_surface_package::SurfacePackage;
 use forge_core::ContentHash;
-use forge_tidewater_assets::tidewater_package::BuildingPackage;
 use std::{error::Error, fs, io::Read, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -27,10 +27,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             .map_err(|e| e.to_string())?;
         Ok(bytes)
     };
-    let package = BuildingPackage::load(&manifest, expected, reader)?;
+    let package = SurfacePackage::load(&manifest, expected, reader)?;
     assert_eq!(package.catalog().assets.len(), 23);
     assert!(package.file("village.wgsl").is_some());
-    let corrupted = BuildingPackage::load(&manifest, expected, |name, limit| {
+    let corrupted = SurfacePackage::load(&manifest, expected, |name, limit| {
         let mut bytes = reader(name, limit)?;
         if name == "village.wgsl" {
             bytes[0] ^= 1;
@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Ok(bytes)
     });
     assert!(corrupted.is_err());
-    let missing = BuildingPackage::load(&manifest, expected, |name, limit| {
+    let missing = SurfacePackage::load(&manifest, expected, |name, limit| {
         if name == "materials.json" {
             return Err("deliberately absent dependency".into());
         }
@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert!(missing.is_err());
     let mut called = false;
     assert!(
-        BuildingPackage::load(&manifest, ContentHash::from_bytes([0; 32]), |_, _| {
+        SurfacePackage::load(&manifest, ContentHash::from_bytes([0; 32]), |_, _| {
             called = true;
             Ok(Vec::new())
         })
@@ -66,7 +66,7 @@ fn verify_async(
     expected: ContentHash,
     reader: &impl Fn(&str, usize) -> Result<Vec<u8>, String>,
 ) -> Result<(), String> {
-    let package = drive(BuildingPackage::load_async(
+    let package = drive(SurfacePackage::load_async(
         manifest,
         expected,
         |name, limit| async move {
@@ -90,7 +90,7 @@ fn verify_async(
         reader("village.wgsl", 32 * 1024 * 1024)?
     );
     let mut calls = 0;
-    let invalid = drive(BuildingPackage::load_async(
+    let invalid = drive(SurfacePackage::load_async(
         manifest,
         ContentHash::from_bytes([0; 32]),
         |_, _| {
@@ -100,7 +100,7 @@ fn verify_async(
     ));
     assert!(invalid.is_err());
     assert_eq!(calls, 0);
-    let corrupted = drive(BuildingPackage::load_async(manifest, expected, |_, _| {
+    let corrupted = drive(SurfacePackage::load_async(manifest, expected, |_, _| {
         calls += 1;
         std::future::ready(Ok(vec![0]))
     }));

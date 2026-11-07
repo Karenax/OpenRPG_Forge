@@ -24,6 +24,174 @@ fn room() -> forge_project::zone_authoring::buildings::AuthoredBuilding {
     }
 }
 
+fn initial_head() -> forge_project::zone_authoring::ZoneAuthoringHead {
+    use forge_project::zone_authoring::{
+        GeneratorStamp, ZoneAuthoringHead, ZoneBase, ZoneCorrections,
+    };
+    let (_, terrain, vegetation) = fixture();
+    let mut head = ZoneAuthoringHead {
+        schema: "forge.zone-authoring".into(),
+        version: 1,
+        revision: terrain.revision,
+        base: ZoneBase {
+            generator: GeneratorStamp {
+                name: "initial-vegetation-fixture".into(),
+                version: "1".into(),
+                inputs_hash: terrain.content_hash().unwrap(),
+            },
+            terrain,
+            vegetation: Some(vegetation),
+        },
+        corrections: ZoneCorrections::default(),
+    };
+    head.corrections.paths = Some(paths());
+    head.corrections.rivers = Some(rivers(&head.base.terrain));
+    head.corrections.buildings = Some(vec![room()]);
+    head.version = head.corrections.schema_version();
+    head.validate().unwrap();
+    head
+}
+
+fn head_plan(head: &forge_project::zone_authoring::ZoneAuthoringHead) -> VegetationGenerationPlan {
+    let (terrain, source) = head.effective().unwrap();
+    let source = source.unwrap();
+    VegetationGenerationPlan::from_documents_with_buildings(
+        &terrain,
+        &source,
+        head.corrections.paths.as_deref().unwrap(),
+        head.corrections.rivers.as_deref().unwrap(),
+        head.corrections.buildings.as_deref().unwrap(),
+    )
+    .unwrap()
+    .with_promotions(head.corrections.promotions.as_deref().unwrap_or_default())
+    .unwrap()
+}
+
+fn promote_first_tree(
+    head: &mut forge_project::zone_authoring::ZoneAuthoringHead,
+) -> forge_world::VegetationInstanceId {
+    use forge_project::zone_authoring::promotion::PromotedInstance;
+    let plan = head_plan(head);
+    let canonical = plan.generate().unwrap();
+    let tree = canonical
+        .chunks
+        .iter()
+        .flat_map(|chunk| &chunk.instances)
+        .next()
+        .unwrap();
+    let promoted_id = tree.id;
+    head.corrections.promotions = Some(vec![PromotedInstance {
+        layer_id: tree.layer_id.clone(),
+        instance_id: tree.id.as_entity_id(),
+        generation_hash: canonical.content_hash().unwrap(),
+        placement_id: forge_core::EntityId::deterministic("initial-promoted-placement"),
+    }]);
+    head.version = head.corrections.schema_version();
+    promoted_id
+}
+
+#[test]
+fn initial_head_preserves_clearances_and_promotions_across_all_quality_tiers() {
+    let mut head = initial_head();
+    let promoted_id = promote_first_tree(&mut head);
+    let (terrain, source) = head.effective().unwrap();
+    let source = source.unwrap();
+    let before = head.content_hash().unwrap();
+    let plugin = VisualValleyVegetationPlugin::new(terrain.clone(), source.clone())
+        .with_authoring_head(&head)
+        .unwrap();
+    let plan = head_plan(&head);
+    let expected_hash = plan.source_hash().to_string();
+    assert_ne!(expected_hash, source.content_hash().unwrap().to_string());
+    let (old, _, _) = fixture();
+    let request = old.world().resource::<VegetationQualityRequest>().clone();
+    let mut app = App::new();
+    app.init_resource::<Assets<Mesh>>()
+        .init_resource::<Time>()
+        .init_resource::<Assets<VisualValleyVegetationMaterial>>()
+        // This test observes the CPU projection, without installing a renderer.
+        .init_resource::<crate::temporal_lod::render::Groups>()
+        .insert_resource(request);
+    plugin.build(&mut app);
+    app.world_mut().run_schedule(Startup);
+    for tier in [
+        VisualQualityTier::Low,
+        VisualQualityTier::Medium,
+        VisualQualityTier::High,
+        VisualQualityTier::Ultra,
+    ] {
+        app.world_mut()
+            .resource_mut::<VegetationQualityRequest>()
+            .request(tier);
+        apply_quality(app.world_mut());
+        let expected = bevy::tasks::block_on(prepare_vegetation_projection_from_plan(
+            &plan,
+            Some(app.world().resource::<VegetationQualityRequest>()),
+            false,
+            None,
+        ))
+        .unwrap();
+        let stats = app.world().resource::<VegetationProjectionStats>();
+        assert_eq!(stats.vegetation_document_hash, expected_hash);
+        assert_eq!(stats.placements, expected.stats.placements);
+        assert_eq!(stats.quality.as_ref().unwrap().projected_tier, tier);
+        let scatter = app.world().resource::<VegetationScatterProjection>();
+        assert_eq!(
+            scatter.generated.content_hash().unwrap(),
+            expected.scatter.generated.content_hash().unwrap(),
+        );
+        assert!(
+            scatter
+                .generated
+                .chunks
+                .iter()
+                .flat_map(|chunk| &chunk.instances)
+                .all(|instance| instance.id != promoted_id)
+        );
+    }
+    assert!(
+        !update_vegetation_sources_with_promotions(
+            app.world_mut(),
+            terrain,
+            source,
+            head.corrections.paths.clone().unwrap(),
+            head.corrections.rivers.clone().unwrap(),
+            head.corrections.buildings.clone().unwrap(),
+            head.corrections.promotions.clone().unwrap(),
+        )
+        .unwrap()
+    );
+    assert_eq!(head.content_hash().unwrap(), before);
+}
+
+#[test]
+fn initial_head_rejects_different_documents_and_unresolved_promotions() {
+    use forge_project::zone_authoring::promotion::PromotedInstance;
+    let mut head = initial_head();
+    let (terrain, source) = head.effective().unwrap();
+    let source = source.unwrap();
+    let mut different = source.clone();
+    different.seed = different.seed.wrapping_add(1);
+    assert!(
+        VisualValleyVegetationPlugin::new(terrain.clone(), different)
+            .with_authoring_head(&head)
+            .is_err()
+    );
+    head.corrections.promotions = Some(vec![PromotedInstance {
+        layer_id: source.layers[0].id.clone(),
+        instance_id: forge_core::EntityId::deterministic("absent-initial-origin"),
+        generation_hash: source.content_hash().unwrap(),
+        placement_id: forge_core::EntityId::deterministic("absent-initial-placement"),
+    }]);
+    head.version = head.corrections.schema_version();
+    head.validate().unwrap();
+    assert!(
+        VisualValleyVegetationPlugin::new(terrain, source)
+            .with_authoring_head(&head)
+            .is_err()
+    );
+}
+
 #[test]
 fn building_sources_project_and_removal_restores_population() {
     let (mut app, terrain, source) = fixture();

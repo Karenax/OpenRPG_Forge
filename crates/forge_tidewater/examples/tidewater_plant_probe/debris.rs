@@ -5,13 +5,14 @@ use bevy::{
     prelude::*,
     render::render_resource::TextureFormat,
 };
+use forge_engine::source_surface::nature::{self, NatureExtension, NatureMaterial};
 use forge_project::zone_authoring::placements::ManualPlacement;
 use forge_tidewater::tidewater_debris::{
     PreparedDebris,
-    nature::{self, NatureExtension, NatureMaterial},
     scene::{PreparedScene, ResidentMaterials},
 };
-use forge_tidewater_assets::tidewater_debris::{collisions::CollisionFrames, native::NativeInput};
+use forge_tidewater_assets::tidewater_debris::collisions::CollisionFrames;
+use forge_tidewater_assets::tidewater_debris::native::NativeInput;
 use std::{error::Error, io::Read, path::Path};
 
 #[derive(Resource)]
@@ -90,8 +91,8 @@ pub fn load() -> Result<Option<Input>, Box<dyn Error>> {
     // Village denotes this exact vertex/fragment ABI, not a replacement surface.
     // Derivation retains Nature sourceVertex/sourceSurface and their coverage guards.
     let adapted = nature::shader_source(&shader)?;
-    forge_tidewater::tidewater_temporal::shaders::derive(
-        forge_tidewater::tidewater_temporal::shaders::Family::Village,
+    forge_engine::source_temporal::shaders::derive(
+        forge_engine::source_temporal::shaders::Family::Village,
         &adapted,
         &adapted,
     )?;
@@ -113,7 +114,7 @@ impl Input {
     )]
     pub fn shadow_draws(
         &self,
-    ) -> Result<Vec<forge_tidewater::tidewater_object_shadow::OpaqueDraw>, Box<dyn Error>> {
+    ) -> Result<Vec<forge_engine::source_shadows::casters::OpaqueDraw>, Box<dyn Error>> {
         let mut draws = Vec::new();
         for object in &self.geometry.objects {
             let model = Mat4::from_translation(Vec3::from_array(
@@ -142,7 +143,7 @@ impl Input {
                     .into_iter()
                     .flat_map(u32::to_le_bytes)
                     .collect();
-                draws.push(forge_tidewater::tidewater_object_shadow::OpaqueDraw::new(
+                draws.push(forge_engine::source_shadows::casters::OpaqueDraw::new(
                     vertices, indices, model,
                 )?);
             }
@@ -153,7 +154,7 @@ impl Input {
 
 #[derive(Resource)]
 struct LiveNature {
-    source: Handle<super::village::VillageMaterial>,
+    source: Handle<forge_engine::source_surface::SourceSurfaceMaterial>,
     target: Handle<NatureMaterial>,
 }
 
@@ -182,12 +183,12 @@ fn stage(world: &mut World, input: &Input) -> Result<(), String> {
     let hard = shared.0.get(1).ok_or("Debris Hard role absent")?.clone();
     let fabric = shared.0.get(5).ok_or("Debris Fabric role absent")?.clone();
     let base = world
-        .resource::<Assets<super::village::VillageMaterial>>()
+        .resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
         .get(&wood)
         .ok_or("Debris base material absent")?
         .clone();
     let terrain = world
-        .get_resource::<forge_tidewater::tidewater_terrain::scene::ResidentTerrain>()
+        .get_resource::<forge_engine::source_terrain::scene::ResidentTerrain>()
         .ok_or("Debris requires resident terrain")?;
     let terrain = world
         .resource::<Assets<super::terrain_lod::LodMaterial>>()
@@ -254,6 +255,7 @@ fn stage(world: &mut World, input: &Input) -> Result<(), String> {
         .map(|template| ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: forge_core::EntityId::deterministic(format!(
                 "native-debris:{}",
                 template.source_id
@@ -288,7 +290,7 @@ pub fn update(world: &mut World) {
     };
     let target = live.target.clone();
     let Some(mut base) = world
-        .resource::<Assets<super::village::VillageMaterial>>()
+        .resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
         .get(&live.source)
         .cloned()
     else {

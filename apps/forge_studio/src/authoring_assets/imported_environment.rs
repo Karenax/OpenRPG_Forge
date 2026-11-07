@@ -2,7 +2,7 @@
 mod programs;
 use super::imported_buildings;
 use bevy::{ecs as bevy_ecs, prelude::*};
-use forge_tidewater::tidewater_scene_environment::ResidentEnvironment;
+use forge_engine::source_environment::scene::ResidentEnvironment;
 use std::{cell::Cell, sync::atomic::Ordering};
 use wasm_bindgen::JsCast;
 
@@ -21,20 +21,23 @@ struct Preparing;
 #[derive(Resource)]
 struct PreviewGeneration(std::sync::Arc<std::sync::atomic::AtomicBool>, u64);
 
-pub(crate) fn install(app: &mut App) -> Result<(), String> {
-    forge_tidewater::tidewater_atmosphere::register(app)?;
-    forge_tidewater::tidewater_clouds::register(app)?;
-    forge_tidewater::tidewater_environment::live::register(app)?;
+pub(crate) fn install(
+    app: &mut App,
+    acquired: &forge_engine::source_wind::AcquiredFrame,
+) -> Result<(), String> {
+    forge_engine::source_atmosphere::register(app)?;
+    forge_engine::source_clouds::register(app)?;
+    forge_engine::source_environment::live::register(app)?;
     imported_buildings::restore_environment()?;
     imported_buildings::restore_buildings()?;
     imported_buildings::restore_terrain()?;
     imported_buildings::restore_plants()?;
     imported_buildings::restore_fish_stand()?;
     app.add_plugins(MaterialPlugin::<
-        forge_tidewater::tidewater_plants::PlantMaterial,
+        forge_engine::source_vegetation::captured::CapturedPlantMaterial,
     >::default());
-    forge_tidewater::tidewater_sky::preview::install(app);
-    super::imported_scene::install(app);
+    forge_engine::source_sky::preview::install(app);
+    super::imported_scene::install(app, acquired);
     super::fish_stand_scene::install(app)?;
     super::fish_props_scene::install(app);
     app.add_systems(Update, update);
@@ -42,24 +45,31 @@ pub(crate) fn install(app: &mut App) -> Result<(), String> {
 }
 
 fn stage_plants(world: &mut World, update: imported_buildings::PlantUpdate) {
-    use forge_tidewater::tidewater_plants::{self, textures::ResidentTextures};
-    let imported_buildings::PlantUpdate::Replace(prepared) = update else {
+    use forge_engine::source_vegetation::textures::ResidentTextures;
+    let imported_buildings::PlantUpdate::Replace {
+        package,
+        prepared,
+        module_index,
+    } = update
+    else {
         world.remove_resource::<ResidentTextures>();
+        world.remove_resource::<imported_buildings::ResidentPlantSource>();
         return;
     };
     let result = (|| -> Result<(), String> {
-        let package = imported_buildings::plant_package().ok_or("Paquet végétal absent")?;
         let shader =
             std::str::from_utf8(package.file("plant.wgsl").ok_or("Shader végétal absent")?)
                 .map_err(|e| e.to_string())?;
-        tidewater_plants::stage_shader(world, shader)?;
-        tidewater_plants::picking::stage_shader(world, shader)?;
+        forge_engine::source_vegetation::captured::stage_shader(world, shader)?;
+        forge_engine::source_vegetation::picking::stage_shader(world, shader)?;
         let resident = prepared.stage(&mut world.resource_mut::<Assets<Image>>());
         world.insert_resource(resident);
+        world.insert_resource(imported_buildings::ResidentPlantSource(module_index));
         Ok(())
     })();
     if let Err(error) = result {
         world.remove_resource::<ResidentTextures>();
+        world.remove_resource::<imported_buildings::ResidentPlantSource>();
         imported_buildings::render_status(format!("Préparation végétale impossible : {error}"));
     }
 }
@@ -74,35 +84,62 @@ fn update(world: &mut World) {
             let resident = prepared.stage(&mut world.resource_mut::<Assets<Image>>());
             world.insert_resource(resident);
         } else {
-            world
-                .remove_resource::<forge_tidewater::tidewater_terrain::textures::ResidentSurface>();
+            world.remove_resource::<forge_engine::source_terrain::textures::ResidentSurface>();
         }
     }
-    if let Some((geometry, library)) = imported_buildings::take_buildings() {
-        let meshes = geometry.stage(&mut world.resource_mut::<Assets<Mesh>>());
-        let textures = library.stage(&mut world.resource_mut::<Assets<Image>>());
-        world.insert_resource(meshes);
-        world.insert_resource(textures);
+    if let Some(update) = imported_buildings::take_buildings() {
+        if let imported_buildings::BuildingUpdate::Replace {
+            prepared,
+            module_index,
+        } = update
+        {
+            let (geometry, library) = *prepared;
+            let meshes = geometry.stage(&mut world.resource_mut::<Assets<Mesh>>());
+            let textures = library.stage(&mut world.resource_mut::<Assets<Image>>());
+            world.insert_resource(meshes);
+            world.insert_resource(textures);
+            world.insert_resource(imported_buildings::ResidentObjectSource(module_index));
+        } else {
+            world.remove_resource::<forge_engine::source_surface::geometry::ResidentMeshes>();
+            world.remove_resource::<forge_engine::source_surface::package::ResidentLibrary>();
+            world.remove_resource::<imported_buildings::ResidentObjectSource>();
+        }
     }
-    if let Some(prepared) = imported_buildings::take_environment() {
-        match prepared.stage(world) {
-            Ok(resident) => {
-                hide_preview();
-                world.insert_resource(resident);
-                if editing {
-                    imported_buildings::render_status("Vue d’édition : éclairage fixe issu des assets vérifiés. Ciel et nuages animés disponibles dans le jeu séparé.".into());
-                } else {
-                    programs::request(world);
-                    world.insert_resource(Preparing);
-                    imported_buildings::render_status("Calcul de l'environnement en cours.".into());
+    if let Some(update) = imported_buildings::take_environment() {
+        if let imported_buildings::EnvironmentUpdate::Replace {
+            prepared,
+            module_index,
+        } = update
+        {
+            match prepared.stage(world) {
+                Ok(resident) => {
+                    hide_preview();
+                    world.insert_resource(resident);
+                    world.insert_resource(imported_buildings::ResidentEnvironmentSource(
+                        module_index,
+                    ));
+                    if editing {
+                        imported_buildings::render_status("Vue d’édition : éclairage fixe issu des assets vérifiés. Ciel et nuages animés disponibles dans le jeu séparé.".into());
+                    } else {
+                        programs::request(world);
+                        world.insert_resource(Preparing);
+                        imported_buildings::render_status(
+                            "Calcul de l'environnement en cours.".into(),
+                        );
+                    }
+                }
+                Err(error) => {
+                    world.remove_resource::<Preparing>();
+                    imported_buildings::render_status(format!(
+                        "Préparation de l'environnement impossible : {error}"
+                    ));
                 }
             }
-            Err(error) => {
-                world.remove_resource::<Preparing>();
-                imported_buildings::render_status(format!(
-                    "Préparation de l'environnement impossible : {error}"
-                ));
-            }
+        } else {
+            world.remove_resource::<ResidentEnvironment>();
+            world.remove_resource::<imported_buildings::ResidentEnvironmentSource>();
+            world.remove_resource::<Preparing>();
+            hide_preview();
         }
     }
     if world.contains_resource::<Preparing>()
@@ -127,7 +164,7 @@ fn update(world: &mut World) {
 }
 
 fn update_preview(world: &mut World) {
-    use forge_tidewater::tidewater_sky::preview;
+    use forge_engine::source_sky::preview;
     if PREVIEW_REQUEST.with(|r| r.replace(false)) {
         match preview::request(world) {
             Ok(()) => {
@@ -167,7 +204,8 @@ fn update_preview(world: &mut World) {
 }
 
 fn paint(bytes: &[u8]) -> Result<(), String> {
-    use forge_tidewater::tidewater_sky::preview::{HEIGHT, WIDTH};
+    use forge_engine::source_sky::preview::HEIGHT;
+    use forge_engine::source_sky::preview::WIDTH;
     let canvas = web_sys::window()
         .and_then(|w| w.document())
         .and_then(|d| d.get_element_by_id("forge-imported-sky-preview"))

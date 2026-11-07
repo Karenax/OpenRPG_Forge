@@ -13,6 +13,152 @@ fn generated() -> GeneratedTerrain {
 }
 
 #[test]
+fn grid_sampling_preserves_full_and_partial_meshes_at_seams_and_authored_edits() {
+    let source_document = VisualValleyTerrainRecipe::default().build().unwrap();
+    let source_plan = TerrainGenerationPlan::from_document(&source_document).unwrap();
+    let mut partial = source_plan.generate().unwrap();
+    let paint_height_before = sampling::surface_vertex(&source_document, 64, 64).height_m;
+
+    let mut target_document = source_document.migrate_to_latest().unwrap();
+    target_document.schema_version = forge_project::TERRAIN_DOCUMENT_SCHEMA_VERSION_V3;
+    target_document.revision = source_document.revision.next().unwrap();
+    target_document.height_deltas = vec![TerrainHeightDelta::new(32, 32, 5.0)];
+    target_document.material_overrides = vec![forge_project::TerrainMaterialOverride {
+        sample_x: 64,
+        sample_z: 64,
+        weights: vec![forge_project::TerrainMaterialWeight {
+            layer_id: target_document.material_layers[1].id.clone(),
+            weight: u16::MAX,
+        }],
+    }];
+    let update = source_plan
+        .apply_partial_update(
+            &partial,
+            TerrainPartialUpdateRequest {
+                base_revision: source_document.revision,
+                base_document_hash: source_plan.document_hash(),
+                target_document: target_document.clone(),
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        update.changed_samples(),
+        &[TerrainHeightSampleCoordinate::new(32, 32)]
+    );
+    assert_eq!(update.mesh_chunks().len(), 7);
+    assert_eq!(update.collider_chunks().len(), 4);
+    update.apply_to_cache(&mut partial).unwrap();
+
+    let full = TerrainGenerationPlan::from_document(&target_document)
+        .unwrap()
+        .generate()
+        .unwrap();
+    assert_eq!(partial, full);
+    assert_mesh_vertex_bits_equal(&partial, &full);
+    assert_mesh_edges_match_original_formula(&target_document, &full);
+
+    let painted = sampling::surface_vertex(&target_document, 64, 64);
+    assert_eq!(painted.height_m.to_bits(), paint_height_before.to_bits());
+    assert_eq!(
+        painted.material_weights.as_array().map(f32::to_bits),
+        [0.0_f32, 1.0, 0.0].map(f32::to_bits)
+    );
+}
+
+fn assert_mesh_vertex_bits_equal(left: &GeneratedTerrain, right: &GeneratedTerrain) {
+    assert_eq!(left.chunks.len(), right.chunks.len());
+    for (a, b) in left.chunks.iter().zip(&right.chunks) {
+        assert_float_array_bits_equal(&a.positions_m, &b.positions_m);
+        assert_float_array_bits_equal(&a.normals, &b.normals);
+        assert_float_array_bits_equal(&a.uvs, &b.uvs);
+        assert_float_array_bits_equal(&a.collider.vertices_m, &b.collider.vertices_m);
+        assert_eq!(a.material_weights.len(), b.material_weights.len());
+        assert!(
+            a.material_weights
+                .iter()
+                .zip(&b.material_weights)
+                .all(|(a, b)| a.as_array().map(f32::to_bits) == b.as_array().map(f32::to_bits))
+        );
+    }
+}
+
+fn assert_float_array_bits_equal<const N: usize>(left: &[[f32; N]], right: &[[f32; N]]) {
+    assert_eq!(left.len(), right.len());
+    assert!(
+        left.iter()
+            .zip(right)
+            .all(|(a, b)| a.map(f32::to_bits) == b.map(f32::to_bits))
+    );
+}
+
+fn assert_mesh_edges_match_original_formula(document: &TerrainDocument, mesh: &GeneratedTerrain) {
+    for chunk in &mesh.chunks {
+        for local_z in 0..TERRAIN_CHUNK_VERTICES_PER_AXIS {
+            for local_x in 0..TERRAIN_CHUNK_VERTICES_PER_AXIS {
+                if local_x != 0
+                    && local_x != TERRAIN_CHUNK_INTERVALS
+                    && local_z != 0
+                    && local_z != TERRAIN_CHUNK_INTERVALS
+                    && (local_x != TERRAIN_CHUNK_INTERVALS / 2
+                        || local_z != TERRAIN_CHUNK_INTERVALS / 2)
+                {
+                    continue;
+                }
+                assert_vertex_matches_original_formula(document, chunk, local_x, local_z);
+            }
+        }
+    }
+}
+
+fn assert_vertex_matches_original_formula(
+    document: &TerrainDocument,
+    chunk: &TerrainChunkMesh,
+    local_x: u16,
+    local_z: u16,
+) {
+    let x = chunk.coordinate.x * TERRAIN_CHUNK_INTERVALS + local_x;
+    let z = chunk.coordinate.z * TERRAIN_CHUNK_INTERVALS + local_z;
+    let world_x = -TERRAIN_HALF_EXTENT_M + f32::from(x) * TERRAIN_SAMPLE_SPACING_M;
+    let world_z = -TERRAIN_HALF_EXTENT_M + f32::from(z) * TERRAIN_SAMPLE_SPACING_M;
+    let height = sampling::sample_height_unchecked(document, world_x, world_z);
+    let normal = sampling::sample_normal(document, world_x, world_z);
+    let weights = sampling::material_weights_for(document, height, normal[1], x, z);
+    let uv = [
+        f32::from(x) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
+        f32::from(z) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
+    ];
+    let position = [world_x, height, world_z].map(f32::to_bits);
+    let index =
+        usize::from(local_z) * usize::from(TERRAIN_CHUNK_VERTICES_PER_AXIS) + usize::from(local_x);
+    let vertex = sampling::surface_vertex(document, x, z);
+    assert_eq!(vertex.position_m.map(f32::to_bits), position);
+    assert_eq!(vertex.height_m.to_bits(), height.to_bits());
+    assert_eq!(
+        vertex.shading_normal.map(f32::to_bits),
+        normal.map(f32::to_bits)
+    );
+    assert_eq!(
+        vertex.material_weights.as_array().map(f32::to_bits),
+        weights.as_array().map(f32::to_bits)
+    );
+    assert_eq!(
+        sampling::grid_uv(x, z).map(f32::to_bits),
+        uv.map(f32::to_bits)
+    );
+    assert_eq!(chunk.positions_m[index].map(f32::to_bits), position);
+    assert_eq!(chunk.collider.vertices_m[index].map(f32::to_bits), position);
+    assert_eq!(
+        chunk.normals[index].map(f32::to_bits),
+        normal.map(f32::to_bits)
+    );
+    assert_eq!(
+        chunk.material_weights[index].as_array().map(f32::to_bits),
+        weights.as_array().map(f32::to_bits)
+    );
+    assert_eq!(chunk.uvs[index].map(f32::to_bits), uv.map(f32::to_bits));
+}
+
+#[test]
 fn shading_normal_matches_emitted_mesh_without_changing_collision_sample() {
     let source =
         crate::compile_world_sketch(&crate::embedded_visual_valley_world_sketch().unwrap())

@@ -37,10 +37,34 @@ impl Library {
         expected: forge_core::ContentHash,
         matches_package: impl Fn(&StoredAsset) -> bool,
     ) -> Result<StoredAsset, String> {
+        self.search_historical_assets(snapshot, current, expected, matches_package, None, false)
+    }
+
+    /// Export must not choose between several metadata revisions for one exact pin.
+    pub(super) fn unique_saved_companion_asset(
+        &self,
+        snapshot: &Snapshot,
+        current: &StoredAsset,
+        expected: forge_core::ContentHash,
+        matches_package: impl Fn(&StoredAsset) -> bool,
+    ) -> Result<StoredAsset, String> {
+        let selected = matches_package(current).then(|| current.clone());
+        self.search_historical_assets(snapshot, current, expected, matches_package, selected, true)
+    }
+
+    fn search_historical_assets(
+        &self,
+        snapshot: &Snapshot,
+        current: &StoredAsset,
+        expected: forge_core::ContentHash,
+        matches_package: impl Fn(&StoredAsset) -> bool,
+        mut selected: Option<StoredAsset>,
+        require_unique: bool,
+    ) -> Result<StoredAsset, String> {
         let registry: Value = parse_json(&snapshot.registry_raw, "registre")?;
         let entry = &registry["packs"][&current.card.pack];
         let Some(history) = entry.get("history") else {
-            return Err("empreinte sauvegardée différente du Vault".to_owned());
+            return selected.ok_or_else(|| "empreinte sauvegardée différente du Vault".to_owned());
         };
         let history = history.as_array().ok_or("historique de pack invalide")?;
         if history.len() > 256 {
@@ -120,10 +144,16 @@ impl Library {
                 if !matches_package(&asset) {
                     continue;
                 }
-                return Ok(asset);
+                if !require_unique {
+                    return Ok(asset);
+                }
+                if selected.is_some() {
+                    return Err("Plusieurs fiches correspondent au même paquet sauvegardé".into());
+                }
+                selected = Some(asset);
             }
         }
-        Err("version sauvegardée absente de l'historique du Vault".to_owned())
+        selected.ok_or_else(|| "version sauvegardée absente de l'historique du Vault".to_owned())
     }
 }
 
@@ -145,7 +175,10 @@ mod tests {
             serde_json::from_slice(&fs::read(template.join("profiles.v1.json")).unwrap()).unwrap();
         let catalog = root.join(format!("normalized/demo/{tag}"));
         fs::create_dir_all(catalog.join("models")).unwrap();
-        let json = format!("{{\"asset\":{{\"version\":\"2.0\",\"generator\":\"{tag}\"}}}}");
+        let mut json = format!("{{\"asset\":{{\"version\":\"2.0\",\"generator\":\"{tag}\"}}}}");
+        while !json.len().is_multiple_of(4) {
+            json.push(' ');
+        }
         let mut bytes = b"glTF".to_vec();
         bytes.extend(2_u32.to_le_bytes());
         bytes.extend(u32::try_from(20 + json.len()).unwrap().to_le_bytes());
@@ -214,6 +247,33 @@ mod tests {
         };
         assert_eq!(page.total_assets, 1);
         assert!(library.execute(request(b"unknown version")).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn private_export_keeps_historical_model_and_metadata() {
+        let (root, old, current) = fixture();
+        let mut library = Library::new(&root).unwrap();
+        let pin = forge_core::bytes_sha256(&old);
+        let exported = library
+            .export_private_models(
+                &[(vault_asset_id("demo.arbre-eclaire"), pin)],
+                "2026-10-22",
+                1024 * 1024,
+            )
+            .unwrap();
+        let asset = &exported.catalog.assets[0];
+        assert_eq!(exported.files[&asset.payload.path], old);
+        assert_ne!(exported.files[&asset.payload.path], current);
+        let proof: Value =
+            serde_json::from_slice(&exported.files[&asset.provenance.evidence]).unwrap();
+        assert_eq!(proof["source_catalog_entry"]["sha256"], pin.to_string());
+        assert!(
+            proof["metadata"]["source_catalog"]
+                .as_str()
+                .unwrap()
+                .contains("old")
+        );
         fs::remove_dir_all(root).unwrap();
     }
 

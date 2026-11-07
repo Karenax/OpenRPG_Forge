@@ -8,21 +8,21 @@ use bevy::{
     prelude::*,
     world_serialization::{WorldAsset, WorldAssetRoot, WorldInstanceReady},
 };
+use forge_engine::ManualPlacementPart;
+use forge_engine::ManualPlacementProjection;
+use forge_engine::source_environment::scene::ResidentEnvironment;
+use forge_engine::source_fish::material::{self as fish_material, FishMaterial};
+use forge_engine::source_fish::resident::{Attachment, ResidentFishProps};
+use forge_engine::source_surface::stall_material::FullMaterial;
 use forge_project::zone_authoring::placements::ManualPlacement;
+use forge_tidewater::tidewater_stall::FishStandResident;
 use std::{cell::RefCell, collections::BTreeMap};
-use {
-    forge_engine::{ManualPlacementPart, ManualPlacementProjection},
-    forge_tidewater::{
-        tidewater_fish_props::material::{self as fish_material, FishMaterial},
-        tidewater_scene_environment::ResidentEnvironment,
-        tidewater_stall::{FishStandResident, full_material::FullMaterial},
-    },
-};
 
 mod full;
 mod lod;
 
 thread_local! {
+    static INSTALLED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
     static READY: RefCell<Result<Vec<ManualPlacement>, String>> = const { RefCell::new(Ok(Vec::new())) };
     static FOCUS: std::cell::Cell<Option<forge_core::EntityId>> = const { std::cell::Cell::new(None) };
 }
@@ -34,8 +34,9 @@ struct State {
     lighting_key: Option<AssetId<Image>>,
     joe_path: Option<String>,
     joe: Option<Handle<WorldAsset>>,
-    fish: Vec<lod::Asset>,
+    fish: Vec<Attachment>,
     skin: Option<Handle<bevy::render::storage::ShaderBuffer>>,
+    clock: Option<Handle<bevy::render::storage::ShaderBuffer>>,
     objects: BTreeMap<forge_core::EntityId, Object>,
     shadow_shader: Option<std::sync::Arc<String>>,
     full_shader_generation: Option<u64>,
@@ -44,7 +45,7 @@ struct State {
 struct Object {
     source: ManualPlacement,
     root: Entity,
-    fish_materials: Vec<Handle<FishMaterial>>,
+    fish: ResidentFishProps,
 }
 
 #[derive(Component)]
@@ -90,6 +91,13 @@ pub(super) fn focus(id: forge_core::EntityId) -> bool {
 
 pub(super) fn ready() -> Result<bool, String> {
     let desired = desired();
+    if !INSTALLED.with(std::cell::Cell::get) {
+        return if desired.is_empty() {
+            Ok(true)
+        } else {
+            Err("L’affichage des étals n’est pas encore disponible sur ce relief.".into())
+        };
+    }
     READY.with(|slot| match &*slot.borrow() {
         Err(error) => Err(error.clone()),
         Ok(actual) => Ok(*actual == desired),
@@ -97,9 +105,10 @@ pub(super) fn ready() -> Result<bool, String> {
 }
 
 pub(super) fn install(app: &mut App) -> Result<(), String> {
+    INSTALLED.with(|slot| slot.set(true));
     super::fish_shadow_scene::install(app);
     app.add_plugins((
-        MaterialPlugin::<forge_tidewater::tidewater_stall::FishStandMaterial>::default(),
+        MaterialPlugin::<forge_engine::source_surface::stall_material::BasicMaterial>::default(),
         MaterialPlugin::<FullMaterial>::default(),
     ))
     .init_resource::<State>()
@@ -109,20 +118,20 @@ pub(super) fn install(app: &mut App) -> Result<(), String> {
             .after(crate::authoring_assets::imported_scene::update)
             .after(bevy::transform::TransformSystems::Propagate),
     );
-    forge_tidewater::tidewater_stall::install_shader(app)?;
+    forge_engine::source_surface::stall_material::install_basic_shader(app)?;
     full::install(app)
 }
 
 fn clear(world: &mut World, state: &mut State) {
     lod::clear_shadow(world);
     for object in std::mem::take(&mut state.objects).into_values() {
+        object.fish.clear(world);
         world.despawn(object.root);
-        lod::retire(world, object.fish_materials);
     }
 }
 
 fn purge(world: &mut World, state: &mut State) {
-    world.remove_resource::<forge_tidewater::tidewater_stall::contact_gpu::Inputs>();
+    world.remove_resource::<forge_engine::source_scene_depth::contact_gpu::Inputs>();
     state.shadow_shader = None;
     clear(world, state);
     if let Some(path) = state.joe_path.take() {
@@ -141,6 +150,11 @@ fn purge(world: &mut World, state: &mut State) {
         world
             .resource_mut::<Assets<bevy::render::storage::ShaderBuffer>>()
             .remove(skin.id());
+    }
+    if let Some(clock) = state.clock.take() {
+        world
+            .resource_mut::<Assets<bevy::render::storage::ShaderBuffer>>()
+            .remove(clock.id());
     }
     if let Some(handle) = state.material.take() {
         world
@@ -232,14 +246,18 @@ fn synchronize(
         return Err("Le placement FishStand ne correspond pas au bundle vérifié".into());
     }
     prepare_fish_assets(world, state, &reference, &package)?;
-    state.objects.retain(|id, object| {
-        let keep = desired.iter().any(|placement| placement.id == *id);
-        if !keep {
+    let removed: Vec<_> = state
+        .objects
+        .keys()
+        .filter(|id| !desired.iter().any(|placement| placement.id == **id))
+        .copied()
+        .collect();
+    for id in removed {
+        if let Some(object) = state.objects.remove(&id) {
+            object.fish.clear(world);
             world.despawn(object.root);
-            lod::retire(world, object.fish_materials.clone());
         }
-        keep
-    });
+    }
     for source in desired.iter().cloned() {
         if let Some(object) = state.objects.get_mut(&source.id) {
             if object.source != source {
@@ -255,16 +273,10 @@ fn synchronize(
             }
             continue;
         }
-        let (root, fish_materials) =
-            spawn_fish_stand(world, state, &source, mesh, material, &package)?;
-        state.objects.insert(
-            source.id,
-            Object {
-                source,
-                root,
-                fish_materials,
-            },
-        );
+        let (root, fish) = spawn_fish_stand(world, state, &source, mesh, material, &package)?;
+        state
+            .objects
+            .insert(source.id, Object { source, root, fish });
     }
     let joe_ready = world
         .query_filtered::<Entity, With<JoeReady>>()
@@ -316,32 +328,25 @@ fn prepare_fish_assets(
         let source_root = Transform::from_xyz(source.stand.x, source.stand_y, source.stand.z)
             .with_rotation(Quat::from_rotation_y(source.stand.yaw));
         let inverse_root = GlobalTransform::from(source_root).affine().inverse();
-        let surface =
+        let (_, surface) =
             imported_buildings::fish_props_package().ok_or("Matériau FishProps source absent")?;
         state.shadow_shader = Some(std::sync::Arc::new(
-            forge_tidewater::tidewater_fish_props::shadow::shader_source(&surface)?,
+            forge_engine::source_fish::shadow::shader_source(surface.as_ref())?,
         ));
-        let building = imported_buildings::building_package().ok_or("Éclairage source absent")?;
-        let lighting_source = std::str::from_utf8(
-            building
-                .file("village.wgsl")
-                .ok_or("Shader partagé absent")?,
-        )
-        .map_err(|error| error.to_string())?;
-        fish_material::stage_shader(
-            world,
-            &surface,
-            lighting_source,
-            forge_tidewater::tidewater_fish_props::surface::SpecularMode::ThreeReference,
-        )?;
+        imported_buildings::with_lighting_shader(|lighting_source| {
+            fish_material::stage_shader(
+                world,
+                surface.as_ref(),
+                lighting_source,
+                forge_engine::source_fish::surface::SpecularMode::ThreeReference,
+            )
+        })?;
         let lighting =
             super::imported_scene::lighting(world).ok_or("Éclairage de l’étal indisponible")?;
-        let skin_buffer = fish_material::skin_buffer(&surface)?;
+        let skin_buffer = fish_material::skin_buffer(surface.as_ref())?;
         let mut prepared = Vec::new();
         let time = world.resource::<Time>().elapsed_secs();
-        let templates =
-            forge_tidewater::tidewater_fish_props::PreparedFishProps::from_game_package(&game)?
-                .templates;
+        let templates = forge_engine::source_fish::prepare::profile(game.as_ref())?;
         if templates.len() != package.fish().len() {
             return Err("Inventaire d'étal différent".into());
         }
@@ -358,25 +363,28 @@ fn prepare_fish_assets(
             ));
             prepared.push((template.lod_meshes, material, local_pose));
         }
+        let clock = forge_engine::source_fish::clock::create(world)?;
         let skin = world
             .resource_mut::<Assets<bevy::render::storage::ShaderBuffer>>()
             .add(skin_buffer);
         state.skin = Some(skin.clone());
+        state.clock = Some(clock.clone());
         for (meshes, mut material, local_pose) in prepared {
             material.skin = skin.clone();
+            material.clock = clock.clone();
             let meshes = meshes
                 .into_iter()
                 .map(|mesh| world.resource_mut::<Assets<Mesh>>().add(mesh))
                 .collect();
             let material = world.resource_mut::<Assets<FishMaterial>>().add(material);
-            state.fish.push(lod::Asset {
+            state.fish.push(Attachment {
                 meshes,
                 material,
                 pose: local_pose,
             });
         }
     }
-    update_fish_materials(world, state)
+    Ok(())
 }
 
 #[derive(serde::Deserialize)]
@@ -398,8 +406,9 @@ fn spawn_fish_stand(
     mesh: &Handle<Mesh>,
     material: &Handle<FullMaterial>,
     package: &forge_tidewater_assets::tidewater_fish_stand::FishStandPackage,
-) -> Result<(Entity, Vec<Handle<FishMaterial>>), String> {
+) -> Result<(Entity, ResidentFishProps), String> {
     let joe = state.joe.clone().ok_or("Joe GLB unavailable")?;
+    let clock = state.clock.as_ref().ok_or("Horloge d’étal indisponible")?;
     let fish_handles = state
         .fish
         .get(..package.fish().len())
@@ -420,7 +429,7 @@ fn spawn_fish_stand(
     let mut stall = world.spawn((
         Mesh3d(mesh.clone()),
         MeshMaterial3d(material.clone()),
-        forge_tidewater::tidewater_object_shadow::scene::OpaqueCaster,
+        forge_engine::source_shadows::casters::scene::OpaqueCaster,
         Transform::IDENTITY,
         Visibility::Inherited,
         ChildOf(root),
@@ -455,14 +464,21 @@ fn spawn_fish_stand(
         ))
         .observe(tag_joe)
         .id();
-    let handles = match lod::spawn(world, source.id, root, &fish_handles) {
-        Ok(handles) => handles,
+    let fish = match forge_engine::source_fish::resident::stage_attachments(
+        world,
+        root,
+        source.id,
+        &fish_handles,
+        clock,
+        forge_tidewater::tidewater_fish_props::lod::POLICY,
+    ) {
+        Ok(fish) => fish,
         Err(error) => {
             world.despawn(root);
             return Err(error);
         }
     };
-    Ok((root, handles))
+    Ok((root, fish))
 }
 
 pub(crate) fn update(world: &mut World) {
@@ -473,8 +489,8 @@ pub(crate) fn update(world: &mut World) {
     }
     world.resource_scope(|world, mut state: Mut<State>| {
         if let Err(error) = stage(world, &mut state)
-            .and_then(|()| lod::update(world))
-            .and_then(|()| lod::publish_shadow(world, state.shadow_shader.clone()))
+            .and_then(|()| lod::update(world, &mut state))
+            .and_then(|()| lod::publish_shadow(world, &state))
         {
             clear(world, &mut state);
             let _ = READY.with(|slot| slot.replace(Err(error.clone())));
@@ -496,7 +512,7 @@ pub(crate) fn update(world: &mut World) {
     }
 }
 
-fn update_fish_materials(world: &mut World, state: &State) -> Result<(), String> {
+fn fish_clock_values(world: &World) -> (f32, u32) {
     let editing = world.contains_resource::<crate::authoring_render::FastEditing>();
     let time = if editing {
         0.0
@@ -508,21 +524,5 @@ fn update_fish_materials(world: &mut World, state: &State) -> Result<(), String>
     } else {
         world.resource::<bevy::diagnostic::FrameCount>().0
     };
-    let mut materials = world.resource_mut::<Assets<FishMaterial>>();
-    for asset in &state.fish {
-        let handle = &asset.material;
-        let material = materials
-            .get(handle)
-            .ok_or("Matériau d’étal indisponible")?;
-        if material.settings.info.w.to_bits() != time.to_bits()
-            || material.settings.frame_index != frame
-        {
-            let mut material = materials
-                .get_mut(handle)
-                .ok_or("Matériau d’étal indisponible")?;
-            material.settings.info.w = time;
-            material.settings.frame_index = frame;
-        }
-    }
-    Ok(())
+    (time, frame)
 }

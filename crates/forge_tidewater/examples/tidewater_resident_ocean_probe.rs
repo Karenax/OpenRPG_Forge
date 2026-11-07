@@ -16,8 +16,9 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::tidewater_ocean::{self, OceanComputeSet, PreparedOcean, Targets};
-use forge_tidewater_assets::tidewater_ocean::OceanPackage;
+use forge_engine::source_ocean::{self, PreparedOcean, Targets};
+use forge_engine::source_water_schedule::OceanComputeSet;
+use forge_assets::source_ocean_package::OceanPackage;
 use std::{
     error::Error,
     fs,
@@ -42,7 +43,7 @@ struct Output {
     received: u32,
     failed: bool,
     finished: Arc<AtomicBool>,
-    captured: Arc<Mutex<Option<tidewater_ocean::live_clock::LiveStep>>>,
+    captured: Arc<Mutex<Option<source_ocean::live_clock::LiveStep>>>,
 }
 #[derive(Component)]
 struct Item(usize);
@@ -76,9 +77,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             .disable::<WinitPlugin>(),
     )
     .add_plugins(ScheduleRunnerPlugin::run_loop(Duration::from_millis(16)));
-    tidewater_ocean::register(&mut app)?;
+    source_ocean::register(&mut app)?;
     let targets = prepared.stage(app.world_mut())?;
-    let clock = tidewater_ocean::live_clock(app.world()).ok_or("resident clock absent")?;
+    let clock = source_ocean::live_clock(app.world()).ok_or("resident clock absent")?;
     clock.pause();
     let buffers = (0..18)
         .map(|index| {
@@ -198,7 +199,7 @@ fn copy_outputs(
 }
 
 fn capture_frame(world: &mut World) {
-    let Some(frame) = tidewater_ocean::completed_frame(world) else {
+    let Some(frame) = source_ocean::completed_frame(world) else {
         return;
     };
     if let Ok(mut captured) = world.resource::<Output>().captured.lock() {

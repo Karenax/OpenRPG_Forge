@@ -10,6 +10,44 @@ use thiserror::Error;
 
 pub const MODULE_PACKAGE_SCHEMA: &str = "forge.module-package";
 pub const MODULE_PACKAGE_VERSION: u32 = 2;
+/// API 2 carries every source referenced by the canonical archive's edit history.
+/// API 1 retains its original current-head-only source contract.
+pub const MODULE_ARCHIVE_SOURCES_API_VERSION: u32 = 2;
+pub const MODULE_VEGETATION_API_VERSION: u32 = 3;
+pub const MODULE_ENVIRONMENT_API_VERSION: u32 = 4;
+pub const MODULE_LOCAL_LIGHTS_API_VERSION: u32 = 5;
+pub const MODULE_SOLAR_CLOCK_API_VERSION: u32 = 6;
+pub const MODULE_OBJECTS_API_VERSION: u32 = 7;
+pub const MODULE_TERRAIN_API_VERSION: u32 = 8;
+pub const MODULE_OCEAN_API_VERSION: u32 = 9;
+pub const MODULE_OCEAN_SURFACE_API_VERSION: u32 = 10;
+/// Scene wind lives in the canonical zone and must survive undo history.
+pub const MODULE_SCENE_WIND_API_VERSION: u32 = 11;
+/// Explicit fish profiles are declared by API 12; runtime admission remains separate.
+pub const MODULE_FISH_API_VERSION: u32 = 12;
+/// Versioned transport for source physics and particle placement companions.
+/// Runtime execution remains subject to a separate admission guard.
+pub const MODULE_PLACEMENT_COMPANIONS_API_VERSION: u32 = 13;
+/// Exact private model revisions retained for the authoring journal.
+pub const MODULE_HISTORICAL_MODELS_API_VERSION: u32 = 14;
+pub mod placement_companions;
+pub use placement_companions::{ModulePlacementCompanion, ModulePlacementCompanionKind};
+pub mod fish;
+pub use fish::ModuleFishBinding;
+pub mod ocean;
+pub use ocean::{ModuleOceanBinding, ModuleOceanFiles};
+pub mod terrain;
+pub use terrain::{ModuleTerrainBinding, ModuleTerrainFiles, ModuleTerrainSource};
+pub mod objects;
+pub use objects::{ModuleObjectAsset, ModuleObjectBinding, ModuleObjectFiles, ModuleObjectSource};
+pub mod local_lights;
+pub use local_lights::ModuleLocalLightPackage;
+pub mod environment;
+pub use environment::{
+    ModuleEnvironmentBinding, ModuleEnvironmentFiles, ModuleEnvironmentSource, ModuleSolarClock,
+};
+pub mod vegetation;
+pub use vegetation::{ModuleFilePin, ModuleVegetationBinding, ModuleVegetationSource};
 pub const MODULE_PACKAGE_CREATOR_VERSION: u32 = 3;
 pub const MODULE_MANIFEST_PATH: &str = "module.json";
 pub const MAX_MODULE_MANIFEST_BYTES: usize = 4 * 1024 * 1024;
@@ -23,12 +61,31 @@ pub const MAX_MODULE_PAYLOAD_BYTES: u64 = 256 * 1024 * 1024 * 1024;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ModuleFileRole {
+    /// Closed FFT input resources, separate from rendered water and its geometry.
+    OceanSimulation,
+    /// Closed optical surface programs and textures.
+    OceanSurface,
+    /// Closed source inputs for the shore simulation.
+    ShoreSimulation,
+    /// Explicit source object geometry/material packages, independent of terrain association.
+    ObjectSource,
+    /// Closed terrain material programs/textures explicitly associated with an area.
+    TerrainSurface,
     ZoneArchive,
     SourceBlob,
     AssetCatalog,
     Asset,
+    HistoricalModel,
     /// Sources, recipes and thumbnails whose references are checked by the catalog adapter.
     AssetAuxiliary,
+    /// Existing vegetation catalogs, prototype indices and their closed resources.
+    Vegetation,
+    /// Closed environment/shader resources explicitly declared for an area.
+    Environment,
+    /// Original source-light descriptors, receipts and closed dependencies.
+    LocalLights,
+    /// Pinned source physics or particle package; not an executable program.
+    PlacementCompanion,
     License,
     Provenance,
     Credits,
@@ -79,7 +136,7 @@ pub struct ModuleZone {
     pub head_hash: ContentHash,
     /// Absence is explicit: this zone contains no authored RPG document.
     pub gameplay_sha256: Option<ContentHash>,
-    /// Closed source-blob hashes referenced by this zone's canonical head.
+    /// API 1: current head. API 2: full archive, including checkpoint/undo/redo sources.
     pub source_blobs: Vec<ContentHash>,
 }
 
@@ -90,6 +147,15 @@ pub struct ModuleAsset {
     pub file_path: String,
     pub sha256: ContentHash,
     pub dependencies: Vec<AssetId>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ModuleHistoricalModel {
+    pub asset_id: AssetId,
+    pub payload: ModuleFilePin,
+    pub license_path: String,
+    pub static_triangle_meshes: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -107,9 +173,30 @@ pub struct ModulePackageManifest {
     pub files: Vec<ModuleFile>,
     pub zones: Vec<ModuleZone>,
     pub assets: Vec<ModuleAsset>,
+    /// Older exact revisions used only when replaying the authored journal.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub historical_models: Vec<ModuleHistoricalModel>,
     /// Authored visual bindings never replace gameplay definitions or collision bodies.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub gameplay_visuals: Vec<crate::module_gameplay_visuals::GameplayVisualBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub vegetation: Vec<ModuleVegetationBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub environments: Vec<ModuleEnvironmentBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub objects: Vec<ModuleObjectBinding>,
+    /// Fish source profiles and their existing catalog, independently of surfaces.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fish_profiles: Vec<ModuleFishBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub terrain_surfaces: Vec<ModuleTerrainBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ocean_inputs: Vec<ModuleOceanBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub local_light_packages: Vec<ModuleLocalLightPackage>,
+    /// Source packages referenced by placements and their retained history.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub placement_companions: Vec<ModulePlacementCompanion>,
     /// Shared definition is pinned by the canonical manifest and verified in every area.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub creator: Option<forge_gameplay::ModuleCreatorProfile>,
@@ -206,6 +293,15 @@ impl ModulePackageManifest {
         self.validate_provenance(&files, &mut used)?;
         self.validate_zones(&files, &mut used)?;
         self.validate_assets(&files, &mut used)?;
+        self.validate_historical_models(&files, &mut used)?;
+        self.validate_vegetation(&files, &mut used)?;
+        self.validate_environments(&files, &mut used)?;
+        self.validate_objects(&files, &mut used)?;
+        self.validate_fish_profiles(&files, &mut used)?;
+        self.validate_terrain_surfaces(&files, &mut used)?;
+        self.validate_ocean_inputs(&files, &mut used)?;
+        self.validate_local_light_packages(&files, &mut used)?;
+        self.validate_placement_companions(&files, &mut used)?;
         if used.len() != files.len() {
             return Err(ModulePackageError::Reference("unreferenced payload file"));
         }
@@ -225,6 +321,93 @@ impl ModulePackageManifest {
             return Err(ModulePackageError::Limit("manifest bytes"));
         }
         let manifest: Self = serde_json::from_slice(bytes)?;
+        if matches!(manifest.compatibility.module_api_version, 1 | 2)
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("vegetation")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_ENVIRONMENT_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("environments")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_LOCAL_LIGHTS_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("local_light_packages")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_SOLAR_CLOCK_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("environments")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|entries| {
+                    entries
+                        .iter()
+                        .any(|entry| entry.get("solar_clock").is_some())
+                })
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_OBJECTS_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("objects")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_FISH_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("fish_profiles")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_PLACEMENT_COMPANIONS_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("placement_companions")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_HISTORICAL_MODELS_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("historical_models")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_TERRAIN_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("terrain_surfaces")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_OCEAN_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("ocean_inputs")
+                .is_some()
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if manifest.compatibility.module_api_version < MODULE_OCEAN_SURFACE_API_VERSION
+            && serde_json::from_slice::<serde_json::Value>(bytes)?
+                .get("ocean_inputs")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|entries| {
+                    entries.iter().any(|entry| {
+                        entry.get("surface").is_some() || entry.get("shore_sim").is_some()
+                    })
+                })
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
         manifest.validate()?;
         Ok(manifest)
     }
@@ -314,6 +497,11 @@ impl ModulePackageManifest {
         }
         let session =
             ZoneEditSession::from_archive_bytes(bytes).map_err(ModulePackageError::Archive)?;
+        if session.has_wind_history()
+            && self.compatibility.module_api_version < MODULE_SCENE_WIND_API_VERSION
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
         let head = session.head();
         if head.base.terrain.project_id != self.project_id
             || head.base.terrain.area_id != area_id
@@ -368,16 +556,52 @@ impl ModulePackageManifest {
                 "gameplay visual binding targets a zone without gameplay",
             ));
         }
-        self.validate_zone_sources(head, zone)?;
-        self.validate_zone_assets(head)?;
+        self.validate_zone_sources(&session, zone)?;
+        self.validate_terrain_document(&head.effective().map_err(ModulePackageError::Archive)?.0)?;
+        self.validate_zone_local_lights(&session, area_id)?;
+        self.validate_zone_placement_companions(&session, area_id)?;
+        self.validate_zone_assets(&session)?;
         Ok(())
     }
 
     fn validate_zone_sources(
         &self,
-        head: &crate::zone_authoring::ZoneAuthoringHead,
+        session: &crate::zone_authoring::session::ZoneEditSession,
         zone: &ModuleZone,
     ) -> Result<(), ModulePackageError> {
+        if matches!(
+            self.compatibility.module_api_version,
+            MODULE_ARCHIVE_SOURCES_API_VERSION
+                | MODULE_VEGETATION_API_VERSION
+                | MODULE_ENVIRONMENT_API_VERSION
+                | MODULE_LOCAL_LIGHTS_API_VERSION
+                | MODULE_SOLAR_CLOCK_API_VERSION
+                | MODULE_OBJECTS_API_VERSION
+                | MODULE_TERRAIN_API_VERSION
+                | MODULE_OCEAN_API_VERSION
+                | MODULE_OCEAN_SURFACE_API_VERSION
+                | MODULE_SCENE_WIND_API_VERSION
+                | MODULE_FISH_API_VERSION
+                | MODULE_PLACEMENT_COMPANIONS_API_VERSION
+                | MODULE_HISTORICAL_MODELS_API_VERSION
+        ) {
+            let sources = session
+                .required_source_blobs()
+                .map_err(ModulePackageError::Archive)?;
+            for (&hash, &length) in &sources {
+                self.require_blob_size(hash, length)?;
+            }
+            if sources.keys().copied().collect::<BTreeSet<_>>()
+                != zone.source_blobs.iter().copied().collect()
+            {
+                return Err(archive_error("zone archive source blob set differs"));
+            }
+            return Ok(());
+        }
+        if self.compatibility.module_api_version != 1 {
+            return Err(ModulePackageError::Compatibility);
+        }
+        let head = session.head();
         let (terrain, vegetation) = head.effective().map_err(ModulePackageError::Archive)?;
         let mut blobs = BTreeSet::new();
         if let Some(source) = &terrain.sampled_source {
@@ -418,54 +642,37 @@ impl ModulePackageManifest {
 
     fn validate_zone_assets(
         &self,
-        head: &crate::zone_authoring::ZoneAuthoringHead,
+        session: &crate::zone_authoring::session::ZoneEditSession,
     ) -> Result<(), ModulePackageError> {
         use crate::zone_authoring::source_objects::SourceObjectState;
-        // These historical contracts name separate catalogs/packages which the
-        // v2 adapter does not resolve yet. Refuse them instead of silently
-        // substituting a built-in prototype or omitting companion resources.
-        if head
-            .corrections
-            .species
-            .as_ref()
-            .is_some_and(|species| !species.is_empty())
-        {
-            return Err(archive_error(
-                "species catalogs are not supported by this module API",
-            ));
-        }
-        if head
-            .corrections
-            .imported_plant_placements
-            .as_ref()
-            .is_some_and(|placements| !placements.is_empty())
-        {
-            return Err(archive_error(
-                "imported plant copies require a resolved prototype catalog",
-            ));
-        }
-        if head
-            .base
-            .vegetation
-            .as_ref()
-            .is_some_and(|vegetation| vegetation.imported_source.is_some())
-        {
-            return Err(archive_error(
-                "imported vegetation prototype catalogs are not supported by this module API",
-            ));
-        }
+        let head = session.head();
+        self.validate_zone_vegetation_contract(head)?;
         let assets: BTreeMap<_, _> = self
             .assets
             .iter()
             .map(|asset| (asset.asset_id, asset.sha256))
             .collect();
+        let object_assets: BTreeMap<_, _> = self
+            .objects
+            .iter()
+            .filter(|binding| binding.area_id == head.base.terrain.area_id)
+            .flat_map(|binding| match &binding.source {
+                ModuleObjectSource::SourceSurfaces { assets, .. } => assets.iter(),
+            })
+            .map(|asset| (asset.asset_id, asset.sha256))
+            .collect();
+        let fish_assets: BTreeMap<_, _> = self
+            .fish_profiles
+            .iter()
+            .filter(|binding| binding.area_id == head.base.terrain.area_id)
+            .flat_map(|binding| &binding.assets)
+            .map(|asset| (asset.asset_id, asset.sha256))
+            .collect();
         let require = |placement: &crate::zone_authoring::placements::ManualPlacement| {
-            if placement.physics.is_some() || placement.particles.is_some() {
-                return Err(archive_error(
-                    "physics and particle companion packages are not supported by this module API",
-                ));
-            }
-            if assets.get(&placement.asset_id) == Some(&placement.asset_hash) {
+            if assets.get(&placement.asset_id) == Some(&placement.asset_hash)
+                || object_assets.get(&placement.asset_id) == Some(&placement.asset_hash)
+                || fish_assets.get(&placement.asset_id) == Some(&placement.asset_hash)
+            {
                 Ok(())
             } else {
                 Err(archive_error(
@@ -476,19 +683,92 @@ impl ModulePackageManifest {
         for placement in head.corrections.placements.as_deref().unwrap_or_default() {
             require(placement)?;
         }
+        let require_source = |placement: &crate::zone_authoring::placements::ManualPlacement| {
+            if crate::zone_authoring::imported_plants::is_source_asset(
+                head,
+                placement.asset_id,
+                placement.asset_hash,
+            ) {
+                Ok(())
+            } else {
+                require(placement)
+            }
+        };
         for edit in head
             .corrections
             .source_object_edits
             .as_deref()
             .unwrap_or_default()
         {
-            require(&edit.source)?;
+            require_source(&edit.source)?;
             if let SourceObjectState::Edited { placement } = &edit.state {
-                require(placement)?;
+                require_source(placement)?;
             }
             for copy in &edit.copies {
-                require(copy)?;
+                require_source(copy)?;
             }
+        }
+        if (MODULE_FISH_API_VERSION..=MODULE_HISTORICAL_MODELS_API_VERSION)
+            .contains(&self.compatibility.module_api_version)
+        {
+            let history: BTreeSet<_> = self
+                .historical_models
+                .iter()
+                .map(|model| (model.asset_id, model.payload.sha256))
+                .collect();
+            session
+                .visit_referenced_model_placements(|placement| {
+                    if history.contains(&(placement.asset_id, placement.asset_hash)) {
+                        Ok(())
+                    } else {
+                        require(placement).map_err(|error| error.to_string())
+                    }
+                })
+                .map_err(ModulePackageError::Archive)?;
+        }
+        Ok(())
+    }
+
+    fn validate_historical_models<'a>(
+        &'a self,
+        files: &BTreeMap<&str, &ModuleFile>,
+        used: &mut BTreeSet<&'a str>,
+    ) -> Result<(), ModulePackageError> {
+        if self.historical_models.is_empty() {
+            return Ok(());
+        }
+        if self.compatibility.module_api_version < MODULE_HISTORICAL_MODELS_API_VERSION
+            || self.provenance.rights != ModuleRights::PrivateLocalOnly
+        {
+            return Err(ModulePackageError::Compatibility);
+        }
+        if self.historical_models.len() > MAX_MODULE_ASSETS {
+            return Err(ModulePackageError::Limit("historical models"));
+        }
+        let active: BTreeSet<_> = self.assets.iter().map(|a| (a.asset_id, a.sha256)).collect();
+        let licenses: BTreeSet<_> = self
+            .provenance
+            .license_paths
+            .iter()
+            .map(String::as_str)
+            .collect();
+        let mut revisions = BTreeSet::new();
+        for model in &self.historical_models {
+            let pin = (model.asset_id, model.payload.sha256);
+            if active.contains(&pin) || !revisions.insert(pin) {
+                return Err(ModulePackageError::Duplicate);
+            }
+            let file = refer(files, &model.payload.path, ModuleFileRole::HistoricalModel)?;
+            if file.sha256 != model.payload.sha256
+                || !file.path.ends_with(".glb")
+                || model.asset_id.as_uuid().is_nil()
+                || !licenses.contains(model.license_path.as_str())
+            {
+                return Err(ModulePackageError::Reference(
+                    "historical model payload or license",
+                ));
+            }
+            used.insert(model.payload.path.as_str());
         }
         Ok(())
     }

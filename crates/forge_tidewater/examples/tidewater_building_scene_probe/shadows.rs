@@ -10,14 +10,11 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::{
-    sun_cascades::CascadeView,
-    tidewater_object_shadow::{graph, scene},
-};
-use forge_tidewater::{
-    tidewater_assets::scene::{PreparedScene, ResidentScene},
-    tidewater_material::VillageMaterial,
-};
+use forge_engine::source_shadows::casters::{graph, scene};
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::objects::PreparedScene;
+use forge_engine::source_surface::objects::ResidentScene;
+use forge_engine::sun_cascades::CascadeView;
 use std::{error::Error, fs};
 use std::{path::PathBuf, sync::atomic::Ordering, time::Duration};
 #[derive(Resource)]
@@ -52,7 +49,7 @@ pub(super) fn run(
         .ok_or("meshes")?;
     let materials = cpu
         .world_mut()
-        .remove_resource::<Assets<VillageMaterial>>()
+        .remove_resource::<Assets<SourceSurfaceMaterial>>()
         .ok_or("materials")?;
     let mut app = App::new();
     app.add_plugins(
@@ -94,7 +91,7 @@ fn input(world: &World) -> Result<graph::Input, String> {
     scene::prepare(
         view,
         DVec3::new(-0.4, 0.8, -0.2).normalize(),
-        scene::buildings(world)?,
+        forge_tidewater::tidewater_object_shadow::scene::buildings(world)?,
         None,
     )
 }

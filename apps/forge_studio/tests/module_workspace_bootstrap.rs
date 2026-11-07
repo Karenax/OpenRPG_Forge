@@ -42,6 +42,12 @@ use std::{
 };
 
 static NEXT: AtomicU64 = AtomicU64::new(0);
+#[path = "module_workspace_bootstrap/companions.rs"]
+mod companions;
+#[path = "../../../tools/forge_delivery/tests/support/ocean_package.rs"]
+mod ocean_fixture;
+#[path = "../../../crates/forge_assets/tests/support/source_graph_fixture.rs"]
+mod source_graph_fixture;
 struct Fixture {
     root: PathBuf,
     package: PathBuf,
@@ -52,8 +58,12 @@ struct Fixture {
 }
 impl Fixture {
     fn new(key: &str, blobs: bool) -> Self {
+        Self::with_blue_payload(key, blobs, None)
+    }
+
+    fn with_blue_payload(key: &str, blobs: bool, blue_payload: Option<Vec<u8>>) -> Self {
         let root = std::env::temp_dir().join(format!(
-            "forge-module-bootstrap-{}-{}-Élan",
+            "forge-module-bootstrap-{}-{}-Ã‰lan",
             std::process::id(),
             NEXT.fetch_add(1, Ordering::Relaxed)
         ));
@@ -62,7 +72,24 @@ impl Fixture {
         let mut payloads = BTreeMap::new();
         let mut files = Vec::new();
         let (mut zone, blob, gameplay) = fixture_zone(key, blobs);
-        let assets = fixture_assets(&mut payloads, &mut files);
+        let mut assets = fixture_assets(&mut payloads, &mut files);
+        if let Some(bytes) = blue_payload {
+            let asset = assets
+                .iter_mut()
+                .find(|asset| asset.id == AssetId::deterministic("bootstrap/blue"))
+                .unwrap();
+            let hash = bytes_sha256(&bytes);
+            let size = u64::try_from(bytes.len()).unwrap();
+            asset.payload.sha256 = hash;
+            asset.payload.bytes = size;
+            let file = files
+                .iter_mut()
+                .find(|file| file.path == asset.payload.path)
+                .unwrap();
+            file.sha256 = hash;
+            file.bytes = size;
+            payloads.insert(asset.payload.path.clone(), bytes);
+        }
         fixture_placement(&mut zone, &assets);
         let archive = zone.archive_bytes().unwrap();
         put(
@@ -101,7 +128,7 @@ impl Fixture {
             package_path: self.package.clone(),
             expected_package_sha256: bytes_sha256(&fs::read(&self.package).unwrap()),
             area_id: self.manifest.zones[0].area_id,
-            destination: self.root.join("Workspace Élan"),
+            destination: self.root.join("Workspace Ã‰lan"),
         }
     }
     fn repack(&mut self, label: &str, pretty_manifest: bool) {
@@ -292,6 +319,7 @@ fn fixture_placement(zone: &mut ZoneEditSession, assets: &[GovernedImportAsset])
     let blue_asset = assets.iter().find(|asset| asset.id == blue).unwrap();
     let placements = PlacementEdit::InsertMany {
         placements: vec![ManualPlacement {
+            local_lights: None,
             id: EntityId::deterministic("bootstrap/placement"),
             name: "Original blue triangle".into(),
             asset_id: blue,
@@ -363,6 +391,15 @@ fn fixture_manifest(
     let module_id = gameplay.module_id;
     let archive = zone.archive_bytes().unwrap();
     ModulePackageManifest {
+        terrain_surfaces: Vec::new(),
+        ocean_inputs: Vec::new(),
+        local_light_packages: Vec::new(),
+        historical_models: Vec::new(),
+        placement_companions: Vec::new(),
+        environments: Vec::new(),
+        objects: Vec::new(),
+        fish_profiles: Vec::new(),
+        vegetation: Vec::new(),
         creator: None,
         schema: MODULE_PACKAGE_SCHEMA.into(),
         version: MODULE_PACKAGE_VERSION,
@@ -441,7 +478,7 @@ fn pack_fixture(
             platform: "any".into(),
             source_revision: "fixture-v1".into(),
             rights: Rights::PrivateLocalOnly,
-            license_paths: vec!["LICENSE.txt".into()],
+            license_paths: manifest.provenance.license_paths.clone(),
             files: vec![],
             product: None,
         },
@@ -502,7 +539,7 @@ fn png() -> Vec<u8> {
 
 /// This setup deliberately does not depend on the bootstrap implementation.
 fn origin_fixture(f: &Fixture) -> (PathBuf, forge_project::workspace::ModuleOriginPin) {
-    let root = f.root.join("Origin Élan");
+    let root = f.root.join("Origin Ã‰lan");
     let origin = root
         .join("module-imports")
         .join(f.manifest.module_id.to_string());
@@ -623,7 +660,7 @@ fn two_original_modules_become_reopenable_managed_workspaces_with_all_assets_and
         let store = AssetImportStore::new(&report.workspace_root.join("asset-imports")).unwrap();
         let state = store.state().unwrap();
         let catalog = state.catalog.unwrap();
-        assert_eq!(state.catalog_sha256, Some(report.import_catalog_sha256));
+        assert_eq!(state.catalog_sha256, report.import_catalog_sha256);
         for original in &f.catalog.assets {
             let asset = catalog
                 .assets
@@ -739,7 +776,7 @@ fn extend_and_configure_module(
         project,
         module,
         "second",
-        "Deuxième carte",
+        "DeuxiÃ¨me carte",
         NewTerrainSettings::default(),
     )
     .unwrap();
@@ -868,18 +905,34 @@ fn module_set_input(
 
 #[test]
 fn two_modules_share_one_workspace_without_replacing_sources_or_shared_assets() {
-    use forge_studio_frontend::module_workspace_bootstrap::{
-        ModuleSetRequest, prepare_module_set_workspace,
+    use forge_project::{
+        audit::AuditStamp,
+        authoring::{host::AuthoringHost, workspace::WorkspaceHostRequest},
+        workspace::session::{WorkspaceAction, WorkspaceRequest},
     };
+    use forge_studio_frontend::module_workspace_bootstrap::import_module_into_workspace;
     let first = Fixture::new("set-first", false);
     let second = Fixture::new("set-second", false);
-    let request = ModuleSetRequest {
-        modules: vec![module_set_input(&first), module_set_input(&second)],
-        destination: first.root.join("Two modules"),
-    };
-    let report = prepare_module_set_workspace(&request).unwrap();
-    assert_eq!(report.modules.len(), 2);
-    let workspace = FileWorkspaceSession::open(&report.workspace_root).unwrap();
+    let root = prepare_module_workspace(&first.request())
+        .unwrap()
+        .workspace_root;
+    let mut host = AuthoringHost::new(&root).unwrap();
+    host.execute_workspace(WorkspaceHostRequest::Open).unwrap();
+    let state = host
+        .import_native_module(|root, workspace| {
+            import_module_into_workspace(
+                root,
+                workspace,
+                fs::read(&second.package).unwrap(),
+                AuditStamp::legacy(),
+            )
+        })
+        .unwrap();
+    assert!(state.dirty);
+    assert_eq!(state.modules.len(), 2);
+    host.execute_workspace(WorkspaceHostRequest::Save).unwrap();
+    drop(host);
+    let mut workspace = FileWorkspaceSession::open(&root).unwrap();
     let modules: Vec<_> = workspace
         .session()
         .head()
@@ -899,14 +952,44 @@ fn two_modules_share_one_workspace_without_replacing_sources_or_shared_assets() 
             .find(|module| module.id == fixture.manifest.module_id)
             .unwrap();
         assert_eq!(
-            read_export_origin(&report.workspace_root, module.id, module.origin.unwrap())
+            read_export_origin(&root, module.id, module.origin.unwrap())
                 .unwrap()
                 .package_bytes
                 .as_ref(),
             fs::read(&fixture.package).unwrap()
         );
     }
-    let store = AssetImportStore::new(&report.workspace_root.join("asset-imports")).unwrap();
+    let imported_projects = workspace.session().head().projects.clone();
+    let second_area = second.manifest.zones[0].area_id;
+    for (key, action) in [
+        ("undo", WorkspaceAction::Undo),
+        ("redo", WorkspaceAction::Redo),
+    ] {
+        let head = workspace.session().head();
+        workspace
+            .execute(&WorkspaceRequest {
+                command_id: CommandId::deterministic(format!("module-set/{key}")),
+                base_revision: head.revision,
+                base_hash: head.content_hash().unwrap(),
+                action,
+            })
+            .unwrap();
+        if key == "undo" {
+            assert!(workspace.read_zone(second_area).is_err());
+            assert!(workspace
+                .read_zone(first.manifest.zones[0].area_id)
+                .is_ok());
+        }
+    }
+    assert_eq!(workspace.session().head().projects, imported_projects);
+    let store = AssetImportStore::new(&root.join("asset-imports")).unwrap();
+    assert!(
+        !root
+            .join("module-imports")
+            .join(second.manifest.module_id.to_string())
+            .join("payloads")
+            .exists()
+    );
     assert_eq!(
         store.state().unwrap().catalog.unwrap().assets.len(),
         first.catalog.assets.len()
@@ -1076,6 +1159,72 @@ fn existing_destination_is_never_overwritten_and_no_sibling_stage_is_created() {
 }
 
 #[test]
+fn incomplete_ocean_scene_is_refused_before_creating_a_workspace() {
+    use forge_project::module_package::{
+        MODULE_OCEAN_API_VERSION, ModuleFilePin, ModuleOceanBinding, ModuleOceanFiles,
+    };
+    let mut f = Fixture::new("ocean-refusal", false);
+    let files = ocean_fixture::files();
+    let index = ocean_fixture::index(&files);
+    let base = "ocean/source";
+    let path = format!("{base}/package.json");
+    let manifest = ModuleFilePin {
+        path: path.clone(),
+        sha256: bytes_sha256(&index),
+    };
+    put(
+        &mut f.payloads,
+        &mut f.manifest.files,
+        &path,
+        index,
+        ModuleFileRole::OceanSimulation,
+    );
+    let mut resources = Vec::new();
+    for (name, data) in files {
+        let path = format!("{base}/{name}");
+        let license = name == "LICENSE-Tidewater.txt";
+        if license {
+            f.manifest.provenance.license_paths.push(path.clone());
+        }
+        resources.push(ModuleFilePin {
+            path: path.clone(),
+            sha256: bytes_sha256(&data),
+        });
+        put(
+            &mut f.payloads,
+            &mut f.manifest.files,
+            &path,
+            data,
+            if license {
+                ModuleFileRole::License
+            } else {
+                ModuleFileRole::OceanSimulation
+            },
+        );
+    }
+    f.manifest.compatibility.module_api_version = MODULE_OCEAN_API_VERSION;
+    f.manifest.ocean_inputs.push(ModuleOceanBinding {
+        area_id: f.manifest.zones[0].area_id,
+        surface: None,
+        shore_sim: None,
+        package: ModuleOceanFiles {
+            manifest,
+            resources,
+        },
+    });
+    f.repack("ocean", false);
+    let before = f.entries();
+    let request = f.request();
+    let error = prepare_module_workspace(&request).unwrap_err();
+    assert!(
+        error.contains("océan") && error.contains("nécessite"),
+        "{error}"
+    );
+    assert!(!request.destination.exists());
+    assert_eq!(before, f.entries());
+}
+
+#[test]
 fn stale_package_pin_and_corrupt_transport_are_refused_before_writes() {
     let f = Fixture::new("wrong-pin", false);
     let mut request = f.request();
@@ -1097,18 +1246,150 @@ fn stale_package_pin_and_corrupt_transport_are_refused_before_writes() {
 }
 
 #[test]
-fn admitted_source_blob_profile_is_refused_explicitly_without_any_workspace_writes() {
+fn admitted_raster_sources_survive_workspace_adoption_snapshot_and_reexport() {
     let f = Fixture::new("source-blob", true);
     assert!(orpmod::inspect(&f.package, false).is_ok());
-    let before = f.entries();
     let request = f.request();
-    let error = prepare_module_workspace(&request).unwrap_err();
-    assert!(
-        error.to_ascii_lowercase().contains("source blob"),
-        "{error}"
+    let report = prepare_module_workspace(&request).unwrap();
+    let workspace = FileWorkspaceSession::open(&report.workspace_root).unwrap();
+    let expected = workspace.session().head().content_hash().unwrap();
+    let snapshot = workspace
+        .module_export_snapshot(
+            report.module_id,
+            report.area_id,
+            report.zone_head_sha256,
+            expected,
+        )
+        .unwrap();
+    let hash = f.manifest.zones[0].source_blobs[0];
+    assert_eq!(
+        snapshot.source_blobs[&hash],
+        f.payloads["source-blobs/raster.bin"]
     );
-    assert_eq!(before, f.entries());
-    assert!(!request.destination.exists());
+    assert_eq!(snapshot.zones[0].bytes, f.zone.archive_bytes().unwrap());
+    let imports = AssetImportStore::new(&report.workspace_root.join("asset-imports")).unwrap();
+    let assets = imports.export_snapshot(&[], false).unwrap();
+    let pin = workspace.session().head().projects[0].modules[0]
+        .origin
+        .unwrap();
+    let origin = read_export_origin(&report.workspace_root, report.module_id, pin).unwrap();
+    let exported = forge_delivery::module_builder::build_module_with_origin(
+        &f.root.join("Raster reexport"),
+        &snapshot,
+        ExportMetadata {
+            name: "Raster reexport".into(),
+            version: "1.1.0".into(),
+            publisher: "Forge tests".into(),
+            license_text: "Original fixture CC0-1.0".into(),
+            rights: ModuleRights::PrivateLocalOnly,
+        },
+        assets.catalog,
+        assets.files,
+        Some(origin),
+    )
+    .unwrap();
+    let loaded = module_runtime::load(
+        &exported.package_path,
+        report.area_id,
+        Some(&f.root.join("raster-runtime-cache")),
+    )
+    .unwrap();
+    assert_eq!(loaded.source_blobs, snapshot.source_blobs);
+    assert_eq!(loaded.archive, snapshot.zones[0].bytes);
+    assert_eq!(
+        loaded.manifest.provenance.rights,
+        ModuleRights::PrivateLocalOnly
+    );
+    assert_eq!(
+        bytes_sha256(&fs::read(&report.preserved_package).unwrap()),
+        request.expected_package_sha256
+    );
+}
+
+#[test]
+fn source_graph_module_roundtrip_preserves_model_zone_and_origin() {
+    let model = source_graph_fixture::fixture().unwrap();
+    let pin = bytes_sha256(&model);
+    let id = AssetId::deterministic("bootstrap/blue");
+    let f = Fixture::with_blue_payload("source-graph-roundtrip", false, Some(model.clone()));
+    let initial = prepare_module_workspace(&f.request()).unwrap();
+    let workspace = FileWorkspaceSession::open(&initial.workspace_root).unwrap();
+    let snapshot = workspace
+        .module_export_snapshot(
+            initial.module_id,
+            initial.area_id,
+            initial.zone_head_sha256,
+            workspace.session().head().content_hash().unwrap(),
+        )
+        .unwrap();
+    assert_eq!(snapshot.zones[0].bytes, f.zone.archive_bytes().unwrap());
+    let origin_pin = workspace.session().head().projects[0].modules[0]
+        .origin
+        .unwrap();
+    let imports = AssetImportStore::new(&initial.workspace_root.join("asset-imports")).unwrap();
+    let assets = imports.export_snapshot(&[], false).unwrap();
+    let asset = assets
+        .catalog
+        .assets
+        .iter()
+        .find(|asset| asset.id == id)
+        .unwrap();
+    assert_eq!(asset.payload.sha256, pin);
+    assert_eq!(assets.files[&asset.payload.path], model);
+    let origin =
+        read_export_origin(&initial.workspace_root, initial.module_id, origin_pin).unwrap();
+    let exported = forge_delivery::module_builder::build_module_with_origin(
+        &f.root.join("Source graph reexport"),
+        &snapshot,
+        ExportMetadata {
+            name: "Source graph roundtrip".into(),
+            version: "1.0.1".into(),
+            publisher: "Forge tests".into(),
+            license_text: "Original fixture CC0-1.0".into(),
+            rights: ModuleRights::PrivateLocalOnly,
+        },
+        assets.catalog,
+        assets.files,
+        Some(origin),
+    )
+    .unwrap();
+    let loaded = module_runtime::load(
+        &exported.package_path,
+        initial.area_id,
+        Some(&f.root.join("source-graph-runtime-cache")),
+    )
+    .unwrap();
+    assert_eq!(loaded.archive, f.zone.archive_bytes().unwrap());
+    let graph = loaded
+        .manifest
+        .assets
+        .iter()
+        .find(|asset| asset.asset_id == id)
+        .unwrap();
+    assert_eq!(graph.sha256, pin);
+    assert_eq!(
+        loaded.read_payload(&graph.file_path, model.len()).unwrap(),
+        model
+    );
+    let reopened = prepare_module_workspace(&BootstrapRequest {
+        package_path: exported.package_path,
+        expected_package_sha256: exported.package_sha256,
+        area_id: initial.area_id,
+        destination: f.root.join("Source graph reopened"),
+    })
+    .unwrap();
+    assert_eq!(reopened.zone_head_sha256, initial.zone_head_sha256);
+    assert_eq!(reopened.zone_archive_sha256, initial.zone_archive_sha256);
+    let reopened_imports =
+        AssetImportStore::new(&reopened.workspace_root.join("asset-imports")).unwrap();
+    let reread = reopened_imports
+        .read(
+            id,
+            pin,
+            forge_studio_frontend::asset_import_protocol::ImportReadRole::Payload,
+        )
+        .unwrap();
+    assert_eq!(reread.upload.bytes, model);
 }
 
 #[test]
@@ -1314,5 +1595,48 @@ fn legacy_managed_module_origin_lookup_checks_the_active_snapshot_before_returni
     assert!(
         host.game_module_origin(bytes_sha256(b"stale head"))
             .is_err()
+    );
+}
+
+#[test]
+fn procedural_module_without_assets_reopens_without_a_fabricated_import_head() {
+    let fixture = Fixture::new("empty-procedural-host", false);
+    let (zone, _, _) = fixture_zone("empty-procedural-source", false);
+    let catalog = GovernedImportCatalog {
+        schema: GOVERNED_IMPORT_SCHEMA.into(),
+        schema_version: GOVERNED_IMPORT_VERSION,
+        assets: Vec::new(),
+    };
+    let exported = build_zone(
+        &fixture.root.join("procedural-export"),
+        &zone.archive_bytes().unwrap(),
+        zone.head().content_hash().unwrap(),
+        ExportMetadata {
+            name: "Procédural".into(),
+            version: "1.0.0".into(),
+            publisher: "Fixture".into(),
+            license_text: "Fixture pour usage local".into(),
+            rights: ModuleRights::PrivateLocalOnly,
+        },
+        catalog,
+        BTreeMap::new(),
+    )
+    .unwrap();
+    let report = prepare_module_workspace(&BootstrapRequest {
+        package_path: exported.package_path,
+        expected_package_sha256: exported.package_sha256,
+        area_id: exported.area_id,
+        destination: fixture.root.join("procedural-workspace"),
+    })
+    .unwrap();
+    assert_eq!(report.imported_assets, 0);
+    assert_eq!(report.import_catalog_sha256, None);
+    assert!(serde_json::to_value(&report).unwrap()["import_catalog_sha256"].is_null());
+    let store = AssetImportStore::new(&report.workspace_root.join("asset-imports")).unwrap();
+    assert_eq!(store.state().unwrap().catalog_sha256, None);
+    let workspace = FileWorkspaceSession::open(&report.workspace_root).unwrap();
+    assert_eq!(
+        workspace.read_zone(exported.area_id).unwrap().head(),
+        zone.head()
     );
 }

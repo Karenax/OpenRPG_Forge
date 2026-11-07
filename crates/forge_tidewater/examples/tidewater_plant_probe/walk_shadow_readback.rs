@@ -4,17 +4,12 @@ use bevy::{
     prelude::*,
     render::gpu_readback::{Readback, ReadbackComplete},
 };
+use forge_engine::ForgePlayerCamera;
+use forge_engine::source_shadows::casters::graph;
+use forge_engine::source_shadows::casters::graph::animation;
+use forge_engine::source_shadows::receiver;
+use forge_engine::sun_cascades::CascadeView;
 use std::sync::atomic::Ordering;
-use {
-    forge_engine::ForgePlayerCamera,
-    forge_tidewater::{
-        sun_cascades::CascadeView,
-        tidewater_object_shadow::{
-            graph::{self, animation},
-            receiver,
-        },
-    },
-};
 
 #[derive(Clone, serde::Serialize)]
 pub(super) struct Sample {

@@ -16,11 +16,27 @@ pub struct ShadowQualityRequest {
     document: VisualValleyQualityProfileDocument,
     source_hash: String,
     tier: VisualQualityTier,
+    suppress_contact: bool,
 }
 
 impl ShadowQualityRequest {
     pub const fn request(&mut self, tier: VisualQualityTier) {
         self.tier = tier;
+        self.suppress_contact = false;
+    }
+
+    /// Keep the tier's shadow budget while disabling contact shadows.
+    pub const fn request_without_contact(&mut self, tier: VisualQualityTier) {
+        self.tier = tier;
+        self.suppress_contact = true;
+    }
+
+    fn effective_settings(&self) -> ShadowQualitySettings {
+        let mut settings = self.document.preset(self.tier).shadows;
+        if self.suppress_contact {
+            settings.contact_shadows_enabled = false;
+        }
+        settings
     }
 }
 
@@ -68,6 +84,7 @@ impl Plugin for VisualValleyShadowQualityPlugin {
             document: self.document.clone(),
             source_hash: self.source_hash.clone(),
             tier: self.tier,
+            suppress_contact: false,
         })
         .init_resource::<DirectionalLightShadowMap>()
         .init_resource::<VisualValleyShadowStats>()
@@ -119,7 +136,13 @@ fn apply_shadow_quality(
         Option<&mut CascadeShadowConfig>,
         Option<&VisualValleySun>,
     )>,
-    cameras: Query<(Entity, &Camera, Option<&ContactShadows>), With<Camera3d>>,
+    cameras: Query<
+        (Entity, &Camera, Option<&ContactShadows>),
+        (
+            With<Camera3d>,
+            Without<crate::scene_camera::OffscreenSceneCamera>,
+        ),
+    >,
 ) {
     // The shadow atlas is global. Never resize it when another directional light owns it too.
     let Ok((mut light, Some(mut cascades), Some(_))) = lights.single_mut() else {
@@ -132,7 +155,7 @@ fn apply_shadow_quality(
     if active.next().is_some() {
         return;
     }
-    let settings = request.document.preset(request.tier).shadows;
+    let settings = request.effective_settings();
     if light.shadow_maps_enabled != settings.enabled {
         light.shadow_maps_enabled = settings.enabled;
     }
@@ -173,10 +196,16 @@ fn observe_shadow_quality(
         Option<&CascadeShadowConfig>,
         Option<&VisualValleySun>,
     )>,
-    cameras: Query<(&Camera, Option<&ContactShadows>), With<Camera3d>>,
+    cameras: Query<
+        (&Camera, Option<&ContactShadows>),
+        (
+            With<Camera3d>,
+            Without<crate::scene_camera::OffscreenSceneCamera>,
+        ),
+    >,
     mut stats: ResMut<VisualValleyShadowStats>,
 ) {
-    let settings = request.document.preset(request.tier).shadows;
+    let settings = request.effective_settings();
     let mut observed = ShadowQualityObservation {
         source_hash: request.source_hash.clone(),
         requested_tier: request.tier,
@@ -205,7 +234,9 @@ fn observe_shadow_quality(
         } else {
             "incomplete_projection"
         };
-        observed.projected_tier = matches.then_some(request.tier);
+        observed.projected_tier = (matches
+            && settings == request.document.preset(request.tier).shadows)
+            .then_some(request.tier);
     }
     stats.quality = Some(observed);
 }
@@ -308,6 +339,43 @@ mod tests {
         assert_eq!(
             app.world().resource::<ShadowQualityRequest>().document,
             document
+        );
+    }
+
+    #[test]
+    fn offscreen_capture_does_not_obscure_the_scene_camera() {
+        let (mut app, _, camera) = app(policy());
+        let capture = app
+            .world_mut()
+            .spawn((
+                Camera3d::default(),
+                Camera::default(),
+                crate::source_refraction::CaptureCamera,
+            ))
+            .id();
+        app.update();
+        assert_eq!(
+            app.world()
+                .resource::<VisualValleyShadowStats>()
+                .quality
+                .as_ref()
+                .unwrap()
+                .projected_tier,
+            Some(VisualQualityTier::High)
+        );
+        assert!(app.world().get::<ContactShadows>(camera).is_some());
+        assert!(app.world().get::<ContactShadows>(capture).is_none());
+        app.world_mut()
+            .spawn((Camera3d::default(), Camera::default()));
+        app.update();
+        assert_eq!(
+            app.world()
+                .resource::<VisualValleyShadowStats>()
+                .quality
+                .as_ref()
+                .unwrap()
+                .projected_tier,
+            None
         );
     }
 

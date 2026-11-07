@@ -1,4 +1,14 @@
 use forge_core::{AreaId, AssetId, ContentHash, ModuleId, bytes_sha256};
+#[path = "module_package/fish.rs"]
+mod fish_contracts;
+#[path = "module_package/objects.rs"]
+mod object_contracts;
+#[path = "module_package/ocean.rs"]
+mod ocean_contracts;
+#[path = "module_package/placement_companions.rs"]
+mod placement_companion_contracts;
+#[path = "module_package/terrain.rs"]
+mod terrain_contracts;
 use forge_project::{
     authoring::new_terrain,
     module_package::{
@@ -36,12 +46,21 @@ fn fixture(key: &str) -> (ModulePackageManifest, Vec<u8>) {
     let asset_hash = bytes_sha256(b"asset payload");
     (
         ModulePackageManifest {
+            terrain_surfaces: Vec::new(),
+            ocean_inputs: Vec::new(),
+            local_light_packages: Vec::new(),
+            historical_models: Vec::new(),
+            placement_companions: Vec::new(),
+            environments: Vec::new(),
+            objects: Vec::new(),
+            fish_profiles: Vec::new(),
+            vegetation: Vec::new(),
             creator: None,
             schema: MODULE_PACKAGE_SCHEMA.into(),
             version: MODULE_PACKAGE_VERSION,
             project_id,
             module_id: ModuleId::deterministic(key),
-            name: "Île de test".into(),
+            name: "ÃŽle de test".into(),
             module_version: "1.0.0".into(),
             compatibility: ModuleCompatibility {
                 engine_version: "0.1.0".into(),
@@ -405,6 +424,7 @@ fn authored_placement_requires_the_same_asset_id_and_payload_pin() {
     let mut corrections = zone.head().corrections.clone();
     corrections.placements = Some(vec![
         forge_project::zone_authoring::placements::ManualPlacement {
+            local_lights: None,
             id: forge_core::EntityId::deterministic("package-placement"),
             name: "Authored object".into(),
             asset_id: manifest.assets[0].asset_id,
@@ -478,9 +498,9 @@ fn zone_blob_references_must_match_its_canonical_source_documents() {
 #[test]
 fn unicode_filename_aliases_are_refused_but_display_names_remain_unicode() {
     let (manifest, _) = fixture("portable-names");
-    assert_eq!(manifest.name, "Île de test");
+    assert_eq!(manifest.name, "ÃŽle de test");
     manifest.validate().unwrap();
-    for path in ["assets/σ.glb", "assets/ς.glb", "assets/maison-é.glb"] {
+    for path in ["assets/Ïƒ.glb", "assets/Ï‚.glb", "assets/maison-Ã©.glb"] {
         let mut changed = manifest.clone();
         changed.assets[0].file_path = path.into();
         changed
@@ -495,16 +515,16 @@ fn unicode_filename_aliases_are_refused_but_display_names_remain_unicode() {
         );
     }
     let mut aliases = manifest;
-    aliases.assets[0].file_path = "assets/σ.glb".into();
+    aliases.assets[0].file_path = "assets/Ïƒ.glb".into();
     aliases
         .files
         .iter_mut()
         .find(|file| file.role == ModuleFileRole::Asset)
         .unwrap()
-        .path = "assets/σ.glb".into();
+        .path = "assets/Ïƒ.glb".into();
     let mut second = aliases.assets[0].clone();
     second.asset_id = AssetId::deterministic("final-sigma-alias");
-    second.file_path = "assets/ς.glb".into();
+    second.file_path = "assets/Ï‚.glb".into();
     let mut second_file = aliases
         .files
         .iter()
@@ -559,6 +579,7 @@ fn vegetation_package(
         let blob_hash = bytes_sha256(&blob);
         vegetation.schema_version = 2;
         vegetation.imported_source = Some(ImportedVegetationSource {
+            grass: None,
             schema: "forge.imported-vegetation".into(),
             version: 1,
             blocks: vec![ImportedVegetationBlock {
@@ -617,16 +638,392 @@ fn unresolved_species_catalogs_are_refused_after_canonical_archive_validation() 
     ));
 }
 
+fn api3_vegetation(imported: bool) -> (ModulePackageManifest, Vec<u8>) {
+    use forge_project::module_package::{
+        MODULE_VEGETATION_API_VERSION, ModuleFilePin, ModuleVegetationBinding,
+        ModuleVegetationSource,
+    };
+    let (mut module, mut zone, layer, _) = vegetation_package("api3-vegetation", imported);
+    module.compatibility.module_api_version = MODULE_VEGETATION_API_VERSION;
+    let mut sources = Vec::new();
+    let pin = |path: &str| ModuleFilePin {
+        path: path.into(),
+        sha256: bytes_sha256(b"x"),
+    };
+    if imported {
+        module
+            .files
+            .push(file("plants/index.json", ModuleFileRole::Vegetation));
+        module
+            .files
+            .push(file("plants/data.bin", ModuleFileRole::Vegetation));
+        sources.push(ModuleVegetationSource::ImportedPrototypes {
+            index: pin("plants/index.json"),
+            resources: vec![pin("plants/data.bin"), pin("licenses/module.txt")],
+        });
+    } else {
+        module
+            .files
+            .push(file("plants/catalog.json", ModuleFileRole::Vegetation));
+        module
+            .files
+            .push(file("plants/kit.json", ModuleFileRole::Vegetation));
+        let request = zone
+            .head()
+            .prepare_species(
+                layer.clone(),
+                Some(vec![
+                    forge_project::zone_authoring::species::SpeciesReference {
+                        catalog_sha256: bytes_sha256(b"x"),
+                        source_layer_id: layer,
+                        asset_id: "governed-tree".into(),
+                    },
+                ]),
+                forge_core::CommandId::deterministic("api3-species"),
+            )
+            .unwrap();
+        zone.execute(&request).unwrap();
+        sources.push(ModuleVegetationSource::GovernedSpecies {
+            catalogs: vec![pin("plants/catalog.json")],
+            asset_kit: pin("plants/kit.json"),
+        });
+    }
+    module.vegetation.push(ModuleVegetationBinding {
+        area_id: module.zones[0].area_id,
+        vegetation_sha256: zone
+            .head()
+            .effective()
+            .unwrap()
+            .1
+            .unwrap()
+            .content_hash()
+            .unwrap(),
+        sources,
+    });
+    let archive = repin_archive(&mut module, &zone);
+    (module, archive)
+}
+
 #[test]
-fn unresolved_physics_and_particle_packages_are_refused_on_authored_assets() {
+fn api3_closes_vegetation_references_without_claiming_payload_or_renderer_validation() {
+    for imported in [false, true] {
+        let (module, archive) = api3_vegetation(imported);
+        module.validate().unwrap();
+        module
+            .validate_zone_archive(module.zones[0].area_id, &archive)
+            .unwrap();
+        assert_eq!(
+            ModulePackageManifest::from_bytes(&module.to_bytes().unwrap()).unwrap(),
+            module
+        );
+        for api in [1, 2] {
+            let mut old = module.clone();
+            old.compatibility.module_api_version = api;
+            assert!(old.validate().is_err());
+        }
+        let mut stale = module.clone();
+        stale.vegetation[0].vegetation_sha256 = bytes_sha256(b"changed-head");
+        assert!(
+            stale
+                .validate_zone_archive(stale.zones[0].area_id, &archive)
+                .is_err()
+        );
+        let mut orphan = module.clone();
+        orphan.vegetation[0].area_id = AreaId::deterministic("orphan-vegetation");
+        assert!(orphan.validate().is_err());
+        let mut duplicate = module.clone();
+        duplicate.vegetation.push(duplicate.vegetation[0].clone());
+        assert!(duplicate.validate().is_err());
+    }
+}
+
+#[test]
+fn legacy_apis_keep_their_serialization_and_refuse_even_an_empty_new_field() {
+    let (mut module, _) = fixture("legacy-vegetation-field");
+    for api in [1, 2] {
+        module.compatibility.module_api_version = api;
+        let original = module.to_bytes().unwrap();
+        let mut wire: serde_json::Value = serde_json::from_slice(&original).unwrap();
+        assert!(wire.get("vegetation").is_none());
+        assert_eq!(
+            ModulePackageManifest::from_bytes(&original).unwrap(),
+            module
+        );
+        wire["vegetation"] = serde_json::json!([]);
+        assert!(matches!(
+            ModulePackageManifest::from_bytes(&serde_json::to_vec(&wire).unwrap()),
+            Err(ModulePackageError::Compatibility)
+        ));
+    }
+}
+
+#[test]
+fn vegetation_companion_roles_hashes_orphans_and_byte_budget_are_enforced() {
+    let (module, archive) = api3_vegetation(false);
+    for kind in 0..5 {
+        let mut changed = module.clone();
+        let declared = changed
+            .files
+            .iter_mut()
+            .find(|file| file.path == "plants/catalog.json")
+            .unwrap();
+        match kind {
+            0 => declared.sha256 = bytes_sha256(b"changed"),
+            1 => declared.role = ModuleFileRole::License,
+            2 => {
+                declared.bytes =
+                    forge_project::module_package::vegetation::MAX_MODULE_VEGETATION_BYTES + 1;
+            }
+            3 => changed.vegetation.clear(),
+            4 => changed
+                .files
+                .push(file("plants/unused.bin", ModuleFileRole::Vegetation)),
+            _ => unreachable!(),
+        }
+        assert!(changed.validate().is_err());
+    }
+    let mut missing = module.clone();
+    missing.vegetation[0].sources.clear();
+    assert!(missing.validate().is_err());
+    let mut foreign = module;
+    let forge_project::module_package::ModuleVegetationSource::GovernedSpecies { catalogs, .. } =
+        &mut foreign.vegetation[0].sources[0]
+    else {
+        unreachable!()
+    };
+    catalogs[0].sha256 = bytes_sha256(b"different-catalog");
+    assert!(
+        foreign
+            .validate_zone_archive(foreign.zones[0].area_id, &archive)
+            .is_err()
+    );
+}
+
+#[test]
+fn declared_shared_vegetation_files_are_charged_once_across_two_authored_areas() {
+    use forge_project::module_package::vegetation::MAX_MODULE_VEGETATION_BYTES;
+    let (mut module, first_archive) = api3_vegetation(false);
+    let first = ZoneEditSession::from_archive_bytes(&first_archive).unwrap();
+    let second_area = AreaId::deterministic("shared-vegetation-second-area");
+    let mut terrain = first.head().base.terrain.clone();
+    terrain.area_id = second_area;
+    let mut second = ZoneEditSession::from_initial_terrain(terrain).unwrap();
+    let mut base = second.head().base.clone();
+    let mut vegetation = first.head().base.vegetation.clone().unwrap();
+    vegetation.area_id = second_area;
+    base.vegetation = Some(vegetation);
+    let request = second
+        .head()
+        .prepare_regeneration(
+            base,
+            forge_core::CommandId::deterministic("shared-vegetation-base"),
+        )
+        .unwrap();
+    second.execute(&request).unwrap();
+    let selected = &first.head().corrections.species.as_ref().unwrap()[0];
+    let request = second
+        .head()
+        .prepare_species(
+            selected.layer_id.clone(),
+            Some(selected.prototypes.clone()),
+            forge_core::CommandId::deterministic("shared-vegetation-species"),
+        )
+        .unwrap();
+    second.execute(&request).unwrap();
+    let archive = second.archive_bytes().unwrap();
+    module.zones.push(ModuleZone {
+        area_id: second_area,
+        archive_path: "zones/second.json".into(),
+        archive_sha256: bytes_sha256(&archive),
+        head_hash: second.head().content_hash().unwrap(),
+        gameplay_sha256: None,
+        source_blobs: Vec::new(),
+    });
+    module.files.push(ModuleFile {
+        path: "zones/second.json".into(),
+        bytes: archive.len() as u64,
+        sha256: bytes_sha256(&archive),
+        role: ModuleFileRole::ZoneArchive,
+    });
+    let mut binding = module.vegetation[0].clone();
+    binding.area_id = second_area;
+    binding.vegetation_sha256 = second
+        .head()
+        .effective()
+        .unwrap()
+        .1
+        .unwrap()
+        .content_hash()
+        .unwrap();
+    module.vegetation.push(binding);
+    // Exercise declared-byte accounting, not payload decoding: no large file is produced.
+    for file in module
+        .files
+        .iter_mut()
+        .filter(|file| file.role == ModuleFileRole::Vegetation)
+    {
+        file.bytes = MAX_MODULE_VEGETATION_BYTES / 2;
+    }
+    module.validate().unwrap();
+    module
+        .validate_zone_archive(first.head().base.terrain.area_id, &first_archive)
+        .unwrap();
+    module.validate_zone_archive(second_area, &archive).unwrap();
+}
+
+#[test]
+fn source_object_copy_cannot_hide_an_unresolved_light_package() {
     use forge_project::zone_authoring::{
-        placements::{ManualPlacement, ParticlePackageReference, PhysicsPackageReference},
+        placements::{LocalLightAnchor, LocalLightPackageReference, ManualPlacement},
+        session::{ZoneAction, ZoneRequest},
+        source_objects::{SourceObjectEdit, SourceObjectState},
+    };
+    let (mut manifest, archive) = fixture("source-copy-light-gap");
+    let mut zone = ZoneEditSession::from_archive_bytes(&archive).unwrap();
+    let source = ManualPlacement {
+        id: forge_core::EntityId::deterministic("source-without-light"),
+        name: "Source object".into(),
+        asset_id: manifest.assets[0].asset_id,
+        asset_hash: manifest.assets[0].sha256,
+        physics: None,
+        particles: None,
+        local_lights: None,
+        transform: forge_core::Transform::IDENTITY,
+        locked: false,
+    };
+    let mut copy = source.clone();
+    copy.id = forge_core::EntityId::deterministic("copy-with-light");
+    copy.local_lights = Some(Box::new(LocalLightPackageReference {
+        schema_version: 1,
+        carrier_sha256: source.asset_hash,
+        manifest_sha256: bytes_sha256(b"missing-copy-light-manifest"),
+        descriptor_sha256: bytes_sha256(b"missing-copy-light-descriptor"),
+        light_ids: vec![bytes_sha256(b"copy-light")],
+        anchors: vec![LocalLightAnchor {
+            frame_id: "owner".into(),
+            transform: forge_core::Transform::IDENTITY,
+        }],
+    }));
+    let mut corrections = zone.head().corrections.clone();
+    corrections.source_object_edits = Some(vec![SourceObjectEdit {
+        source,
+        state: SourceObjectState::Removed,
+        copies: vec![copy],
+    }]);
+    zone.execute(&ZoneRequest {
+        command_id: forge_core::CommandId::deterministic("insert-copy-light"),
+        expected_hash: zone.head().content_hash().unwrap(),
+        expected_revision: zone.head().revision,
+        action: ZoneAction::edit(corrections),
+    })
+    .unwrap();
+    let archive = repin_archive(&mut manifest, &zone);
+    manifest.validate().unwrap();
+    let error = manifest
+        .validate_zone_archive(manifest.zones[0].area_id, &archive)
+        .unwrap_err();
+    assert!(error.to_string().contains("local-light companion"));
+}
+
+#[test]
+fn private_history_models_preserve_old_pins_without_substituting_the_playable_model() {
+    use forge_project::{
+        module_package::{
+            MODULE_HISTORICAL_MODELS_API_VERSION, ModuleFilePin, ModuleHistoricalModel,
+        },
+        zone_authoring::{
+            placements::ManualPlacement,
+            session::{ZoneAction, ZoneRequest},
+        },
+    };
+    let (mut manifest, archive) = fixture("historical-model-revision");
+    let mut zone = ZoneEditSession::from_archive_bytes(&archive).unwrap();
+    let older = bytes_sha256(b"older model");
+    let active = manifest.assets[0].sha256;
+    let asset_id = manifest.assets[0].asset_id;
+    manifest.compatibility.module_api_version = MODULE_HISTORICAL_MODELS_API_VERSION;
+    let historical = ModuleFilePin {
+        path: "history/older.glb".into(),
+        sha256: older,
+    };
+    manifest.files.push(ModuleFile {
+        path: historical.path.clone(),
+        bytes: 11,
+        sha256: older,
+        role: ModuleFileRole::HistoricalModel,
+    });
+    manifest.historical_models.push(ModuleHistoricalModel {
+        asset_id,
+        payload: historical,
+        license_path: manifest.provenance.license_paths[0].clone(),
+        static_triangle_meshes: true,
+    });
+    for (index, pin) in [older, active].into_iter().enumerate() {
+        let mut corrections = zone.head().corrections.clone();
+        corrections.placements = Some(vec![ManualPlacement {
+            id: forge_core::EntityId::deterministic("same placement"),
+            name: "Historical model".into(),
+            asset_id,
+            asset_hash: pin,
+            physics: None,
+            particles: None,
+            local_lights: None,
+            transform: forge_core::Transform::IDENTITY,
+            locked: false,
+        }]);
+        zone.execute(&ZoneRequest {
+            command_id: forge_core::CommandId::deterministic(format!("model revision {index}")),
+            expected_hash: zone.head().content_hash().unwrap(),
+            expected_revision: zone.head().revision,
+            action: ZoneAction::edit(corrections),
+        })
+        .unwrap();
+        if index == 0 {
+            let archive = repin_archive(&mut manifest, &zone);
+            assert!(
+                manifest
+                    .validate_zone_archive(manifest.zones[0].area_id, &archive)
+                    .is_err()
+            );
+        }
+    }
+    let archive = repin_archive(&mut manifest, &zone);
+    let restored = ModulePackageManifest::from_bytes(&manifest.to_bytes().unwrap()).unwrap();
+    restored
+        .validate_zone_archive(restored.zones[0].area_id, &archive)
+        .unwrap();
+    let mut missing = restored.clone();
+    missing.historical_models.clear();
+    missing
+        .files
+        .retain(|file| file.role != ModuleFileRole::HistoricalModel);
+    assert!(
+        missing
+            .validate_zone_archive(missing.zones[0].area_id, &archive)
+            .is_err()
+    );
+    let mut public = restored;
+    public.provenance.rights = ModuleRights::Redistributable;
+    assert!(matches!(
+        public.validate(),
+        Err(ModulePackageError::Compatibility)
+    ));
+}
+
+#[test]
+fn unresolved_placement_companions_are_refused_on_authored_assets() {
+    use forge_project::zone_authoring::{
+        placements::{
+            LocalLightAnchor, LocalLightPackageReference, ManualPlacement,
+            ParticlePackageReference, PhysicsPackageReference,
+        },
         session::{ZoneAction, ZoneRequest},
     };
-    for particle in [false, true] {
+    for kind in 0..3 {
         let (mut manifest, archive) = fixture("annex-gap");
         let mut zone = ZoneEditSession::from_archive_bytes(&archive).unwrap();
         let mut placement = ManualPlacement {
+            local_lights: None,
             id: forge_core::EntityId::deterministic("package-annex"),
             name: "Object with unresolved companion package".into(),
             asset_id: manifest.assets[0].asset_id,
@@ -636,7 +1033,19 @@ fn unresolved_physics_and_particle_packages_are_refused_on_authored_assets() {
             transform: forge_core::Transform::IDENTITY,
             locked: false,
         };
-        if particle {
+        if kind == 2 {
+            placement.local_lights = Some(Box::new(LocalLightPackageReference {
+                schema_version: 1,
+                carrier_sha256: placement.asset_hash,
+                manifest_sha256: bytes_sha256(b"absent-light-manifest"),
+                descriptor_sha256: bytes_sha256(b"absent-light-descriptor"),
+                light_ids: vec![bytes_sha256(b"emitter")],
+                anchors: vec![LocalLightAnchor {
+                    frame_id: "owner".into(),
+                    transform: forge_core::Transform::IDENTITY,
+                }],
+            }));
+        } else if kind == 1 {
             placement.particles = Some(Box::new(ParticlePackageReference {
                 schema_version: 1,
                 carrier_sha256: placement.asset_hash,
@@ -663,10 +1072,33 @@ fn unresolved_physics_and_particle_packages_are_refused_on_authored_assets() {
         let archive = repin_archive(&mut manifest, &zone);
         ZoneEditSession::from_archive_bytes(&archive).unwrap();
         manifest.validate().unwrap();
-        assert!(matches!(
-            manifest.validate_zone_archive(manifest.zones[0].area_id, &archive),
-            Err(ModulePackageError::Archive(_))
-        ));
+        let error = manifest
+            .validate_zone_archive(manifest.zones[0].area_id, &archive)
+            .unwrap_err();
+        assert!(matches!(error, ModulePackageError::Archive(_)));
+        let mut corrections = zone.head().corrections.clone();
+        let placement = &mut corrections.placements.as_mut().unwrap()[0];
+        match kind {
+            0 => placement.physics = None,
+            1 => placement.particles = None,
+            _ => placement.local_lights = None,
+        }
+        zone.execute(&ZoneRequest {
+            command_id: forge_core::CommandId::deterministic("remove-current-companion"),
+            expected_hash: zone.head().content_hash().unwrap(),
+            expected_revision: zone.head().revision,
+            action: ZoneAction::edit(corrections),
+        })
+        .unwrap();
+        let archive = repin_archive(&mut manifest, &zone);
+        let error = manifest
+            .validate_zone_archive(manifest.zones[0].area_id, &archive)
+            .unwrap_err();
+        assert!(error.to_string().contains(if kind == 2 {
+            "local-light companion"
+        } else {
+            "physics and particle companion"
+        }));
     }
 }
 
@@ -978,4 +1410,185 @@ fn package_refuses_foreign_and_future_creator_definitions() {
         future.validate(),
         Err(ModulePackageError::Creator(_))
     ));
+}
+
+#[test]
+fn environment_omission_preserves_old_wire_and_api_three_refuses_the_new_field() {
+    for api in [1, 2, 3] {
+        let (mut module, _) = fixture("environment-legacy");
+        module.compatibility.module_api_version = api;
+        let bytes = module.to_bytes().unwrap();
+        let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert!(value.get("environments").is_none());
+        assert_eq!(ModulePackageManifest::from_bytes(&bytes).unwrap(), module);
+        value["environments"] = serde_json::json!([]);
+        assert!(matches!(
+            ModulePackageManifest::from_bytes(&serde_json::to_vec(&value).unwrap()),
+            Err(ModulePackageError::Compatibility)
+        ));
+    }
+}
+
+#[test]
+fn environment_declarations_are_explicit_closed_bounded_and_area_owned() {
+    use forge_project::module_package::{
+        ModuleEnvironmentBinding, ModuleEnvironmentFiles, ModuleEnvironmentSource, ModuleFilePin,
+    };
+    let (mut module, archive) = fixture("environment-closure");
+    module.compatibility.module_api_version = 4;
+    let index = file("environment/package.json", ModuleFileRole::Environment);
+    let shader = file("environment/sky.wgsl", ModuleFileRole::Environment);
+    module.environments.push(ModuleEnvironmentBinding {
+        solar_clock: None,
+        area_id: module.zones[0].area_id,
+        source: ModuleEnvironmentSource::SourceProfile {
+            environment: ModuleEnvironmentFiles {
+                manifest: ModuleFilePin {
+                    path: index.path.clone(),
+                    sha256: index.sha256,
+                },
+                resources: vec![ModuleFilePin {
+                    path: shader.path.clone(),
+                    sha256: shader.sha256,
+                }],
+            },
+            programs: None,
+        },
+    });
+    module.files.extend([index, shader]);
+    module.validate().unwrap();
+    module
+        .validate_zone_archive(module.zones[0].area_id, &archive)
+        .unwrap();
+    for mutation in 0..9 {
+        let mut invalid = module.clone();
+        match mutation {
+            0 => invalid.compatibility.module_api_version = 3,
+            1 => invalid.environments.push(invalid.environments[0].clone()),
+            2 => invalid.environments[0].area_id = AreaId::deterministic("foreign-environment"),
+            3 => {
+                let ModuleEnvironmentSource::SourceProfile { environment, .. } =
+                    &mut invalid.environments[0].source;
+                environment.resources[0].sha256 = bytes_sha256(b"foreign");
+            }
+            4 => {
+                let ModuleEnvironmentSource::SourceProfile { environment, .. } =
+                    &mut invalid.environments[0].source;
+                environment.resources[0] = environment.manifest.clone();
+            }
+            5 => invalid.files.last_mut().unwrap().role = ModuleFileRole::Asset,
+            6 => invalid
+                .files
+                .push(file("environment/orphan", ModuleFileRole::Environment)),
+            7 => invalid.files.last_mut().unwrap().bytes = 64 * 1024 * 1024 + 1,
+            _ => {
+                let ModuleEnvironmentSource::SourceProfile { environment, .. } =
+                    &mut invalid.environments[0].source;
+                environment.resources.clear();
+            }
+        }
+        assert!(invalid.validate().is_err(), "mutation {mutation}");
+    }
+}
+
+#[test]
+fn solar_clock_is_explicit_versioned_bounded_and_requires_live_programs() {
+    use forge_project::module_package::{
+        ModuleEnvironmentBinding, ModuleEnvironmentFiles, ModuleEnvironmentSource, ModuleFilePin,
+        ModuleSolarClock,
+    };
+    let (mut module, archive) = fixture("solar-clock");
+    let clock = ModuleSolarClock {
+        captured_minutes: 972,
+        start_minutes: 0,
+        azimuth_degrees: 0,
+        day_length_seconds: None,
+    };
+    let files: Vec<_> = [
+        "solar/index.json",
+        "solar/sky.wgsl",
+        "solar/programs.json",
+        "solar/program.wgsl",
+    ]
+    .into_iter()
+    .map(|p| file(p, ModuleFileRole::Environment))
+    .collect();
+    let package = |index: usize| ModuleEnvironmentFiles {
+        manifest: ModuleFilePin {
+            path: files[index].path.clone(),
+            sha256: files[index].sha256,
+        },
+        resources: vec![ModuleFilePin {
+            path: files[index + 1].path.clone(),
+            sha256: files[index + 1].sha256,
+        }],
+    };
+    module.compatibility.module_api_version = 6;
+    module.environments.push(ModuleEnvironmentBinding {
+        area_id: module.zones[0].area_id,
+        solar_clock: Some(clock),
+        source: ModuleEnvironmentSource::SourceProfile {
+            environment: package(0),
+            programs: Some(package(2)),
+        },
+    });
+    module.files.extend(files);
+    module.validate().unwrap();
+    module
+        .validate_zone_archive(module.zones[0].area_id, &archive)
+        .unwrap();
+    assert_eq!(
+        ModulePackageManifest::from_bytes(&module.to_bytes().unwrap()).unwrap(),
+        module
+    );
+    for case in 0..6 {
+        let mut bad = module.clone();
+        match case {
+            0 => bad.compatibility.module_api_version = 5,
+            1 => {
+                bad.environments[0]
+                    .solar_clock
+                    .as_mut()
+                    .unwrap()
+                    .captured_minutes = 1441;
+            }
+            2 => {
+                bad.environments[0]
+                    .solar_clock
+                    .as_mut()
+                    .unwrap()
+                    .start_minutes = 1441;
+            }
+            3 => {
+                bad.environments[0]
+                    .solar_clock
+                    .as_mut()
+                    .unwrap()
+                    .azimuth_degrees = 181;
+            }
+            4 => {
+                bad.environments[0]
+                    .solar_clock
+                    .as_mut()
+                    .unwrap()
+                    .day_length_seconds = Some(0);
+            }
+            _ => {
+                let ModuleEnvironmentSource::SourceProfile { programs, .. } =
+                    &mut bad.environments[0].source;
+                *programs = None;
+            }
+        }
+        assert!(bad.validate().is_err(), "case {case}");
+    }
+    module.environments[0].solar_clock = None;
+    for api in [4, 5] {
+        module.compatibility.module_api_version = api;
+        let bytes = module.to_bytes().unwrap();
+        let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert!(value["environments"][0].get("solar_clock").is_none());
+        ModulePackageManifest::from_bytes(&bytes).unwrap();
+        value["environments"][0]["solar_clock"] = serde_json::Value::Null;
+        assert!(ModulePackageManifest::from_bytes(&serde_json::to_vec(&value).unwrap()).is_err());
+    }
 }

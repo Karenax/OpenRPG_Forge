@@ -6,20 +6,20 @@ use bevy::{
 };
 use std::collections::HashMap;
 
-pub(super) struct ProjectionBounds<'a> {
+pub(crate) struct ProjectionBounds<'a> {
     meshes: &'a Assets<Mesh>,
     computed: HashMap<AssetId<Mesh>, Aabb>,
 }
 
 impl<'a> ProjectionBounds<'a> {
-    pub(super) fn new(meshes: &'a Assets<Mesh>) -> Self {
+    pub(crate) fn new(meshes: &'a Assets<Mesh>) -> Self {
         Self {
             meshes,
             computed: HashMap::new(),
         }
     }
 
-    pub(super) fn get(&mut self, id: AssetId<Mesh>) -> Result<Aabb, &'static str> {
+    pub(crate) fn get(&mut self, id: AssetId<Mesh>) -> Result<Aabb, &'static str> {
         // The immutable asset borrow prevents edits during this cache's lifetime.
         // A new preparation creates a new cache, so in-place edits are not hidden.
         if let Some(bounds) = self.computed.get(&id) {

@@ -41,6 +41,11 @@ enum Step {
         ticks: u32,
         timeout_s: u32,
     },
+    SwimVertical {
+        direction: SwimDirection,
+        ticks: u32,
+        timeout_s: u32,
+    },
     MoveTo {
         position_xz: [f32; 2],
         tolerance_m: f32,
@@ -65,7 +70,38 @@ enum Step {
         open: bool,
         timeout_s: u32,
     },
+    GraphicsTier {
+        tier: forge_project::VisualQualityTier,
+        timeout_s: u32,
+    },
+    GraphicsMenu {
+        open: bool,
+        timeout_s: u32,
+    },
     Exit,
+}
+
+#[derive(Clone, Copy, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum SwimDirection {
+    Down,
+    Up,
+}
+
+impl SwimDirection {
+    const fn key(self) -> KeyCode {
+        match self {
+            Self::Down => KeyCode::KeyC,
+            Self::Up => KeyCode::Space,
+        }
+    }
+
+    const fn sampled(self, input: crate::amphibious_player::AmphibiousPlayerInput) -> bool {
+        match self {
+            Self::Down => input.descend,
+            Self::Up => input.ascend,
+        }
+    }
 }
 impl Step {
     fn timeout(&self) -> u32 {
@@ -73,12 +109,16 @@ impl Step {
             Self::WaitReady { timeout_s }
             | Self::WaitTicks { timeout_s, .. }
             | Self::Move { timeout_s, .. }
+            | Self::SwimVertical { timeout_s, .. }
             | Self::MoveTo { timeout_s, .. }
             | Self::Action { timeout_s, .. }
             | Self::Save { timeout_s }
             | Self::ResumeNextLaunch { timeout_s, .. }
             | Self::Capture { timeout_s, .. }
             | Self::Menu { timeout_s, .. } => timeout_s,
+            Self::GraphicsTier { timeout_s, .. } | Self::GraphicsMenu { timeout_s, .. } => {
+                timeout_s
+            }
             Self::Exit => 1,
         }
     }
@@ -96,6 +136,7 @@ struct Scenario {
     command_sequence: u64,
     expected_command: Option<NativeGameplayCommand>,
     expected_action: Option<CommandId>,
+    expected_graphics_sequence: Option<u64>,
     action_sequence: u64,
     captured: bool,
     finished: bool,
@@ -161,6 +202,7 @@ pub(super) fn install(app: &mut App) -> Result<(), String> {
         command_sequence: 0,
         expected_command: None,
         expected_action: None,
+        expected_graphics_sequence: None,
         action_sequence: 0,
         captured: false,
         finished: false,
@@ -175,11 +217,39 @@ pub(super) fn install(app: &mut App) -> Result<(), String> {
 
 fn install_driver(app: &mut App) {
     app.add_systems(
+        PreUpdate,
+        focus_swim_input
+            .after(bevy::input::InputSystems)
+            .before(crate::amphibious_player::AmphibiousInputSampleSet),
+    );
+    app.add_systems(
         FixedUpdate,
         drive
             .before(crate::PlayerControllerSet::Drive)
             .after(super::readiness),
     );
+    app.add_systems(
+        Last,
+        finish_exit
+            .after(super::NativeScenarioEvidenceSet)
+            .before(bevy::diagnostic::update_frame_count),
+    );
+}
+
+fn focus_swim_input(
+    scenario: Option<Res<Scenario>>,
+    keys: Option<Res<ButtonInput<KeyCode>>>,
+    mut focus: ResMut<crate::PlayerInputFocus>,
+) {
+    let Some(scenario) = scenario else { return };
+    if scenario.finished || !scenario.submitted {
+        return;
+    }
+    if let Some(Step::SwimVertical { direction, .. }) = scenario.plan.steps.get(scenario.step)
+        && keys.is_some_and(|keys| keys.pressed(direction.key()))
+    {
+        focus.0 = true;
+    }
 }
 
 fn validate(plan: &Plan) -> Result<(), String> {
@@ -210,7 +280,9 @@ fn validate(plan: &Plan) -> Result<(), String> {
             {
                 return Err("Invalid scenario input".into());
             }
-            Step::WaitTicks { ticks, .. } if !(1..=36_000).contains(ticks) => {
+            Step::WaitTicks { ticks, .. } | Step::SwimVertical { ticks, .. }
+                if !(1..=36_000).contains(ticks) =>
+            {
                 return Err("Invalid scenario tick budget".into());
             }
             Step::MoveTo {
@@ -268,6 +340,7 @@ fn drive(world: &mut World) {
                 scenario.submitted = false;
                 scenario.expected_command = None;
                 scenario.expected_action = None;
+                scenario.expected_graphics_sequence = None;
                 scenario.step_ticks = 0;
                 scenario.captured = false;
                 scenario.step_started = Instant::now();
@@ -281,8 +354,85 @@ fn drive(world: &mut World) {
     });
 }
 
+/// Finish only after the host's observation of this same frame, so a later
+/// `PostUpdate` publication cannot invalidate an already-recorded successful exit.
+fn finish_exit(world: &mut World) {
+    if !world.contains_resource::<Scenario>() {
+        return;
+    }
+    world.resource_scope(|world, mut scenario: Mut<Scenario>| {
+        if scenario.finished || !matches!(scenario.plan.steps.get(scenario.step), Some(Step::Exit))
+        {
+            return;
+        }
+        if scenario.started.elapsed().as_secs_f64() > f64::from(scenario.plan.max_duration_s)
+            || scenario.step_started.elapsed().as_secs_f64() > f64::from(Step::Exit.timeout())
+        {
+            fail(
+                world,
+                &mut scenario,
+                "Native scenario exit readiness deadline exceeded",
+            );
+            return;
+        }
+        let current_evidence = world
+            .get_resource::<super::NativeScenarioProjection>()
+            .is_none_or(|status| {
+                status.ready
+                    && world
+                        .get_resource::<bevy::diagnostic::FrameCount>()
+                        .is_some_and(|frame| frame.0 == status.frame)
+            });
+        let graphics_ready = world
+            .get_resource::<super::NativeGraphicsStatus>()
+            .is_none_or(|status| status.ready && status.error.is_none());
+        if !current_evidence
+            || !graphics_ready
+            || !world.resource::<GameplayRuntime>().is_ready()
+            || !installed_scene_dependencies_ready(world)
+            || !crate::static_hlod::selection_is_ready(world)
+        {
+            return;
+        }
+        let step = serde_json::to_value(Step::Exit).unwrap_or(serde_json::Value::Null);
+        if let Err(error) = world.resource_mut::<ObservationSink>().scenario(
+            scenario.hash,
+            scenario.step,
+            "completed",
+            &step,
+        ) {
+            fail(world, &mut scenario, &error);
+            return;
+        }
+        scenario.step += 1;
+        scenario.finished = true;
+        world.write_message(bevy::app::AppExit::Success);
+    });
+}
+
+fn release_swim_input(world: &mut World, scenario: &Scenario) {
+    if !scenario.submitted {
+        return;
+    }
+    let Some(Step::SwimVertical { direction, .. }) = scenario.plan.steps.get(scenario.step) else {
+        return;
+    };
+    if let Some(mut keys) = world.get_resource_mut::<ButtonInput<KeyCode>>() {
+        keys.release(direction.key());
+    }
+    if let Some(mut input) =
+        world.get_resource_mut::<crate::amphibious_player::AmphibiousPlayerInput>()
+    {
+        match direction {
+            SwimDirection::Down => input.descend = false,
+            SwimDirection::Up => input.ascend = false,
+        }
+    }
+}
+
 fn fail(world: &mut World, scenario: &mut Scenario, error: &str) {
     scenario.finished = true;
+    release_swim_input(world, scenario);
     world
         .resource_mut::<PendingPlayerControlCommand>()
         .cancel_input();
@@ -313,11 +463,20 @@ fn execute_step(world: &mut World, scenario: &mut Scenario) -> Result<bool, Stri
         return Err(error.into());
     }
     match step {
-        Step::WaitReady { .. } | Step::Exit => {
+        Step::WaitReady { .. } => {
             world
                 .resource_mut::<PendingPlayerControlCommand>()
                 .cancel_input();
-            Ok(world.resource::<GameplayRuntime>().is_ready())
+            Ok(world.resource::<GameplayRuntime>().is_ready()
+                && installed_scene_dependencies_ready(world)
+                && crate::static_hlod::selection_is_ready(world))
+        }
+        Step::Exit => {
+            world
+                .resource_mut::<PendingPlayerControlCommand>()
+                .cancel_input();
+            // The final decision is made after the host's current-frame evidence.
+            Ok(false)
         }
         Step::WaitTicks { ticks, .. } => {
             world
@@ -359,6 +518,61 @@ fn execute_step(world: &mut World, scenario: &mut Scenario) -> Result<bool, Stri
             };
             submit_input(world, scenario, command)?;
             scenario.step_ticks += 1;
+            Ok(false)
+        }
+        Step::SwimVertical {
+            direction, ticks, ..
+        } => {
+            world
+                .resource_mut::<PendingPlayerControlCommand>()
+                .cancel_input();
+            if !world.contains_resource::<crate::amphibious_player::AmphibiousPlayerInput>()
+                || !world.contains_resource::<ButtonInput<KeyCode>>()
+            {
+                return Err("Swim input requires the interactive amphibious controller".into());
+            }
+            if scenario.step_ticks >= ticks {
+                release_swim_input(world, scenario);
+                return Ok(true);
+            }
+            if !scenario.submitted {
+                let keys = world.resource::<ButtonInput<KeyCode>>();
+                let input = world.resource::<crate::amphibious_player::AmphibiousPlayerInput>();
+                if [KeyCode::Space, KeyCode::KeyC, KeyCode::ControlLeft]
+                    .into_iter()
+                    .any(|key| keys.pressed(key))
+                    || input.ascend
+                    || input.descend
+                    || input.control_descend
+                {
+                    return Err("Swim key is already held by another input".into());
+                }
+                world
+                    .resource_mut::<ButtonInput<KeyCode>>()
+                    .press(direction.key());
+                scenario.submitted = true;
+                world.resource_mut::<ObservationSink>().scenario(
+                    scenario.hash,
+                    scenario.step,
+                    "input_submitted",
+                    &serde_json::json!({"swim_direction": direction}),
+                )?;
+                return Ok(false);
+            }
+            let keys = world.resource::<ButtonInput<KeyCode>>();
+            if !keys.pressed(direction.key())
+                || [KeyCode::Space, KeyCode::KeyC, KeyCode::ControlLeft]
+                    .into_iter()
+                    .any(|key| key != direction.key() && keys.pressed(key))
+            {
+                return Err("Swim key changed during the scenario step".into());
+            }
+            if world.resource::<GameplayRuntime>().is_ready()
+                && direction
+                    .sampled(*world.resource::<crate::amphibious_player::AmphibiousPlayerInput>())
+            {
+                scenario.step_ticks += 1;
+            }
             Ok(false)
         }
         Step::MoveTo {
@@ -466,6 +680,11 @@ fn execute_step(world: &mut World, scenario: &mut Scenario) -> Result<bool, Stri
                 .cancel_input();
             let path = scenario.output.join(&name);
             if !scenario.submitted {
+                if !installed_scene_dependencies_ready(world)
+                    || !crate::static_hlod::selection_is_ready(world)
+                {
+                    return Ok(false);
+                }
                 if path.exists() {
                     return Err("Scenario capture already exists".into());
                 }
@@ -488,6 +707,58 @@ fn execute_step(world: &mut World, scenario: &mut Scenario) -> Result<bool, Stri
                 return Err("Native screenshot export is invalid".into());
             }
             Ok(true)
+        }
+        Step::GraphicsTier { tier, .. } => {
+            let status = world
+                .get_resource::<super::NativeGraphicsStatus>()
+                .ok_or("This host has no graphics controller")?;
+            if scenario.submitted {
+                let expected = scenario
+                    .expected_graphics_sequence
+                    .ok_or("Graphics request identity absent")?;
+                if status.request_sequence < expected {
+                    return Ok(false);
+                }
+                if status.request_sequence != expected {
+                    return Err("The graphics request was replaced during qualification".into());
+                }
+                if let Some(error) = &status.error {
+                    return Err(format!("Graphics settings failed: {error}"));
+                }
+                return Ok(status.ready
+                    && status.requested == tier
+                    && status.applied == Some(tier)
+                    && status.persisted == Some(tier));
+            }
+            scenario.expected_graphics_sequence = Some(
+                status
+                    .request_sequence
+                    .checked_add(1)
+                    .ok_or("Graphics request identity overflow")?,
+            );
+            world.write_message(super::NativeGraphicsCommand(tier));
+            scenario.submitted = true;
+            Ok(false)
+        }
+        Step::GraphicsMenu { open, .. } => {
+            let status = world
+                .get_resource::<super::NativeGraphicsStatus>()
+                .ok_or("This host has no graphics controls")?;
+            if status.menu_open == open {
+                if scenario.submitted {
+                    world
+                        .resource_mut::<ButtonInput<KeyCode>>()
+                        .release(KeyCode::F2);
+                }
+                return Ok(true);
+            }
+            if !scenario.submitted {
+                world
+                    .resource_mut::<ButtonInput<KeyCode>>()
+                    .press(KeyCode::F2);
+                scenario.submitted = true;
+            }
+            Ok(false)
         }
         Step::Menu { open, .. } => {
             world
@@ -521,6 +792,14 @@ fn execute_step(world: &mut World, scenario: &mut Scenario) -> Result<bool, Stri
             Ok(false)
         }
     }
+}
+
+fn installed_scene_dependencies_ready(world: &World) -> bool {
+    world
+        .get_resource::<crate::source_environment::host::Status>()
+        .is_none_or(|environment| environment.ready && environment.error.is_none())
+        && (!world.contains_resource::<crate::VegetationPrototypeRuntimeStatus>()
+            || crate::governed_forest_runtime_status(world).ready)
 }
 
 fn move_to_axis(near: bool, speed: f32) -> Vec2 {
@@ -712,6 +991,31 @@ mod tests {
     }
 
     #[test]
+    fn required_species_block_both_scenario_capture_and_exit_without_gpu_evidence() {
+        let directory = super::super::tests::Directory::new();
+        let (mut app, _, _) = exit_app(&directory, true, true);
+        app.insert_resource(crate::VegetationPrototypeRuntimeStatus::default());
+        app.update();
+        assert!(app.should_exit().is_none());
+        assert!(!app.world().resource::<Scenario>().finished);
+        app.world_mut().resource_mut::<Scenario>().plan.steps = vec![
+            Step::Capture {
+                name: "blocked.png".into(),
+                timeout_s: 30,
+            },
+            Step::Exit,
+        ];
+        app.update();
+        assert!(!app.world().resource::<Scenario>().submitted);
+        assert!(!directory.root.join("blocked.png").exists());
+        app.world_mut()
+            .remove_resource::<crate::VegetationPrototypeRuntimeStatus>();
+        app.world_mut().resource_mut::<Scenario>().plan.steps = vec![Step::Exit];
+        app.update();
+        assert_eq!(app.should_exit(), Some(bevy::app::AppExit::Success));
+    }
+
+    #[test]
     fn native_exit_waits_for_current_projection_readiness() {
         assert_exit_waits_for_current_readiness(true, false);
     }
@@ -719,6 +1023,49 @@ mod tests {
     #[test]
     fn native_exit_waits_for_current_player_readiness() {
         assert_exit_waits_for_current_readiness(false, true);
+    }
+
+    #[test]
+    fn scenario_exit_waits_for_the_current_host_observation_after_fixed_update() {
+        let directory = super::super::tests::Directory::new();
+        let (mut app, observation_path, _) = exit_app(&directory, true, true);
+        app.insert_resource(bevy::diagnostic::FrameCount(20));
+        app.insert_resource(super::super::NativeScenarioProjection {
+            frame: 20,
+            ready: false,
+        });
+        app.update();
+        assert!(app.should_exit().is_none());
+        assert!(!app.world().resource::<Scenario>().finished);
+        let current = app.world().resource::<bevy::diagnostic::FrameCount>().0;
+        *app.world_mut()
+            .resource_mut::<super::super::NativeScenarioProjection>() =
+            super::super::NativeScenarioProjection {
+                frame: current.saturating_sub(1),
+                ready: true,
+            };
+        app.update();
+        assert!(
+            app.should_exit().is_none(),
+            "a stale ready observation cannot finish the replay"
+        );
+        let current = app.world().resource::<bevy::diagnostic::FrameCount>().0;
+        *app.world_mut()
+            .resource_mut::<super::super::NativeScenarioProjection>() =
+            super::super::NativeScenarioProjection {
+                frame: current,
+                ready: true,
+            };
+        app.update();
+        assert_eq!(app.should_exit(), Some(bevy::app::AppExit::Success));
+        let lines = std::fs::read_to_string(observation_path).unwrap();
+        assert_eq!(
+            lines
+                .lines()
+                .filter(|line| line.contains("\"status\":\"completed\""))
+                .count(),
+            1
+        );
     }
 
     #[test]
@@ -773,6 +1120,7 @@ mod tests {
             command_sequence: 0,
             expected_command: None,
             expected_action: None,
+            expected_graphics_sequence: None,
             action_sequence: 0,
             captured: false,
             finished: false,
@@ -1028,6 +1376,182 @@ mod tests {
         );
         assert!(validate(&plan).is_err());
     }
+
+    #[test]
+    fn vertical_swim_waits_for_sampled_input_and_releases_it() {
+        let directory = super::super::tests::Directory::new();
+        let (mut app, mut scenario, _) = action_app(&directory);
+        let observation_path = directory.root.join("vertical-observations.jsonl");
+        let hash = ContentHash::from_bytes([4; 32]);
+        app.insert_resource(ObservationSink::new(&observation_path, hash, hash, hash).unwrap())
+            .init_resource::<ButtonInput<KeyCode>>()
+            .init_resource::<crate::PlayerInputFocus>()
+            .init_resource::<PendingPlayerControlCommand>()
+            .init_resource::<crate::amphibious_player::AmphibiousPlayerInput>();
+        scenario.plan.steps = vec![
+            Step::SwimVertical {
+                direction: SwimDirection::Down,
+                ticks: 2,
+                timeout_s: 10,
+            },
+            Step::Exit,
+        ];
+        scenario.submitted = false;
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        assert!(
+            app.world()
+                .resource::<ButtonInput<KeyCode>>()
+                .pressed(KeyCode::KeyC)
+        );
+        // A fixed tick before the real PreUpdate keyboard sampler cannot count.
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        assert_eq!(scenario.step_ticks, 0);
+        app.world_mut()
+            .resource_mut::<crate::amphibious_player::AmphibiousPlayerInput>()
+            .descend = true;
+        app.world_mut()
+            .resource_mut::<GameplayRuntime>()
+            .set_enabled(false);
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        assert_eq!(scenario.step_ticks, 0);
+        app.world_mut()
+            .resource_mut::<GameplayRuntime>()
+            .set_enabled(true);
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        assert_eq!(scenario.step_ticks, 2);
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(true));
+        assert!(
+            !app.world()
+                .resource::<ButtonInput<KeyCode>>()
+                .pressed(KeyCode::KeyC)
+        );
+        assert!(
+            !app.world()
+                .resource::<crate::amphibious_player::AmphibiousPlayerInput>()
+                .descend
+        );
+    }
+
+    #[test]
+    fn vertical_swim_rejects_bad_bounds_and_does_not_take_an_existing_key() {
+        let directory = super::super::tests::Directory::new();
+        let (mut app, mut scenario, _) = action_app(&directory);
+        app.init_resource::<ButtonInput<KeyCode>>()
+            .init_resource::<crate::PlayerInputFocus>()
+            .init_resource::<PendingPlayerControlCommand>()
+            .init_resource::<crate::amphibious_player::AmphibiousPlayerInput>();
+        scenario.plan.steps = vec![
+            Step::SwimVertical {
+                direction: SwimDirection::Up,
+                ticks: 0,
+                timeout_s: 10,
+            },
+            Step::Exit,
+        ];
+        assert!(validate(&scenario.plan).is_err());
+        scenario.plan.steps[0] = Step::SwimVertical {
+            direction: SwimDirection::Up,
+            ticks: 1,
+            timeout_s: 10,
+        };
+        assert!(validate(&scenario.plan).is_ok());
+        scenario.submitted = false;
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Space);
+        assert!(execute_step(app.world_mut(), &mut scenario).is_err());
+        release_swim_input(app.world_mut(), &scenario);
+        assert!(
+            app.world()
+                .resource::<ButtonInput<KeyCode>>()
+                .pressed(KeyCode::Space)
+        );
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .release(KeyCode::Space);
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::ControlLeft);
+        assert!(execute_step(app.world_mut(), &mut scenario).is_err());
+        assert!(
+            app.world()
+                .resource::<ButtonInput<KeyCode>>()
+                .pressed(KeyCode::ControlLeft)
+        );
+        assert!(
+            serde_json::from_str::<Step>(
+                r#"{"kind":"swim_vertical","direction":"sideways","ticks":1,"timeout_s":10}"#
+            )
+            .is_err()
+        );
+    }
+    #[test]
+    fn scenario_focus_reaches_the_real_keyboard_sampler_without_bypassing_readiness() {
+        let action = GameAction::Push {
+            object: forge_core::EntityId::deterministic("swim-sampler-test"),
+            impulse: forge_core::Vec3::new(0.0, 0.0, 1.0),
+        };
+        for direction in [SwimDirection::Down, SwimDirection::Up] {
+            let mut scenario = action_scenario(&action);
+            scenario.plan.steps[0] = Step::SwimVertical {
+                direction,
+                ticks: 2,
+                timeout_s: 10,
+            };
+            scenario.submitted = true;
+            let mut app = App::new();
+            app.add_plugins(MinimalPlugins)
+                .insert_resource(scenario)
+                .insert_resource(crate::PlayerSimulationReady(true))
+                .init_resource::<crate::PlayerInputFocus>()
+                .init_resource::<ButtonInput<KeyCode>>()
+                .init_resource::<crate::amphibious_player::AmphibiousPlayerInput>()
+                .add_systems(
+                    PreUpdate,
+                    focus_swim_input.before(crate::amphibious_player::AmphibiousInputSampleSet),
+                )
+                .add_systems(
+                    PreUpdate,
+                    crate::amphibious_player::sample_input
+                        .in_set(crate::amphibious_player::AmphibiousInputSampleSet),
+                );
+            app.world_mut()
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(direction.key());
+            app.world_mut().run_schedule(PreUpdate);
+            assert!(
+                direction.sampled(
+                    *app.world()
+                        .resource::<crate::amphibious_player::AmphibiousPlayerInput>()
+                )
+            );
+            app.world_mut()
+                .resource_mut::<crate::PlayerSimulationReady>()
+                .0 = false;
+            app.world_mut().run_schedule(PreUpdate);
+            assert!(
+                !direction.sampled(
+                    *app.world()
+                        .resource::<crate::amphibious_player::AmphibiousPlayerInput>()
+                )
+            );
+            app.world_mut().resource_mut::<crate::PlayerInputFocus>().0 = false;
+            app.world_mut().resource_mut::<Scenario>().finished = true;
+            app.world_mut()
+                .resource_mut::<crate::PlayerSimulationReady>()
+                .0 = true;
+            app.world_mut().run_schedule(PreUpdate);
+            assert!(!app.world().resource::<crate::PlayerInputFocus>().0);
+            assert!(
+                !direction.sampled(
+                    *app.world()
+                        .resource::<crate::amphibious_player::AmphibiousPlayerInput>()
+                )
+            );
+        }
+    }
+
     #[test]
     fn native_scenario_ack_refuses_a_concurrent_different_command() {
         let mut app = App::new();
@@ -1063,6 +1587,7 @@ mod tests {
             command_sequence: 0,
             expected_command: Some(NativeGameplayCommand::Save),
             expected_action: None,
+            expected_graphics_sequence: None,
             action_sequence: 0,
             captured: false,
             finished: false,
@@ -1074,6 +1599,65 @@ mod tests {
         app.world_mut().resource_mut::<CommandResult>().last =
             Some((NativeGameplayCommand::Save, Ok(())));
         assert_eq!(check_command(app.world(), &scenario), Ok(true));
+    }
+
+    #[test]
+    fn graphics_replay_waits_for_its_exact_request_including_a_same_tier_retry() {
+        let directory = super::super::tests::Directory::new();
+        let (mut app, _, _) = exit_app(&directory, true, true);
+        app.add_message::<super::super::NativeGraphicsCommand>();
+        let mut scenario = app.world_mut().remove_resource::<Scenario>().unwrap();
+        let tier = forge_project::VisualQualityTier::High;
+        scenario.plan.steps[0] = Step::GraphicsTier {
+            tier,
+            timeout_s: 30,
+        };
+        assert!(execute_step(app.world_mut(), &mut scenario).is_err());
+        app.insert_resource(super::super::NativeGraphicsStatus {
+            request_sequence: 6,
+            requested: tier,
+            applied: Some(tier),
+            persisted: Some(tier),
+            menu_open: false,
+            ready: true,
+            error: Some("old preference error".into()),
+        });
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        assert_eq!(scenario.expected_graphics_sequence, Some(7));
+        // Multiple Fixed ticks before the host consumes the new message must not
+        // accept the previous ready tier or mistake its old error for this request.
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        let mut status = app
+            .world_mut()
+            .resource_mut::<super::super::NativeGraphicsStatus>();
+        status.request_sequence = 7;
+        status.error = None;
+        status.ready = false;
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        app.world_mut()
+            .resource_mut::<super::super::NativeGraphicsStatus>()
+            .ready = true;
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(true));
+        app.world_mut()
+            .resource_mut::<super::super::NativeGraphicsStatus>()
+            .persisted = None;
+        assert_eq!(execute_step(app.world_mut(), &mut scenario), Ok(false));
+        app.world_mut()
+            .resource_mut::<super::super::NativeGraphicsStatus>()
+            .error = Some("write refused".into());
+        assert!(
+            execute_step(app.world_mut(), &mut scenario)
+                .unwrap_err()
+                .contains("write refused")
+        );
+        app.world_mut()
+            .resource_mut::<super::super::NativeGraphicsStatus>()
+            .request_sequence = 8;
+        assert!(
+            execute_step(app.world_mut(), &mut scenario)
+                .unwrap_err()
+                .contains("replaced")
+        );
     }
     #[test]
     fn native_replay_reads_the_configured_input_profile_instead_of_scene_constants() {

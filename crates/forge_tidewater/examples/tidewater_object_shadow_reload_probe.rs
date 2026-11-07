@@ -8,13 +8,11 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::{
-    tidewater_material::ObjectShadowSettings,
-    tidewater_object_shadow::{
-        OpaqueDraw,
-        graph::{self, Input, Target},
-    },
-};
+use forge_engine::source_shadows::ObjectShadowSettings;
+use forge_engine::source_shadows::casters::OpaqueDraw;
+use forge_engine::source_shadows::casters::graph;
+use forge_engine::source_shadows::casters::graph::Input;
+use forge_engine::source_shadows::casters::graph::Target;
 use std::{error::Error, fs, io::Write, path::PathBuf, sync::atomic::Ordering, time::Duration};
 #[derive(Resource)]
 struct Proof {

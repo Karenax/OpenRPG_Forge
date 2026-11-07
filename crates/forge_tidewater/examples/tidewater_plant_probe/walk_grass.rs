@@ -1,8 +1,8 @@
 //! Camera-following grass uses the same cells and meshes as the static oracle.
 use bevy::prelude::*;
 use {
+    forge_engine::source_vegetation::grass::{Grid, Resident, ViewCadence},
     forge_engine::{ForgePlayerCamera, PlayerSimulationReady},
-    forge_tidewater::tidewater_plants::grass::{Grid, Resident},
 };
 
 #[derive(Clone, serde::Serialize)]
@@ -16,7 +16,7 @@ pub(super) struct Snapshot {
 pub(super) struct Live {
     grid: Grid,
     resident: Resident,
-    previous: Option<(Transform, [u32; 2])>,
+    cadence: ViewCadence,
     pub updates: u64,
     pub samples: Vec<Snapshot>,
 }
@@ -43,7 +43,7 @@ impl Live {
         Self {
             grid,
             resident,
-            previous: None,
+            cadence: ViewCadence::default(),
             updates: 0,
             samples: Vec::new(),
         }
@@ -52,28 +52,18 @@ impl Live {
     fn update(
         &mut self,
         world: &mut World,
+        camera: Entity,
         transform: Transform,
         projection: &PerspectiveProjection,
     ) -> Result<(), String> {
-        let lens = [projection.fov.to_bits(), projection.aspect_ratio.to_bits()];
-        if self.previous.is_some_and(|(old, old_lens)| {
-            (transform.translation - old.translation)
-                .abs()
-                .cmplt(Vec3::splat(0.05))
-                .all()
-                && (transform.rotation * Vec3::Z - old.rotation * Vec3::Z)
-                    .abs()
-                    .cmplt(Vec3::splat(1.0e-3))
-                    .all()
-                && lens == old_lens
-        }) {
+        if !self.cadence.needs_refresh(camera, &transform, projection) {
             return Ok(());
         }
         let cells = self
             .grid
             .select(crate::terrain_lod::source_view(&transform, projection))?;
         self.resident.update(world, &cells, Visibility::Visible)?;
-        self.previous = Some((transform, lens));
+        self.cadence.record(camera, &transform, projection);
         self.updates += 1;
         if self.samples.len() < 128
             && self
@@ -110,15 +100,15 @@ fn update(world: &mut World) {
         return;
     }
     let mut cameras =
-        world.query_filtered::<(&GlobalTransform, &Projection), With<ForgePlayerCamera>>();
-    let Ok((camera, Projection::Perspective(projection))) = cameras.single(world) else {
+        world.query_filtered::<(Entity, &GlobalTransform, &Projection), With<ForgePlayerCamera>>();
+    let Ok((camera, transform, Projection::Perspective(projection))) = cameras.single(world) else {
         return;
     };
-    let transform = camera.compute_transform();
+    let transform = transform.compute_transform();
     let projection = projection.clone();
     let started = super::walk::perf::start(world);
     world.resource_scope(|world, mut live: Mut<Live>| {
-        if let Err(error) = live.update(world, transform, &projection) {
+        if let Err(error) = live.update(world, camera, transform, &projection) {
             error!(%error, "grass navigation failed");
             world.write_message(bevy::app::AppExit::error());
         }

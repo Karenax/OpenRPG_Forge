@@ -12,9 +12,24 @@ name = "forge_runtime"
 path = "src/main.rs"
 required-features = ["native"]
 
+[[bin]]
+name = "forge-module"
+path = "src/bin/forge-module.rs"
+required-features = ["module-game"]
+
+[[example]]
+name = "source_fragment_module_fixture"
+required-features = ["qualification"]
+
+[[example]]
+name = "source_graph_scene_probe"
+required-features = ["qualification"]
+
 [features]
 default = ["native"]
 native = ["forge_engine/native", "forge_engine/qualification"]
+module-game = ["forge_engine/native", "dep:forge_delivery", "dep:serde"]
+qualification = ["module-game", "forge_engine/qualification"]
 
 [dependencies]
 bevy.workspace = true
@@ -22,6 +37,7 @@ bevy_rapier3d.workspace = true
 forge_assets.workspace = true
 forge_core.workspace = true
 forge_engine.workspace = true
+forge_gameplay.workspace = true
 forge_project.workspace = true
 forge_world.workspace = true
 sha2.workspace = true
@@ -29,6 +45,13 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 
 serde_json.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+forge_delivery = { path = "../../tools/forge_delivery", optional = true }
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+wgpu = { version = "=29.0.4", default-features = false, features = ["wgsl"] }
 
 [lints]
 workspace = true

@@ -1,7 +1,9 @@
 //! Initial scanned content expressed through the common authoring placement contract.
 use forge_core::{AssetId, EntityId};
 use forge_project::zone_authoring::placements::{ManualPlacement, PlacementChanges};
-use forge_tidewater_assets::tidewater_debris::scanned::{self, ScannedPackage, geometry};
+use forge_tidewater_assets::tidewater_debris::scanned;
+use forge_tidewater_assets::tidewater_debris::scanned::ScannedPackage;
+use forge_tidewater_assets::tidewater_debris::scanned::geometry;
 use std::collections::BTreeMap;
 
 /// Each source variation is a common asset identity; its GPU prototype remains shared.
@@ -33,6 +35,7 @@ pub fn from_geometry(geometry: &geometry::Geometry) -> Result<SourcePlacements, 
         placements.push(ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: EntityId::deterministic(format!("acquired-scanned-placement:{}", owner.source_id)),
             name: template.name,
             asset_id,

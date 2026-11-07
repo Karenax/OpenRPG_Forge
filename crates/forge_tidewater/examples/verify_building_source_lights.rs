@@ -1,7 +1,15 @@
 //! Exercise exact catalogue joins and live roots with the real closed packages.
 //! CPU/ECS proof only: no meshes, renderer, GPU or Studio interaction.
 use bevy::prelude::*;
+use forge_assets::source_local_lights::SourceLocalLightsPackage;
+use forge_assets::source_local_lights::ownership::SourceLightOwnership;
+use forge_assets::source_surface_package::SurfacePackage;
 use forge_core::{ContentHash, EntityId, Transform as Pose, UnitQuaternion, Vec3 as Vector};
+use forge_engine::ManualPlacementProjection;
+use forge_engine::source_lighting::local_lights::projection::source_object::SourceObjectLightBindings;
+use forge_engine::source_lighting::local_lights::scene;
+use forge_engine::source_surface::objects::Instance;
+use forge_engine::source_surface::objects::ResidentScene;
 use forge_project::zone_authoring::placements::ManualPlacement;
 use serde::Deserialize;
 use std::{
@@ -10,22 +18,6 @@ use std::{
     fs::File,
     io::{Read, Write},
     path::Path,
-};
-use {
-    forge_assets::source_local_lights::{
-        SourceLocalLightsPackage, ownership::SourceLightOwnership,
-    },
-    forge_tidewater_assets::tidewater_package::BuildingPackage,
-};
-use {
-    forge_engine::ManualPlacementProjection,
-    forge_tidewater::{
-        source_local_lights::scene,
-        tidewater_assets::{
-            local_lights::BuildingLightBindings,
-            scene::{Instance, ResidentScene},
-        },
-    },
 };
 
 fn bounded(path: &Path, maximum: usize) -> Result<Vec<u8>, Box<dyn Error>> {
@@ -125,7 +117,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let light_root = Path::new(&args[2]).canonicalize()?;
     let light_pin: ContentHash = args[3].parse()?;
     require(!Path::new(&args[4]).exists(), "Fresh report required")?;
-    let buildings = BuildingPackage::load(
+    let buildings = SurfacePackage::load(
         &read(&building_root, "package.json", 2 * 1024 * 1024)?,
         building_pin,
         |name, limit| read(&building_root, name, limit),
@@ -136,7 +128,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         |name, limit| read(&light_root, name, limit),
     )?;
     let ownership = SourceLightOwnership::from_package(&lights)?;
-    let bindings = BuildingLightBindings::from_packages(&buildings, &lights)?;
+    let bindings = SourceObjectLightBindings::from_sources(
+        buildings.source_commit(),
+        forge_tidewater::tidewater_assets::local_lights::sources(&buildings)?,
+        &lights,
+    )?;
     let mut app = App::new();
     app.add_plugins((MinimalPlugins, TransformPlugin));
     app.insert_resource(ResidentScene::default());
@@ -156,6 +152,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let placement = ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: EntityId::deterministic(format!("building-light-proof:{}", asset.id)),
             name: asset.logical_name.clone(),
             asset_id: asset.id,

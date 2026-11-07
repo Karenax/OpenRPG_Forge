@@ -400,6 +400,7 @@ fn verify_placement_persistence(
     let placement = ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: forge_core::EntityId::deterministic("host-door"),
         asset_id: forge_core::AssetId::deterministic("fixture-door"),
         asset_hash: forge_core::ContentHash::from_bytes([4; 32]),

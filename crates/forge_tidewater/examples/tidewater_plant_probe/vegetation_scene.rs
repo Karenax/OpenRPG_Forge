@@ -1,15 +1,16 @@
 //! Native fixture adapter around the shared plant renderer.
-use super::{PlantMaterial, Probe, ProbeMode};
+use super::{CapturedPlantMaterial, Probe, ProbeMode};
 use bevy::{prelude::*, render::storage::ShaderBuffer};
-pub(super) use forge_tidewater::tidewater_plants::scene::{
-    LevelDescription, Vegetation, load, mesh,
-};
+pub(super) use forge_engine::source_vegetation::scene::LevelDescription;
+pub(super) use forge_engine::source_vegetation::scene::Vegetation;
+pub(super) use forge_tidewater::tidewater_plants::scene::load;
+pub(super) use forge_tidewater::tidewater_plants::scene::mesh;
 pub(super) fn spawn(
     commands: &mut Commands,
     probe: &Probe,
-    base: &PlantMaterial,
+    base: &CapturedPlantMaterial,
     meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<PlantMaterial>,
+    materials: &mut Assets<CapturedPlantMaterial>,
     buffers: &mut Assets<ShaderBuffer>,
 ) {
     let Some(scene) = &probe.vegetation_scene else {
@@ -44,11 +45,11 @@ pub(super) fn spawn(
         resident_navigation(commands, base.clone(), camera, visibility);
         return;
     }
-    forge_tidewater::tidewater_plants::scene::spawn(
+    forge_engine::source_vegetation::scene::spawn(
         commands,
         scene,
         base,
-        forge_tidewater::tidewater_plants::scene::View { camera, visibility },
+        forge_engine::source_vegetation::scene::View { camera, visibility },
         meshes,
         materials,
         buffers,
@@ -58,12 +59,12 @@ pub(super) fn spawn(
 
 #[derive(Resource)]
 pub(super) struct ResidentProof {
-    pub resident: forge_tidewater::tidewater_plants::scene::resident::Resident,
+    pub resident: forge_engine::source_vegetation::scene::resident::Resident<CapturedPlantMaterial>,
 }
 
 fn resident_navigation(
     commands: &mut Commands,
-    base: PlantMaterial,
+    base: CapturedPlantMaterial,
     camera: Vec3,
     visibility: Visibility,
 ) {
@@ -73,14 +74,13 @@ fn resident_navigation(
             .vegetation_scene
             .take()
             .expect("validated scene");
-        let mut resident = forge_tidewater::tidewater_plants::scene::resident::Resident::stage(
-            world, scene, &base,
-        )
-        .expect("resident assets");
+        let mut resident =
+            forge_engine::source_vegetation::scene::resident::Resident::stage(world, scene, &base)
+                .expect("resident assets");
         let sizes = |world: &World| {
             (
                 world.resource::<Assets<Mesh>>().len(),
-                world.resource::<Assets<PlantMaterial>>().len(),
+                world.resource::<Assets<CapturedPlantMaterial>>().len(),
                 world.resource::<Assets<ShaderBuffer>>().len(),
             )
         };
@@ -90,7 +90,7 @@ fn resident_navigation(
             let report = resident
                 .select(
                     world,
-                    forge_tidewater::tidewater_plants::scene::View {
+                    forge_engine::source_vegetation::scene::View {
                         camera: position,
                         visibility,
                     },

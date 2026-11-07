@@ -1,7 +1,7 @@
 //! Static FFT comparison from the canonical acquired input package.
 use super::{Input, NAMES};
-use forge_tidewater::tidewater_ocean::PreparedOcean;
-use forge_tidewater_assets::tidewater_ocean::OceanPackage;
+use forge_engine::source_ocean::PreparedOcean;
+use forge_assets::source_ocean_package::OceanPackage;
 use std::{error::Error, path::PathBuf, sync::Arc};
 
 /// Authenticated source callback chronology, distinct from native GPU head data.

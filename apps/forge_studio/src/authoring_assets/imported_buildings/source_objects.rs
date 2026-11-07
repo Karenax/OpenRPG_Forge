@@ -14,6 +14,11 @@ use forge_project::{
 };
 
 pub(crate) fn source_placements(head: &ZoneAuthoringHead) -> Result<Vec<ManualPlacement>, String> {
+    // Retained modules have explicit per-area resources. Equal terrain does
+    // not authorize the reference scene's implicit prop composition.
+    if crate::authoring_module_resources::owns_source() {
+        return Ok(Vec::new());
+    }
     let area = head.base.terrain.area_id;
     let height_pin = plant_package()
         .map(|package| {
@@ -116,7 +121,7 @@ fn verified_geometry(height_pin: Option<ContentHash>) -> Option<(SampledTerrainS
 }
 
 fn package_geometry(
-    package: &forge_tidewater_assets::tidewater_terrain::TerrainPackage,
+    package: &forge_assets::source_terrain_package::TerrainPackage,
     pin: ContentHash,
 ) -> (SampledTerrainSource, [f32; 2]) {
     let geometry = package.raster_geometry();
@@ -130,7 +135,7 @@ fn package_geometry(
             sample_spacing_m: geometry.sample_spacing_m,
             outside_height_m: geometry.outside_height_m,
             encoding: match geometry.encoding {
-                forge_tidewater_assets::tidewater_terrain::RasterEncoding::Float32Le => {
+                forge_assets::source_terrain_package::RasterEncoding::Float32Le => {
                     HeightEncoding::Float32Le
                 }
             },
@@ -144,9 +149,20 @@ fn package_geometry(
 /// A global library cannot supply another map's terrain textures/environment.
 pub(super) fn verify_projection_source(
     document: &TerrainDocument,
-    terrain: Option<&forge_tidewater_assets::tidewater_terrain::TerrainPackage>,
+    terrain: Option<&forge_assets::source_terrain_package::TerrainPackage>,
     plants: Option<&forge_tidewater_assets::tidewater_plants::PlantPackage>,
 ) -> Result<(), String> {
+    if !projection_matches(document, terrain, plants)? {
+        return Err("La bibliothèque vérifiée ne correspond pas au relief de cette carte.".into());
+    }
+    Ok(())
+}
+
+pub(super) fn projection_matches(
+    document: &TerrainDocument,
+    terrain: Option<&forge_assets::source_terrain_package::TerrainPackage>,
+    plants: Option<&forge_tidewater_assets::tidewater_plants::PlantPackage>,
+) -> Result<bool, String> {
     let (terrain, plants) = terrain.zip(plants).ok_or(
         "Les ressources terrain et plantes vérifiées sont nécessaires pour afficher cette carte.",
     )?;
@@ -156,10 +172,31 @@ pub(super) fn verify_projection_source(
             .ok_or("La description vérifiée du relief de la bibliothèque est absente.")?,
     )?;
     let (source, extent) = package_geometry(terrain, height_pin);
-    if !binding::associated_terrain(document, Some(height_pin), Some((&source, extent)))? {
-        return Err("La bibliothèque vérifiée ne correspond pas au relief de cette carte.".into());
-    }
-    Ok(())
+    binding::associated_terrain(document, Some(height_pin), Some((&source, extent)))
+}
+
+pub(super) fn supports_geometry(document: &TerrainDocument) -> Result<bool, String> {
+    document.validate().map_err(|error| error.to_string())?;
+    let Some(source) = &document.sampled_source else {
+        return Ok(false);
+    };
+    let geometry = forge_assets::source_terrain_package::supported_raster_geometry();
+    let expected = SampledTerrainSource {
+        schema: SAMPLED_TERRAIN_SCHEMA.into(),
+        schema_version: 1,
+        width: geometry.width,
+        height: geometry.height,
+        origin_xz_m: geometry.origin_xz_m,
+        sample_spacing_m: geometry.sample_spacing_m,
+        outside_height_m: geometry.outside_height_m,
+        encoding: HeightEncoding::Float32Le,
+        samples_sha256: source.samples_sha256,
+    };
+    binding::associated_terrain(
+        document,
+        Some(source.samples_sha256),
+        Some((&expected, geometry.extent_m)),
+    )
 }
 
 fn add_stall(

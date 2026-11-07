@@ -1,0 +1,4 @@
+interface:
+  display_name: "ux-writing-cleaner"
+  short_description: "Qualité UX adaptée aux utilisateurs de Forge"
+  default_prompt: "Utiliser $ux-writing-cleaner pour cette interface."

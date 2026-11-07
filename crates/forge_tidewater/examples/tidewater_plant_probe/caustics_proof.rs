@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
     render::gpu_readback::{Readback, ReadbackComplete},
 };
-use forge_tidewater::tidewater_caustics::CausticMaps;
+use forge_engine::source_caustics::CausticMaps;
 use std::{
     path::{Path, PathBuf},
     sync::atomic::Ordering,

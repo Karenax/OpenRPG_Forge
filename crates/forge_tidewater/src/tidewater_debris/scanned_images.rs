@@ -5,10 +5,10 @@ use bevy::{
     prelude::*,
     render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
-use forge_tidewater_assets::tidewater_debris::scanned::{
-    ScannedPackage,
-    atlases::{self, Atlas, Format},
-};
+use forge_tidewater_assets::tidewater_debris::scanned::ScannedPackage;
+use forge_tidewater_assets::tidewater_debris::scanned::atlases;
+use forge_tidewater_assets::tidewater_debris::scanned::atlases::Atlas;
+use forge_tidewater_assets::tidewater_debris::scanned::atlases::Format;
 
 /// Prepare source albedo/normal/ARM images before inserting any renderer assets.
 ///

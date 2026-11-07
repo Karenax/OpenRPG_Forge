@@ -40,13 +40,18 @@ mod far_batches;
 pub use far_batches::GovernedFarBatchPreview;
 #[cfg(feature = "physics-rapier")]
 mod prototype_projection;
+#[cfg(feature = "physics-rapier")]
+pub(crate) use prototype_projection::bounds::ProjectionBounds;
 mod quality;
 mod telemetry;
 #[cfg(feature = "physics-rapier")]
 pub(crate) use prototype_projection::quality_ready as governed_quality_ready;
 #[cfg(feature = "physics-rapier")]
 pub use prototype_projection::{
-    VegetationPrototypeForestPreview, governed_forest_ready, stop_governed_forest,
+    VegetationPrototypeForestPreview, VegetationPrototypeGpuEvidence,
+    VegetationPrototypeGpuReadinessPlugin, VegetationPrototypeRuntimeStatus,
+    governed_forest_gpu_ready, governed_forest_ready, governed_forest_runtime_status,
+    stop_governed_forest,
 };
 pub use quality::{
     VegetationQualityObservation, VegetationQualityRequest, update_vegetation_sources,
@@ -446,7 +451,7 @@ impl VegetationLodRanges {
 }
 
 /// Forge-original vegetation PBR palette, wind and bounded interaction uniforms.
-#[derive(Asset, AsBindGroup, Clone, Debug, Reflect)]
+#[derive(Asset, AsBindGroup, Clone, Debug, Reflect, PartialEq)]
 pub struct VisualValleyVegetationExtension {
     #[uniform(100)]
     pub primary_color_roughness: Vec4,
@@ -456,7 +461,8 @@ pub struct VisualValleyVegetationExtension {
     pub bark_color_roughness: Vec4,
     #[uniform(100)]
     pub metallic_reflectance: Vec4,
-    /// X is maximum wind displacement, Y is cycles/second, Z is current time and W previous time.
+    /// X is maximum wind displacement, Y is cycles/second, Z/W are explicit frame times.
+    /// With the shared shader clock, Z is zero and W retains Time's wrap period.
     #[uniform(100)]
     pub wind_parameters: Vec4,
     /// XYZ is the world-space interaction center and W is its radius.
@@ -480,10 +486,11 @@ pub struct VisualValleyVegetationExtension {
     /// Governed medium-LOD shadow fade start/end; matches the CPU caster cutoff.
     #[uniform(100)]
     pub shadow_fade_distances: Vec4,
-    /// X enables the shared temporal LOD table; Y selects static authored kit materials.
+    /// X enables temporal LOD; Y selects static kit materials; Z uses the shared frame clock.
     #[uniform(100)]
     pub temporal_parameters: Vec4,
     #[storage(101, read_only)]
+    #[dependency]
     pub temporal_lod_buffer: Handle<ShaderBuffer>,
 }
 
@@ -622,9 +629,34 @@ pub type VisualValleyVegetationMaterial =
     ExtendedMaterial<StandardMaterial, VisualValleyVegetationExtension>;
 
 pub(crate) fn install_temporal_material(app: &mut App) {
+    if app.is_plugin_added::<MaterialPlugin<VisualValleyVegetationMaterial>>() {
+        return;
+    }
     bevy::asset::embedded_asset!(app, "shaders/visual_valley_vegetation_deform.wgsl");
     app.add_plugins(MaterialPlugin::<VisualValleyVegetationMaterial>::default())
         .add_systems(Update, configure_vegetation_prepass);
+}
+
+#[cfg(feature = "physics-rapier")]
+pub(crate) fn install_imported_model_presentation(
+    app: &mut App,
+    profile: VegetationPresentationProfile,
+) {
+    // Model materials reference the shared temporal LOD buffer even when no
+    // procedural forest is installed. Install its existing neutral registry
+    // and updates, not only the material plugin.
+    crate::temporal_lod::render::install(app);
+    if !app.world().contains_resource::<VegetationPresentation>() {
+        app.add_systems(Update, update_vegetation_interaction_uniform)
+            .add_systems(
+                FixedUpdate,
+                publish_player_vegetation_interaction
+                    .after(PlayerControllerSet::Observe)
+                    .before(PlayerControllerSet::Camera),
+            );
+    }
+    app.insert_resource(VegetationPresentation(profile))
+        .init_resource::<VegetationInteractionField>();
 }
 
 // Bevy 0.19's opaque depth-only prepass has no fragment stage for visibility dither.
@@ -1333,6 +1365,39 @@ pub struct VisualValleyVegetationPlugin {
     terrain: TerrainDocument,
     vegetation: VegetationDocument,
     interaction: VegetationInteractionField,
+    authoring: AuthoringSources,
+}
+
+#[derive(Default)]
+struct AuthoringSources {
+    paths: Vec<forge_project::zone_authoring::paths::AuthoredPath>,
+    rivers: Vec<forge_project::zone_authoring::rivers::AuthoredRiver>,
+    buildings: Vec<forge_project::zone_authoring::buildings::AuthoredBuilding>,
+    promotions: Vec<forge_project::zone_authoring::promotion::PromotedInstance>,
+}
+
+impl AuthoringSources {
+    fn plan(
+        &self,
+        terrain: &TerrainDocument,
+        vegetation: &VegetationDocument,
+    ) -> Result<VegetationGenerationPlan, VegetationGenerationError> {
+        VegetationGenerationPlan::from_documents_with_buildings(
+            terrain,
+            vegetation,
+            &self.paths,
+            &self.rivers,
+            &self.buildings,
+        )?
+        .with_promotions(&self.promotions)
+    }
+
+    fn is_empty(&self) -> bool {
+        self.paths.is_empty()
+            && self.rivers.is_empty()
+            && self.buildings.is_empty()
+            && self.promotions.is_empty()
+    }
 }
 
 impl VisualValleyVegetationPlugin {
@@ -1342,7 +1407,36 @@ impl VisualValleyVegetationPlugin {
             terrain,
             vegetation,
             interaction: VegetationInteractionField::disabled(),
+            authoring: AuthoringSources::default(),
         }
+    }
+
+    /// Apply the exact accepted head, including clearances and promoted origins.
+    /// Reject a head for different effective documents before installing the adapter.
+    pub fn with_authoring_head(
+        mut self,
+        head: &forge_project::zone_authoring::ZoneAuthoringHead,
+    ) -> Result<Self, String> {
+        head.validate()?;
+        let (terrain, vegetation) = head.effective()?;
+        if terrain != self.terrain || vegetation.as_ref() != Some(&self.vegetation) {
+            return Err("Vegetation plugin documents differ from the authoring head".into());
+        }
+        let sources = AuthoringSources {
+            paths: head.corrections.paths.clone().unwrap_or_default(),
+            rivers: head.corrections.rivers.clone().unwrap_or_default(),
+            buildings: head.corrections.buildings.clone().unwrap_or_default(),
+            promotions: head.corrections.promotions.clone().unwrap_or_default(),
+        };
+        let plan = sources
+            .plan(&self.terrain, &self.vegetation)
+            .map_err(|error| error.to_string())?;
+        // Promotions refer to actual generated origins, beyond structural head validation.
+        if !sources.promotions.is_empty() {
+            plan.generate().map_err(|error| error.to_string())?;
+        }
+        self.authoring = sources;
+        Ok(self)
     }
 
     #[must_use]
@@ -1354,11 +1448,16 @@ impl VisualValleyVegetationPlugin {
 
 impl Plugin for VisualValleyVegetationPlugin {
     fn build(&self, app: &mut App) {
-        let prepared = prepare_vegetation_projection_with_quality(
-            &self.terrain,
-            &self.vegetation,
+        let plan = self
+            .authoring
+            .plan(&self.terrain, &self.vegetation)
+            .unwrap_or_else(|error| panic!("vegetation plugin requires valid sources: {error}"));
+        let prepared = bevy::tasks::block_on(prepare_vegetation_projection_from_plan(
+            &plan,
             app.world().get_resource::<VegetationQualityRequest>(),
-        )
+            false,
+            None,
+        ))
         .unwrap_or_else(|error| panic!("vegetation plugin requires valid documents: {error}"));
         let stats = prepared.stats.clone();
         let profile = prepared.profile;
@@ -1375,7 +1474,8 @@ impl Plugin for VisualValleyVegetationPlugin {
             let bindings = quality::VegetationQualityBindings::new(
                 self.terrain.clone(),
                 self.vegetation.clone(),
-            );
+            )
+            .with_authoring_sources(&self.authoring, &plan);
             #[cfg(not(target_arch = "wasm32"))]
             let bindings = {
                 let mut bindings = bindings;
@@ -2239,6 +2339,7 @@ fn update_vegetation_interaction_uniform(
     time: Res<Time>,
     interaction: Res<VegetationInteractionField>,
     profile: Res<VegetationPresentation>,
+    scene_wind: Option<Res<crate::source_wind::SceneWind>>,
     material: Option<Res<VegetationMaterialHandle>>,
     mut materials: ResMut<Assets<VisualValleyVegetationMaterial>>,
 ) {
@@ -2252,13 +2353,20 @@ fn update_vegetation_interaction_uniform(
     );
     let mut extension =
         VisualValleyVegetationExtension::from_profile_and_interaction(profile.0, bounded);
+    if let Some(scene_wind) = scene_wind {
+        let direction = bevy::math::DVec2::from_array(scene_wind.wind().direction).as_vec2();
+        extension.wind_direction = Vec4::new(direction.x, 0.0, direction.y, 0.0);
+        // The existing authored strength remains the maximum deformation, so
+        // the precomputed vegetation and collider bounds remain conservative.
+        extension.wind_parameters.x *=
+            scene_wind.speed_mps() / forge_project::zone_authoring::wind::MAX_SCENE_WIND_SPEED_MPS;
+    }
     let wrap_period = time.wrap_period().as_secs_f32();
-    let current_time = finite_clamp(time.elapsed_secs_wrapped(), 0.0, wrap_period);
-    let previous_time =
-        (current_time - finite_clamp(time.delta_secs(), 0.0, wrap_period)).rem_euclid(wrap_period);
+    let [current_time, previous_time] = vegetation_frame_times(&time);
     extension.wind_parameters.z = current_time;
     extension.wind_parameters.w = previous_time;
-    for (id, material) in materials.iter_mut() {
+    let mut updates = Vec::new();
+    for (id, material) in materials.iter() {
         // Static kit materials retain authored PBR and do not inherit forest weather/wind.
         if material.extension.temporal_parameters.y > 0.5 {
             continue;
@@ -2271,8 +2379,27 @@ fn update_vegetation_interaction_uniform(
         next.prototype_parameters = material.extension.prototype_parameters;
         next.temporal_parameters = material.extension.temporal_parameters;
         next.temporal_lod_buffer = material.extension.temporal_lod_buffer.clone();
-        material.extension = next;
+        if next.temporal_parameters.z > 0.5 {
+            next.wind_parameters.z = 0.0;
+            next.wind_parameters.w = wrap_period;
+        }
+        if next != material.extension {
+            updates.push((id, next));
+        }
     }
+    // Mutable asset iteration marks every material modified, causing Bevy to
+    // specialize all of its tree instances again. Only real authored/interaction
+    // changes need an upload; the shared renderer clock already advances wind.
+    for (id, next) in updates {
+        materials.get_mut(id).expect("selected material").extension = next;
+    }
+}
+
+pub(crate) fn vegetation_frame_times(time: &Time) -> [f32; 2] {
+    let period = time.wrap_period().as_secs_f32();
+    let current = finite_clamp(time.elapsed_secs_wrapped(), 0.0, period);
+    let previous = (current - finite_clamp(time.delta_secs(), 0.0, period)).rem_euclid(period);
+    [current, previous]
 }
 
 #[cfg(feature = "physics-rapier")]
@@ -2491,7 +2618,7 @@ fn chunk_mesh_tag(x: u16, z: u16, phase_prefix: u32) -> MeshTag {
     clippy::cast_sign_loss,
     reason = "finite normalized phase and response are deliberately quantized into MeshTag bits"
 )]
-fn mesh_tag_for(phase_radians: f32, wind_response: f32) -> MeshTag {
+pub(crate) fn mesh_tag_for(phase_radians: f32, wind_response: f32) -> MeshTag {
     let normalized_phase = phase_radians.rem_euclid(std::f32::consts::TAU) / std::f32::consts::TAU;
     let phase = (normalized_phase * TAG_PHASE_SCALE).round() as u32;
     let response = (finite_clamp(wind_response, 0.0, 1.0) * 255.0).round() as u32;
@@ -3319,6 +3446,73 @@ mod tests {
     }
 
     #[test]
+    fn governed_material_clock_does_not_invalidate_stationary_tree_assets() {
+        use bevy::{ecs::message::MessageCursor, time::TimeUpdateStrategy};
+        use std::time::Duration;
+
+        fn events(app: &App) -> &Messages<AssetEvent<VisualValleyVegetationMaterial>> {
+            app.world()
+                .resource::<Messages<AssetEvent<VisualValleyVegetationMaterial>>>()
+        }
+
+        let profile = forge_world::VisualValleyVegetationRecipe::default()
+            .build()
+            .unwrap()
+            .presentation;
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()))
+            .init_asset::<VisualValleyVegetationMaterial>()
+            .insert_resource(TimeUpdateStrategy::ManualDuration(Duration::from_millis(
+                16,
+            )))
+            .insert_resource(VegetationInteractionField::default())
+            .insert_resource(VegetationPresentation(profile))
+            .add_systems(Update, update_vegetation_interaction_uniform);
+        let mut materials = app
+            .world_mut()
+            .resource_mut::<Assets<VisualValleyVegetationMaterial>>();
+        let mut extension = VisualValleyVegetationExtension::from_profile_and_interaction(
+            profile,
+            VegetationInteractionField::default(),
+        )
+        .with_governed_prototype_height(5.0)
+        .unwrap();
+        let explicit = materials.add(VisualValleyVegetationMaterial {
+            base: StandardMaterial::default(),
+            extension: extension.clone(),
+        });
+        extension.temporal_parameters.z = 1.0;
+        let shared = materials.add(VisualValleyVegetationMaterial {
+            base: StandardMaterial::default(),
+            extension,
+        });
+        app.update();
+        app.update();
+        let mut reader = MessageCursor::<AssetEvent<VisualValleyVegetationMaterial>>::default();
+        reader.read(events(&app)).for_each(drop);
+        app.update();
+        let modified: Vec<_> = reader
+            .read(events(&app))
+            .filter_map(|event| match event {
+                AssetEvent::Modified { id } => Some(*id),
+                _ => None,
+            })
+            .collect();
+        assert!(modified.contains(&explicit.id()));
+        assert!(!modified.contains(&shared.id()));
+        app.world_mut()
+            .resource_mut::<VegetationPresentation>()
+            .0
+            .wind_strength *= 0.5;
+        app.update();
+        assert!(
+            reader
+                .read(events(&app))
+                .any(|event| matches!(event, AssetEvent::Modified { id } if *id == shared.id()))
+        );
+    }
+
+    #[test]
     fn governed_material_clock_preserves_height_wetness_and_foreign_materials() {
         use bevy::ecs::system::RunSystemOnce;
         let mut world = World::new();
@@ -3384,6 +3578,33 @@ mod tests {
         assert_eq!(
             materials.get(&foreign).unwrap().extension.wind_parameters,
             Vec4::ZERO
+        );
+
+        let original_amplitude = updated.wind_parameters.x;
+        crate::source_wind::SceneWind::publish(
+            &mut world,
+            Some(forge_project::zone_authoring::wind::SceneWindSettings {
+                schema_version: 1,
+                heading_degrees: 90.0,
+                speed_mps: 12.5,
+            }),
+        )
+        .unwrap();
+        world
+            .run_system_once(update_vegetation_interaction_uniform)
+            .unwrap();
+        let materials = world.resource::<Assets<VisualValleyVegetationMaterial>>();
+        let updated = &materials.get(&governed).unwrap().extension;
+        assert!((updated.wind_parameters.x - original_amplitude * 0.5).abs() < 1e-6);
+        assert!((updated.wind_direction.x - 1.0).abs() < 1e-6);
+        assert!(updated.wind_direction.z.abs() < 1e-6);
+        assert_eq!(
+            materials
+                .get(&static_kit)
+                .unwrap()
+                .extension
+                .wind_parameters,
+            static_extension.wind_parameters
         );
     }
 

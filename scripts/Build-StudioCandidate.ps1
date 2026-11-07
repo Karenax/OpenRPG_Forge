@@ -141,13 +141,39 @@ foreach ($workerArtifact in @('forge_navigation.js','forge_navigation_bg.wasm','
     }
 }
 $workerManifest = Get-Content -LiteralPath (Join-Path $frontendRoot 'forge-navigation-worker-manifest.json') -Raw | ConvertFrom-Json
-if ($workerManifest.schema -ne 'forge.navigation-worker-build' -or $workerManifest.version -ne 1 -or
-    $workerManifest.build_only -ne $true -or $workerManifest.runtime_verified -ne $false -or
-    $workerManifest.source_unchanged_during_build -ne $true -or
-    $workerManifest.configuration -ne $ExpectedNavigationWorkerConfiguration) { throw 'Invalid navigation worker manifest/configuration.' }
+function Test-NavigationWorkerHeader($workerManifest, [string]$expectedConfiguration) {
+$validWorkerProfile = $workerManifest.version -eq 1
+if ($workerManifest.version -eq 2) {
+    $validWorkerProfile = $false
+    $requiredFields = @('cargo_profile','profile_inherits','cargo_target','cargo_arguments','effective_profile_overrides_verified')
+    $missingFields = @($requiredFields | Where-Object { $_ -notin $workerManifest.PSObject.Properties.Name })
+    if (-not $missingFields.Count) {
+        $expectedArguments = @('--config','profile.forge-navigation-worker.inherits="release"',
+            'build','-p','forge_navigation','--lib','--no-default-features','--features','web',
+            '--target','wasm32-unknown-unknown','--locked','--offline','-j1','--profile','forge-navigation-worker')
+        $actualArguments = @($workerManifest.cargo_arguments)
+        $argumentsMatch = $actualArguments.Count -eq $expectedArguments.Count
+        for ($i = 0; $argumentsMatch -and $i -lt $expectedArguments.Count; $i++) {
+            $argumentsMatch = $actualArguments[$i] -ceq $expectedArguments[$i]
+        }
+        $validWorkerProfile = $workerManifest.cargo_profile -ceq 'forge-navigation-worker' -and
+            $workerManifest.profile_inherits -ceq 'release' -and
+            $workerManifest.cargo_target -ceq 'wasm32-unknown-unknown' -and
+            $workerManifest.effective_profile_overrides_verified -ceq $false -and $argumentsMatch
+    }
+}
+return ($workerManifest.schema -eq 'forge.navigation-worker-build' -and $validWorkerProfile -and
+    $workerManifest.build_only -eq $true -and $workerManifest.runtime_verified -eq $false -and
+    $workerManifest.source_unchanged_during_build -eq $true -and
+    $workerManifest.configuration -eq $expectedConfiguration)
+}
+if (-not (Test-NavigationWorkerHeader $workerManifest $ExpectedNavigationWorkerConfiguration)) {
+    throw 'Invalid navigation worker manifest/configuration.'
+}
 $expectedWorkerArtifacts = @('forge_navigation.js','forge_navigation_bg.wasm','forge-navigation-worker.js')
 $expectedWorkerInputs = @('Cargo.toml','Cargo.lock','crates/forge_navigation/Cargo.toml','crates/forge_navigation/build.rs',
     'third_party/rerecast-0.4.0/Cargo.toml','apps/forge_studio/forge-navigation-worker.js')
+if ($workerManifest.version -eq 2) { $expectedWorkerInputs += '.cargo/config.toml' }
 foreach ($workerSourceDirectory in @('crates/forge_navigation/src','third_party/rerecast-0.4.0/src')) {
     $expectedWorkerInputs += @(Get-ChildItem -LiteralPath (Join-Path $repository $workerSourceDirectory) -Recurse -File | ForEach-Object {
         [IO.Path]::GetRelativePath($repository,$_.FullName).Replace('\','/')

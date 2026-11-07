@@ -105,7 +105,30 @@ pub fn prepare_brush(
     stroke: &crate::terrain_brush_stroke::TerrainBrushStroke,
 ) -> Result<TerrainEdit, String> {
     let visible = project(head)?.terrain;
-    let TerrainEdit::SetHeightDeltas { samples } = stroke.prepare(&visible)? else {
+    let edit = stroke.prepare(&visible)?;
+    merge_brush_edit(head, &visible, edit)
+}
+
+/// Preserve the ordinary river/manual-correction composition for a verified raster brush.
+pub fn prepare_sampled_brush(
+    head: &ZoneAuthoringHead,
+    stroke: &crate::terrain_brush_stroke::TerrainBrushStroke,
+    source: &crate::sampled_terrain::SampledTerrainPlan,
+) -> Result<TerrainEdit, String> {
+    let visible = project(head)?.terrain;
+    if visible.content_hash().map_err(|error| error.to_string())? != source.document_hash() {
+        return Err("Le relief de la zone a changé avant la préparation de la brosse.".into());
+    }
+    let edit = stroke.prepare_sampled(source)?;
+    merge_brush_edit(head, &visible, edit)
+}
+
+fn merge_brush_edit(
+    head: &ZoneAuthoringHead,
+    visible: &TerrainDocument,
+    edit: TerrainEdit,
+) -> Result<TerrainEdit, String> {
+    let TerrainEdit::SetHeightDeltas { samples } = edit else {
         return Err("Terrain brush requires a height proposal".into());
     };
     let before = values(&visible.height_deltas);

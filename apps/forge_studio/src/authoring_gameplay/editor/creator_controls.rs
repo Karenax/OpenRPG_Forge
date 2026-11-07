@@ -1,5 +1,5 @@
 //! The normal gameplay preview command owns all changes from these controls.
-use super::{Edit, edit, source_hash};
+use super::{Edit, edit};
 use forge_gameplay::{CreatorSurface, GameplayCapability, GameplayDocument};
 use forge_project::authoring::{AuthoringRequest, AuthoringState};
 use leptos::prelude::*;
@@ -19,29 +19,39 @@ pub(super) fn CreatorControls(
     };
     let surfaces = RwSignal::new(BTreeSet::<CreatorSurface>::new());
     let capabilities = RwSignal::new(BTreeSet::<GameplayCapability>::new());
-    Effect::new(move |previous| {
-        let current = source_hash(state);
-        if previous == Some(current) {
-            return current;
-        }
-        if let Some(source) = document() {
-            surfaces.set(
-                source
-                    .creator_configuration()
-                    .surfaces
-                    .into_iter()
-                    .collect(),
-            );
-            capabilities.set(
-                source
-                    .creator_configuration()
-                    .required_capabilities
-                    .into_iter()
-                    .collect(),
-            );
-        }
-        current
-    });
+    let creator_notice = super::draft::bind(
+        move || {
+            (
+                "creator".into(),
+                serde_json::to_value(document().map(|source| source.creator_configuration()))
+                    .unwrap_or_default(),
+            )
+        },
+        vec![
+            super::draft::Field::new(surfaces),
+            super::draft::Field::new(capabilities),
+        ],
+        move || {
+            if let Some(source) = document() {
+                surfaces.set(
+                    source
+                        .creator_configuration()
+                        .surfaces
+                        .into_iter()
+                        .collect(),
+                );
+                capabilities.set(
+                    source
+                        .creator_configuration()
+                        .required_capabilities
+                        .into_iter()
+                        .collect(),
+                );
+            }
+        },
+    );
+    let configuration_send = creator_notice.submitter(send);
+
     let disabled = move || {
         busy.get() || document().is_none() || state.get().is_some_and(|s| s.playtest_hash.is_some())
     };
@@ -53,7 +63,7 @@ pub(super) fn CreatorControls(
     view! {
         <Show when=move ||document().is_some()>
             <details class="creator-configuration"><summary>{move || if managed() {"Surfaces et capacités du module"} else {"Surfaces et capacités de la carte"}}</summary>
-                <fieldset disabled=disabled>
+                <fieldset disabled=disabled><super::draft::DraftNotice notice=creator_notice/>
                     <p>"Masquer un outil conserve ses données et les règles du jeu. Les changements passent par l’aperçu et l’historique habituels."</p>
                     <Show when=managed>
                         <p>{move ||state.get().and_then(|s|s.module_creator_context).map(|context|format!("Module : {}. L’aperçu indique les cartes concernées avant toute application.",context.name))}</p>
@@ -78,7 +88,7 @@ pub(super) fn CreatorControls(
                     <button on:click=move |_| {
                         let selected = surfaces.get_untracked();
                         let requested = capabilities.get_untracked();
-                        send.run(creator_edit(state.get_untracked(), move |source| {
+                        configuration_send.run(creator_edit(state.get_untracked(), move |source| {
                             let mut config = source.creator_configuration();
                             let mut required = source.used_capabilities();
                             required.extend(requested);
@@ -120,17 +130,27 @@ fn RulesControls(
     let value = RwSignal::new(String::new());
     let profile_id = RwSignal::new(String::new());
     let profile_version = RwSignal::new(String::new());
-    Effect::new(move |previous| {
-        let current = source_hash(state);
-        if previous == Some(current) {
-            return current;
-        }
-        if let Some(source) = document() {
-            profile_id.set(source.profile.id);
-            profile_version.set(source.profile.version.to_string());
-        }
-        current
-    });
+    let profile_notice = super::draft::bind(
+        move || {
+            (
+                "profile".into(),
+                serde_json::to_value(
+                    document().map(|source| (source.profile.id, source.profile.version)),
+                )
+                .unwrap_or_default(),
+            )
+        },
+        vec![
+            super::draft::Field::new(profile_id),
+            super::draft::Field::new(profile_version),
+        ],
+        move || {
+            if let Some(source) = document() {
+                profile_id.set(source.profile.id);
+                profile_version.set(source.profile.version.to_string());
+            }
+        },
+    );
     let field = move || {
         document().and_then(|document| {
             document
@@ -140,13 +160,19 @@ fn RulesControls(
                 .cloned()
         })
     };
-    Effect::new(move |previous| {
-        let current = (rule_index.get(), source_hash(state));
-        if previous != Some(current) {
-            value.set(field().map_or_else(String::new, |field| field.value));
-        }
-        current
-    });
+    let rule_notice = super::draft::bind(
+        move || {
+            (
+                rule_index.get().to_string(),
+                serde_json::to_value(field().map(|field| field.value)).unwrap_or_default(),
+            )
+        },
+        vec![super::draft::Field::new(value)],
+        move || value.set(field().map_or_else(String::new, |field| field.value)),
+    );
+    let profile_send = profile_notice.submitter(send);
+    let rule_send = rule_notice.submitter(send);
+
     let visible =
         move |surface| document().is_some_and(|document| document.surface_visible(surface));
     let disabled = move || {
@@ -159,11 +185,11 @@ fn RulesControls(
     view! {
             <Show when=move ||visible(CreatorSurface::Rules)>
                 <details class="creator-rules"><summary>"Profil de règles et aide"</summary>
-                    <fieldset disabled=disabled>
+                    <fieldset disabled=disabled><super::draft::DraftNotice notice=profile_notice/><super::draft::DraftNotice notice=rule_notice/>
                         <p>{format!("Contrat exécuté : {}. Profil minimal ; le manuel complet n’est pas implémenté.",forge_gameplay::RulesProfile::CONTRACT)}</p>
                         <label>"Identifiant du profil"<input prop:value=move ||profile_id.get() on:input=move |e|profile_id.set(event_target_value(&e))/></label>
                         <label>"Version du profil"<input type="number" min="1" step="1" prop:value=move ||profile_version.get() on:input=move |e|profile_version.set(event_target_value(&e))/></label>
-                        <button on:click=move |_|send.run(creator_edit(state.get_untracked(), move |source| {
+                        <button on:click=move |_|profile_send.run(creator_edit(state.get_untracked(), move |source| {
                             source.profile.id = profile_id.get_untracked();
                             source.profile.version = profile_version.get_untracked().parse().map_err(|_|"La version doit être un entier strictement positif.".to_owned())?;
                             source.profile.validate().map_err(|e|e.to_string())
@@ -176,7 +202,7 @@ fn RulesControls(
                             min=move ||field().map(|f|f.minimum.to_string()) max=move ||field().map(|f|f.maximum.to_string())
                             prop:value=move ||value.get() on:input=move |e|value.set(event_target_value(&e))/></label>
                         <p>"Une modification des règles peut rendre une sauvegarde antérieure incompatible ; aucune migration automatique n’est appliquée."</p>
-                        <button on:click=move |_|send.run(creator_edit(state.get_untracked(), move |source| {
+                        <button on:click=move |_|rule_send.run(creator_edit(state.get_untracked(), move |source| {
                             let key = source.profile.rule_fields().get(rule_index.get_untracked()).ok_or("Choisir une règle disponible")?.key;
                             source.profile = source.profile.with_rule_text(key,&value.get_untracked()).map_err(|e|e.to_string())?;
                             Ok(())

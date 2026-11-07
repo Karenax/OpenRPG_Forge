@@ -4,11 +4,34 @@ use super::{
     session::{ZoneAction, ZoneRequest},
 };
 use crate::VegetationLayerId;
-use forge_core::{CommandId, ContentHash, EntityId};
+use forge_core::{AssetId, CommandId, ContentHash, EntityId};
 use serde::{Deserialize, Serialize};
 
 pub const MAX_IMPORTED_PLANT_OFFSETS: usize = 4096;
 pub const MAX_IMPORTED_PLANT_PLACEMENTS: usize = 1024;
+
+/// Identity of the placement facade over an imported instance block, not a GLB.
+#[must_use]
+pub fn source_asset_id(head: &ZoneAuthoringHead, layer: &str) -> AssetId {
+    AssetId::deterministic(format!(
+        "imported-instance:{}:{}:{layer}",
+        head.base.terrain.project_id, head.base.terrain.area_id
+    ))
+}
+
+/// Match both the area-scoped identity and its immutable instance-block pin.
+#[must_use]
+pub fn is_source_asset(head: &ZoneAuthoringHead, id: AssetId, pin: ContentHash) -> bool {
+    head.base
+        .vegetation
+        .as_ref()
+        .and_then(|vegetation| vegetation.imported_source.as_ref())
+        .is_some_and(|source| {
+            source.blocks.iter().any(|block| {
+                source_asset_id(head, &block.layer_id) == id && block.instances_sha256 == pin
+            })
+        })
+}
 
 #[must_use]
 pub fn is_zero_translation(values: [f64; 3]) -> bool {

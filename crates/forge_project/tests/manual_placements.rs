@@ -34,6 +34,7 @@ fn door() -> ManualPlacement {
     ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic("manual-door"),
         name: "Porte".into(),
         asset_id: AssetId::deterministic("fixture-door"),

@@ -1,4 +1,4 @@
-use super::{Edit, document, edit, id, identity, integer, source_hash};
+use super::{Edit, document, edit, id, identity, integer};
 use forge_gameplay::{CalendarEventDefinition, SimulationClockDefinition};
 use forge_project::authoring::AuthoringState;
 use leptos::prelude::*;
@@ -108,7 +108,7 @@ pub(super) fn CalendarControls(
         <p>"Cette horloge avance avec la simulation. Une pause ne consomme pas de temps réel. Les échéances et rencontres utilisent ce même calendrier."</p>
         <ClockControls state=state send=send/>
         <EventControls state=state send=send/>
-        <p>"Examiner le diff, appliquer puis sauvegarder. Modifier le rythme ou les échéances peut rendre une ancienne partie incompatible."</p>
+        <p>"Examiner les modifications proposées, appliquer puis sauvegarder. Modifier le rythme ou les échéances peut rendre une ancienne partie incompatible."</p>
     }
 }
 
@@ -119,9 +119,23 @@ fn ClockControls(state: RwSignal<Option<AuthoringState>>, send: Callback<Edit>) 
         minute: RwSignal::new("480".into()),
         duration: RwSignal::new("1000".into()),
     };
-    Effect::new(move |previous: Option<Option<forge_core::ContentHash>>| {
-        let key = source_hash(state);
-        if previous.as_ref() != Some(&key) {
+    let clock_notice = super::super::draft::bind(
+        move || {
+            let clock = document(state)
+                .and_then(|source| source.simulation)
+                .unwrap_or_default()
+                .clock;
+            (
+                "clock".into(),
+                serde_json::to_value(clock).unwrap_or_default(),
+            )
+        },
+        vec![
+            super::super::draft::Field::new(fields.day),
+            super::super::draft::Field::new(fields.minute),
+            super::super::draft::Field::new(fields.duration),
+        ],
+        move || {
             let clock = document(state)
                 .and_then(|source| source.simulation)
                 .unwrap_or_default()
@@ -131,15 +145,17 @@ fn ClockControls(state: RwSignal<Option<AuthoringState>>, send: Callback<Edit>) 
             fields
                 .duration
                 .set(clock.milliseconds_per_minute.to_string());
-        }
-        key
-    });
+        },
+    );
+    let preview_send = clock_notice.submitter(send);
+
     view! {
+        <super::super::draft::DraftNotice notice=clock_notice/>
         <label>"Jour de départ"<input type="number" min="0" max=u32::MAX.to_string() step="1" prop:value=move ||fields.day.get() on:input=move |event|fields.day.set(event_target_value(&event))/></label>
         <label>"Minute du jour au départ (0 à 1 439)"<input type="number" min="0" max="1439" step="1" prop:value=move ||fields.minute.get() on:input=move |event|fields.minute.set(event_target_value(&event))/></label>
         <p>"0 correspond à minuit ; 480 à 08 h 00. Le jour avance après 1 440 minutes."</p>
         <label>"Durée de simulation d’une minute du calendrier (ms)"<input type="number" min="1" max="3600000" step="1" prop:value=move ||fields.duration.get() on:input=move |event|fields.duration.set(event_target_value(&event))/></label>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked()))>"Examiner l’horloge"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked()))>"Examiner l’horloge"</button>
     }
 }
 
@@ -152,13 +168,23 @@ fn EventControls(state: RwSignal<Option<AuthoringState>>, send: Callback<Edit>) 
         recurrent: RwSignal::new(false),
         period: RwSignal::new("1".into()),
     };
-    Effect::new(move |previous: Option<super::super::FieldSource>| {
-        let key = (fields.selected.get(), source_hash(state));
-        if previous.as_ref() != Some(&key) {
+    let draft_notice_fields_selected = super::super::draft::bind(
+        move || {
+            let selected = fields.selected.get();
+            let source = super::super::draft::records(state, &selected);
+            (selected, source)
+        },
+        vec![
+            super::super::draft::Field::new(fields.name),
+            super::super::draft::Field::new(fields.first),
+            super::super::draft::Field::new(fields.recurrent),
+            super::super::draft::Field::new(fields.period),
+        ],
+        move || {
             let current = document(state)
                 .and_then(|source| source.simulation)
                 .and_then(|simulation| {
-                    id(&key.0)
+                    id(&fields.selected.get_untracked())
                         .ok()
                         .and_then(|event| simulation.event(event).cloned())
                 });
@@ -175,10 +201,12 @@ fn EventControls(state: RwSignal<Option<AuthoringState>>, send: Callback<Edit>) 
                 fields.recurrent.set(false);
                 fields.period.set("1".into());
             }
-        }
-        key
-    });
+        },
+    );
+    let preview_send = draft_notice_fields_selected.submitter(send);
+
     view! {
+        <super::super::draft::DraftNotice notice=draft_notice_fields_selected/>
         <label>"Événement à retoucher"<select prop:value=move ||fields.selected.get() on:change=move |event|fields.selected.set(event_target_value(&event))>
             <option value="">"Préparer un nouvel événement"</option>
             {move ||document(state).and_then(|source|source.simulation).map(|simulation|simulation.events.into_iter().map(|event|view!{<option value=event.id.to_string()>{event.name}</option>}).collect_view())}
@@ -187,8 +215,8 @@ fn EventControls(state: RwSignal<Option<AuthoringState>>, send: Callback<Edit>) 
         <label>"Première échéance depuis le départ (minutes du calendrier)"<input type="number" min="0" max="1000000000" step="1" prop:value=move ||fields.first.get() on:input=move |event|fields.first.set(event_target_value(&event))/></label>
         <label><input type="checkbox" prop:checked=move ||fields.recurrent.get() on:change=move |event|fields.recurrent.set(event_target_checked(&event)) />"Répéter cet événement"</label>
         <Show when=move ||fields.recurrent.get()><label>"Période (minutes du calendrier)"<input type="number" min="1" max="1000000000" step="1" prop:value=move ||fields.period.get() on:input=move |event|fields.period.set(event_target_value(&event))/></label></Show>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner un nouvel événement"</button>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de l’événement"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),true))>"Examiner un nouvel événement"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de l’événement"</button>
         <button on:click=move |_|send.run(fields.remove(state.get_untracked()))>"Examiner la suppression de l’événement inutilisé"</button>
     }
 }

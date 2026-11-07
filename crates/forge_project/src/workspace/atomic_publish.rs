@@ -4,7 +4,7 @@
 use std::{io, path::Path};
 
 /// Whether publication consumed the caller-owned staging file.
-pub(super) fn publish(stage: &Path, destination: &Path) -> io::Result<bool> {
+pub fn publish(stage: &Path, destination: &Path) -> io::Result<bool> {
     if stage.parent().is_none() || stage.parent() != destination.parent() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,

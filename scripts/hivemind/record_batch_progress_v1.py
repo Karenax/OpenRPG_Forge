@@ -1247,12 +1247,114 @@ def main():
  if host_adapter_close.get('status')=='material_common_uniform_host_adapter_composed':
   recovery=read(W/'townsmith-ten-texture-engine-recovery-v1/RUN-RESULT.v1.json')
   engine_retry=read(W/'source-graph-ten-texture-engine-check-v2/RUN-RESULT.v1.json')
-  install_retry=read(W/'native-texture-capture-common-install-v2/RUN-RESULT.v1.json')
+  install_retry=read(W/'native-texture-capture-common-install-v4/RUN-RESULT.v1.json')
+  data['current_engine_check_proof']=str(W/'source-graph-ten-texture-engine-check-v3/RUN-RESULT.v1.json')
+  data['common_install_queue']=str(W/'native-texture-capture-common-install-v4/RUN-RESULT.v1.json')
   retry_state=install_retry.get('status',engine_retry.get('status',recovery.get('status','pending')))
   data['current_work_state']='Dix textures / 32 vues partagees / 134 operations conservees, 35 tests candidats passes ; shader arithmetique et adaptateur uniforms communs composes (2 controles chacun). Test moteur v1 refuse : constructeur non eclaire incomplet, corrige sans ajouter de textures. Reprise : '+retry_state+' ; transport UV0 complet, passes de rendu, sampling implicite et Studio restants'
   data['material_host_adapter_proof']=str(W/'townsmith-s-paint-material-host-adapter-v1/RESULT.v1.json')
   data['engine_recovery_proof']=str(W/'townsmith-ten-texture-engine-recovery-v1/RUN-RESULT.v1.json')
   key+=':'+host_adapter_close['status']+':'+retry_state
+ vertex_transport_close=read(W/'townsmith-s-paint-vertex-transport-reopen-v1/RESULT.v1.json')
+ if vertex_transport_close.get('compositions_passed')==4:
+  data['current_work_state']=data['current_work_state'].replace('transport UV0 complet, passes de rendu, sampling implicite et Studio restants','quatre variantes vertex/prepasse composees et reouvertes, UV0 float4 conserves ; fragments eclaires, execution GPU, sampling implicite et Studio restants')
+  data['vertex_transport_proof']=str(W/'townsmith-s-paint-vertex-transport-reopen-v1/RESULT.v1.json')
+  key+=':'+vertex_transport_close['status']
+ render_contract_close=read(W/'townsmith-s-paint-original-render-contract-v1/RESULT.v1.json')
+ if render_contract_close.get('contracts_reopened')==1:
+  data['current_work_state']+=' ; contrat original HDRP reouvert (opaque, standard, normales tangentielles, occlusion speculaire mode 1) ; base installation equivalente apres formatage'
+  data['original_render_contract_proof']=str(W/'townsmith-s-paint-original-render-contract-v1/RESULT.v1.json')
+  data['common_format_epoch_proof']=str(W/'native-capture-common-format-epoch-v1/RESULT.v1.json')
+  key+=':'+render_contract_close['status']
+ townsmith_lit_close=read(W/'townsmith-s-paint-lit-fragments-v1/RESULT.v1.json')
+ if townsmith_lit_close.get('compositions_passed')==7:
+  data['current_work_state']=data['current_work_state'].replace('fragments eclaires, execution GPU, sampling implicite et Studio restants','fragments Lit/prepasse candidats composes pour sept variantes ; layout/pipeline GPU, fidelite HDRP, sampling implicite et Studio restants')
+  data['townsmith_lit_fragment_proof']=str(W/'townsmith-s-paint-lit-fragments-v1/RESULT.v1.json')
+  data['next_action']='Terminer les tests moteur et installation gardee ; qualifier layout/pipeline GPU effectifs et les bindings du materiau complet, comparer rendu et sampling a Unity HDRP, puis verifier Studio'
+  key+=':'+townsmith_lit_close['status']
+ townsmith_pipeline_close=read(W/'townsmith-s-paint-native-pipeline-reopen-v1/RESULT.v1.json')
+ if townsmith_pipeline_close.get('pipelines_created')==7:
+  current_install=read(W/'native-texture-capture-common-install-v4/RUN-RESULT.v1.json')
+  data['current_work_state']='103 tests moteur cibles passent (93 source_graph, 4 unlit, 6 GLB ; module program sans test propre). Sept pipelines autonomes D3D12 crees et reouverts. Contrat commun applique, controles post-installation : '+current_install.get('status','pending')+' ; bindings Bevy effectifs, etat pipeline source, rendu GPU/fidelite HDRP, sampling implicite et Studio restants'
+  data['townsmith_pipeline_admission_proof']=str(W/'townsmith-s-paint-native-pipeline-reopen-v1/RESULT.v1.json')
+  post_assets_log=W/'native-texture-capture-common-install-v4/assets.stdout.log'
+  if current_install.get('assets_exit_code')==0 and post_assets_log.exists() and '28 passed; 0 failed' in post_assets_log.read_text(encoding='utf-8'):
+   data['post_install_native_contract_tests_passed']=28
+   data['current_work_state']+=' ; 28 tests du contrat assets apres installation passent'
+  key+=':'+townsmith_pipeline_close['status']+':'+current_install.get('status','pending')
+ bevy_pipeline_root='townsmith-s-paint-bevy-pipeline-v3' if (W/'townsmith-s-paint-bevy-pipeline-v3/RUN-RESULT.v1.json').exists() else 'townsmith-s-paint-bevy-pipeline-v2'
+ bevy_pipeline_queue=read(W/(bevy_pipeline_root+'/RUN-RESULT.v1.json'))
+ if bevy_pipeline_queue:
+  data['current_work_state']+=' ; controle des vrais layouts Bevy : '+bevy_pipeline_queue.get('status','pending')
+  data['townsmith_actual_bevy_pipeline_proof']=str(W/(bevy_pipeline_root+'/RUN-RESULT.v1.json'))
+  if read(W/'native-texture-capture-common-install-v4/RUN-RESULT.v1.json').get('status')=='common_native_capture_installed_workspace_tests_passed':
+   data['current_work_sub_lot']='L03.TOWNSMITH.SHADER.S_PAINT.PIPELINE.BEVY'
+  key+=':'+bevy_pipeline_queue.get('status','pending')
+ packet_close=read(W/'townsmith-s-paint-material-packet-reopen-v1/RESULT.v1.json')
+ if packet_close.get('status')=='material_packet_integrity_and_normal_swizzle_regression_verified':
+  data['townsmith_material_packet_proof']=str(W/'townsmith-s-paint-material-packet-reopen-v1/RESULT.v1.json')
+  data['current_work_state']+=' ; paquet materiau complet reouvert : 37 tests isoles passent, regression normale prouvee par deux echecs attendus du validateur original ; correction commune non installee'
+  data['next_action']='Terminer les vrais pipelines Bevy ; installer et verifier la correction commune des swizzles apres liberation des sources epinglees ; monter textures/uniforms et qualifier etats source, rendu, prefabs et Studio'
+  key+=':'+packet_close['status']
+ swizzle_install=read(W/'normal-decode-swizzle-common-install-v1/RUN-RESULT.v1.json')
+ if swizzle_install:
+  data['normal_swizzle_install_proof']=str(W/'normal-decode-swizzle-common-install-v1/RUN-RESULT.v1.json')
+  data['current_work_state']+=' ; installation du correctif xyz : '+swizzle_install.get('status','pending')
+  if (W/'normal-decode-swizzle-common-install-v1/INSTALLED.v1.json').exists():
+   data['current_work_state']=data['current_work_state'].replace('correction commune non installee','correction commune installee ; tests workspace en cours ou a verifier')
+  if swizzle_install.get('assets_exit_code')==0:
+   data['post_install_native_contract_tests_passed']=29
+   data['current_work_state']+=' ; 29 tests assets passent apres le correctif xyz'
+  if swizzle_install.get('status')=='normal_swizzle_common_installed_workspace_tests_passed':
+   data['current_work_state']=data['current_work_state'].replace('correction commune non installee','correction commune installee, controles du workspace passes')
+   data['current_work_state']=data['current_work_state'].replace('correction commune installee ; tests workspace en cours ou a verifier','correction commune installee, controles du workspace passes')
+   data['post_install_native_contract_tests_passed']=29
+   data['next_action']='Terminer la sonde GPU du workspace ; monter les textures/uniformes, qualifier les etats source et pixels, les prefabs complets et Studio'
+  key+=':'+swizzle_install.get('status','pending')
+ door_carrier=read(W/'townsmith-paint-door-glb-reopen-v1/RESULT.v1.json')
+ if door_carrier.get('status')=='three_door_lods_complete_material_carrier_reopened':
+  data['townsmith_door_carrier_proof']=str(W/'townsmith-paint-door-glb-reopen-v1/RESULT.v1.json')
+  data['current_work_state']+=' ; GLB porte reouvert : trois LOD, 6981 sommets, dix textures, trois submeshes sans couleur conserves ; 50 tests isoles incluant les controles precedents passent ; rendu/prefab/Studio ouverts'
+  key+=':'+door_carrier['status']
+ house_images=read(W/'house-source-thumbnail-batch-0009-0016-v1/RUN-RESULT.v1.json')
+ if house_images:
+  data['parallel_work']=[{'lot':'L08.IMAGE.HOUSE.03','status':house_images.get('status','pending'),'expected_cards':8,'proof':str(W/'house-source-thumbnail-batch-0009-0016-v1/RUN-RESULT.v1.json'),'images_installed_in_vault':house_images.get('images_installed_in_vault',False)}]
+  key+=':'+house_images.get('status','pending')
+ house_delivery=read(W/'house-source-thumbnail-batch-0009-0016-delivery-reopen-v1/RESULT.v1.json')
+ if house_delivery.get('status')=='eight_native_source_card_images_indexed_and_product_reader_verified':
+  data['house_images_delivery_proof']=str(W/'house-source-thumbnail-batch-0009-0016-delivery-reopen-v1/RESULT.v1.json')
+  data['missing_source_primary_images']=house_delivery['missing_primary_images_after']
+  data['parallel_work']=[{'lot':'L08.IMAGE.HOUSE.03','status':house_delivery['status'],'cards_indexed':8,'source_images_installed':16,'missing_primary_images':house_delivery['missing_primary_images_after'],'actual_editor_visual_verified':False,'complete_assets_delivered_increment':0}]
+  key+=':'+house_delivery['status']
+ house_delivery_next=read(W/'house-source-thumbnail-batch-0017-0024-delivery-reopen-v1/RESULT.v1.json')
+ if house_delivery_next.get('status')=='eight_native_source_card_images_indexed_and_product_reader_verified':
+  data['house_images_delivery_proof']=str(W/'house-source-thumbnail-batch-0017-0024-delivery-reopen-v1/RESULT.v1.json')
+  data['missing_source_primary_images']=house_delivery_next['missing_primary_images_after']
+  data['parallel_work']=[{'lot':'L08.IMAGE.HOUSE.04','status':house_delivery_next['status'],'cards_indexed':8,'source_images_installed':16,'missing_primary_images':house_delivery_next['missing_primary_images_after'],'actual_editor_visual_verified':False,'complete_assets_delivered_increment':0}]
+  key+=':L08.IMAGE.HOUSE.04:'+house_delivery_next['status']
+ house_delivery_latest=read(W/'house-source-thumbnail-batch-0025-0032-delivery-reopen-v1/RESULT.v1.json')
+ if house_delivery_latest.get('status')=='eight_native_source_card_images_indexed_and_product_reader_verified':
+  data['house_images_delivery_proof']=str(W/'house-source-thumbnail-batch-0025-0032-delivery-reopen-v1/RESULT.v1.json')
+  data['missing_source_primary_images']=house_delivery_latest['missing_primary_images_after']
+  data['parallel_work']=[{'lot':'L08.IMAGE.HOUSE.05','status':house_delivery_latest['status'],'cards_indexed':8,'source_images_installed':16,'missing_primary_images':house_delivery_latest['missing_primary_images_after'],'actual_editor_visual_verified':False,'complete_assets_delivered_increment':0}]
+  key+=':L08.IMAGE.HOUSE.05:'+house_delivery_latest['status']
+ resource_admission=read(W/'townsmith-paint-door-native-resource-admission-v3/RUN-RESULT.v1.json')
+ if resource_admission:
+  data['current_work_sub_lot']='L03.TOWNSMITH.RESSOURCES'
+  data['current_work_state']='Admission réelle des dix textures natives et 120 mips du GLB, uniformes et groupe matériau via allocateur Bevy : '+resource_admission['status']+' ; dessin, sampling implicite, fidélité Unity et Studio restent ouverts'
+  data['native_resource_admission_proof']=str(W/'townsmith-paint-door-native-resource-admission-v3/RUN-RESULT.v1.json')
+  data['next_action']='Vérifier le résultat de l’admission des ressources ; ensuite préparer les états source et le dessin GPU, comparer à Unity et vérifier les prefabs dans Studio'
+  if resource_admission.get('actual_exit_code')==0:
+   data['next_action']='L03.TOWNSMITH.DESSIN : préparer les états source et le dessin réel, comparer sampling et pixels à Unity, puis vérifier les prefabs dans Studio'
+  key+=':L03.TOWNSMITH.RESSOURCES:'+resource_admission['status']
+ draw_receipt=read(W/'townsmith-paint-door-native-draw-v2/RUN-RESULT.v1.json')
+ if draw_receipt.get('gpu_draw_executed'):
+  data['current_work_sub_lot']='L03.TOWNSMITH.DESSIN'
+  data['current_work_state']='GLB dessiné par le moteur réel : dix images natives, 120 mips, trois readbacks identiques ; comparaison linéaire Unity/Forge exécutée, fidélité refusée. Le ciel de preview HDRP est absent côté Forge ; éclairage et matériau restent à comparer séparément'
+  data['actual_source_glb_draw_proof']=str(W/'townsmith-paint-door-native-draw-v2/RUN-RESULT.v1.json')
+  data['source_glb_draw_comparison']=str(W/'townsmith-paint-door-native-draw-comparison-v2/RESULT.v1.json')
+  data['next_action']='Capturer les véritables ressources HDRP de preview, distinguer ciel/éclairage et matériau sans ajuster les seuils, puis intégrer les ressources de scène communes et vérifier les prefabs dans Studio'
+  key+=':L03.TOWNSMITH.DESSIN:'+draw_receipt['status']
  active_lot=data.get('current_work_sub_lot',active_lot);active_state=data.get('current_work_state',active_state)
  data['active_sub_lot']=active_lot
  # Keep the prominent work summary consistent with the latest measured sub-lot.

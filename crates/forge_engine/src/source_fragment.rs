@@ -8,7 +8,7 @@ use bevy::{
     },
     image::{CompressedImageFormatSupport, CompressedImageFormats, ImageSampler, ImageType},
     material::OpaqueRendererMethod,
-    pbr::{ExtendedMaterial, MaterialExtension, MaterialPlugin},
+    pbr::{MaterialExtension, MaterialPlugin},
     prelude::*,
     render::render_resource::{AsBindGroup, TextureFormat},
     shader::ShaderRef,
@@ -52,14 +52,19 @@ pub struct SourceFragmentExtension {
     pub world_control: Vec4,
     #[texture(101)]
     #[sampler(102)]
+    #[dependency]
     pub source_orm: Handle<Image>,
     #[texture(103, filterable = false)]
+    #[dependency]
     pub source_normal: Option<Handle<Image>>,
     #[texture(104, filterable = false)]
+    #[dependency]
     pub source_blend_mask: Option<Handle<Image>>,
     #[texture(105, filterable = false)]
+    #[dependency]
     pub source_noise: Option<Handle<Image>>,
     #[texture(106, filterable = false)]
+    #[dependency]
     pub source_noise_mask: Option<Handle<Image>>,
 }
 impl MaterialExtension for SourceFragmentExtension {
@@ -70,7 +75,8 @@ impl MaterialExtension for SourceFragmentExtension {
         "embedded://forge_engine/shaders/source_fragment_prepass.wgsl".into()
     }
 }
-pub type SourceFragmentMaterial = ExtendedMaterial<StandardMaterial, SourceFragmentExtension>;
+pub type SourceFragmentMaterial =
+    crate::material_composition::ComposedMaterial<StandardMaterial, SourceFragmentExtension>;
 
 /// Explicit refusal marker. Invalid source materials never render a silent fallback.
 #[derive(Component, Clone, Debug, Reflect)]
@@ -80,6 +86,12 @@ pub struct SourceFragmentRejected(pub String);
 pub struct SourceFragmentPlugin;
 impl Plugin for SourceFragmentPlugin {
     fn build(&self, app: &mut App) {
+        // Gameplay can request a model before plugins finish. Reserve the
+        // eventual GLB loader now so such requests cannot bind to the ordinary
+        // loader while GltfPlugin finishes first. The .gltf route is unchanged.
+        app.preregister_asset_loader::<crate::source_fragment_loader::SourceFragmentGlbLoader>(&[
+            "glb",
+        ]);
         app.register_type::<SourceFragmentRejected>();
         embedded_asset!(app, "shaders/source_fragment.wgsl");
         embedded_asset!(app, "shaders/source_pbr_lighting.wgsl");
@@ -709,6 +721,49 @@ mod tests {
         assert_eq!(
             marker.0,
             "required source material result missing: Material0"
+        );
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn requests_before_plugin_finish_wait_for_the_shared_glb_loader() {
+        use bevy::{
+            app::TaskPoolPlugin,
+            asset::{AssetPlugin, AssetServer, ErasedAssetLoader},
+            gltf::{GltfLoader, GltfPlugin},
+            mesh::MeshPlugin,
+        };
+        use std::{
+            any::TypeId,
+            future::Future,
+            task::{Context, Waker},
+        };
+
+        let mut app = App::new();
+        app.add_plugins((
+            TaskPoolPlugin::default(),
+            AssetPlugin::default(),
+            MeshPlugin,
+            GltfPlugin::default(),
+            SourceFragmentPlugin,
+        ));
+        let server = app.world().resource::<AssetServer>().clone();
+        let mut glb = Box::pin(server.get_asset_loader_with_extension("glb"));
+        let mut gltf = Box::pin(server.get_asset_loader_with_extension("gltf"));
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(glb.as_mut().poll(&mut context).is_pending());
+        assert!(gltf.as_mut().poll(&mut context).is_pending());
+        app.finish();
+        app.cleanup();
+        let glb = bevy::tasks::block_on(glb).unwrap();
+        let gltf = bevy::tasks::block_on(gltf).unwrap();
+        assert_eq!(
+            ErasedAssetLoader::type_id(glb.as_ref()),
+            TypeId::of::<crate::source_fragment_loader::SourceFragmentGlbLoader>()
+        );
+        assert_eq!(
+            ErasedAssetLoader::type_id(gltf.as_ref()),
+            TypeId::of::<GltfLoader>()
         );
     }
 }

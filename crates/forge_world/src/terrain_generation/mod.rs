@@ -18,6 +18,9 @@ pub use partial::{
     TerrainPartialUpdateError, TerrainPartialUpdateRequest,
 };
 pub use sampling::sample_height;
+pub(crate) use sampling::{
+    SurfaceVertex, grid_uv, material_weights_for, sample_brush_noise, surface_vertex,
+};
 
 use forge_core::{ContentHash, EntityId};
 use forge_project::{
@@ -207,7 +210,7 @@ impl TerrainGenerationPlan {
         sampling::sample_surface_height(self, x_m, z_m)
     }
 
-    fn chunk_id(&self, coordinate: TerrainChunkCoordinate) -> TerrainChunkId {
+    pub(crate) fn chunk_id(&self, coordinate: TerrainChunkCoordinate) -> TerrainChunkId {
         TerrainChunkId(EntityId::deterministic(format!(
             "terrain-generation-v1/{}/{}/{:016x}/{}/{}",
             self.document.project_id,

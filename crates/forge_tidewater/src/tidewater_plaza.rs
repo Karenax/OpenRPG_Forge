@@ -4,17 +4,17 @@ use bevy_rapier3d::prelude::Collider;
 use forge_core::{
     AssetId, EntityId, Transform as ForgeTransform, UnitQuaternion, Vec3 as ForgeVec3,
 };
+use forge_engine::ManualPlacementCollision;
+use forge_engine::ManualPlacementCollisionExpected;
+use forge_engine::ManualPlacementPart;
+use forge_engine::ManualPlacementProjection;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::mesh::SourceMeshBytes;
 use forge_project::zone_authoring::placements::{MAX_MANUAL_PLACEMENTS, ManualPlacement};
-use forge_tidewater_assets::tidewater_plaza::{self as plaza, PlazaPackage};
+use forge_tidewater_assets::tidewater_plaza as plaza;
+use forge_tidewater_assets::tidewater_plaza::PlazaPackage;
 use serde::Deserialize;
 use std::collections::BTreeMap;
-use {
-    crate::{tidewater_material::VillageMaterial, tidewater_mesh::VillageMeshBytes},
-    forge_engine::{
-        ManualPlacementCollision, ManualPlacementCollisionExpected, ManualPlacementPart,
-        ManualPlacementProjection,
-    },
-};
 
 #[derive(Deserialize)]
 struct Description {
@@ -188,7 +188,7 @@ impl PreparedPlaza {
                         .ok_or("Plaza mesh attribute absent")
                         .and_then(&file)
                 };
-                let mesh = VillageMeshBytes {
+                let mesh = SourceMeshBytes {
                     positions: attr("pos")?,
                     normals: attr("nrm")?,
                     uv: attr("uv")?,
@@ -290,7 +290,7 @@ impl PreparedPlaza {
     pub fn stage(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
     ) -> Result<ResidentPlaza, String> {
         self.stage_instances(world, materials, None)
     }
@@ -298,7 +298,7 @@ impl PreparedPlaza {
     pub fn stage_authored(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
         placements: &[ManualPlacement],
     ) -> Result<ResidentPlaza, String> {
         self.stage_instances(world, materials, Some(placements))
@@ -311,7 +311,7 @@ impl PreparedPlaza {
     fn stage_instances(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
         placements: Option<&[ManualPlacement]>,
     ) -> Result<ResidentPlaza, String> {
         let source_instances = placements.is_none();
@@ -621,7 +621,7 @@ mod tests {
         }
     }
 
-    fn materials() -> BTreeMap<String, Handle<VillageMaterial>> {
+    fn materials() -> BTreeMap<String, Handle<SourceSurfaceMaterial>> {
         BTreeMap::from([("fixture".into(), Handle::default())])
     }
 
@@ -667,6 +667,7 @@ mod tests {
             .map(|index| ManualPlacement {
                 particles: None,
                 physics: None,
+                local_lights: None,
                 id: EntityId::deterministic(format!("plaza-common-{index}")),
                 name: "Fixture plaza light".into(),
                 asset_id: plaza::asset_id(2).unwrap(),
@@ -761,7 +762,7 @@ mod tests {
         world.init_resource::<Assets<Mesh>>();
         let materials = ["material-0", "material-1"]
             .into_iter()
-            .map(|name| (name.to_owned(), Handle::<VillageMaterial>::default()))
+            .map(|name| (name.to_owned(), Handle::<SourceSurfaceMaterial>::default()))
             .collect();
         let resident = prepared.stage(&mut world, &materials).unwrap();
         assert_eq!(resident.roots.len(), 5);

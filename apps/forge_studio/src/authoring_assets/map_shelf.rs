@@ -68,6 +68,7 @@ fn pending_label(key: Key) -> &'static str {
 }
 #[component]
 pub(super) fn MapShelf(
+    state: RwSignal<Option<forge_project::authoring::AuthoringState>>,
     inspected: RwSignal<Option<EntityId>>,
     query: RwSignal<String>,
 ) -> impl IntoView {
@@ -114,7 +115,19 @@ pub(super) fn MapShelf(
                 }
             }/>
         </div>
-        <Show when=move ||rows().is_empty()><p>"Les objets apparaissent ici lorsque la carte est chargée."</p></Show>
+        <Show when=move ||rows().is_empty()><p role="status">{move || {
+            let _ = revision.get();
+            let session = state.get();
+            if session.as_ref().is_none_or(|state|state.document.is_none()) {return "Ouvrez une carte pour voir ses objets.";}
+            let expected = session.and_then(|state|state.zone_head).and_then(|head|super::objects::list(&head).ok()).map_or(0,|objects|objects.len());
+            CACHE.with(|cache| {
+                let cache = cache.borrow();
+                if expected==0 { "Cette carte ne contient aucun modèle placé. Choisissez un modèle dans la bibliothèque pour commencer." }
+                else if cache.head.is_none() { "Les modèles de cette carte ne sont pas encore affichés. Consultez le chargement et le journal des actions." }
+                else if cache.rows.is_empty() { "Aucun modèle visible dans cette carte. Vérifiez les couches affichées et le journal des actions." }
+                else { "Aucun objet ne correspond à cette recherche. Effacez ou modifiez les mots recherchés." }
+            })
+        }}</p></Show>
     }
 }
 
@@ -380,7 +393,7 @@ fn start_capture(
     let target = world.resource_mut::<Assets<Image>>().add(texture);
     let camera = world
         .spawn((
-            forge_tidewater::tidewater_sky::preview::PreviewCamera,
+            forge_engine::scene_camera::OffscreenSceneCamera,
             Camera3d::default(),
             Camera {
                 order: -30,

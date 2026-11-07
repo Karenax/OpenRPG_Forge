@@ -1,6 +1,5 @@
-#[path = "installed_fixture.rs"]
-mod fixture;
 use super::*;
+use crate::standalone_fixture::installed_fixture as fixture;
 use fixture::Fixture;
 use std::{cell::Cell, fs};
 
@@ -8,19 +7,23 @@ use std::{cell::Cell, fs};
 fn admitted_selection_reaches_the_spawner_with_only_server_prepared_arguments() {
     let fixture = Fixture::new();
     let calls = Cell::new(0);
-    let result = start_with(
-        &fixture.install,
-        ModuleSelection {
-            module_id: fixture.first.id,
-            area_id: fixture.first.area,
-        },
-        |command| {
-            calls.set(calls.get() + 1);
-            assert_eq!(command.get_args().next().unwrap(), "--module");
-            Ok(37)
-        },
-    )
-    .unwrap();
+    let result =
+        start_with(
+            &fixture.install,
+            ModuleSelection {
+                module_id: fixture.first.id,
+                area_id: fixture.first.area,
+            },
+            |command| {
+                calls.set(calls.get() + 1);
+                assert_eq!(command.get_args().next().unwrap(), "--module");
+                assert!(command.get_envs().all(|(name, _)| {
+                    name != std::ffi::OsStr::new(GAME_DEFAULT_DISPLAY_MODE_ENV)
+                }));
+                Ok(37)
+            },
+        )
+        .unwrap();
     assert_eq!(result, 37);
     assert_eq!(calls.get(), 1);
 }

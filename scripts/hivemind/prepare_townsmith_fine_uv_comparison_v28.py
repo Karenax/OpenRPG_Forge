@@ -1,0 +1,36 @@
+"""Seal the explicitly fine derivative controls separately from authored sampling."""
+from pathlib import Path
+import subprocess, sys
+s=Path(__file__).parent
+sealer=s/'seal_townsmith_fine_uv_source_v28.py'
+comparison=s/'compare_townsmith_fine_uv_v28.py'
+assert not sealer.exists() and not comparison.exists()
+q=(s/'seal_townsmith_depth_bound_uv_v27.py').read_text(encoding='utf-8')
+q=q.replace('townsmith-door-source-depth-bound-uv-v27','townsmith-door-source-fine-uv-v28')
+q=q.replace('townsmith-door-source-depth-bound-uv-reopen-v27','townsmith-door-source-fine-uv-reopen-v28')
+q=q.replace('range(8)','range(12)').replace('index % 2','index % 3')
+q=q.replace('assert np.array_equal(values[4], values[6]) and np.array_equal(values[5], values[7])','assert all(np.array_equal(values[6+i],values[9+i]) for i in range(3))')
+q=q.replace('values[6]','values[9]').replace('values[7]','values[11]')
+q=q.replace('captures=8','captures=12').replace('24 captures float32','36 captures float32')
+q=q.replace('assert all(np.array_equal(values[6+i],values[9+i]) for i in range(3))','assert all(np.array_equal(values[6+i],values[9+i]) for i in range(3))\n        assert all(sha(source/f"{case}.uv-control-{6+i}.rgba32f")==sha(source/f"{case}.uv-control-{9+i}.rgba32f") for i in range(3))')
+q=q.replace('L03.TOWNSMITH.MATERIAUX.UV.SOURCE.PROFONDEUR','L03.TOWNSMITH.MATERIAUX.UV.SOURCE.FINE')
+compile(q,str(sealer),'exec');sealer.write_text(q,encoding='utf-8')
+q=(s/'compare_townsmith_depth_bound_uv_v27.py').read_text(encoding='utf-8')
+q=q.replace('townsmith-depth-bound-uv-comparison-v27','townsmith-fine-uv-comparison-v28')
+q=q.replace('townsmith-native-uv-batch-v26','townsmith-native-fine-uv-batch-v28')
+q=q.replace('six_native_uv_channels_drawn_with_stable_readbacks','four_native_fine_uv_channels_drawn_with_stable_readbacks')
+q=q.replace('townsmith-native-uv-carrier-v26','townsmith-native-fine-uv-carrier-v28')
+q=q.replace('townsmith-native-uv-channel-{channel}-v26','townsmith-native-fine-uv-channel-{channel}-v28')
+q=q.replace('townsmith-door-source-depth-bound-uv-reopen-v27','townsmith-door-source-fine-uv-reopen-v28')
+q=q.replace('townsmith-door-source-depth-bound-uv-v27','townsmith-door-source-fine-uv-v28')
+q=q.replace('uv-control-6','uv-control-9').replace('uv-control-7','uv-control-11')
+q=q.replace('expected=[uv[:,:,0],uv[:,:,1],derivatives[:,:,0],derivatives[:,:,1],-derivatives[:,:,2],-derivatives[:,:,3]]','expected=[derivatives[:,:,0],derivatives[:,:,1],-derivatives[:,:,2],-derivatives[:,:,3]]')
+q=q.replace("names=['u','v','du_dx','dv_dx','du_dy','dv_dy']", "names=['du_dx_fine','dv_dx_fine','du_dy_fine','dv_dy_fine']")
+q=q.replace('channel>=4','channel>=2')
+q=q.replace('L03.TOWNSMITH.MATERIAUX.UV.COMPARAISON.PROFONDEUR','L03.TOWNSMITH.MATERIAUX.UV.COMPARAISON.FINE')
+q=q.replace('six canaux natifs','quatre canaux natifs avec dérivées fines explicites')
+q=q.replace('Diagnostic of original isolated LOD0 submesh0 with actual source opaque depth selection;', 'Diagnostic with explicit fine derivatives in both backends, actual source opaque depth selection; original authored implicit texture sampling remains unchanged;')
+q=q.replace("tmp.write_text(json.dumps(state,ensure_ascii=False,indent=2),encoding='utf-8')", "tmp.write_text(json.dumps(state,ensure_ascii=False,indent=2),encoding='utf-8')")
+compile(q,str(comparison),'exec');comparison.write_text(q,encoding='utf-8')
+subprocess.run([sys.executable,'-B',str(sealer)],check=True)
+subprocess.run([sys.executable,'-B',str(comparison)],check=True)

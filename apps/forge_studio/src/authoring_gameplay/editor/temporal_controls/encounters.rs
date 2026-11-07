@@ -1,5 +1,5 @@
 use super::condition::{ConditionControls, ConditionFields};
-use super::{Edit, document, edit, id, identity, integer, source_hash};
+use super::{Edit, document, edit, id, identity, integer};
 use forge_core::EntityId;
 use forge_gameplay::{ActorRole, Condition, EncounterDefinition, EncounterRearm};
 use forge_project::authoring::AuthoringState;
@@ -18,6 +18,18 @@ struct Fields {
 }
 
 impl Fields {
+    fn draft_fields(self) -> Vec<super::super::draft::Field> {
+        let mut fields = vec![
+            super::super::draft::Field::new(self.name),
+            super::super::draft::Field::new(self.event),
+            super::super::draft::Field::new(self.participants),
+            super::super::draft::Field::new(self.recurrent),
+            super::super::draft::Field::new(self.cooldown),
+        ];
+        fields.extend(self.condition.draft_fields());
+        fields
+    }
+
     fn preview(self, state: Option<AuthoringState>, create: bool) -> Edit {
         edit(state, move |_, source| {
             let encounter_id =
@@ -111,22 +123,29 @@ pub(super) fn EncounterControls(
         cooldown: RwSignal::new("1".into()),
         condition: ConditionFields::new(),
     };
-    Effect::new(move |previous: Option<super::super::FieldSource>| {
-        let key = (fields.selected.get(), source_hash(state));
-        if previous.as_ref() != Some(&key) {
+    let draft_notice_fields_selected = super::super::draft::bind(
+        move || {
+            let selected = fields.selected.get();
+            let source = super::super::draft::records(state, &selected);
+            (selected, source)
+        },
+        fields.draft_fields(),
+        move || {
             fields.load(
                 document(state)
                     .and_then(|source| source.simulation)
                     .and_then(|simulation| {
-                        id(&key.0)
+                        id(&fields.selected.get_untracked())
                             .ok()
                             .and_then(|id| simulation.encounter(id).cloned())
                     }),
             );
-        }
-        key
-    });
+        },
+    );
+    let preview_send = draft_notice_fields_selected.submitter(send);
+
     view! {
+        <super::super::draft::DraftNotice notice=draft_notice_fields_selected/>
         <p>"Les participants restent absents avant l’échéance. Une rencontre récurrente attend leur défaite et son délai de réarmement ; elle réutilise leurs identités et ne duplique pas leurs inventaires."</p>
         <label>"Rencontre à retoucher"<select prop:value=move ||fields.selected.get() on:change=move |event|fields.selected.set(event_target_value(&event))>
             <option value="">"Préparer une nouvelle rencontre"</option>
@@ -147,8 +166,8 @@ pub(super) fn EncounterControls(
         <ConditionControls fields=fields.condition state=state/>
         <label><input type="checkbox" prop:checked=move ||fields.recurrent.get() on:change=move |event|fields.recurrent.set(event_target_checked(&event)) />"Réarmer après la défaite de tous les participants"</label>
         <Show when=move ||fields.recurrent.get()><label>"Délai depuis la dernière activation (minutes du calendrier)"<input type="number" min="0" max="1000000000" step="1" prop:value=move ||fields.cooldown.get() on:input=move |event|fields.cooldown.set(event_target_value(&event))/></label></Show>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner une nouvelle rencontre"</button>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la rencontre"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),true))>"Examiner une nouvelle rencontre"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la rencontre"</button>
         <button on:click=move |_|send.run(fields.remove(state.get_untracked()))>"Examiner la suppression de la rencontre"</button>
         <p>"Supprimer une rencontre rend ses anciens participants présents dès le début d’une nouvelle partie. Examiner ce changement et la compatibilité des sauvegardes avant application."</p>
     }

@@ -2,6 +2,7 @@
 
 //! Versioned source-of-truth documents used by both native and WASM consumers.
 
+pub mod assistant;
 pub mod audit;
 pub mod authoring;
 pub mod building;

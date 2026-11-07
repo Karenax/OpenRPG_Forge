@@ -6,59 +6,21 @@ sur le lot 019 selon [le rapport final](../../docs/evidence/gate4/GATE4_CLOSURE_
 Les exemples datés ci-dessous restent des procédures et preuves de leurs lots ;
 leurs chemins et reçus ne doivent pas être réutilisés pour qualifier de nouvelles sources.
 
-Ces outils de développement produisent un installateur EXE hors ligne ou un dossier
-de packages : launcher, éditeur, jeu natif, module et assets détachés. Python, Cargo, Trunk et wasm-bindgen
-ne sont pas nécessaires sur le poste client. Windows x64 et WebView2 le sont.
+Les recettes courantes produisent le paquet et le Setup du Studio.
+Le Studio exporte chaque jeu avec son launcher et le runtime commun.
 
-## Installateur classique autonome
+## Installateur Windows
 
-`build_classic_installer.py --help` assemble un seul EXE NSIS : assistant français,
-choix de destination, installation des trois packs, raccourcis pour l’utilisateur
-et désinstallation Windows. WebView2 est inclus hors ligne et sa signature Microsoft
-est vérifiée avant son exécution lorsqu’il manque.
+`build_classic_installer.py studio-only --help` décrit les paramètres du
+Setup Studio. Le profil NSIS vérifie le prérequis WebView2 hors ligne et
+embarque les fichiers nécessaires. La désinstallation retire les fichiers
+vérifiés du Studio et conserve les paquets auteur à leur emplacement.
+Le Setup reprend leurs révisions épinglées à la réinstallation.
 
-La voie `--shared-working-tree` recompile directement les workspaces launcher Aube,
-Hub et gestionnaire de livraison du checkout commun. Elle exige les reçus actuels
-Studio/jeu produits par `complete_rebuild.py`, les données courantes explicites et
-l'installateur WebView2 hors ligne avec son SHA-256. Les anciens Game/Studio et
-`--baseline` sont refusés dans ce mode.
-`--node` désigne le Node de développement qui prépare le frontend embarqué. `Forge.exe`
-est le véritable launcher ; `Forge-ContentManager.exe` est le gestionnaire séparé.
-Le menu Démarrer propose aussi un accès Studio utilisant la recette installée.
-L'ancienne voie `--frozen-archive` conserve les binaires Game/Studio d'une livraison
-précédente et leurs preuves séparées. `--reuse-native-build` appartient à cette voie
-historique et exige l'égalité exacte des inventaires et hashes. Elle ne remplace pas
-la reconstruction de la version commune.
-
-Le compilateur NSIS reçoit explicitement `/INPUTCHARSET UTF8`. `Unicode true` contrôle
-la sortie et ne remplace pas ce choix d’encodage des sources. Le répertoire temporaire
-NSIS est initialisé avant extraction. Le payload privé de développement et ses archives
-ne doivent pas être copiés à côté de l’EXE pour l’utilisateur : ils sont embarqués.
-
-`verify_classic_installer.py` installe le fichier exact dans un chemin Unicode neuf,
-vérifie les fichiers et recettes de lancement, réinstalle, puis désinstalle en conservant
-les projets, sauvegardes et fichiers étrangers. Par défaut il évite registre/raccourcis
-avec `/NOINTEGRATION`. `--shell-integration` n’est permis que si toutes les clés et
-tous les noms exacts possédés sont absents; il vérifie leur création puis suppression,
-et l’intégrité des anciens raccourcis non correspondants. `--entrypoint-probe` reçoit
-`smoke_entrypoints.py` pour contrôler les démarrages launcher/Studio dans des profils WebView2
-isolés; cela ne vaut pas acceptation humaine de leurs fenêtres.
-
-La vérification classique exige le marqueur du frontend Aube embarqué, un vrai reçu
-WebView/IPC qui voit le jeu installé et des exécutables distincts pour launcher et Hub.
-Les rendus mockés du Hub seuls ne valident pas le launcher.
-
-La désinstallation retire uniquement les fichiers de packages dont taille et hash sont
-conformes, puis les bootstrap/raccourcis possédés. Les fichiers modifiés ou étrangers
-restent en place. Le verrou neutre `installation.lock` est conservé pour prévenir une
-course avec un autre installateur. Un dossier de package conservant des retouches peut
-rester partiel; sélectionner une autre destination pour une installation neuve plutôt
-que supprimer automatiquement ces retouches.
-
-`verify_hub_ui.cjs` contrôle l’adaptateur de présentation dans un navigateur isolé avec
-une fixture IPC explicite : destination, invalidation du plan, relecture, retour de
-vérification, titres externes rendus comme texte et fenêtre minimale. Ses captures
-ne sont pas des captures de la fenêtre Tauri ni de l’assistant NSIS natifs.
+Le Setup groupé, son Hub et les recettes de compilation historiques sont
+conservés dans l'archive du retrait 048. Les vérificateurs historiques
+`verify_classic_installer.py` et `repair_installed_launcher.py` concernent
+uniquement des installations antérieures.
 
 ## Sources et compilation communes
 
@@ -73,10 +35,12 @@ elles ne relancent alors ni Trunk ni Cargo et ne copient aucun produit.
 Les commandes suivantes restent à exécuter après stabilisation des sources :
 
 ```powershell
-$validatedGate3Evidence = 'E:\OpenRPG_Forge\.gate3-evidence\20261011\shared-006'
-$sharedNativeEvidence = 'E:\OpenRPG_Forge\.gate3-evidence\20261011\shared-delivery'
-$sharedCargoCache = 'E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002'
+$validatedGate3Evidence = '<preuves Gate 3 valides pour les sources courantes>'
+$sharedNativeEvidence = 'F:\OpenRPG_Forge\Preuves-et-analyses\actives\gate7-monde-distribution\shared-delivery'
+$sharedCargoCache = 'E:\OpenRPG_Forge\.build\cargo-target'
 $env:FORGE_STUDIO_LOCAL_ASSETS = 'E:\OpenRPG_Forge\.forge-local\studio-assets'
+$env:CARGO_HOME = 'E:\OpenRPG_Forge\.build\cargo-home'
+$env:TEMP = $env:TMP = 'E:\OpenRPG_Forge\.build\tmp'
 $env:CARGO_INCREMENTAL = '0'
 $env:RUSTFLAGS = '-C debuginfo=0'
 python scripts/Validate-Gate3WorkingTree.py wasm --evidence $validatedGate3Evidence --target-dir $sharedCargoCache
@@ -84,7 +48,15 @@ python scripts/Validate-Gate3WorkingTree.py release --evidence $validatedGate3Ev
 python scripts/delivery/complete_rebuild.py --shared-working-tree --stage prepare-frontend --validated-gate3-evidence $validatedGate3Evidence --evidence $sharedNativeEvidence --cache $sharedCargoCache
 python scripts/delivery/complete_rebuild.py --shared-working-tree --stage studio --validated-gate3-evidence $validatedGate3Evidence --evidence $sharedNativeEvidence --cache $sharedCargoCache
 python scripts/delivery/complete_rebuild.py --shared-working-tree --stage game --validated-gate3-evidence $validatedGate3Evidence --evidence $sharedNativeEvidence --cache $sharedCargoCache
+python scripts/delivery/complete_rebuild.py --shared-working-tree --stage module-game --evidence $sharedNativeEvidence --cache $sharedCargoCache
 ```
+
+`module-game` compile `forge-module.exe` en release depuis `forge_runtime` et
+lie son reçu aux mêmes sources que les autres applications. Le Studio installé
+l'utilise pour les essais des modules ; le gestionnaire utilise la même entrée
+`module-game` pour les modules installés. Le bouton de jeu de la livraison conserve
+la démo Tidewater et son interface de lancement existante. Ces builds et leur
+assemblage ne prouvent ni rendu, ni performance, ni qualification de Gate 7.
 
 L'adoption appelle les fonctions du validateur commun et exige des reçus `PASS`
 complets : sources actuelles, suppressions, driver, commandes, logs, cache et
@@ -145,119 +117,38 @@ dans le dist : `STAGED`, assets présents, inventaire exact de `forge-imports` e
 `forge-kit`, hash du manifeste local et fermeture identique au frontend embarqué.
 Un frontend CI public sans ces assets ne devient pas un Studio installable complet.
 
-## Installateur principal de la version commune
+## Cible Gate 7 : Studio et launcher de chaque jeu
 
-La commande suivante est une recette à exécuter après préparation et validation des
-binaires communs ; aucune compilation ou installation n'est acquise par sa présence.
-`$sharedNativeEvidence` désigne le même dossier utilisé pour les trois stages ci-dessus.
-`$currentData` doit contenir les données courantes `data/scene`, `data/workspace`,
-`content` et `licenses` ; aucun exécutable historique n'est requis ni repris.
-Les outils Node, Cargo et NSIS ci-dessous ont été localisés le 11 octobre 2026 ;
-l'installateur WebView2 indiqué existe avec le hash épinglé.
+La cible produit est le Studio Forge et le launcher propre à chaque jeu exporté.
+Le Hub du parcours historique ci-dessous ne fait pas partie de cette cible. Le
+chemin privé en cours d'intégration assemble le kit avec `game_kit.py`, puis
+utilise les modes `build_delivery.py studio-only` et
+`build_classic_installer.py studio-only` ; leurs options et leurs épingles sont
+décrites par `--help` après le nom du mode. Les tests de fixtures ne constituent
+pas une installation réelle. Le kit Studio Linux et sa qualification restent
+en cours ; voir le [suivi de Gate 7](../../docs/evidence/gate7/GATE7_PROGRESS_20261023.md).
 
-```powershell
-$sharedNativeEvidence = 'E:\OpenRPG_Forge\.gate3-evidence\20261011\shared-delivery'
-$sharedPackagingEvidence = 'E:\OpenRPG_Forge\.gate3-evidence\20261011\shared-installer'
-$sharedCargoCache = 'E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002'
-$currentData = 'E:\OpenRPG_Forge\.forge-local\runtime-data'
-$offlineWebview = 'E:\OpenRPG_Forge\.delivery-evidence\20261010\classic-build-005-game-sessions\payload\MicrosoftEdgeWebView2RuntimeInstallerX64.exe'
-$principalInstaller = 'E:\OpenRPG_Forge\OpenRPG-Forge-Setup.exe'
+L'installateur WebView2 historique a été retrouvé dans les archives puis vérifié
+sur E: ; son SHA est celui de la recette ci-dessous. Son programme d'amorçage
+signé est un PE x86 : cela ne démontre pas à lui seul l'architecture du runtime
+installé. Les conditions Microsoft et l'installation réelle restent à vérifier.
 
-python scripts/delivery/build_classic_installer.py --shared-working-tree `
-  --native-evidence $sharedNativeEvidence --evidence $sharedPackagingEvidence `
-  --target $sharedCargoCache --playtest $currentData `
-  --area-id e620dd19-ead9-5913-a6d6-0f93109148c0 `
-  --webview2 $offlineWebview `
-  --webview2-sha256 2a6add76c37bfa872eb8c2b22d45b3216b8e2a1f193e0774006340ff62ac5fa0 `
-  --cargo 'C:\Users\karen\.cargo\bin\cargo.exe' `
-  --cargo-cache 'C:\Users\karen\.cargo\registry' `
-  --node 'C:\Users\karen\AppData\Local\hermes\node\node.exe' `
-  --nsis 'C:\Program Files (x86)\NSIS\makensis.exe' `
-  --version 0.1.0-preview.20261011 --output $principalInstaller
-```
+## Contrôles des sources de dépendances
 
-Ces noms de dossiers de preuves sont à réserver pour l'exécution réelle. S'ils existent,
-les conserver et choisir de nouveaux dossiers de preuves ; les chemins des sources,
-du dist, du cache et de l'installateur principal restent communs. Le chemin de données
-`runtime-data` est une entrée générique de développement, à préparer et identifier
-avant cette commande ; sa présence ne garantit pas la carte ou la révision qualifiée.
-Pour Gate 4, suivre la [recette de campagne](../../docs/testing/GATE4_PACKAGE_ACCEPTANCE.md#dossier-dune-campagne)
-et son admission épinglée : reprendre exactement la carte, les sources d'auteur,
-le module et les assets retenus, avec leurs tailles et SHA-256. Ne pas substituer
-le dossier générique aux données exactes liées aux preuves de cette campagne.
-Les reçus natifs exigés pointent vers `E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002\release\forge-studio.exe`
-et `E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002\release\examples\tidewater_plant_probe.exe` ;
-le builder refuse un exécutable de candidat situé ailleurs.
-
-Si le Setup principal existe déjà, ajouter explicitement `--replace-output
---expected-output-sha256 SHA256_ANCIEN_SETUP_VERIFIE`. Le builder contrôle le hash
-avant compilation et juste avant remplacement. NSIS produit d'abord son résultat
-interne dans le dossier de preuves, puis le déplace atomiquement vers ce seul chemin
-principal. Un échec ou une dérive des sources conserve l'ancien Setup. Le staging
-des packages et bootstrap de l'assistant reste dans le payload normal ; aucune copie
-de sources ou de frontend par conversation n'est créée.
-
-L’ancienne voie `--stage reuse-launcher` limitée au Hub/CLI est désactivée.
-La réutilisation historique du launcher installé passe par `build_classic_installer.py
---frozen-archive --reuse-native-build`, avec les trois binaires et leurs sources identiques.
-
-## Assemblage et vérification
-
-L'assemblage courant exige `--cargo-cache` pointant vers la racine Cargo
-`registry/` contenant `cache/` et `src/`. Le builder vérifie avant les compilations
-et l'assemblage les neuf archives Symphonia 0.6.1 épinglées dans
-`application_sources.json`, leur correspondance avec `Cargo.lock`, les sources
-locales, les licences MPL-2.0 et notices originales, dont la notice Sun G.711.
-Un fichier manquant, modifié, lié ou hors inventaire est refusé ; aucun fetch n'est
-exécuté. Les archives gzip/tar `.crate` exactes et les textes conservés voyagent
-dans `licenses/native-media/` du seul pack applications. `NOTICE.txt` indique
-l'accès local aux sources, et `manifest.json` épingle versions/origines/fichiers.
-Le reçu figure dans `input-provenance.json` et les chemins de notices sont déclarés
-dans les licences du pack. Le client n'a besoin ni du cache Cargo ni d'un accès réseau.
-Ce raccord n'est pas un avis juridique ou un audit de toutes les dépendances.
-La branche historique `--frozen-archive` ne lit pas ce cache et ne change pas ses
-sources/licences de référence.
-
-Contrôle autonome sans compilation (sortie JSON sur stdout) :
+Les contrôles de provenance peuvent être exécutés sans compiler.
 
 ```powershell
 python -B scripts/delivery/application_sources.py --verify-only `
-  --cargo-cache 'C:\Users\karen\.cargo\registry'
+  --cargo-cache 'E:/OpenRPG_Forge/.build/cargo-home/registry'
 python -B scripts/delivery/test_application_sources.py -v
+python -B scripts/delivery/test_runtime_notices.py -v
 ```
 
-`build_delivery.py --shared-working-tree` décrit les entrées explicites. Pour un jeu reconstruit,
-fournir aussi `--launcher` avec le véritable launcher Aube de production ; le Hub
-seul est refusé pour cette entrée. `--aube-proof` conserve et vérifie sa preuve de compilation ; vérifier
-le reçu WebView/IPC dans l’installation finale pour valider le raccord des recettes.
-fournir `--runtime`, `--runtime-proof`, `--source-manifest`, `--studio-proof` et
-`--launcher-proof`, ainsi qu'une version et un dossier de sortie neufs. La recette
-vérifie les preuves et les hashes, puis produit trois `.forgepack` indépendants.
-Le manifeste commun doit couvrir effectivement `apps/forge_launcher`, `apps/forge_hub`
-et `tools/forge_delivery`, y compris leurs manifestes Cargo. Le reçu launcher porte
-`source_manifest_sha256` et `current_source_manifest_sha256` identiques au manifeste
-Studio/jeu ; les sorties restent dans le cache commun jusqu'au staging normal des packages.
-Tous les changements de sources imposent de nouveaux reçus ; les métadonnées de
-packaging, logs et preuves sont stockés hors des périmètres de compilation.
+La bibliothèque complète reste un transfert séparé via
+`prepare_asset_library.py` et `export_asset_catalog.py`. Un catalogue
+ou un plan de lots décrit l'inventaire. Les droits de redistribution
+restent attachés aux paquets et à leurs notices.
 
-`verify_delivery.py --delivery CHEMIN_LIVRAISON --evidence NOUVEAU_DOSSIER_TEST`
-vérifie une installation fraîche et un Apply rejoué.
-`verify_upgrade.py --previous CHEMIN_ANCIENNE_LIVRAISON --delivery CHEMIN_LIVRAISON
---evidence NOUVEAU_DOSSIER_TEST` vérifie ancien → nouveau → rollback, avec une retouche auteur
-et des fichiers utilisateur dont tous les hashes doivent rester inchangés.
-`smoke_entrypoints.py --delivery CHEMIN_LIVRAISON --installation CHEMIN_INSTALLATION
---output NOUVEAU_DOSSIER_TEST --game-smoke` contrôle les démarrages natifs et conserve le
-reçu diagnostic du jeu ; la survie d'un processus ne vaut pas validation visuelle.
-Un démarrage interrompu, un timeout ou un échec du diagnostic produit un verdict
-d'échec et un code de sortie non nul, avec le rapport conservé.
-Tous les dossiers de test sont explicites, neufs et conservés.
-
-La bibliothèque complète reste un transfert séparé : voir
-`prepare_asset_library.py` et `export_asset_catalog.py`. Un catalogue ou un plan
-de lots ne signifie pas que les modèles ont été exportés ou envoyés. Le contrat
-d'installation et les limites sont définis dans
-[ADR-0021](../../docs/ADR/ADR-0021-detached-delivery-installation.md).
-
-Les preuves de compilation restent `BUILD_ONLY`. Installation locale, diagnostic
-du jeu, validation humaine, CI distante, Gate 3 et qualification de release
-conservent chacun leur verdict propre.
+Les preuves de compilation portent le statut `BUILD_ONLY`. L'installation
+locale, le diagnostic du jeu et la validation humaine ont leurs propres
+reçus.

@@ -7,14 +7,47 @@
     )
 )]
 
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "../../../crates/forge_assets/tests/support/source_graph_fixture.rs"]
+mod source_graph_test_fixture;
+
 #[cfg(not(target_arch = "wasm32"))]
 pub mod asset_import_native;
 pub mod asset_import_protocol;
+pub mod assistant_asset_protocol;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod assistant_assets_native;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod assistant_job_native;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod assistant_mcp;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod assistant_mcp_controller;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod assistant_mcp_native;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod assistant_native;
+pub mod assistant_protocol;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod assistant_provider_native;
 pub mod authoring_history_request;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_module_resources;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_module_viewport;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod editor_draft;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod gameplay_visual_native;
 pub mod gameplay_visual_transform;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod governed_kit_export;
+pub mod mcp_protocol;
 pub mod module_export_protocol;
+pub mod module_resources_acquisition;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod module_resources_native;
+pub mod module_resources_protocol;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod module_workspace_bootstrap;
 
@@ -44,12 +77,17 @@ mod asset_library_ui;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod audit_labels;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod game_export_native;
+pub mod game_export_protocol;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod launch_configuration;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod module_asset_native;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod module_export_ui;
 pub mod promotion_preview_gate;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod quest_settings;
 pub mod reconciliation_protocol;
 
 /// The owner withdrew the unusable embedded game mode on 12 October 2026.
@@ -821,6 +859,10 @@ mod telemetry;
 mod library_resume;
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod assistant_assets_ui;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod assistant_ui;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_building_projection;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod authoring_building_view;
@@ -897,7 +939,13 @@ mod authoring_vegetation_recipe;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_viewport;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_wind;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_wind_request;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_zone;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod mcp_ui;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod workspace_controls;
 
@@ -947,11 +995,17 @@ mod authoring_imported_plants;
 mod authoring_imported_terrain;
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_sampled_viewport;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_imported_shadows;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioCommand {
+    ModuleResources {
+        request: Box<module_resources_protocol::Request>,
+    },
     ReadVegetationSource {
         expected_head: forge_core::ContentHash,
         block_index: usize,
@@ -1006,6 +1060,9 @@ mod panel_layout;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "response", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioResponse {
+    ModuleResources {
+        reply: Box<module_resources_protocol::Reply>,
+    },
     /// The native shell accepted an explicit close confirmation and destroyed
     /// the window. No authoring state is implied when the host was unavailable.
     WindowClosed,
@@ -1075,6 +1132,7 @@ fn validate_selection_response(
         | StudioResponse::SceneSummary { .. }
         | StudioResponse::TerrainSource { .. }
         | StudioResponse::VegetationSource { .. }
+        | StudioResponse::ModuleResources { .. }
         | StudioResponse::Atelier { .. }
         | StudioResponse::Reconciliation { .. }
         | StudioResponse::Authoring { .. }
@@ -1381,7 +1439,7 @@ mod web {
                         <h1>"Visual Workspace"</h1>
                     </div>
                     <a class="studio-return-editor" href="?authoring=1"
-                        title="Revenir au Studio ; rouvrir ensuite la zone sauvegardée">
+                        title="Revenir au Studio ; rouvrir ensuite la carte sauvegardée">
                         "← Retour à l’éditeur"
                     </a>
                     <super::authoring_controls::AuthoringControls/>
@@ -2130,6 +2188,41 @@ mod web {
         command: &str,
         arguments: &JsValue,
     ) -> Result<JsValue, String> {
+        let promise = tauri_promise(command, arguments)?;
+        wasm_bindgen_futures::JsFuture::from(promise)
+            .await
+            .map_err(|error| format!("Commande Tauri échouée : {}", js_error(&error)))
+    }
+
+    pub(super) async fn invoke_tauri_raw_with_deadline(
+        command: &str,
+        arguments: &JsValue,
+        timeout_ms: i32,
+    ) -> Result<JsValue, String> {
+        let window = web_sys::window().ok_or("Fenêtre navigateur absente")?;
+        let promise = tauri_promise(command, arguments)?;
+        let mut timer = None;
+        let deadline = js_sys::Promise::new(&mut |_, reject| {
+            let message = JsValue::from_str("Délai de réponse dépassé");
+            match window.set_timeout_with_callback_and_timeout_and_arguments_1(
+                &reject, timeout_ms, &message,
+            ) {
+                Ok(id) => timer = Some(id),
+                Err(error) => {
+                    let _ = reject.call1(&JsValue::UNDEFINED, &error);
+                }
+            }
+        });
+        let pending = js_sys::Array::of2(promise.as_ref(), deadline.as_ref());
+        let result =
+            wasm_bindgen_futures::JsFuture::from(js_sys::Promise::race(pending.as_ref())).await;
+        if let Some(timer) = timer {
+            window.clear_timeout_with_handle(timer);
+        }
+        result.map_err(|error| js_error(&error))
+    }
+
+    fn tauri_promise(command: &str, arguments: &JsValue) -> Result<js_sys::Promise, String> {
         let core = tauri_core()?;
         let invoke = js_sys::Reflect::get(&core, &JsValue::from_str("invoke"))
             .map_err(|error| format!("API Tauri invoke inaccessible : {}", js_error(&error)))?
@@ -2138,12 +2231,9 @@ mod web {
         let result = invoke
             .call2(&core, &JsValue::from_str(command), arguments)
             .map_err(|error| format!("Invocation Tauri impossible : {}", js_error(&error)))?;
-        let promise = result
+        result
             .dyn_into::<js_sys::Promise>()
-            .map_err(|_| "Tauri invoke n’a pas retourné de Promise".to_owned())?;
-        wasm_bindgen_futures::JsFuture::from(promise)
-            .await
-            .map_err(|error| format!("Commande Tauri échouée : {}", js_error(&error)))
+            .map_err(|_| "Tauri invoke n’a pas retourné de Promise".to_owned())
     }
 
     async fn run_tauri_permission_probe(telemetry: WriteSignal<Gate0StudioLedger>) {

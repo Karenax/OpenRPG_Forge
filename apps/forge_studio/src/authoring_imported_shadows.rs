@@ -1,4 +1,5 @@
 //! Publish complete shadow generations, then animate their resident casters.
+use forge_engine::source_wind::vegetation as wind;
 mod prop_observation;
 use crate::{
     authoring_assets::{imported_buildings, imported_scene},
@@ -9,17 +10,15 @@ use bevy::{
     math::{DMat4, DQuat},
     prelude::*,
 };
+use forge_engine::sampled_terrain_physics::SampledTerrainPhysicsState;
+use forge_engine::source_environment::scene::ResidentEnvironment;
+use forge_engine::source_shadows::casters::scene as scene_collectors;
+use forge_engine::source_shadows::casters::{graph, live, scene, terrain};
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_terrain::TerrainMaterial;
+use forge_engine::source_terrain::lod::LodMaterial;
+use forge_engine::sun_cascades::CascadeView;
 use std::sync::atomic::Ordering;
-use {
-    forge_engine::sampled_terrain_physics::SampledTerrainPhysicsState,
-    forge_tidewater::{
-        sun_cascades::CascadeView,
-        tidewater_material::VillageMaterial,
-        tidewater_object_shadow::{graph, live, scene, terrain, wind},
-        tidewater_scene_environment::ResidentEnvironment,
-        tidewater_terrain::{TerrainMaterial, lod::LodMaterial},
-    },
-};
 
 #[derive(Resource)]
 pub(crate) struct Receiver(pub graph::Target);
@@ -50,16 +49,16 @@ struct State {
     generations: u64,
     diagnostics_time: f64,
 }
-pub(crate) fn install(app: &mut App, live: bool) -> Result<(), String> {
+pub(crate) fn install(
+    app: &mut App,
+    live: bool,
+    acquired: &forge_engine::source_wind::AcquiredFrame,
+) -> Result<(), String> {
     // The editor retains the neutral Receiver published by terrain rebuild.
     // No cascade transaction or vegetation motion callback is needed there.
     if !live {
         return Ok(());
     }
-    let acquired = {
-        let (bytes, frame) = forge_tidewater_assets::tidewater_environment::animation_reference()?;
-        forge_tidewater::scene_wind::AcquiredFrame::from_json(&bytes, frame)?
-    };
     let clock = wind::Clock::from_acquired(
         acquired.global_time_s,
         acquired.global_frame,
@@ -123,7 +122,7 @@ fn snapshot(world: &World, camera: Entity) -> Result<(Key, CascadeView), String>
                     .plan
                     .document_hash(),
                 hill: world
-                    .resource::<forge_tidewater::tidewater_hill_shadow::Images>()
+                    .resource::<forge_engine::source_shadows::heightfield::Images>()
                     .output
                     .id(),
                 library: imported_buildings::published_generation(),
@@ -143,9 +142,9 @@ fn snapshot(world: &World, camera: Entity) -> Result<(Key, CascadeView), String>
 }
 /// The frame model order must match buildings followed by the acquired Debris draws.
 fn opaque_parts(world: &World) -> Result<Vec<(Entity, Mat4)>, String> {
-    let mut parts = scene::opaque_parts(world)?;
+    let mut parts = scene_collectors::source_surface_parts(world, &[])?;
     if let Some(debris) =
-        world.get_resource::<forge_tidewater::tidewater_debris::scene::ResidentScene>()
+        world.get_resource::<forge_engine::source_surface::objects::props::ResidentScene>()
     {
         parts.extend(debris.shadow_parts(world)?);
     }
@@ -157,8 +156,8 @@ fn update(world: &mut World) {
         return;
     }
     let held = crate::authoring_immersion::held(world);
-    forge_tidewater::tidewater_object_shadow::receiver::observe_while_held(world, held);
-    forge_tidewater::tidewater_refraction::observe_while_held(world, held);
+    forge_engine::source_shadows::receiver::observe_while_held(world, held);
+    forge_engine::source_refraction_capture::observe_while_held(world, held);
     let Some((_, camera)) = crate::authoring_imported_terrain::shadow_source(world) else {
         return;
     };
@@ -174,7 +173,7 @@ fn update(world: &mut World) {
             // A final ocean packet can adjust the floating camera after pause.
             // Drain its actual pose into the existing shadow generation without
             // advancing wind or accepting edits during the frozen comparison.
-            let drained = forge_tidewater::tidewater_ocean::live_clock(world)
+            let drained = forge_engine::source_ocean::live_clock(world)
                 .is_some_and(|clock| clock.snapshot().quiescent);
             let can_submit = world
                 .get_resource::<graph::animation::State>()
@@ -278,24 +277,24 @@ fn publish_diagnostics(world: &mut World) {
             "offset": state.clock.pose().offset,
             "frame_index": state.clock.pose().index,
         },
-        "scene_wind": world.get_resource::<forge_tidewater::scene_wind::WindFrame>()
+        "scene_wind": world.get_resource::<forge_engine::source_wind::WindFrame>()
             .map(|wind| serde_json::json!({ "time": wind.time_seconds(),
                 "direction": wind.wind().direction, "speed": wind.wind().speed })),
         "virtual_time_s": world.resource::<Time<Virtual>>().elapsed_secs_f64(),
-        "cloud_clock": forge_tidewater::tidewater_clouds::live::submitted_frame(world).ok()
+        "cloud_clock": forge_engine::source_clouds::live::submitted_frame(world).ok()
             .map(|frame| serde_json::json!({ "submitted_step": frame.step,
                 "frame_index": frame.clock.x, "time": frame.clock.y, "dt": frame.clock.z,
-                "encoded_step": world.get_resource::<forge_tidewater::tidewater_clouds::Targets>()
+                "encoded_step": world.get_resource::<forge_engine::source_clouds::Targets>()
                     .map(|targets| targets.completed_steps.load(Ordering::Acquire)),
                 "scope": "submitted uniforms and encoded commands, not GPU completion or pixel parity" })),
     });
     let mut diagnostics = serde_json::json!({
-        "refraction_capture": world.get_resource::<forge_tidewater::tidewater_refraction::Observation>()
+        "refraction_capture": world.get_resource::<forge_engine::source_refraction_capture::Observation>()
             .map(|observation| serde_json::json!({ "state": observation,
-                "gpu": world.get_resource::<forge_tidewater::tidewater_refraction::GpuObservation>(),
-                "encoded_frames": world.get_resource::<forge_tidewater::tidewater_refraction::Targets>()
+                "gpu": world.get_resource::<forge_engine::source_refraction_capture::GpuObservation>(),
+                "encoded_frames": world.get_resource::<forge_engine::source_refraction_capture::Targets>()
                     .map(|targets| targets.encoded_frames.load(std::sync::atomic::Ordering::Acquire)) })),
-        "shadow_receiver_gpu": world.get_resource::<forge_tidewater::tidewater_object_shadow::receiver::GpuObservation>()
+        "shadow_receiver_gpu": world.get_resource::<forge_engine::source_shadows::receiver::GpuObservation>()
             .and_then(|observation| observation.0.as_ref())
             .map(|sample| serde_json::json!({ "enabled":sample.enabled, "control":sample.control,
                 "count":sample.count,"map_size":sample.map_size,"frame_index":sample.frame_index,
@@ -314,14 +313,14 @@ fn publish_diagnostics(world: &mut World) {
         "plant_caster_selection": crate::authoring_imported_plants::shadow_selection_observation(world),
         "comparison_hold": crate::authoring_immersion::held(world),
         "camera_signature": crate::authoring_immersion::camera_signature(world),
-        "ocean_clock": forge_tidewater::tidewater_ocean::live_clock(world).map(|clock| {
+        "ocean_clock": forge_engine::source_ocean::live_clock(world).map(|clock| {
             let clock = clock.snapshot();
             serde_json::json!({"paused": clock.paused, "quiescent": clock.quiescent,
                 "next_step": clock.next_step, "simulation_time": clock.simulation_time,
                 "completed": clock.completed.map(|step| serde_json::json!({"step": step.step, "time": step.time, "dt": step.dt})),
             })
         }),
-        "underwater": world.get_resource::<forge_tidewater::tidewater_underwater::UnderwaterObservation>().map(|observation| serde_json::json!({
+        "underwater": world.get_resource::<forge_engine::source_underwater::UnderwaterObservation>().map(|observation| serde_json::json!({
             "immersion": format!("{:?}", observation.immersion),
             "enabled": observation.effect_enabled, "active": observation.effect_active(),
             "pipeline_ready": observation.pipeline_ready(),
@@ -331,25 +330,25 @@ fn publish_diagnostics(world: &mut World) {
             "enabled_frames": observation.encoded_enabled_frames, "bypassed_frames": observation.encoded_bypassed_frames,
             "shafts_strength": observation.shafts_strength, "shaft_frames": observation.encoded_shaft_frames,
         })),
-        "caustics": world.get_resource::<forge_tidewater::tidewater_caustics::CausticMaps>().map(|maps| serde_json::json!({
+        "caustics": world.get_resource::<forge_engine::source_caustics::CausticMaps>().map(|maps| serde_json::json!({
             "encoded_frames": maps.encoded_frames.load(Ordering::Acquire),
             "encoded_fft_step": maps.encoded_fft_step.load(Ordering::Acquire),
         })),
-        "underwater_light_maps": world.get_resource::<forge_tidewater::tidewater_underwater_lighting::Targets>().map(|maps| {
+        "underwater_light_maps": world.get_resource::<forge_engine::source_underwater_lighting::Targets>().map(|maps| {
             let observed = maps.observation.lock().ok().map(|state| *state);
             serde_json::json!({
                 "encoded_frames": maps.encoded_frames.load(Ordering::Relaxed),
-                "control": world.get_resource::<forge_tidewater::tidewater_underwater_lighting::Control>()
+                "control": world.get_resource::<forge_engine::source_underwater_lighting::Control>()
                     .map(|control| serde_json::json!({ "enabled": control.enabled, "caustics_strength": control.caustics_strength,
                         "shadow_refraction": control.shadow_refraction })),
-                "terrain_receivers": world.get_resource::<Assets<forge_tidewater::tidewater_terrain::lod::LodMaterial>>()
+                "terrain_receivers": world.get_resource::<Assets<forge_engine::source_terrain::lod::LodMaterial>>()
                     .map(|materials| materials.iter().filter(|(_, material)| material.base.underwater_map_frame == maps.bindings.frame)
                         .map(|(_, material)| serde_json::json!({ "enabled": material.base.caustic_params.water_scattering.w,
                             "strength": material.base.caustic_params.sun_and_strength.w,
                             "sun": material.base.caustic_params.sun_and_strength.truncate().to_array(),
                             "sea_and_reach": [material.base.caustic_params.tiles_m.z, material.base.caustic_params.tiles_m.w],
                             "shadow_refraction": material.base.caustic_params.water_absorption.w })).collect::<Vec<_>>()),
-                "lite_receivers": world.get_resource::<Assets<forge_tidewater::tidewater_material::VillageMaterial>>()
+                "lite_receivers": world.get_resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
                     .map(|materials| materials.iter().filter(|(_, material)| material.underwater_map_frame == maps.bindings.frame)
                         .map(|(_, material)| serde_json::json!({ "enabled": material.underwater_params.water_scattering.w,
                             "strength": material.underwater_params.sun_and_strength.w,
@@ -360,12 +359,12 @@ fn publish_diagnostics(world: &mut World) {
                     "time": state.time, "resolution": state.resolution, "layers": state.layers })),
             })
         }),
-        "water_surface_queries": world.get_resource::<forge_tidewater::tidewater_surface_queries::Targets>().map(|targets| serde_json::json!({
+        "water_surface_queries": world.get_resource::<forge_engine::source_surface_queries::Targets>().map(|targets| serde_json::json!({
             "encoded_frames": targets.encoded_frames.load(Ordering::Relaxed),
             "rejected_packets": targets.rejected_packets.load(Ordering::Relaxed),
             "sample": targets.queries.latest(),
         })),
-        "player_locomotion": world.get_resource::<forge_tidewater::AmphibiousPlayerState>().map(|player| serde_json::json!({
+        "player_locomotion": world.get_resource::<forge_engine::amphibious_player::AmphibiousPlayerState>().map(|player| serde_json::json!({
             "mode": format!("{:?}", player.motion.mode),
             "anchor": player.motion.position.to_array(),
             "velocity": player.motion.velocity.to_array(),
@@ -410,12 +409,7 @@ fn prepare(
         *generation != source.library || cached.document_hash != source.terrain
     }) {
         let package = imported_buildings::terrain_package().ok_or("Paquet terrain absent")?;
-        let shader = std::str::from_utf8(
-            package
-                .file("terrain-lod.wgsl")
-                .ok_or("Shader relief absent")?,
-        )
-        .map_err(|e| e.to_string())?;
+        let shader = forge_engine::source_terrain::lod_program(&package)?;
         let prepared = terrain::authored::PreparedSource::new(
             document,
             crate::authoring_raster::source_bytes(document)?.to_vec(),
@@ -438,9 +432,9 @@ fn prepare(
         .truncate()
         .as_dvec3()
         .normalize();
-    let mut draws = scene::buildings(world)?;
+    let mut draws = scene_collectors::source_surface_draws(world, &[])?;
     if let Some(debris) =
-        world.get_resource::<forge_tidewater::tidewater_debris::scene::ResidentScene>()
+        world.get_resource::<forge_engine::source_surface::objects::props::ResidentScene>()
     {
         draws.extend(debris.shadow_draws(world)?);
     }
@@ -490,7 +484,7 @@ fn animate(world: &mut World, state: &mut State, view: CascadeView) -> Result<()
         // Visible leaves and their shadow deformation must use the same
         // imported-scene wind as the source materials and pier pendulums.
         let wind = world
-            .resource::<forge_tidewater::scene_wind::WindFrame>()
+            .resource::<forge_engine::source_wind::WindFrame>()
             .wind();
         clock
             .advance(dt, wind.direction, wind.speed)
@@ -554,7 +548,7 @@ fn animate(world: &mut World, state: &mut State, view: CascadeView) -> Result<()
         }
     }
     if has_plants {
-        forge_tidewater::tidewater_plants::motion::update(
+        forge_engine::source_vegetation::motion::update(
             world,
             motion.wind_time,
             motion.gust_frame,
@@ -566,7 +560,10 @@ fn animate(world: &mut World, state: &mut State, view: CascadeView) -> Result<()
 }
 
 fn publish(world: &mut World, target: &graph::Target) {
-    for (_, material) in world.resource_mut::<Assets<VillageMaterial>>().iter_mut() {
+    for (_, material) in world
+        .resource_mut::<Assets<SourceSurfaceMaterial>>()
+        .iter_mut()
+    {
         material.object_shadow = target.image.clone();
         material.object_settings = target.settings.clone();
     }

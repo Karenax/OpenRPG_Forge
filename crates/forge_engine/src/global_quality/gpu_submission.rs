@@ -1,5 +1,6 @@
 //! Queue completion evidence, not proof that every requested effect rendered correctly.
 use super::GlobalQualityStats;
+use crate::gpu_readiness::{assets, effects, views};
 use bevy::{
     camera::{NormalizedRenderTarget, RenderTarget},
     diagnostic::FrameCount,
@@ -23,12 +24,9 @@ use std::sync::{
 
 const STABLE_FRAMES: u8 = 8;
 const MAX_COMPLETION_AGE: u32 = 64;
-mod assets;
 pub use assets::GpuAssetEvidence;
-mod views;
-pub use views::GpuViewEvidence;
-mod effects;
 pub use effects::GpuEffectEvidence;
+pub use views::GpuViewEvidence;
 
 #[derive(Clone, Debug, Default, PartialEq, Resource, Serialize)]
 pub struct GpuSubmissionEvidence {
@@ -89,12 +87,12 @@ impl GpuSubmissionEvidence {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) struct Key {
-    identity: QualityApplicationIdentity,
-    camera: Entity,
-    viewport: UVec2,
-    origin: UVec2,
-    target: NormalizedRenderTarget,
+pub(crate) struct Key {
+    pub(crate) identity: QualityApplicationIdentity,
+    pub(crate) camera: Entity,
+    pub(crate) viewport: UVec2,
+    pub(crate) origin: UVec2,
+    pub(crate) target: NormalizedRenderTarget,
 }
 
 #[derive(Resource, Default)]
@@ -308,7 +306,7 @@ fn after_submission(
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
 
     fn prepared_receipt() -> GpuSubmissionEvidence {
@@ -459,7 +457,7 @@ mod tests {
         assert!(!evidence.pipeline_failure_for(identity, 11));
     }
 
-    pub(super) fn key() -> Key {
+    pub(crate) fn key() -> Key {
         Key {
             identity: QualityApplicationIdentity {
                 sequence: 1,

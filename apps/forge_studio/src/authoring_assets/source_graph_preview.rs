@@ -1,10 +1,8 @@
 //! Disposable source-material previews in the same authoring world/renderer.
 //! Source mounting never falls back to ordinary PBR. Reveal awaits pass/LOD routing.
-use super::{
-    source_graph_context, source_graph_host,
-    source_graph_runtime::{self, RuntimePolicy, SourceClock},
-};
+use super::source_graph_runtime::{self, RuntimePolicy, SourceClock};
 use bevy::{ecs as bevy_ecs, prelude::*};
+use forge_engine::{source_graph_context, source_graph_mount, source_graph_route};
 use std::{cell::RefCell, collections::BTreeMap};
 
 enum Request {
@@ -69,15 +67,15 @@ fn mount(
     world: &mut World,
     id: &str,
     bytes: &[u8],
-    physics: Option<super::source_graph_physics::SourcePhysicsPayload>,
-    particles: Option<super::source_graph_particles::SourceParticlePayload>,
+    physics: Option<&super::source_graph_physics::SourcePhysicsPayload>,
+    particles: Option<&super::source_graph_particles::SourceParticlePayload>,
 ) -> Result<Entity, String> {
     let offset = Vec3::new(0., 1024., 0.);
     let transform = Transform::from_translation(offset);
     // Admit the declaration before creating any disposable entity. Source
     // carriers can use different reflection axes; no Unity-wide default applies.
-    let glb = super::source_graph_route::read(bytes)?
-        .ok_or("Scène sans déclaration de matériau source")?;
+    let glb =
+        source_graph_route::read(bytes)?.ok_or("Scène sans déclaration de matériau source")?;
     let basis = source_graph_context::ObjectBasis::from_document(glb.document())?
         .ok_or("Conversion de coordonnées source absente de l’aperçu")?;
     let policy = policy(basis, offset)?;
@@ -86,15 +84,12 @@ fn mount(
         .copied()
         .ok_or("Horloge de l’aperçu indisponible")?;
     let frame = policy.frame(clock)?;
-    if let Some(payload) = &physics {
-        payload.decode_for_carrier(forge_core::bytes_sha256(bytes))?;
-    }
     let contacts = if physics.is_some() {
         Some(
             world
                 .get_resource::<super::source_graph_physics::SceneContactSettings>()
-                .cloned()
-                .ok_or("Paramètres physiques explicites de la scène absents")?,
+                .ok_or("Paramètres physiques explicites de la scène absents")?
+                .resolved()?,
         )
     } else {
         None
@@ -107,42 +102,28 @@ fn mount(
             Name::new(format!("Aperçu temporaire source · {id}")),
         ))
         .id();
-    let result = source_graph_host::mount_initial(
+    let result = source_graph_mount::mount(
         world,
-        root,
-        bytes,
-        None,
-        transform.to_matrix(),
-        &frame,
-        BTreeMap::new(),
+        source_graph_mount::SourceSceneMount {
+            root,
+            carrier: bytes,
+            selected_scene: None,
+            target_world_from_root: transform.to_matrix(),
+            frame: &frame,
+            ordinary: BTreeMap::new(),
+            physics,
+            particles,
+            contacts: contacts.as_ref(),
+            shadow_layer: 31,
+        },
     )
     .and_then(|host| host.ok_or_else(|| "Déclaration source absente au montage".to_owned()))
-    // Reserved explicitly by this preview host. The engine rejects occupation
-    // or camera exposure; no source identity selects or overrides a layer.
-    .and_then(|mut host| {
-        let result = (|| {
-            if let Some(particles) = particles {
-                particles.install(world, &mut host, bytes)?;
-            }
-            if let (Some(physics), Some(contacts)) = (physics, contacts) {
-                host.install_physics_package_with_settings(
-                    world,
-                    bytes,
-                    &physics.wire,
-                    physics.manifest_sha256,
-                    &contacts.resolved()?,
-                )?;
-            }
-            host.install_shadow_routes(world, 31)
-        })();
-        if let Err(error) = result {
-            host.remove_colliders(world);
-            host.release_particle_instances(world);
-            return Err(error);
-        }
-        Ok(host)
-    })
-    .and_then(|host| source_graph_runtime::retain(world, host, policy));
+    .and_then(|host| {
+        source_graph_runtime::retain(world, host, policy).map_err(|failure| {
+            failure.host.rollback_unpublished(world);
+            failure.reason
+        })
+    });
     if let Err(error) = result {
         world.despawn(root);
         return Err(error);
@@ -162,7 +143,7 @@ pub(super) fn update(world: &mut World) {
         Request::Clear => {}
         Request::Show(id, bytes, physics, particles) => {
             let particles = particles.map(|payload| *payload);
-            match mount(world, &id, &bytes, physics, particles) {
+            match mount(world, &id, &bytes, physics.as_ref(), particles.as_ref()) {
                 Ok(root) => {
                     world.resource_mut::<State>().root = Some(root);
                     super::preview_status(

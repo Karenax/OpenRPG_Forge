@@ -85,6 +85,7 @@ struct Descriptor {
 /// Validated initial states; authored transforms remain owned by placements.
 pub struct PierMotionPackage {
     descriptor: Descriptor,
+    source_origin_m: [f64; 3],
 }
 impl PierMotionPackage {
     /// Read the closed, pinned runtime payload and join its anchors to geometry.
@@ -194,7 +195,10 @@ impl PierMotionPackage {
         {
             return Err("Pier motion sign state or pivot differs".into());
         }
-        Ok(Self { descriptor })
+        Ok(Self {
+            descriptor,
+            source_origin_m: origin,
+        })
     }
     #[must_use]
     pub fn lanterns(&self) -> &[LanternInitial] {
@@ -207,6 +211,15 @@ impl PierMotionPackage {
     #[must_use]
     pub fn sign_pivot_local_m(&self) -> [f64; 3] {
         self.descriptor.sign_pivot_local_m
+    }
+
+    /// The captured world pivot in the already verified geometry source frame.
+    #[must_use]
+    pub fn lantern_pivot_local_m(&self, ordinal: usize) -> Option<[f64; 3]> {
+        let source = self.descriptor.initial.lanterns.get(ordinal)?;
+        Some(std::array::from_fn(|axis| {
+            source.pivot_world_m[axis] - self.source_origin_m[axis]
+        }))
     }
 }
 

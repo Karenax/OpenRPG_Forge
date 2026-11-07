@@ -24,6 +24,7 @@ fn object(label: &str, asset: &str, hash: u8) -> ManualPlacement {
     ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic(format!("manual-source:{label}")),
         name: format!("{label} object"),
         asset_id: AssetId::deterministic(format!("manual-source-asset:{asset}")),

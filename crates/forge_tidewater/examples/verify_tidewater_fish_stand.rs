@@ -1,5 +1,5 @@
 //! Verify the additive `FishStand` Bevy input without a renderer or GPU.
-use forge_tidewater::tidewater_material::SceneLighting;
+use forge_engine::source_lighting::SceneLighting;
 use forge_tidewater::tidewater_stall::{FishStandMaterial, FishStandPrepared, LAYER, UV2};
 use serde::Deserialize;
 use std::{collections::BTreeMap, error::Error, fs, path::PathBuf};

@@ -26,6 +26,41 @@ pub struct SourceParticleEmitterSequence {
 }
 
 impl SourceParticleEmitterSequence {
+    pub(super) fn pending_identities(&self) -> Option<Vec<super::RequestIdentity>> {
+        self.compute.pending_identities()
+    }
+    pub(super) fn validate_pending(
+        &self,
+        queue: &SourceParticleComputeQueue,
+    ) -> Result<(), &'static str> {
+        self.compute.validate_pending(queue)
+    }
+
+    pub(super) fn bind_owner_pending(
+        &mut self,
+        queue: &mut SourceParticleComputeQueue,
+        identity: &std::sync::Arc<()>,
+    ) -> Result<(), &'static str> {
+        self.compute.bind_owner_pending(queue, identity)
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(super) fn validate_scene_binding(
+        &self,
+        queue: &SourceParticleComputeQueue,
+    ) -> Result<(), &'static str> {
+        self.compute.validate_pending(queue)
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(super) fn bind_scene_pending(
+        &mut self,
+        queue: &mut SourceParticleComputeQueue,
+        identity: &std::sync::Arc<()>,
+    ) -> Result<(), &'static str> {
+        self.compute.bind_scene_pending(queue, identity)
+    }
+
     pub fn new(
         compute: SourceParticleComputeSequence,
         parameters: SourceSingleBurstLoopParameters,

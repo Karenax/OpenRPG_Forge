@@ -43,20 +43,7 @@ pub struct SourceUnlitForwardExtension {
 impl Asset for SourceUnlitForwardExtension {}
 impl VisitAssetDependencies for SourceUnlitForwardExtension {
     fn visit_dependencies(&self, visit: &mut impl FnMut(UntypedAssetId)) {
-        for handle in [
-            &self.bindings.texture_0,
-            &self.bindings.texture_1,
-            &self.bindings.texture_2,
-            &self.bindings.texture_3,
-            &self.bindings.texture_4,
-            &self.bindings.texture_5,
-            &self.bindings.texture_6,
-        ]
-        .into_iter()
-        .flatten()
-        {
-            visit(handle.id().untyped());
-        }
+        self.bindings.visit_dependencies(visit);
     }
 }
 impl SourceUnlitForwardExtension {
@@ -108,6 +95,8 @@ impl SourceUnlitForwardExtension {
             source,
             source_state: super::source_state_buffer::unused_source_state_handle(),
             source_state_admitted: false,
+            #[cfg(feature = "physics-rapier")]
+            particle_frame_owner: None,
             scalars,
             diffuse_probe: crate::source_graph::SourceGraphDiffuseProbeUniforms::default(),
             native_srgb_thresholds: None,
@@ -296,6 +285,56 @@ mod tests {
             additional_uvs: SourceGraphUvRequirements::default(),
         }
     }
+
+    #[test]
+    fn forward_source_inventory_visits_base_images_extension_images_and_state_binding() {
+        use bevy::render::storage::ShaderBuffer;
+        use std::collections::HashSet;
+
+        let (source_world, _, source_handle) = crate::source_particle_host::tests::setup(false);
+        let source = source_world
+            .resource::<Assets<crate::source_graph::SourceGraphMaterial>>()
+            .get(&source_handle)
+            .unwrap()
+            .extension
+            .source
+            .clone();
+        let mut images = Assets::<Image>::default();
+        let textures: Vec<_> = (0..3).map(|_| images.add(Image::default())).collect();
+        let extension = SourceUnlitForwardExtension::from_source_bindings(
+            key(),
+            source,
+            2,
+            textures[..2].to_vec(),
+            SourceGraphScalarUniforms::default(),
+        )
+        .unwrap();
+        let material = SourceUnlitForwardMaterial {
+            base: StandardMaterial {
+                base_color_texture: Some(textures[2].clone()),
+                ..default()
+            },
+            extension,
+        };
+        let mut found = HashSet::new();
+        crate::render_inventory::visit_material_dependencies(&material, &mut |id| {
+            found.insert(id);
+        });
+        assert_eq!(found.len(), 4);
+        assert!(
+            textures
+                .iter()
+                .all(|image| found.contains(&image.id().untyped()))
+        );
+        assert_eq!(
+            found
+                .iter()
+                .filter(|id| id.try_typed::<ShaderBuffer>().is_ok())
+                .count(),
+            1
+        );
+    }
+
     #[test]
     fn source_unlit_forward_disables_native_non_forward_material_routes() {
         assert!(!<SourceUnlitForwardMaterial as Material>::enable_prepass());

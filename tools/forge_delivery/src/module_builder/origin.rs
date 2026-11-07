@@ -48,6 +48,13 @@ pub(super) fn prepare(
 }
 
 impl PreparedOrigin {
+    pub(super) fn module(&self) -> &forge_project::module_package::ModulePackageManifest {
+        &self.documents.module
+    }
+
+    pub(super) fn payload(&self, path: &str, maximum: usize) -> Result<Vec<u8>> {
+        self.documents.read_payload(path, maximum)
+    }
     pub(super) fn proof(&self, head: ContentHash) -> serde_json::Value {
         serde_json::json!({"schema":"forge.module-export-origin","version":1,
             "module_id":self.documents.module.module_id,"project_id":self.documents.module.project_id,
@@ -67,7 +74,7 @@ impl PreparedOrigin {
     }
 
     pub(super) fn append(
-        self,
+        &self,
         head: ContentHash,
         payloads: &mut BTreeMap<String, Vec<u8>>,
         roles: &mut BTreeMap<String, ModuleFileRole>,
@@ -76,23 +83,23 @@ impl PreparedOrigin {
         for (path, bytes) in [
             (
                 format!("{PREFIX}/module.json"),
-                self.documents.module_manifest,
+                self.documents.module_manifest.clone(),
             ),
             (
                 format!("{PREFIX}/package-manifest.json"),
-                self.documents.transport_manifest,
+                self.documents.transport_manifest.clone(),
             ),
             (format!("{PREFIX}/source-package.json"), proof),
         ] {
             insert(path, bytes, ModuleFileRole::Provenance, payloads, roles)?;
         }
-        for (path, bytes) in self.documents.evidence {
+        for (path, bytes) in &self.documents.evidence {
             let role = if self
                 .documents
                 .module
                 .provenance
                 .license_paths
-                .contains(&path)
+                .contains(path)
             {
                 ModuleFileRole::License
             } else {
@@ -100,7 +107,7 @@ impl PreparedOrigin {
             };
             insert(
                 format!("{PREFIX}/files/{path}"),
-                bytes,
+                bytes.clone(),
                 role,
                 payloads,
                 roles,

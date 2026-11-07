@@ -1,12 +1,12 @@
 //! Independent source-oracle comparison of terrain bounds and CPU LOD selection.
 use forge_core::ContentHash;
 use forge_project::TerrainDocument;
-use forge_tidewater_assets::cdlod::{CdlodConfig, CdlodRoot, CdlodView, select_nodes};
+use forge_world::terrain_lod::{CdlodConfig, CdlodRoot, CdlodView, select_nodes};
 use serde::Deserialize;
 use std::{error::Error, fs};
 use {
-    forge_tidewater_assets::terrain_bounds::RasterLodBounds,
     forge_world::sampled_terrain::SampledTerrainPlan,
+    forge_world::terrain_lod_bounds::RasterLodBounds,
 };
 
 #[derive(Deserialize)]

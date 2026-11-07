@@ -1,5 +1,4 @@
-//! Offline qualification bootstrap through the common import/workspace commands.
-//! This native producer tool is not a Studio import UI or an installed-product proof.
+//! Native module admission shared by the Studio and the qualification producer.
 use forge_core::{AreaId, ContentHash, ModuleId, ProjectId};
 use forge_project::{module_package::ModuleRights, workspace::ModuleOriginPin};
 use serde::{Deserialize, Serialize};
@@ -8,8 +7,10 @@ use std::sync::Arc;
 
 mod files;
 mod imports;
+mod origin;
 mod set;
 mod workspace;
+pub use origin::import_module_into_workspace;
 pub use set::{
     MAX_BOOTSTRAP_MODULES, ModuleSetInput, ModuleSetReport, ModuleSetRequest,
     prepare_module_set_workspace,
@@ -42,6 +43,7 @@ pub struct BootstrapRequest {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct BootstrapReport {
+    pub restored_vegetation_areas: Vec<AreaId>,
     pub workspace_root: PathBuf,
     pub project_id: ProjectId,
     pub module_id: ModuleId,
@@ -50,7 +52,7 @@ pub struct BootstrapReport {
     pub zone_archive_sha256: ContentHash,
     pub zone_head_sha256: ContentHash,
     pub imported_assets: usize,
-    pub import_catalog_sha256: ContentHash,
+    pub import_catalog_sha256: Option<ContentHash>,
     pub preserved_package: PathBuf,
     pub preserved_payload_root: PathBuf,
 }
@@ -81,26 +83,53 @@ fn validate_producer_module(
     manifest: &forge_project::module_package::ModulePackageManifest,
     area: AreaId,
 ) -> Result<(), String> {
+    validate_authoring_module(manifest)?;
     if manifest.assets.len() > MAX_BOOTSTRAP_ASSETS {
         return Err(
             "Bootstrap profile accepts at most 128 assets, reserving import revisions".into(),
         );
     }
-    if manifest
-        .zones
-        .iter()
-        .any(|zone| !zone.source_blobs.is_empty())
-        || manifest
-            .files
-            .iter()
-            .any(|file| file.role == forge_project::module_package::ModuleFileRole::SourceBlob)
-    {
-        return Err(
-            "Bootstrap profile does not support source blobs; no source was discarded".into(),
-        );
-    }
     if !manifest.zones.iter().any(|zone| zone.area_id == area) {
         return Err("Requested area is absent from the admitted package".into());
+    }
+    Ok(())
+}
+
+fn validate_authoring_module(
+    manifest: &forge_project::module_package::ModulePackageManifest,
+) -> Result<(), String> {
+    if manifest.ocean_inputs.iter().any(|binding| {
+        binding.surface.is_none()
+            || binding.shore_sim.is_none()
+            || !manifest
+                .environments
+                .iter()
+                .any(|environment| environment.area_id == binding.area_id)
+            || !manifest
+                .terrain_surfaces
+                .iter()
+                .any(|terrain| terrain.area_id == binding.area_id)
+    }) {
+        return Err("L’océan du module nécessite sa surface, son ressac, son relief et son environnement pour être affiché dans le Studio.".into());
+    }
+    let mut remaining = forge_project::workspace::export::MAX_MODULE_EXPORT_SOURCE_BYTES as u64;
+    for file in &manifest.files {
+        use forge_project::module_package::ModuleFileRole;
+        if matches!(
+            file.role,
+            ModuleFileRole::ZoneArchive | ModuleFileRole::SourceBlob
+        ) {
+            remaining = remaining
+                .checked_sub(file.bytes)
+                .ok_or("Bootstrap archive/source budget exceeded")?;
+        }
+        if file.role == ModuleFileRole::SourceBlob
+            && (file.bytes == 0
+                || file.bytes
+                    > forge_project::workspace::source_blobs::MAX_SOURCE_BLOB_BYTES as u64)
+        {
+            return Err("Bootstrap source blob exceeds its size budget".into());
+        }
     }
     Ok(())
 }
@@ -173,26 +202,9 @@ fn populate_staged(
     let module = &documents.module;
     let relative = PathBuf::from("module-imports").join(module.module_id.to_string());
     let origin_root = stage.join(&relative);
-    std::fs::create_dir_all(&origin_root).map_err(|error| error.to_string())?;
     let original = origin_root.join("original.orpmod");
-    files::write_new(&original, bytes)?;
-    let receipt = ModuleOriginReceipt {
-        schema: "forge.module-import-origin".into(),
-        version: 1,
-        module_id: module.module_id,
-        project_id: module.project_id,
-        package_sha256: request.expected_package_sha256,
-        package_bytes: u64::try_from(bytes.len()).map_err(|error| error.to_string())?,
-        module_manifest_sha256: forge_core::bytes_sha256(&documents.module_manifest),
-        origin_rights: module.provenance.rights,
-    };
-    let receipt_bytes = serde_json::to_vec(&receipt).map_err(|error| error.to_string())?;
-    files::write_new(&origin_root.join("receipt.json"), &receipt_bytes)?;
-    let pin = ModuleOriginPin {
-        package_sha256: receipt.package_sha256,
-        package_bytes: receipt.package_bytes,
-        receipt_sha256: forge_core::bytes_sha256(&receipt_bytes),
-    };
+    let (pin, receipt_bytes) = origin::receipt(bytes, documents, request.expected_package_sha256)?;
+    origin::preserve(stage, module.module_id, bytes, pin, &receipt_bytes)?;
     let loaded = forge_delivery::module_runtime::load(
         &original,
         request.area_id,
@@ -213,16 +225,35 @@ fn populate_staged(
         &payload_root.join("module.json"),
         &documents.module_manifest,
     )?;
-    let catalog_hash = imports::import_catalog(stage, &loaded)?;
+    let catalog_hash = imports::import_catalog(stage, documents, pin.package_sha256)?;
     workspace::seed(stage, &loaded, pin)?;
     workspace::verify(stage, &loaded, pin)?;
     read_export_origin(stage, module.module_id, pin)?;
+    let mut restored_vegetation_areas = Vec::new();
+    for zone in &module.zones {
+        let archive = loaded.read_payload(
+            &zone.archive_path,
+            forge_project::zone_authoring::MAX_ZONE_HEAD_BYTES,
+        )?;
+        let session =
+            forge_project::zone_authoring::session::ZoneEditSession::from_archive_bytes(&archive)?;
+        if crate::module_resources_native::restore(
+            documents,
+            request.expected_package_sha256,
+            &session,
+        )?
+        .is_some_and(|snapshot| snapshot.vegetation.is_some())
+        {
+            restored_vegetation_areas.push(zone.area_id);
+        }
+    }
     Ok(BootstrapReport {
+        restored_vegetation_areas,
         workspace_root: request.destination.clone(),
         project_id: module.project_id,
         module_id: module.module_id,
         area_id: request.area_id,
-        package_sha256: receipt.package_sha256,
+        package_sha256: pin.package_sha256,
         zone_archive_sha256: forge_core::bytes_sha256(&loaded.archive),
         zone_head_sha256: loaded.zone.head().content_hash()?,
         imported_assets: module.assets.len(),

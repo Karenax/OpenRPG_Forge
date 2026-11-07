@@ -63,8 +63,8 @@ type CameraLighting<'w, 's> = Query<
     ),
     (
         With<Camera3d>,
-        Without<forge_tidewater::tidewater_sky::preview::PreviewCamera>,
-        Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
+        Without<forge_engine::scene_camera::OffscreenSceneCamera>,
+        Without<forge_engine::source_refraction::CaptureCamera>,
     ),
 >;
 

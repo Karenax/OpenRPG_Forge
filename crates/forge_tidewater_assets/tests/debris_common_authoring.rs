@@ -15,7 +15,8 @@ use forge_project::{
         source_objects::{SourceObjectState, resolve},
     },
 };
-use forge_tidewater_assets::tidewater_debris::{self, native::NativeInput};
+use forge_tidewater_assets::tidewater_debris;
+use forge_tidewater_assets::tidewater_debris::native::NativeInput;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -79,7 +80,9 @@ fn history(session: &mut ZoneEditSession, action: ZoneAction, key: &str) {
     reason = "Exercise each acquired prototype through complete history and reopen."
 )]
 fn acquired_scanned_variations_keep_zone_identity_and_removed_state() {
-    use forge_tidewater_assets::tidewater_debris::scanned::{ScannedPackage, geometry, templates};
+    use forge_tidewater_assets::tidewater_debris::scanned::ScannedPackage;
+    use forge_tidewater_assets::tidewater_debris::scanned::geometry;
+    use forge_tidewater_assets::tidewater_debris::scanned::templates;
     let root = std::path::PathBuf::from(std::env::var("FORGE_DEBRIS_SCANNED_FIXTURE").unwrap());
     let package = ScannedPackage::load(
         &std::fs::read(root.join("package.json")).unwrap(),

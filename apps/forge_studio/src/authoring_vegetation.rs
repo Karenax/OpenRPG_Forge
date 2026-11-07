@@ -166,6 +166,9 @@ pub(super) fn empty_source(terrain: &TerrainDocument) -> Result<VegetationDocume
 }
 
 pub(super) fn observe(state: &AuthoringState) {
+    if crate::authoring_module_resources::observe(state) {
+        crate::authoring_species::source_changed();
+    }
     PROMOTION_GATE.with(|gate| gate.borrow_mut().reset());
     notify_gate(false);
     crate::authoring_species::observe(state.zone_head.as_ref());

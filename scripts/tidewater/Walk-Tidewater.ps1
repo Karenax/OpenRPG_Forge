@@ -30,8 +30,9 @@ foreach ($name in $debrisVariables) {
     $savedDebrisVariables[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
 }
 $env:CARGO_TARGET_DIR = Join-Path $storage '.build/cargo-target'
+$env:CARGO_HOME = Join-Path $storage '.build/cargo-home'
 $env:CARGO_INCREMENTAL = '0'
-$env:TEMP = Join-Path $storage '.build/cargo-temp'
+$env:TEMP = Join-Path $storage '.build/tmp'
 $env:TMP = $env:TEMP
 Remove-Item Env:RUSTFLAGS -ErrorAction SilentlyContinue
 Push-Location $repository

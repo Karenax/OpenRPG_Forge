@@ -2,26 +2,18 @@
 //! Used by the headless upload proof; it deliberately does not draw geometry.
 use super::Proof;
 use bevy::prelude::*;
+use forge_assets::source_local_lights::SourceLocalLightsPackage;
+use forge_assets::source_local_lights::ownership::SourceLightOwnership;
+use forge_assets::source_surface_package::SurfacePackage;
 use forge_core::{ContentHash, EntityId, Transform as Pose, UnitQuaternion, Vec3 as Vector};
+use forge_engine::ManualPlacementProjection;
+use forge_engine::source_lighting::local_lights::projection::source_object::SourceObjectLightBindings;
+use forge_engine::source_lighting::local_lights::scene;
+use forge_engine::source_surface::objects::Instance;
+use forge_engine::source_surface::objects::ResidentScene;
 use forge_project::zone_authoring::placements::ManualPlacement;
 use serde::Deserialize;
 use std::{error::Error, fs::File, io::Read, path::Path};
-use {
-    forge_assets::source_local_lights::{
-        SourceLocalLightsPackage, ownership::SourceLightOwnership,
-    },
-    forge_tidewater_assets::tidewater_package::BuildingPackage,
-};
-use {
-    forge_engine::ManualPlacementProjection,
-    forge_tidewater::{
-        source_local_lights::scene,
-        tidewater_assets::{
-            local_lights::BuildingLightBindings,
-            scene::{Instance, ResidentScene},
-        },
-    },
-};
 
 fn read(root: &Path, name: &str, limit: usize) -> Result<Vec<u8>, String> {
     let path = root.join(name).canonicalize().map_err(|e| e.to_string())?;
@@ -106,7 +98,7 @@ pub(super) fn install(app: &mut App, args: &[String]) -> Result<serde_json::Valu
     let building_pin: ContentHash = args[1].parse()?;
     let light_root = Path::new(&args[2]).canonicalize()?;
     let light_pin: ContentHash = args[3].parse()?;
-    let buildings = BuildingPackage::load(
+    let buildings = SurfacePackage::load(
         &read(&building_root, "package.json", 2 * 1024 * 1024)?,
         building_pin,
         |name, limit| read(&building_root, name, limit),
@@ -117,7 +109,11 @@ pub(super) fn install(app: &mut App, args: &[String]) -> Result<serde_json::Valu
         |name, limit| read(&light_root, name, limit),
     )?;
     let ownership = SourceLightOwnership::from_package(&lights)?;
-    let bindings = BuildingLightBindings::from_packages(&buildings, &lights)?;
+    let bindings = SourceObjectLightBindings::from_sources(
+        buildings.source_commit(),
+        forge_tidewater::tidewater_assets::local_lights::sources(&buildings)?,
+        &lights,
+    )?;
     app.insert_resource(ResidentScene::default());
     let mut plans = Vec::new();
     let mut unresolved = Vec::new();
@@ -131,6 +127,7 @@ pub(super) fn install(app: &mut App, args: &[String]) -> Result<serde_json::Valu
         let placement = ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: EntityId::deterministic(format!("building-upload-proof:{}", asset.id)),
             name: asset.logical_name.clone(),
             asset_id: asset.id,

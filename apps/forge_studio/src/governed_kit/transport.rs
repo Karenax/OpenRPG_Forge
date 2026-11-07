@@ -73,6 +73,11 @@ pub(crate) async fn fetch_building_candidate() -> Result<Vec<u8>, String> {
     fetch_relative("./forge-imports/buildings.json", 4096).await
 }
 
+/// An absent optional provider is distinct from a corrupt or unreachable provider.
+pub(crate) async fn fetch_optional_building_candidate() -> Result<Option<Vec<u8>>, String> {
+    fetch_relative_inner("./forge-imports/buildings.json", 4096, true).await
+}
+
 pub(crate) async fn fetch_building_payload(
     package: forge_core::ContentHash,
     name: &str,
@@ -96,6 +101,16 @@ pub(crate) async fn fetch_building_payload(
 }
 
 async fn fetch_relative(path: &str, limit: usize) -> Result<Vec<u8>, String> {
+    fetch_relative_inner(path, limit, false)
+        .await?
+        .ok_or_else(|| "Ressource obligatoire absente".to_owned())
+}
+
+async fn fetch_relative_inner(
+    path: &str,
+    limit: usize,
+    optional: bool,
+) -> Result<Option<Vec<u8>>, String> {
     let window = web_sys::window().ok_or("Fenêtre absente")?;
     let deadline = Deadline::new(window.clone())?;
     let options = web_sys::RequestInit::new();
@@ -109,6 +124,9 @@ async fn fetch_relative(path: &str, limit: usize) -> Result<Vec<u8>, String> {
         .map_err(|_| deadline.error(path))?
         .dyn_into()
         .map_err(super::js_error)?;
+    if optional && response.status() == 404 {
+        return Ok(None);
+    }
     if !response.ok() {
         return Err(format!("Kit {path} : HTTP {}", response.status()));
     }
@@ -129,7 +147,7 @@ async fn fetch_relative(path: &str, limit: usize) -> Result<Vec<u8>, String> {
             == Some(true)
         {
             reader.release_lock();
-            return Ok(bytes);
+            return Ok(Some(bytes));
         }
         let chunk: js_sys::Uint8Array = js_sys::Reflect::get(&result, &JsValue::from_str("value"))
             .map_err(super::js_error)?

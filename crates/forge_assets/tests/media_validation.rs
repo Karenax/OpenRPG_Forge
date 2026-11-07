@@ -125,6 +125,134 @@ fn triangle() -> Vec<u8> {
     glb(br#"{"asset":{"version":"2.0"},"buffers":[{"byteLength":36}],"bufferViews":[{"buffer":0,"byteOffset":0,"byteLength":36}],"accessors":[{"bufferView":0,"componentType":5126,"count":3,"type":"VEC3","min":[0,0,0],"max":[1,1,0]}],"meshes":[{"primitives":[{"attributes":{"POSITION":0}}]}],"nodes":[{"mesh":0}],"scenes":[{"nodes":[0]}],"scene":0}"#,Some(&bin))
 }
 
+fn source_fragment_triangle(image: &[u8], pin: &str, mutation: &str) -> Vec<u8> {
+    let mut bin = Vec::new();
+    for value in [0_f32, 0., 0., 1., 0., 0., 0., 1., 0.] {
+        bin.extend(value.to_le_bytes());
+    }
+    bin.extend(image);
+    while !bin.len().is_multiple_of(4) {
+        bin.push(0);
+    }
+    let image_ref = serde_json::json!({"buffer_view":1,"sha256":pin});
+    let mut document = serde_json::json!({
+        "asset":{"version":"2.0"},
+        "extensionsUsed":["OPENRPG_source_fragment"],
+        "extensionsRequired":["OPENRPG_source_fragment"],
+        "buffers":[{"byteLength":bin.len()}],
+        "bufferViews":[{"buffer":0,"byteLength":36},{"buffer":0,"byteOffset":36,"byteLength":image.len()}],
+        "accessors":[{"bufferView":0,"componentType":5126,"count":3,"type":"VEC3","min":[0,0,0],"max":[1,1,0]}],
+        "materials":[{"extensions":{"OPENRPG_source_fragment":{
+            "schema_version":6,"source_program_sha256":"a".repeat(64),
+            "linear_rgb_rows":[[1.,0.,0.,0.],[0.,1.,0.,0.],[0.,0.,1.,0.]],
+            "metallic":[0.,0.,0.,0.,0.],"occlusion":[1.,0.,0.,0.,0.],
+            "perceptual_roughness":[0.,1.,0.,0.,0.],"normal_strength":1.,
+            "target_tangent_space_y_sign":1.,"double_sided_normal_mode":"single_sided",
+            "normal_png":image_ref,"base_png":{"image":image_ref,"srgb":true},"base_color_power":1.
+        }}}],
+        "meshes":[{"primitives":[{"attributes":{"POSITION":0},"material":0}]}],
+        "nodes":[{"mesh":0}],"scenes":[{"nodes":[0]}],"scene":0
+    });
+    match mutation {
+        "unknown" => {
+            document["extensionsUsed"]
+                .as_array_mut()
+                .unwrap()
+                .push("UNKNOWN_required".into());
+            document["extensionsRequired"]
+                .as_array_mut()
+                .unwrap()
+                .push("UNKNOWN_required".into());
+        }
+        "position" => document["meshes"][0]["primitives"][0]["attributes"]["POSITION"] = 99.into(),
+        "uri" => document["buffers"][0]["uri"] = "elsewhere.bin".into(),
+        "contract" => {
+            document["materials"][0]["extensions"]["OPENRPG_source_fragment"]["schema_version"] =
+                99.into();
+        }
+        "optional" => {
+            document
+                .as_object_mut()
+                .unwrap()
+                .remove("extensionsRequired");
+        }
+        "valid" => {}
+        _ => panic!("unknown fixture mutation"),
+    }
+    glb(&serde_json::to_vec(&document).unwrap(), Some(&bin))
+}
+
+#[test]
+fn source_fragment_export_keeps_full_media_checks_and_deduplicates_pinned_images() {
+    let original = png();
+    let pin = forge_core::bytes_sha256(&original).to_string();
+    let valid = source_fragment_triangle(&original, &pin, "valid");
+    let unchanged = valid.clone();
+    assert_eq!(
+        validate_media(&valid, MediaFormat::Glb, MediaLimits::default()).unwrap(),
+        MediaInfo::Glb {
+            meshes: 1,
+            primitives: 1,
+            vertices: 3,
+            indices: 0,
+            has_geometry: true
+        }
+    );
+    assert_eq!(valid, unchanged);
+    // 36 accessor bytes + one decoded RGBA pixel. Both declared references
+    // name the same view and must not be counted as two different images.
+    let exact = MediaLimits {
+        max_decoded_bytes: 40,
+        ..MediaLimits::default()
+    };
+    assert!(validate_media(&valid, MediaFormat::Glb, exact).is_ok());
+    let optional = source_fragment_triangle(&original, &pin, "optional");
+    assert!(validate_media(&optional, MediaFormat::Glb, exact).is_ok());
+    let too_small = MediaLimits {
+        max_decoded_bytes: 39,
+        ..exact
+    };
+    assert!(validate_media(&valid, MediaFormat::Glb, too_small).is_err());
+    for mutation in ["unknown", "position", "uri", "contract"] {
+        assert!(
+            validate_media(
+                &source_fragment_triangle(&original, &pin, mutation),
+                MediaFormat::Glb,
+                MediaLimits::default(),
+            )
+            .is_err(),
+            "mutation {mutation}"
+        );
+    }
+    assert!(
+        validate_media(
+            &source_fragment_triangle(&original, &"b".repeat(64), "valid"),
+            MediaFormat::Glb,
+            MediaLimits::default(),
+        )
+        .is_err()
+    );
+    let mut corrupt = original;
+    corrupt[29] ^= 1;
+    let corrupt_pin = forge_core::bytes_sha256(&corrupt).to_string();
+    assert!(
+        validate_media(
+            &source_fragment_triangle(&corrupt, &corrupt_pin, "valid"),
+            MediaFormat::Glb,
+            MediaLimits::default(),
+        )
+        .is_err()
+    );
+    assert!(
+        validate_media(
+            &source_fragment_triangle(&corrupt, &corrupt_pin, "optional"),
+            MediaFormat::Glb,
+            MediaLimits::default(),
+        )
+        .is_err()
+    );
+}
+
 #[test]
 fn png_is_fully_decoded_and_crc_or_truncation_damage_is_rejected() {
     let b = png();

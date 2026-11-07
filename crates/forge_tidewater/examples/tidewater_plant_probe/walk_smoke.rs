@@ -233,7 +233,7 @@ fn observe_camera_motion(
 
 fn timing(
     time: Res<Time<Real>>,
-    feedback: Res<crate::spray::LiveFeedback>,
+    feedback: Res<forge_engine::source_spray_feedback::LiveFeedback>,
     wind: Res<wind::Proof>,
     mut smoke: ResMut<Smoke>,
 ) {
@@ -274,7 +274,7 @@ fn finish(
         Res<coupled::Proof>,
         Res<crate::spray::LiveCamera>,
         Res<Probe>,
-        Res<crate::spray::LiveFeedback>,
+        Res<forge_engine::source_spray_feedback::LiveFeedback>,
         (Res<clouds::Proof>, Res<crate::walk_clouds::Receipt>),
         (Res<wind::Proof>, Res<crate::walk_wind::Receipt>),
         Res<shadows::Proof>,
@@ -289,7 +289,7 @@ fn finish(
         Res<crate::water_time::WaterTime>,
         Res<Assets<crate::water_optics::WaterMaterial>>,
         Res<Assets<crate::spray_sprites::SprayMaterial>>,
-        Res<Assets<crate::breaker_lip::LipMaterial>>,
+        Res<Assets<forge_engine::source_breaker_render::LipMaterial>>,
     ),
     source_fish: Option<Res<crate::source_fish::Receipt>>,
     shadow_sources: Option<Res<crate::object_shadow::live::Sources>>,
@@ -381,7 +381,7 @@ fn finish(
         "test_throttle_30hz":smoke.throttle_30hz,
         "start":start.to_array(),"end":state.player_position.to_array(),"distance_m":displacement,
         "camera_query":state.camera_query_succeeded,"backend_stable":state.backend_identity_stable,
-        "ocean_updates":walk.ocean_updates,"ocean_nodes":walk.ocean_nodes.len(),
+        "ocean_updates":walk.ocean_updates,"ocean_nodes":walk.ocean_nodes,
         "fft_readbacks":smoke.fft_samples,
         "shore_spray_readbacks":coupled.samples,
         "shore_spray_finite":coupled.finite,

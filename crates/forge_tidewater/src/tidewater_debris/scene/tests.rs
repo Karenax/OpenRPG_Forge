@@ -1,8 +1,9 @@
 //! Real acquisition geometry, CPU-only resource adoption; texture handles are test doubles.
 use super::*;
-use crate::tidewater_assets::{MaterialParameters, materials::LightingBindings};
-use crate::tidewater_material::ObjectShadowSettings;
 use forge_core::{ContentHash, EntityId};
+use forge_engine::source_shadows::ObjectShadowSettings;
+use forge_engine::source_surface::LightingBindings;
+use forge_engine::source_surface::package::MaterialParameters;
 
 fn fixture() -> PreparedDebris {
     let root = std::path::PathBuf::from(std::env::var("FORGE_DEBRIS_PACKAGE_FIXTURE").unwrap());
@@ -18,13 +19,16 @@ fn fixture() -> PreparedDebris {
 
 fn materials(world: &mut World) -> ResidentMaterials {
     world.init_resource::<Assets<Mesh>>();
-    world.init_resource::<Assets<VillageMaterial>>();
+    world.init_resource::<Assets<SourceSurfaceMaterial>>();
     world.init_resource::<Assets<NatureMaterial>>();
     world.init_resource::<Assets<Shader>>();
     let caustics =
-        crate::tidewater_caustics::CausticMaterialInputs::disabled(&mut Assets::<Image>::default());
+        forge_engine::source_surface::underwater::CausticMaterialInputs::disabled(&mut Assets::<
+            Image,
+        >::default(
+        ));
     let lighting = LightingBindings {
-        scene_lighting: crate::tidewater_material::SceneLighting::new(
+        scene_lighting: forge_engine::source_lighting::SceneLighting::new(
             [0.0, 1.0, 0.0],
             [1.0; 3],
             [[0.0; 3]; 9],
@@ -57,9 +61,9 @@ fn materials(world: &mut World) -> ResidentMaterials {
         )
         .unwrap()
     };
-    let nature = super::super::nature::prepare_material(
+    let nature = forge_engine::source_surface::nature::prepare_material(
         prepare(0),
-        super::super::nature::NatureExtension {
+        forge_engine::source_surface::nature::NatureExtension {
             heights: Handle::default(),
             detail: Handle::default(),
             terrain_domain: Vec4::new(-1024.0, 2048.0, 2048.0, 1.0),
@@ -72,7 +76,7 @@ fn materials(world: &mut World) -> ResidentMaterials {
         .into_iter()
         .map(|kind| {
             world
-                .resource_mut::<Assets<VillageMaterial>>()
+                .resource_mut::<Assets<SourceSurfaceMaterial>>()
                 .add(prepare(kind))
         })
         .collect();
@@ -80,13 +84,13 @@ fn materials(world: &mut World) -> ResidentMaterials {
     let mut shaders = world.resource_mut::<Assets<Shader>>();
     shaders
         .insert(
-            crate::tidewater_material::VILLAGE_SHADER.id(),
+            forge_engine::source_surface::SURFACE_SHADER.id(),
             Shader::from_wgsl("", "cpu-only-village"),
         )
         .unwrap();
     shaders
         .insert(
-            super::super::nature::SHADER.id(),
+            forge_engine::source_surface::nature::SHADER.id(),
             Shader::from_wgsl("", "cpu-only-nature"),
         )
         .unwrap();
@@ -124,6 +128,7 @@ fn common_instances_reject_bad_revision_then_preserve_deletion_and_casters() {
             ManualPlacement {
                 particles: None,
                 physics: None,
+                local_lights: None,
                 id: EntityId::deterministic(format!("debris-common-test:{}", object.source_id)),
                 name: object.kind.clone(),
                 asset_id: object.asset_id,

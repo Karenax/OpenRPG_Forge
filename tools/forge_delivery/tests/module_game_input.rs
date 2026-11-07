@@ -1,4 +1,4 @@
-#[path = "../../../crates/forge_tidewater/examples/module_game/input.rs"]
+#[path = "../../../apps/forge_runtime/src/module_game/input.rs"]
 mod input;
 
 use forge_core::AreaId;
@@ -19,6 +19,95 @@ fn arguments() -> Vec<OsString> {
         "--save-root".into(),
         root.join("Sauvegardes").into_os_string(),
     ]
+}
+
+#[test]
+fn standalone_start_intent_is_explicit_and_strictly_pinned() {
+    use forge_gameplay::native_storage::StartIntent;
+    assert_eq!(
+        ModuleGameOptions::parse(arguments()).unwrap().start_intent,
+        StartIntent::Legacy
+    );
+    let mut fresh = arguments();
+    fresh.extend(["--start-intent".into(), "fresh".into()]);
+    assert_eq!(
+        ModuleGameOptions::parse(fresh).unwrap().start_intent,
+        StartIntent::Fresh
+    );
+    let pin = forge_core::bytes_sha256(b"saved game");
+    let mut resume = arguments();
+    resume.extend(["--start-intent".into(), format!("resume:{pin}").into()]);
+    assert_eq!(
+        ModuleGameOptions::parse(resume).unwrap().start_intent,
+        StartIntent::Resume(pin)
+    );
+    for invalid in ["", "legacy", "resume:", "resume:invalid", "fresh:ignored"] {
+        let mut args = arguments();
+        args.extend(["--start-intent".into(), invalid.into()]);
+        assert!(ModuleGameOptions::parse(args).is_err());
+    }
+    let mut duplicate = arguments();
+    duplicate.extend([
+        "--start-intent".into(),
+        "fresh".into(),
+        "--start-intent".into(),
+        "fresh".into(),
+    ]);
+    assert!(ModuleGameOptions::parse(duplicate).is_err());
+}
+
+#[test]
+fn authored_default_quality_is_optional_and_accepts_only_the_four_tiers() {
+    use forge_project::VisualQualityTier;
+    assert_eq!(
+        ModuleGameOptions::parse(arguments())
+            .unwrap()
+            .default_quality,
+        None
+    );
+    for (value, expected) in [
+        ("low", VisualQualityTier::Low),
+        ("medium", VisualQualityTier::Medium),
+        ("high", VisualQualityTier::High),
+        ("ultra", VisualQualityTier::Ultra),
+    ] {
+        let mut args = arguments();
+        args.extend(["--default-quality".into(), value.into()]);
+        assert_eq!(
+            ModuleGameOptions::parse(args).unwrap().default_quality,
+            Some(expected)
+        );
+    }
+    for invalid in ["", "High", "automatic", "../../low"] {
+        let mut args = arguments();
+        args.extend(["--default-quality".into(), invalid.into()]);
+        assert!(ModuleGameOptions::parse(args).is_err());
+    }
+}
+
+#[test]
+fn authored_display_default_is_optional_and_strict() {
+    use forge_project::workspace::launcher::DisplayMode;
+    assert_eq!(input::parse_default_display_mode(None).unwrap(), None);
+    for (value, expected) in [
+        ("windowed", DisplayMode::Windowed),
+        ("borderless", DisplayMode::Borderless),
+        ("fullscreen", DisplayMode::Fullscreen),
+    ] {
+        assert_eq!(
+            input::parse_default_display_mode(Some(std::ffi::OsStr::new(value))).unwrap(),
+            Some(expected)
+        );
+    }
+    for value in ["", "Windowed", "automatic", "../../fullscreen"] {
+        assert!(input::parse_default_display_mode(Some(std::ffi::OsStr::new(value))).is_err());
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::ffi::OsStringExt;
+        let non_unicode = OsString::from_wide(&[0xd800]);
+        assert!(input::parse_default_display_mode(Some(&non_unicode)).is_err());
+    }
 }
 
 #[test]

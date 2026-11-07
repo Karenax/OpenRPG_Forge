@@ -19,7 +19,9 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::spray_budget::{HeadSample, SequencedHeadSample, SprayBudget};
+use forge_engine::source_breaker_gpu as gpu_cache;
+use forge_engine::source_spray_feedback::{BudgetFeedback, LiveFeedback};
+use forge_engine::spray_budget::HeadSample;
 use std::{
     collections::{BTreeMap, BTreeSet},
     error::Error,
@@ -32,12 +34,10 @@ use std::{
     time::Duration,
 };
 use wgpu::util::DeviceExt;
-mod gpu_cache;
 mod live_camera;
 mod live_feedback;
 pub mod water_queries;
 pub use live_camera::LiveCamera;
-pub use live_feedback::LiveFeedback;
 #[allow(dead_code)] // Called by the scene and interactive walk adapters.
 pub fn enable_water_queries(app: &mut App, output: PathBuf) -> Result<(), String> {
     water_queries::install(app, output)
@@ -46,38 +46,6 @@ pub fn enable_water_queries(app: &mut App, output: PathBuf) -> Result<(), String
 enum BudgetMode {
     Recorded,
     Native,
-}
-struct BudgetFeedback {
-    controller: SprayBudget,
-    latest: Option<(u32, HeadSample)>,
-    completed: BTreeMap<u32, HeadSample>,
-    encoded_step: u32,
-    encoded_time: f64,
-    requested_step: u32,
-    rows: Vec<serde_json::Value>,
-}
-
-impl BudgetFeedback {
-    fn accept_bootstrap_sample(
-        &mut self,
-        step: u32,
-        sample: HeadSample,
-    ) -> Result<bool, &'static str> {
-        // Bevy can deliver multiple in-flight copies before observer despawn propagates.
-        // A completed step is idempotent, even after the GPU advances to the next step.
-        if self.completed.contains_key(&step) {
-            return Ok(false);
-        }
-        if self.encoded_step != step {
-            return Err("bootstrap feedback does not match the encoded GPU step");
-        }
-        if self.latest.is_some_and(|value| value.0 >= step) {
-            return Err("bootstrap feedback is not a new ordered sample");
-        }
-        self.completed.insert(step, sample);
-        self.latest = Some((step, sample));
-        Ok(true)
-    }
 }
 #[cfg(test)]
 mod bootstrap_feedback_tests;
@@ -126,7 +94,7 @@ pub fn enable_live(app: &mut App) -> Result<(), String> {
     }
     let ready = app.world().resource::<Targets>().readback_complete.clone();
     super::ocean::enable_live_coupled(app, ready);
-    live_feedback::install(app);
+    live_feedback::install(app)?;
     let camera = LiveCamera::default();
     app.insert_resource(camera.clone());
     app.sub_app_mut(RenderApp).insert_resource(camera);
@@ -288,15 +256,10 @@ fn load(
         return Err("unexpected effective emission seed".into());
     } // Both passes share the final uniform upload before submission.
     let original = std::str::from_utf8(&files["kernel.wgsl"])?;
-    let hash =
-        "fn shoreHash1( x: f32 ) -> f32 { return fract( sin( x * 127.1 + 311.7 ) * 43758.5453 ); }";
-    if original.matches(hash).count() != 1 {
-        return Err("shore hash source changed".into());
-    }
-    let adapted = original.replace(
-        hash,
-        include_str!("../../../../scripts/tidewater/native-shore-hash.wgsl"),
-    );
+    let adapted = gpu_cache::prepare_program(
+        common_program_if_identical(original, gpu_cache::COMMON_CREST_PROGRAM),
+        None,
+    )?;
     files.insert("kernel.wgsl".into(), adapted.into_bytes());
     if integrate {
         for (name, size) in [("shore-sim-params.bin", 48), ("surface-params.bin", 32)] {
@@ -305,13 +268,10 @@ fn load(
             }
         }
         let original = std::str::from_utf8(&files["spray-update.wgsl"])?;
-        if original.matches(hash).count() != 1 {
-            return Err("integration shore hash changed".into());
-        }
-        let adapted = original.replace(
-            hash,
-            include_str!("../../../../scripts/tidewater/native-shore-hash.wgsl"),
-        );
+        let adapted = gpu_cache::prepare_program(
+            common_program_if_identical(original, gpu_cache::COMMON_SPRAY_PROGRAM),
+            None,
+        )?;
         files.insert("spray-update.wgsl".into(), adapted.into_bytes());
     }
     if replay {
@@ -369,6 +329,35 @@ fn load(
         count,
         steps,
     })
+}
+
+fn common_program_if_identical<'a>(original: &'a str, common: &'static str) -> &'a str {
+    // The first four lines are the pinned source provenance and licence header.
+    if common.splitn(5, '\n').nth(4) == Some(original) {
+        common
+    } else {
+        original
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn common_program_selection_preserves_other_variants() {
+    for common in [
+        gpu_cache::COMMON_CREST_PROGRAM,
+        gpu_cache::COMMON_SPRAY_PROGRAM,
+    ] {
+        let original = common.splitn(5, '\n').nth(4).unwrap();
+        assert_eq!(
+            common_program_if_identical(original, common).as_ptr(),
+            common.as_ptr()
+        );
+        let different = format!("{original}\n");
+        assert_eq!(
+            common_program_if_identical(&different, common).as_ptr(),
+            different.as_ptr()
+        );
+    }
 }
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Coordinates bounded before conversion.
 fn sample_height(h: &[f64], x: f64, z: f64) -> f64 {
@@ -509,12 +498,8 @@ pub fn install(
         terrain.apply(&mut input.files, &["kernel.wgsl", "spray-update.wgsl"])?;
         let stations = terrain.stations(&input.files["heights.f32.bin"])?;
         let count = u32::try_from(stations.len())?;
-        let old_guard = format!("if ( i >= {}u )", input.count);
         let kernel = std::str::from_utf8(&input.files["kernel.wgsl"])?;
-        if kernel.matches(&old_guard).count() != 1 {
-            return Err("crest station guard mismatch".into());
-        }
-        let kernel = kernel.replacen(&old_guard, &format!("if ( i >= {count}u )"), 1);
+        let kernel = gpu_cache::prepare_station_guard(kernel, input.count, count)?;
         input
             .files
             .insert("kernel.wgsl".into(), kernel.into_bytes());
@@ -555,6 +540,12 @@ fn configure(
     if root.exists() {
         return Err("crest output exists".into());
     }
+    gpu_cache::Inputs {
+        files: &input.files,
+        stations: &input.stations,
+        integrate: input.integrate,
+    }
+    .validate()?;
     if input.history {
         let steps = app
             .world()
@@ -630,15 +621,7 @@ fn configure(
         None
     };
     let budget = if input.budget_mode == BudgetMode::Native {
-        Some(Arc::new(Mutex::new(BudgetFeedback {
-            controller: SprayBudget::new(32768)?,
-            latest: None,
-            completed: BTreeMap::new(),
-            encoded_step: 0,
-            encoded_time: 0.0,
-            requested_step: 0,
-            rows: vec![],
-        })))
+        Some(Arc::new(Mutex::new(BudgetFeedback::new(32768)?)))
     } else {
         None
     };
@@ -710,60 +693,6 @@ fn configure(
     Ok(targets)
 }
 
-fn texture(
-    device: &wgpu::Device,
-    queue: &RenderQueue,
-    side: u32,
-    layers: u32,
-    format: wgpu::TextureFormat,
-    mips: &[&[u8]],
-    bpp: u32,
-) -> wgpu::TextureView {
-    let texture = device.create_texture(&wgpu::TextureDescriptor {
-        label: Some("crest input"),
-        size: wgpu::Extent3d {
-            width: side,
-            height: side,
-            depth_or_array_layers: layers,
-        },
-        mip_level_count: u32::try_from(mips.len()).expect("mips"),
-        sample_count: 1,
-        dimension: wgpu::TextureDimension::D2,
-        format,
-        usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-        view_formats: &[],
-    });
-    for (mip, data) in mips.iter().enumerate() {
-        let n = side >> mip;
-        queue.write_texture(
-            wgpu::TexelCopyTextureInfo {
-                texture: &texture,
-                mip_level: u32::try_from(mip).expect("mip"),
-                origin: wgpu::Origin3d::ZERO,
-                aspect: wgpu::TextureAspect::All,
-            },
-            data,
-            wgpu::TexelCopyBufferLayout {
-                offset: 0,
-                bytes_per_row: Some(n * bpp),
-                rows_per_image: Some(n),
-            },
-            wgpu::Extent3d {
-                width: n,
-                height: n,
-                depth_or_array_layers: layers,
-            },
-        );
-    }
-    texture.create_view(&wgpu::TextureViewDescriptor {
-        dimension: Some(if layers > 1 {
-            wgpu::TextureViewDimension::D2Array
-        } else {
-            wgpu::TextureViewDimension::D2
-        }),
-        ..default()
-    })
-}
 #[allow(clippy::too_many_arguments)] // Shared FFT images and readiness are render resources.
 fn compute(
     mut context: RenderContext,
@@ -777,7 +706,7 @@ fn compute(
     images: Res<RenderAssets<GpuImage>>,
     mut progress: Local<(u32, f64)>,
     mut cached: Local<Option<gpu_cache::Resources>>,
-    mut coupled: Local<Option<super::shore_sim::CoupledSimulation>>,
+    mut coupled: Local<Option<forge_engine::source_shore_sim::OrderedSimulation>>,
     live: Option<Res<Live>>,
     camera: Option<Res<LiveCamera>>,
     live_feedback: Option<Res<LiveFeedback>>,
@@ -812,7 +741,7 @@ fn compute(
         None
     };
     let live_packet = if let Some(feedback) = &live_feedback {
-        let Some(packet) = buffers.get(&feedback.packet) else {
+        let Some(packet) = buffers.get(feedback.packet()) else {
             return;
         };
         Some(packet)
@@ -850,8 +779,8 @@ fn compute(
             clock
                 .as_ref()
                 .expect("live ocean clock")
-                .pending(native_step)
-                .expect("pending live ocean step"),
+                .encoded_for_dependent(native_step)
+                .expect("encoded live ocean step"),
         )
     } else {
         None
@@ -864,27 +793,21 @@ fn compute(
     let device = render_device.wgpu_device();
     let cached = cached.get_or_insert_with(|| {
         let started = std::time::Instant::now();
-        let resources = gpu_cache::Resources::new(render_device, &queue, &input);
+        let resources = gpu_cache::Resources::new(
+            render_device,
+            &queue,
+            &gpu_cache::Inputs {
+                files: &input.files,
+                stations: &input.stations,
+                integrate: input.integrate,
+            },
+        );
         info!(
             elapsed_ms = started.elapsed().as_secs_f64() * 1000.0,
             "Tidewater spray immutable GPU resources initialized"
         );
         resources
     });
-    let gpu_cache::Resources {
-        layout0,
-        layout1,
-        pipeline,
-        samplers,
-        terrain,
-        shore,
-        stations,
-        height,
-        deltas,
-        field,
-        dummy,
-        integration,
-    } = &*cached;
     let uniform = |data: &[u8]| {
         device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("crest input"),
@@ -897,6 +820,7 @@ fn compute(
         let mut ocean_bytes = input.files[&format!("frame-{step:04}-ocean.bin")].clone();
         let mut params_bytes = input.files[&format!("frame-{step:04}-params.bin")].clone();
         let mut spray_bytes = input.files[&format!("frame-{step:04}-spray-params.bin")].clone();
+        let mut shore_for_step = None;
         if input.history {
             #[allow(clippy::cast_possible_truncation)]
             let time = progress.1 as f32;
@@ -926,7 +850,7 @@ fn compute(
             #[allow(clippy::cast_possible_truncation)]
             // The source packs a double budget as f32 for GPU emission.
             let budget = if let Some(shared) = &targets.budget {
-                shared.lock().expect("budget mutex").controller.value() as f32
+                shared.lock().expect("budget mutex").value() as f32
             } else {
                 input.budgets[native_step as usize - 1]
             };
@@ -941,7 +865,7 @@ fn compute(
                 let sim = coupled.get_or_insert_with(|| {
                     shore_input.initialize(device, &queue, (*gpu[5].buffer).clone())
                 });
-                sim.step(device, context.command_encoder(), &frame_bytes);
+                shore_for_step = Some(sim);
             } else {
                 context
                     .command_encoder()
@@ -961,7 +885,7 @@ fn compute(
                     input.files[&format!("frame-{step:04}-displacement-m{m}.rgba16.bin")].as_slice()
                 })
                 .collect();
-            acquired = texture(
+            acquired = gpu_cache::texture(
                 device,
                 &queue,
                 256,
@@ -972,143 +896,63 @@ fn compute(
             );
             &acquired
         };
-        let mut entries = vec![wgpu::BindGroupEntry {
-            binding: 0,
-            resource: frame.as_entire_binding(),
-        }];
-        for (i, sampler) in samplers.iter().enumerate() {
-            entries.push(wgpu::BindGroupEntry {
-                binding: u32::try_from(i + 1).expect("binding"),
-                resource: wgpu::BindingResource::Sampler(sampler),
-            });
-        }
-        let group0 = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("crest frame"),
-            layout: layout0,
-            entries: &entries,
-        });
-        let view = wgpu::BindingResource::TextureView;
-        let resources = [
-            view(height),
-            view(dummy),
-            view(dummy),
-            view(deltas),
-            view(field),
-            view(dummy),
-            terrain.as_entire_binding(),
-            view(dummy),
-            shore.as_entire_binding(),
-            view(displacement),
-            view(displacement),
-            ocean.as_entire_binding(),
-            gpu[1].buffer.as_entire_binding(),
-            gpu[2].buffer.as_entire_binding(),
-            gpu[3].buffer.as_entire_binding(),
-            gpu[4].buffer.as_entire_binding(),
-            spray_params.as_entire_binding(),
-            params.as_entire_binding(),
-            stations.as_entire_binding(),
-            gpu[index].buffer.as_entire_binding(),
-        ];
-        let entries: Vec<_> = resources
-            .into_iter()
-            .enumerate()
-            .map(|(i, resource)| wgpu::BindGroupEntry {
-                binding: u32::try_from(i).expect("binding"),
-                resource,
-            })
-            .collect();
-        let group1 = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("crest resources"),
-            layout: layout1,
-            entries: &entries,
-        });
-        let mut pass = context
-            .command_encoder()
-            .begin_compute_pass(&wgpu::ComputePassDescriptor {
-                label: Some("native crests"),
-                timestamp_writes: None,
-            });
-        pass.set_pipeline(pipeline);
-        pass.set_bind_group(0, &group0, &[]);
-        pass.set_bind_group(1, &group1, &[]);
-        if !input.replay {
-            pass.dispatch_workgroups(input.count.div_ceil(64), 1, 1);
-        }
-        drop(pass);
-        if input.integrate {
-            let resources_cache = integration.as_ref().expect("integration installed");
-            let gpu_cache::Integration {
-                layout: update_layout,
-                pipeline: update,
-                query,
-                requests,
-                surface,
-                sim,
-                water_queries: query_pipeline,
-            } = resources_cache;
-            let resources = [
-                gpu[1].buffer.as_entire_binding(),
-                gpu[2].buffer.as_entire_binding(),
-                gpu[3].buffer.as_entire_binding(),
-                gpu[4].buffer.as_entire_binding(),
-                spray_params.as_entire_binding(),
-                query.as_entire_binding(),
-                view(displacement),
-                view(displacement),
-                ocean.as_entire_binding(),
-                view(height),
-                view(dummy),
-                view(dummy),
-                view(deltas),
-                view(field),
-                view(dummy),
-                terrain.as_entire_binding(),
-                view(dummy),
-                shore.as_entire_binding(),
-                surface.as_entire_binding(),
-                view(dummy),
-                view(dummy),
-                sim.as_entire_binding(),
-                gpu[5].buffer.as_entire_binding(),
-                requests.as_entire_binding(),
-            ];
-            let entries: Vec<_> = resources
-                .into_iter()
-                .enumerate()
-                .map(|(i, resource)| wgpu::BindGroupEntry {
-                    binding: u32::try_from(i).expect("binding"),
-                    resource,
-                })
-                .collect();
-            let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("spray integration"),
-                layout: update_layout,
-                entries: &entries,
-            });
-            let mut pass =
-                context
-                    .command_encoder()
-                    .begin_compute_pass(&wgpu::ComputePassDescriptor {
-                        label: Some("native spray integration"),
-                        timestamp_writes: None,
-                    });
-            pass.set_pipeline(update);
-            pass.set_bind_group(0, &group0, &[]);
-            pass.set_bind_group(1, &group, &[]);
-            pass.dispatch_workgroups(40960 / 64, 1, 1);
-            drop(pass);
-            if let Some(queries) = &water_queries {
-                query_pipeline.encode(
-                    render_device,
+        let standalone_deposit: Option<&wgpu::Buffer> =
+            if input.integrate && shore_for_step.is_none() {
+                Some(&gpu[5].buffer)
+            } else {
+                None
+            };
+        let crest = gpu_cache::CrestFrame {
+            frame: &frame,
+            ocean: &ocean,
+            parameters: &params,
+            spray_parameters: &spray_params,
+            displacement,
+            particles: [
+                &gpu[1].buffer,
+                &gpu[2].buffer,
+                &gpu[3].buffer,
+                &gpu[4].buffer,
+            ],
+            output: &gpu[index].buffer,
+            station_count: input.count,
+            emit: !input.replay,
+        };
+        let (group0, spray_group) = if let Some(simulation) = shore_for_step {
+            let step = u32::from_le_bytes(frame_bytes[576..580].try_into().expect("frame index"));
+            let (group0, spray) = simulation
+                .encode_water_step(cached, device, context.command_encoder(), &crest, step)
+                .expect("consecutive coupled shore step");
+            (group0, Some(spray))
+        } else {
+            cached
+                .encode_water_step(
+                    device,
                     context.command_encoder(),
-                    &group0.clone().into(),
-                    &group.clone().into(),
-                    &query_packet.expect("prepared query packet").buffer,
-                    &queries.queries.snapshot(),
-                    native_step,
-                    progress.1,
-                );
+                    &crest,
+                    None,
+                    standalone_deposit,
+                )
+                .expect("validated source water step")
+        };
+        if input.integrate {
+            let group = spray_group.expect("validated spray integration");
+            if let Some(queries) = &water_queries {
+                cached
+                    .integration
+                    .as_ref()
+                    .expect("integration installed")
+                    .water_queries
+                    .encode(
+                        render_device,
+                        context.command_encoder(),
+                        &group0.clone().into(),
+                        &group.clone().into(),
+                        &query_packet.expect("prepared query packet").buffer,
+                        &queries.queries.snapshot(),
+                        native_step,
+                        progress.1,
+                    );
             }
         }
     }
@@ -1126,7 +970,7 @@ fn compute(
             let mut feedback = shared.lock().expect("budget mutex");
             if native_step <= input.bootstrap_steps {
                 assert_eq!(
-                    feedback.latest.map(|v| v.0),
+                    feedback.latest().map(|v| v.0),
                     if native_step == 1 {
                         None
                     } else {
@@ -1135,7 +979,7 @@ fn compute(
                     "missing previous GPU head"
                 );
             }
-            let emitter = feedback.controller.value();
+            let emitter = feedback.value();
             let acquired = ocean.as_ref().expect("ocean").acquired.as_ref();
             let acquired_step = acquired.and_then(|steps| steps.get(native_step as usize - 1));
             let observed_order =
@@ -1143,38 +987,25 @@ fn compute(
             let latest = match observed_order {
                 CallbackOrder::Completed(frame) => Some((
                     frame,
-                    *feedback
-                        .completed
-                        .get(&frame)
+                    feedback
+                        .completed(frame)
                         .expect("acquired callback requires a completed native GPU head"),
                 )),
                 CallbackOrder::Unavailable => None,
-                CallbackOrder::LegacyMetadata => feedback.latest,
+                CallbackOrder::LegacyMetadata => feedback.latest(),
             };
-            if acquired.is_some() {
-                feedback
-                    .controller
-                    .after_sequenced_emission(latest.map(|(step, sample)| SequencedHeadSample {
-                        sequence: u64::from(step),
-                        sample,
-                    }))
-                    .expect("ordered acquired native feedback");
-            } else {
-                feedback
-                    .controller
-                    .after_emission(latest.map(|v| v.1))
-                    .expect("ordered native feedback");
-            }
-            let next_budget = feedback.controller.value();
+            feedback
+                .after_emission(latest, acquired.is_some())
+                .expect("ordered native feedback");
+            let next_budget = feedback.value();
             let feedback_time = acquired
                 .and_then(|steps| steps.get(native_step as usize - 1))
                 .map_or(progress.1, |step| step.global_time);
             if native_step <= input.bootstrap_steps {
-                let native_latest_frame = feedback.latest.map(|value| value.0);
-                feedback.rows.push(serde_json::json!({"frame":native_step,"time":feedback_time,"ocean_time":progress.1,"emitter_budget":emitter,"budget":next_budget,"feedback_frame":latest.map(|v|v.0),"feedback_head":latest.map(|v|v.1.head),"feedback_time":latest.map(|v|v.1.time),"source_feedback_observed":observed_order != CallbackOrder::LegacyMetadata,"source_feedback_frame":match observed_order { CallbackOrder::Completed(frame) => Some(frame), _ => None },"native_latest_frame":native_latest_frame}));
+                let native_latest_frame = feedback.latest().map(|value| value.0);
+                feedback.push_row(serde_json::json!({"frame":native_step,"time":feedback_time,"ocean_time":progress.1,"emitter_budget":emitter,"budget":next_budget,"feedback_frame":latest.map(|v|v.0),"feedback_head":latest.map(|v|v.1.head),"feedback_time":latest.map(|v|v.1.time),"source_feedback_observed":observed_order != CallbackOrder::LegacyMetadata,"source_feedback_frame":match observed_order { CallbackOrder::Completed(frame) => Some(frame), _ => None },"native_latest_frame":native_latest_frame}));
             }
-            feedback.encoded_step = native_step;
-            feedback.encoded_time = feedback_time;
+            feedback.record_encoded(native_step, feedback_time);
             if native_step > input.bootstrap_steps {
                 live_feedback
                     .as_ref()
@@ -1205,12 +1036,6 @@ fn compute(
         targets
             .completed_steps
             .store(native_step, Ordering::Release);
-        if live_step.is_some() {
-            clock
-                .as_ref()
-                .expect("live ocean clock")
-                .acknowledge(native_step);
-        }
         if native_step < input.bootstrap_steps {
             compute_span.end(context.command_encoder());
             return;
@@ -1219,6 +1044,13 @@ fn compute(
     if let Some(sim) = coupled.as_ref() {
         let image = public_shore.expect("coupled shore image");
         sim.publish(context.command_encoder(), &image.texture);
+        if live_step.is_some() {
+            clock
+                .as_ref()
+                .expect("live ocean clock")
+                .dependent_encoded(native_step)
+                .expect("shore and spray encoded the pending ocean frame");
+        }
         if was_ready {
             compute_span.end(context.command_encoder());
             return;
@@ -1260,7 +1092,7 @@ fn readback(
                 .expect("native budget")
                 .lock()
                 .expect("budget mutex");
-            let report = serde_json::json!({"schema":"forge.tidewater.native-spray-budget","version":1,"steps":targets.bootstrap_steps,"feedback":"native_gpu_heads_with_acquired_callback_order_when_observed","source_schedule_loaded":false,"source_feedback_order_replayed":feedback.rows.iter().any(|row| row["source_feedback_observed"].as_bool() == Some(true)),"schedule":feedback.rows,"limits":["native head completion barrier; acquired callback order controls which completed head is consumed","no source particle heads or source budget values injected","not a real-time performance qualification"]});
+            let report = serde_json::json!({"schema":"forge.tidewater.native-spray-budget","version":1,"steps":targets.bootstrap_steps,"feedback":"native_gpu_heads_with_acquired_callback_order_when_observed","source_schedule_loaded":false,"source_feedback_order_replayed":feedback.rows().iter().any(|row| row["source_feedback_observed"].as_bool() == Some(true)),"schedule":feedback.rows(),"limits":["native head completion barrier; acquired callback order controls which completed head is consumed","no source particle heads or source budget values injected","not a real-time performance qualification"]});
             if let Err(error) = fs::write(path, serde_json::to_vec_pretty(&report).expect("JSON")) {
                 eprintln!("{error}");
                 exit.write(AppExit::error());
@@ -1376,12 +1208,10 @@ fn read_budget(
     };
     let (step, time) = {
         let mut feedback = shared.lock().expect("budget mutex");
-        let step = feedback.encoded_step;
-        if step == 0 || step >= targets.bootstrap_steps || step == feedback.requested_step {
+        let Some(request) = feedback.bootstrap_request(targets.bootstrap_steps) else {
             return;
-        }
-        feedback.requested_step = step;
-        (step, feedback.encoded_time)
+        };
+        request
     };
     let shared = shared.clone();
     let permitted = ocean.expect("native ocean").permitted_step.clone();
@@ -1414,13 +1244,13 @@ fn read_budget(
                     Ok(false) => {
                         debug!(
                             step,
-                            encoded = feedback.encoded_step,
+                            encoded = feedback.encoded_step(),
                             "Ignoring duplicate bootstrap spray readback"
                         );
                     }
                     Err(error) => {
-                        error!(%error, step, encoded = feedback.encoded_step,
-                            latest = ?feedback.latest.map(|value| value.0),
+                        error!(%error, step, encoded = feedback.encoded_step(),
+                            latest = ?feedback.latest().map(|value| value.0),
                             "Bootstrap spray feedback rejected");
                         exit.write(AppExit::error());
                     }

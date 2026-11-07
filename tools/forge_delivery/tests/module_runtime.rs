@@ -113,6 +113,15 @@ impl Fixture {
             });
         }
         let manifest = ModulePackageManifest {
+            terrain_surfaces: Vec::new(),
+            ocean_inputs: Vec::new(),
+            local_light_packages: Vec::new(),
+            historical_models: Vec::new(),
+            placement_companions: Vec::new(),
+            environments: Vec::new(),
+            objects: Vec::new(),
+            fish_profiles: Vec::new(),
+            vegetation: Vec::new(),
             creator: None,
             schema: MODULE_PACKAGE_SCHEMA.into(),
             version: MODULE_PACKAGE_VERSION,
@@ -190,7 +199,7 @@ fn two_modules_load_the_selected_zone_after_the_authoring_directory_is_unavailab
             let loaded = module_runtime::load(
                 &package,
                 expected.area_id,
-                Some(&fixture.root.join("Cache Élan")),
+                Some(&fixture.root.join("Cache Ã‰lan")),
             )
             .unwrap();
             assert_eq!(loaded.manifest, fixture.manifest);
@@ -200,7 +209,7 @@ fn two_modules_load_the_selected_zone_after_the_authoring_directory_is_unavailab
             assert!(
                 loaded
                     .package_root
-                    .starts_with(fixture.root.join("Cache Élan"))
+                    .starts_with(fixture.root.join("Cache Ã‰lan"))
             );
         }
     }
@@ -239,5 +248,183 @@ fn a_changed_cached_payload_is_refused_and_never_silently_replaced() {
     assert_eq!(
         fs::read(selected).unwrap(),
         b"corruption retained for diagnosis"
+    );
+}
+
+fn attach_environment(fixture: &mut Fixture) {
+    use std::collections::BTreeMap;
+    let mut names: Vec<String> = [
+        "atmosphere.json",
+        "cloud-environment.json",
+        "params.bin",
+        "transmittance.wgsl",
+        "multiScat.wgsl",
+        "skyView.wgsl",
+        "irradiance.wgsl",
+        "sky.wgsl",
+        "environment-cube.bin",
+        "village-lighting.json",
+        "cloud-view-params.bin",
+        "cloud-weather.wgsl",
+        "cloud-bounds.wgsl",
+        "cloud-shadow.wgsl",
+        "cloud-trace.wgsl",
+        "cloud-temporal.wgsl",
+        "cloud-pano.wgsl",
+        "cloud-blueNoise.bin",
+        "LICENSE-Tidewater.txt",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect();
+    names.extend((0..7).map(|level| format!("cloud-volume-m{level}.rgba8.bin")));
+    for step in 1..=120 {
+        for kind in ["global", "atmosphere"] {
+            names.push(format!("cloud-step{step:03}-{kind}.bin"));
+        }
+    }
+    fs::create_dir(fixture.source.join("environment")).unwrap();
+    let mut entries = BTreeMap::new();
+    let mut resources = Vec::new();
+    for name in names {
+        let raw = name.as_bytes();
+        let hash = bytes_sha256(raw);
+        let path = format!("environment/{name}");
+        fs::write(fixture.source.join(&path), raw).unwrap();
+        let role = if name == "LICENSE-Tidewater.txt" {
+            fixture.manifest.provenance.license_paths.push(path.clone());
+            ModuleFileRole::License
+        } else {
+            ModuleFileRole::Environment
+        };
+        fixture.manifest.files.push(ModuleFile {
+            path: path.clone(),
+            bytes: raw.len() as u64,
+            sha256: hash,
+            role,
+        });
+        entries.insert(
+            name.clone(),
+            serde_json::json!({"bytes":raw.len(),"sha256":hash}),
+        );
+        resources.push(ModuleFilePin { path, sha256: hash });
+    }
+    let bytes = serde_json::to_vec(
+        &serde_json::json!({"schema":"forge.tidewater.environment-package","version":1,
+        "source_commit":"1438b1abfcaee3267092b75573014f4d9b4a983c","files":entries}),
+    )
+    .unwrap();
+    let path = "environment/package.json";
+    let hash = bytes_sha256(&bytes);
+    fs::write(fixture.source.join(path), &bytes).unwrap();
+    fixture.manifest.files.push(ModuleFile {
+        path: path.into(),
+        bytes: bytes.len() as u64,
+        sha256: hash,
+        role: ModuleFileRole::Environment,
+    });
+    fixture
+        .manifest
+        .environments
+        .push(ModuleEnvironmentBinding {
+            solar_clock: None,
+            area_id: fixture.manifest.zones[0].area_id,
+            source: ModuleEnvironmentSource::SourceProfile {
+                environment: ModuleEnvironmentFiles {
+                    manifest: ModuleFilePin {
+                        path: path.into(),
+                        sha256: hash,
+                    },
+                    resources,
+                },
+                programs: None,
+            },
+        });
+    fixture.manifest.compatibility.module_api_version = MODULE_ENVIRONMENT_API_VERSION;
+    fs::write(
+        fixture.source.join("module.json"),
+        fixture.manifest.to_bytes().unwrap(),
+    )
+    .unwrap();
+}
+
+#[test]
+fn closed_environment_survives_source_removal_and_is_not_injected_into_another_area() {
+    let mut fixture = Fixture::new("closed-environment");
+    attach_environment(&mut fixture);
+    let package = fixture.package();
+    let unavailable = fixture.root.join("source-unavailable");
+    assert!(fixture.source.starts_with(&fixture.root) && unavailable.starts_with(&fixture.root));
+    fs::rename(&fixture.source, unavailable).unwrap();
+    let loaded = module_runtime::load(
+        &package,
+        fixture.manifest.zones[0].area_id,
+        Some(&fixture.root.join("cache")),
+    )
+    .unwrap();
+    let resources = loaded.environment().unwrap().unwrap();
+    assert_eq!(resources.environment.file_count(), 266);
+    assert_eq!(resources.environment.bootstrap_frames(), 120);
+    assert!(resources.programs.is_none());
+    let other = module_runtime::load(
+        &package,
+        fixture.manifest.zones[1].area_id,
+        Some(&fixture.root.join("cache")),
+    )
+    .unwrap();
+    assert!(other.environment().unwrap().is_none());
+    fs::write(loaded.package_root.join("environment/sky.wgsl"), b"corrupt").unwrap();
+    assert!(loaded.environment().is_err());
+}
+
+#[test]
+fn environment_index_mismatch_refuses_before_requesting_any_resource() {
+    let mut fixture = Fixture::new("environment-preflight");
+    attach_environment(&mut fixture);
+    let ModuleEnvironmentSource::SourceProfile { environment, .. } =
+        &mut fixture.manifest.environments[0].source;
+    environment.resources[0].sha256 = bytes_sha256(b"foreign");
+    let mut calls = 0;
+    assert!(
+        forge_delivery::module_environment::resolve(
+            &fixture.manifest,
+            fixture.manifest.zones[0].area_id,
+            |_, _| {
+                calls += 1;
+                Err("No transport should be requested".into())
+            }
+        )
+        .is_err()
+    );
+    assert_eq!(calls, 0);
+    let mut fixture = Fixture::new("environment-missing-index-resource");
+    attach_environment(&mut fixture);
+    let ModuleEnvironmentSource::SourceProfile { environment, .. } =
+        &mut fixture.manifest.environments[0].source;
+    let removed = environment.resources.pop().unwrap();
+    fixture
+        .manifest
+        .files
+        .retain(|file| file.path != removed.path);
+    fixture
+        .manifest
+        .provenance
+        .license_paths
+        .retain(|path| path != &removed.path);
+    let mut calls = 0;
+    assert!(
+        forge_delivery::module_environment::resolve(
+            &fixture.manifest,
+            fixture.manifest.zones[0].area_id,
+            |path, _| {
+                calls += 1;
+                fs::read(fixture.source.join(path)).map_err(|e| e.to_string())
+            }
+        )
+        .is_err()
+    );
+    assert_eq!(
+        calls, 1,
+        "Only the bounded manifest may be read before closure mismatch"
     );
 }

@@ -14,6 +14,16 @@ pub struct ImportedVegetationSource {
     pub schema: String,
     pub version: u32,
     pub blocks: Vec<ImportedVegetationBlock>,
+    /// Explicit ground-cover field from the same governed prototype profile.
+    /// A prototype library alone never requests this field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grass: Option<ImportedGrassField>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ImportedGrassField {
+    pub profile_manifest_sha256: ContentHash,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -60,7 +70,9 @@ impl ImportedVegetationSource {
         extent: VegetationExtent,
         layers: &[VegetationLayer],
     ) -> Result<(), String> {
-        if self.schema != "forge.imported-vegetation" || self.version != 1 {
+        if self.schema != "forge.imported-vegetation"
+            || !matches!((self.version, self.grass.is_some()), (1, false) | (2, true))
+        {
             return Err("Unsupported imported vegetation source".into());
         }
         if self.blocks.is_empty() || self.blocks.len() > 16 || self.blocks.len() != layers.len() {

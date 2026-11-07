@@ -100,11 +100,21 @@ def main():
     (workspace/'retouche personnelle.txt').write_text('Mon projet doit survivre.\n',encoding='utf-8')
     before = user_inventory(user)
     write(evidence/'fresh-state.json',state)
+    module_plan_checked = False
     for app in ('launcher','editor','game'):
         plan = call(cli,'launch-plan',root,app,env=env)
         if not Path(plan['executable']).is_file():
             raise ValueError(f'Broken native entry point: {app}')
         write(evidence/f'{app}-launch-plan.json',plan)
+        if app == 'editor':
+            module_binary = Path(plan['executable']).parent/'forge-module.exe'
+            if module_binary.is_file():
+                module_plan = call(cli,'launch-plan',root,'module-game',env=env)
+                if (Path(module_plan['executable']) != module_binary or
+                        Path(plan['environment'].get('FORGE_NATIVE_GAME_EXECUTABLE') or '') != module_binary):
+                    raise ValueError('Studio and installed modules do not use the same module runtime')
+                write(evidence/'module-game-launch-plan.json',module_plan)
+                module_plan_checked = True
         if app == 'launcher':
             if Path(plan['executable']).name != 'forge-launcher.exe' or digest(root/'Forge.exe') != digest(Path(plan['executable'])):
                 raise ValueError('The installer launcher points to the content manager')
@@ -138,7 +148,7 @@ def main():
         raise ValueError('Uninstallation removed a foreign file')
     if user_inventory(user) != before:
         raise ValueError('Uninstallation changed personal work')
-    if (package/'bin/forge-game.exe').exists() or (package/'bin/forge-studio.exe').exists():
+    if any((package/'bin'/name).exists() for name in ('forge-game.exe','forge-module.exe','forge-studio.exe')):
         raise ValueError('Uninstallation left owned application binaries')
     if args.shell_integration:
         if reg_values(product_key) is not None or reg_values(uninstall_key) is not None or any(p.exists() for p in shortcuts):
@@ -150,7 +160,7 @@ def main():
         root=str(root),user_root=str(user),custom_unicode_path=True,full_file_verification=True,
         offline_embedded_payload=True,reinstallation_preserves_user_files=True,
         aube_launcher_embedded_webview_ipc_verified=True,content_manager_separate=True,
-        native_launch_recipes_checked=3,uninstall_removes_owned_applications=True,
+        native_launch_recipes_checked=3+int(module_plan_checked),uninstall_removes_owned_applications=True,
         native_launcher_editor_startup_probed=bool(args.entrypoint_probe),
         uninstall_preserves_user_files=len(before),uninstall_preserves_foreign_files=True,
         windows_shortcuts_registry_tested=args.shell_integration,legacy_shortcuts_preserved=args.shell_integration,

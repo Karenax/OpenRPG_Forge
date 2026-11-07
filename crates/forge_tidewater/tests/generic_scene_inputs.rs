@@ -1,9 +1,7 @@
 //! Independent scenes exercise shared renderer inputs without imported map data.
 use bevy::prelude::App;
-use forge_tidewater::{
-    exposure_metering::{ExposureProfile, center_weighted_metering_mask},
-    water_height_queries::Queries,
-};
+use forge_engine::exposure_metering::{ExposureProfile, center_weighted_metering_mask};
+use forge_engine::source_water_queries::Queries;
 
 #[test]
 fn unrelated_scene_query_registries_do_not_share_slots_or_positions() {
@@ -135,7 +133,8 @@ fn independent_motion_profiles_control_gravity_speed_and_transitions() {
 
 #[test]
 fn independent_wind_clocks_preserve_their_step_policy_when_wind_changes() {
-    use forge_tidewater::{pendulum_motion::Wind, scene_wind::WindFrame};
+    use forge_engine::pendulum_motion::Wind;
+    use forge_engine::source_wind::WindFrame;
     let mut cave = WindFrame::with_max_delta(
         0.0,
         Wind {
@@ -187,7 +186,7 @@ fn optical_flare_has_no_implicit_imported_material_dependency() {
         asset::{AssetApp, AssetPlugin},
         prelude::*,
     };
-    use {forge_engine::lens_flare_sun::SceneSun, forge_tidewater::lens_flare::LensFlarePlugin};
+    use {forge_engine::lens_flare::LensFlarePlugin, forge_engine::lens_flare_sun::SceneSun};
     let mut app = App::new();
     app.add_plugins((MinimalPlugins, AssetPlugin::default()));
     app.init_asset::<Shader>();
@@ -196,7 +195,7 @@ fn optical_flare_has_no_implicit_imported_material_dependency() {
     app.update();
     assert!(
         !app.world()
-            .contains_resource::<Assets<forge_tidewater::tidewater_material::VillageMaterial>>()
+            .contains_resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
     );
     assert!(SceneSun::new(Vec3::ZERO, Vec3::ONE).is_err());
     assert!(SceneSun::new(Vec3::Y, Vec3::splat(-1.0)).is_err());

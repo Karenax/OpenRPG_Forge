@@ -38,6 +38,7 @@ fn workspace_requires_current_and_historical_blobs_and_never_overwrites_corrupti
     second[0] = 2;
     for bytes in [&first, &second] {
         document.imported_source = Some(ImportedVegetationSource {
+            grass: None,
             schema: "forge.imported-vegetation".into(),
             version: 1,
             blocks: vec![ImportedVegetationBlock {

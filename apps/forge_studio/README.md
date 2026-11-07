@@ -11,7 +11,7 @@ their original scope and do not reopen completed gates.
 ## Current authoring launch and native game
 
 The owner's canonical entry is `E:/OpenRPG_Forge/Lancer-Editeur.cmd`. It opens
-the shared `E:/OpenRPG_Forge/.gate3-ntfs-cargo-20261002/release/forge-studio.exe`.
+the shared development executable `E:/OpenRPG_Forge/.build/frontend/studio-native/forge-studio.exe`.
 Keep this entry and its adjacent `forge-studio.local.json` connected to the same
 authoring workspace and deployed assets; do not create a different launch path
 per chat. The owner confirmed this entry on 13 October and asked to preserve it.
@@ -22,10 +22,43 @@ installer environment overrides keep priority; incomplete module overrides
 are refused rather than combined with another profile. The local sidecar and
 private map/asset payloads are deployment data, not files included in this commit.
 
+To rebuild this shared development entry from the repository root, keep the
+owner's profile next to the deployed executable and use the common caches:
+
+```powershell
+$env:CARGO_HOME = 'E:/OpenRPG_Forge/.build/cargo-home'
+$env:CARGO_TARGET_DIR = 'E:/OpenRPG_Forge/.build/cargo-target'
+$env:CARGO_INCREMENTAL = '0'
+$env:TEMP = 'E:/OpenRPG_Forge/.build/tmp'
+$env:TMP = $env:TEMP
+$env:NO_COLOR = 'true'
+Push-Location apps/forge_studio
+trunk build --release --config Trunk.toml --dist E:/OpenRPG_Forge/.build/frontend/studio
+cargo tauri build --debug --no-bundle --config tauri.shared.conf.json -- --locked
+Pop-Location
+Copy-Item E:/OpenRPG_Forge/.build/cargo-target/debug/forge-studio.exe E:/OpenRPG_Forge/.build/frontend/studio-native/forge-studio.exe
+```
+
+Check each command succeeds before proceeding. Close a running Studio before
+replacing its executable. The launcher refuses an absent local profile instead
+of falling back to a different workspace. This entry is a local development
+build, not a release qualification or an installer.
+
+The **Créer et raconter** selector opens characters, dialogues, quests, scripts
+or the assistant directly. Each mounted RPG form keeps local drafts per selected
+record; a change to the applied version is shown for comparison. These drafts
+are session-local: examine, apply and save to retain them after closing Studio.
+The import form survives closing its modal. Finish an import before switching maps, reloading the workspace or closing Studio.
+Creation lives in **Modules** and exports in **Départ & suivi**. Creation uses
+the existing workspace preview/apply/save boundary and does not add demo content.
+The assistant includes a local configuration guide and a read-only check;
+search and pagination cover every target without changing backend scope limits.
+
 In **Modules**, select the module and then its **Carte**. An animated indicator
-remains visible while terrain, models and collisions are prepared. Before
-selecting another object, **Appliquer** or **Abandonner l'aperçu** for the current
-preview; there is no implicit apply or save.
+remains visible while terrain, models and collisions are prepared. Selecting
+another object preserves the reviewed preview and its original target. Before
+examining another proposal, choose **Appliquer** or **Abandonner l'aperçu**;
+there is no implicit apply or save.
 
 **Lancer le jeu** exports an immutable snapshot of the current map, including
 applied unsaved edits and the authored start, and opens the configured native
@@ -38,6 +71,12 @@ and save/resume, as qualified by the
 [Gate 3 closure report](../../docs/evidence/gate3/GATE3_CLOSURE_20261015.md).
 The generic `forge_runtime` target and the installed game's
 `tidewater_plant_probe` target have distinct roles; see the delivery README.
+
+Private game exports resolve exact model pins from preserved imports, the
+Studio's deployed governed kit, then the read-only Vault. Kit models retain
+their validated manifest and declared licence in the existing package catalogue;
+a changed pin, invalid GLB or exceeded byte budget is refused. This capture
+does not grant redistribution rights or populate the user's import collection.
 
 The owner's game/return test passed on 13 October. See
 [`STUDIO_RESIDENT_GAME_RETURN_20261013.md`](../../docs/evidence/gate3/STUDIO_RESIDENT_GAME_RETURN_20261013.md)
@@ -594,3 +633,113 @@ directement dans la tête acceptée. L'utilisation réelle du formulaire, le pla
 paquet déclaré reste refusé tant que sa réouverture physique n'est pas raccordée.
 Aucun réglage du projet privé d'acquisition n'est
 présenté comme un réglage du projet original du pack.
+
+
+## Ressources du module — raccord en cours (26 octobre)
+
+`module_resources_protocol`, `module_resources_native` et
+`module_resources_acquisition` étendent le canal de végétation existant aux objets
+et à l'environnement explicitement déclarés par le module. L'autorité native
+contrôle la tête ouverte, l'origine conservée et les pins avant de fournir ses
+ordinaux ; le navigateur ne choisit aucun chemin natif. Les codecs de paquets
+existants sont réutilisés, et les allocations immuables sont conservées lors
+d'une retouche ou d'un retour sur la même carte. Les getters de l'origine retenue
+ne reprennent plus les décors de la bibliothèque globale.
+
+L'essai privé API 7 acquiert 1 201 ressources, 23 assets d'objets et les paquets
+végétal/environnement/programmes. Une acquisition initiale utilise 2 657 requêtes ;
+les suivantes, y compris après retouche, utilisent une description et réutilisent
+les mêmes allocations. L'autre carte n'acquiert aucune de ces ressources. C'est
+une preuve du canal natif et du client partagé, sans exécution WebView.
+
+Le raccord d'affichage reste incomplet : `authoring_sampled_viewport` n'installe
+pas encore ces consommateurs sur son chemin canonique. Les lumières locales
+déclarées ne sont pas encore acquises par ce canal, et les modules sans origine
+conservée gardent leur ancien raccord de bibliothèque. Ces limites empêchent
+de revendiquer la parité Studio ou l'absence générale de ressources implicites.
+Voir le catalogue central `studio-module-resources-validation-001.json`.
+
+## Hôtes moteur communs dans le Studio — preuve partielle du 26 octobre
+
+Sur les cartes à origine conservée, le viewport raster installe désormais les hôtes
+moteur déjà employés par le jeu de modules : environnement, végétation streamée,
+objets source et projection de lumières locales. Les retouches utilisent leurs
+API de suspension/remplacement, avec contrôle de tête et de source admise. Le canal
+acquiert aussi les paquets de lumières par le décodeur de transport commun. L'essai
+privé lit 1 416 ressources ; une description suffit lors d'une acquisition en cache,
+avec réutilisation des allocations immuables. Cette dernière mesure reste une preuve CPU.
+
+Le Studio Tauri réel, construit sans `forge-imports` ni `forge-kit`, affiche les maisons,
+plantes et ombres du module. Une maison passe de X = 8 m à 12 m en aperçu ; abandon,
+application, annulation/rétablissement et sauvegarde sont vérifiés. Après arrêt puis
+redémarrage du processus, la valeur sauvegardée est relue à 12 m. La fixture est ensuite
+restaurée à 8 m par annulation et sauvegarde. L'autre carte affiche zéro objet et aucun
+compagnon implicite ; le retour sur la première carte fonctionne. Les captures sont
+inspectées et l'archive d'origine conserve son SHA-256.
+
+Les compteurs GPU/CPU incluent les plantes éclairées par le monde. Une scène avec
+environnement commun garde sa cadence active au repos ; le compteur de mises à jour
+ne constitue pas une mesure comparative de FPS. La sélection GPU Nature avec ce nouvel
+hôte, les modules sans origine conservée, les autres reprises de shaders/effets et
+les performances comparables restent ouverts. Les dix critères Gate 7 restent ouverts.
+Catalogue central : `studio-common-runtime-validation-001.json`.
+
+
+## Common surface receiver checkpoint — UI replay pending (26 October)
+
+The module viewport calls the engine-owned surface receivers. First real rendering
+after transfer has an inspected capture. Repeating a saved/undone source-object edit
+then exposed a workspace command-ID collision. The common native host now binds fresh
+wrapper IDs to the workspace head while retaining reviewed Apply replay identity.
+The red/green regression passes; 2,744 workspace tests, strict native/Web Clippy and
+the rebuilt native Studio pass. Its frontend is reused unchanged. Computer Use was
+stopped with Escape before the repaired UI replay; that replay remains unqualified.
+Central evidence: `shared-surface-receivers-checkpoint-001.json`.
+
+
+## Terrain implementation owner transferred (26 October)
+
+Existing imported-terrain, shadow, vegetation, metrics and temporal consumers now
+refer to the common engine terrain/material owners and common asset package reader.
+Their algorithms are transferred with the native reference and conformance probes;
+2,748 workspace tests and strict native/Web Clippy pass. Source import advisory
+checks retain one unchanged long-copy warning. There is no new UI control or text.
+The canonical module raster viewport still needs an explicit terrain-resource binding
+and adoption of this common profile. Its real UI replay remains pending after Escape;
+neither that replay nor performance parity is claimed. See central
+`shared-terrain-owners-validation-001.json`.
+## Terrain de module — acquisition commune, 26 octobre
+
+L'autorité native décrit aussi les ressources terrain API 8 de la zone courante.
+Le protocole existant fournit les morceaux épinglés au codec terrain commun ;
+l'acquisition vérifie source canonique, fermeture, licence, budgets et portée.
+Le cache conserve l'allocation immuable après une retouche sans changement de
+source, tout en refusant ancienne tête et requête annulée. Le bilan central
+`module-terrain-transport-validation-001.json` qualifie ce cycle natif à travers
+le format wire et sa compilation Web. Le viewport utilise encore son matériau
+auteur : adoption du matériau commun, peinture, physique et parcours WebView
+restent à qualifier. Aucun rendu ni gain de frame time n'est déduit du transport.
+
+Le 27 octobre, le moteur qualifie la peinture canonique dans sa scène terrain
+source commune, en partageant les calculs de palette existants. Le catalogue
+`module-terrain-paint-validation-001.json` comprend les tests et les captures GPU
+inspectées, avec une image sans retouche inchangée. Ce résultat prépare le raccord
+du viewport ; il ne qualifie pas le parcours d'édition Studio, qui reste à rejouer.
+
+Le bilan natif suivant `module-source-terrain-runtime-validation-001.json` qualifie
+la consommation du profil terrain par le jeu installé, avec inventaire GPU complet
+et physique synchronisée. Il ne bascule pas le viewport Studio. Celui-ci doit
+encore consommer ses ressources acquises, gérer les remplacements et conserver
+peinture, relief, sauvegarde/réouverture et gardes de publication. Le rejeu UI
+arrêté par Échap n'est pas déclaré rejoué par ces contrôles natifs.
+
+
+## Export de jeu autonome — transition Gate 7 (2 novembre 2026)
+
+L'export `.orpmod` et l'essai de module décrits dans ce dépôt ne constituent pas encore
+l'export d'un jeu autonome avec son launcher propre. Le parcours cible configure le jeu
+à partir du projet dans le Studio, puis dérive une livraison validée et bornée à ses
+contenus ; les opérations auteur utiles du Hub rejoindront ce parcours. Les services
+communs et les licences sont conservés. Le transfert, les deux jeux indépendants et les
+essais sur OS propres restent à réaliser ; voir l'addendum ADR-0021 et l'inventaire
+`editor-launcher-d1-inventory-001.md` de la campagne centrale Gate 7.

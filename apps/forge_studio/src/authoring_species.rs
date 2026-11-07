@@ -77,6 +77,7 @@ struct Delivery {
     submitted: bool,
     loader: Option<forge_engine::VegetationPrototypeLoadPlugin>,
     resident: Vec<String>,
+    imported: bool,
 }
 thread_local! {
     static ACCEPTED_HEAD: RefCell<Option<ZoneAuthoringHead>> = const { RefCell::new(None) };
@@ -95,6 +96,19 @@ pub(super) fn register(app: &mut App) {
 pub(super) fn observe(head: Option<&ZoneAuthoringHead>) {
     ACCEPTED_HEAD.with(|slot| slot.replace(head.cloned()));
     show(head);
+}
+
+pub(crate) fn source_changed() {
+    DELIVERY.with(|slot| {
+        let mut state = slot.borrow_mut();
+        state.epoch = state.epoch.wrapping_add(1);
+        state.desired = None;
+        state.pending = None;
+        state.error = None;
+        state.loading = false;
+        state.submitted = false;
+        state.loader = None;
+    });
 }
 
 pub(super) fn restore() {
@@ -134,6 +148,12 @@ fn show(head: Option<&ZoneAuthoringHead>) {
         state.submitted = false;
         state.loader = None;
         state.loading = desired.is_some();
+        state.imported = desired.is_some_and(|head| {
+            head.base
+                .vegetation
+                .as_ref()
+                .is_some_and(|vegetation| vegetation.imported_source.is_some())
+        });
         Some(state.epoch)
     });
     let (Some(epoch), Some(head)) = (epoch, desired.cloned()) else {
@@ -166,6 +186,40 @@ fn current(epoch: u64) -> Result<(), String> {
 }
 
 async fn prepare(head: &ZoneAuthoringHead, epoch: u64) -> Result<Prepared, String> {
+    if crate::authoring_module_resources::owns_source() {
+        let data = crate::authoring_module_resources::for_head(head)
+            .await?
+            .ok_or("Le module ne déclare aucune ressource végétale")?;
+        current(epoch)?;
+        let species = data
+            .snapshot
+            .species
+            .as_ref()
+            .ok_or("Catalogue d'espèces absent du module")?;
+        let catalog = module_catalog(head, &data)?;
+        let (_, vegetation) = head.effective()?;
+        let loader = forge_engine::VegetationPrototypeLoadPlugin::new(
+            catalog.clone(),
+            &species.asset_kit,
+            &vegetation.ok_or("Végétation absente")?,
+        )?
+        .with_species_memory_source();
+        let mut files = Vec::new();
+        let mut seen = std::collections::BTreeSet::new();
+        for binding in &catalog.bindings {
+            if seen.insert(binding.glb_sha256) {
+                let bytes = data
+                    .models
+                    .get(&binding.glb_sha256)
+                    .ok_or("Cette espèce n'est pas embarquée dans le module ouvert")?;
+                files.push((
+                    format!("{}.glb", binding.glb_sha256),
+                    bytes.as_ref().clone(),
+                ));
+            }
+        }
+        return Ok(Prepared { loader, files });
+    }
     let fetch = crate::governed_kit::transport::fetch;
     let kit: GovernedAssetKitBuildReport =
         serde_json::from_slice(&fetch("build.json", 1024 * 1024).await?)
@@ -209,12 +263,37 @@ async fn prepare(head: &ZoneAuthoringHead, epoch: u64) -> Result<Prepared, Strin
     Ok(Prepared { loader, files })
 }
 
+/// Resolve the same pinned selection for the loader and the common imported host.
+pub(crate) fn module_catalog(
+    head: &ZoneAuthoringHead,
+    data: &crate::module_resources_acquisition::Acquired,
+) -> Result<VegetationPrototypeCatalog, String> {
+    let species = data
+        .snapshot
+        .species
+        .as_ref()
+        .ok_or("Catalogue d'espèces absent du module")?;
+    let catalogs = data
+        .catalogs
+        .values()
+        .map(|catalog| catalog.as_ref().clone())
+        .collect::<Vec<_>>();
+    forge_engine::resolve_authored_species(head, &catalogs, &species.asset_kit)?
+        .ok_or_else(|| "Sélection d'espèces absente".into())
+}
+
 /// Gate source submission on fully resolved prototypes, never on fetch success alone.
 pub(super) fn ready(world: &mut World) -> Result<bool, String> {
     DELIVERY.with(|slot| {
         let mut state = slot.borrow_mut();
         if let Some(error) = &state.error {
             return Err(error.clone());
+        }
+        if crate::authoring_module_resources::owns_source()
+            && !crate::authoring_module_resources::available()
+        {
+            forge_engine::stop_governed_forest(world)?;
+            return Ok(false);
         }
         if state.desired.is_none() {
             forge_engine::stop_governed_forest(world)?;
@@ -274,7 +353,13 @@ pub(super) fn ready(world: &mut World) -> Result<bool, String> {
                 return Err(error.clone());
             }
             if !cache.layers.is_empty() {
-                world.insert_resource(forge_engine::VegetationPrototypeForestPreview);
+                if state.imported {
+                    // Imported hosts own their canonical identities and presentation.
+                    // Loading models must not project the procedural scatter as well.
+                    forge_engine::stop_governed_forest(world)?;
+                } else {
+                    world.insert_resource(forge_engine::VegetationPrototypeForestPreview);
+                }
                 return Ok(true);
             }
         }

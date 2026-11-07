@@ -5,6 +5,8 @@ use forge_project::authoring::{
     workspace::{WorkspaceHostRequest, WorkspaceHostState},
 };
 use leptos::prelude::*;
+mod create;
+mod history;
 
 #[component]
 #[allow(
@@ -19,6 +21,7 @@ pub fn ModuleBrowser(
     on_open: Callback<forge_core::AreaId>,
     on_close: Callback<()>,
 ) -> impl IntoView {
+    let drafts = expect_context::<crate::authoring_controls::DraftRegistry>();
     let state = RwSignal::new(None::<WorkspaceHostState>);
     let busy = RwSignal::new(false);
     let selected = RwSignal::new(String::new());
@@ -96,10 +99,12 @@ pub fn ModuleBrowser(
         busy.get()
             || host_busy.get()
             || preview_pending.get()
+            || drafts.is_dirty()
             || authoring.get().is_some_and(|s| s.playtest_hash.is_some())
     };
     view! {
         <div class="module-map-browser" aria-busy=move || busy.get().to_string()>
+            <create::CreateControls state=state busy=busy error=error authoring=authoring host_busy=host_busy preview_pending=preview_pending selected=selected/>
             <label>"Module"
                 <select aria-label="Module" disabled=disabled prop:value=move || selected.get()
                     on:change=move |event| selected.set(event_target_value(&event))>
@@ -134,6 +139,7 @@ pub fn ModuleBrowser(
             </Show>
             <Show when=move || busy.get() && state.get().is_none()><p role="status">"Chargement des modules…"</p></Show>
             <Show when=move || preview_pending.get()><p>"Appliquez ou annulez l’aperçu avant de changer de carte."</p></Show>
+            <Show when=move ||drafts.is_dirty()><p role="status">"Des saisies ont été modifiées. Examinez-les ou abandonnez les brouillons avant de changer ou fermer la carte."</p></Show>
             <Show when=move || authoring.get().is_some_and(|s| s.playtest_hash.is_some())><p>"Revenez à l’édition pour choisir une autre carte."</p></Show>
             <Show when=move || !error.get().is_empty()>
                 <p role="alert">{move || error.get()}</p>

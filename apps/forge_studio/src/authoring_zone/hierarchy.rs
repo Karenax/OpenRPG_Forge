@@ -29,7 +29,7 @@ pub(crate) fn Hierarchy(
     let range = Memo::new(move |_| page_range(entries.with(Vec::len), page.get()));
     view! {
         <Show when=move || state.get().is_some_and(|s| s.zone_head.is_some())>
-            <details open><summary>"Objets et couches de la zone"</summary>
+            <details open><summary>"Objets et couches de la carte"</summary>
                 <label>"Rechercher dans la scène"
                     <input prop:value=move || filter.get() on:input=move |ev| {
                         page.set(0);
@@ -66,7 +66,6 @@ pub(crate) fn Hierarchy(
                             view! { <li><button title=title
                                 aria-pressed=move || selected.map_or_else(|| placement.get() == placement_id, |selected| selected.get() == active_id).to_string()
                                 on:click=move |_| {
-                                    crate::authoring_shortcuts::cancel_preview();
                                     crate::authoring_brush_pointer::cancel();
                                     crate::authoring_building_projection::selection::cancel();
                                     crate::authoring_assets::placements::selection::cancel();

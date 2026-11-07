@@ -6,7 +6,8 @@ use bevy::{
         view::screenshot::{Screenshot, ScreenshotCaptured, save_to_disk},
     },
 };
-use forge_tidewater::tidewater_object_shadow::graph::{self, animation};
+use forge_engine::source_shadows::casters::graph;
+use forge_engine::source_shadows::casters::graph::animation;
 use std::sync::atomic::Ordering;
 
 #[derive(serde::Serialize)]

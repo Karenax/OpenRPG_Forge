@@ -1,9 +1,8 @@
 //! Read an explicitly registered physics package; no client path or implicit
 //! transport discovery. Registration does not qualify simulation or rendering.
-use super::{Library, LibraryRequest, LibraryResponse, read_limited, required, same_hash};
+use super::{Library, LibraryRequest, LibraryResponse, required, same_hash};
 use crate::asset_library_protocol::{LibraryPhysicsRequest, LibrarySavedPhysicsRequest};
 use forge_assets::source_physics_package::{MAX_PACKAGE_BYTES, SourcePhysicsPackage};
-use std::collections::BTreeSet;
 
 pub(super) fn matches_physics(
     asset: &super::StoredAsset,
@@ -34,6 +33,38 @@ impl Library {
         &mut self,
         request: &LibrarySavedPhysicsRequest,
     ) -> Result<Vec<u8>, String> {
+        self.read_saved_physics_with(request, false, |_, _, _| Ok(()))
+            .map(|(wire, ())| wire)
+    }
+
+    /// Capture exact logical bytes and the selected private provenance together.
+    pub fn export_saved_physics_package(
+        &mut self,
+        request: &LibrarySavedPhysicsRequest,
+        captured_on: &str,
+    ) -> Result<(Vec<u8>, Vec<u8>), String> {
+        self.read_saved_physics_with(request, true, |asset, model, revision| {
+            if model.asset_id != request.asset_id || model.sha256 != request.carrier_sha256 {
+                return Err("Identité du modèle physique différente du pin sauvegardé".into());
+            }
+            super::module_export::companion_evidence(
+                asset,
+                model,
+                revision,
+                captured_on,
+                forge_project::module_package::ModulePlacementCompanionKind::Physics,
+                request.manifest_sha256,
+                request.package_sha256,
+            )
+        })
+    }
+
+    fn read_saved_physics_with<T>(
+        &mut self,
+        request: &LibrarySavedPhysicsRequest,
+        require_unique: bool,
+        capture: impl FnOnce(&super::StoredAsset, &super::LibraryModel, &str) -> Result<T, String>,
+    ) -> Result<(Vec<u8>, T), String> {
         if request.schema_version != 1 {
             return Err("Version de référence physique invalide".into());
         }
@@ -54,7 +85,22 @@ impl Library {
             if matches.next().is_some() || current.card.availability != "converted_model" {
                 return Err("Référence physique ambiguë ou non plaçable".into());
             }
-            let asset = if matches_physics(
+            let matches = |asset: &super::StoredAsset| {
+                matches_physics(
+                    asset,
+                    request.carrier_sha256,
+                    request.manifest_sha256,
+                    request.package_sha256,
+                )
+            };
+            let asset = if require_unique {
+                self.unique_saved_companion_asset(
+                    snapshot,
+                    current,
+                    request.carrier_sha256,
+                    matches,
+                )?
+            } else if matches_physics(
                 current,
                 request.carrier_sha256,
                 request.manifest_sha256,
@@ -71,7 +117,8 @@ impl Library {
             };
             let declared = &asset.profile["source_physics_package"];
             let path = self.safe_from(&self.root, required(declared, "path")?)?;
-            let wire = read_limited(
+            let wire = forge_delivery::vault_storage::read_file(
+                &self.root,
                 &path,
                 u64::try_from(MAX_PACKAGE_BYTES).map_err(|_| "Budget physique invalide")?,
             )?;
@@ -85,7 +132,8 @@ impl Library {
                 request.manifest_sha256,
                 &model,
             )?;
-            Ok(wire)
+            let evidence = capture(&asset, &model, &snapshot.revision)?;
+            Ok((wire, evidence))
         })();
         let snapshot = self.snapshot.as_ref().ok_or("Snapshot physique absent")?;
         if let Err(error) = self.verify_registry_pins(
@@ -130,7 +178,8 @@ impl Library {
             return Err("Pins physiques différents de la fiche".into());
         }
         let path = self.safe_from(&self.root, required(declared, "path")?)?;
-        let wire = read_limited(
+        let wire = forge_delivery::vault_storage::read_file(
+            &self.root,
             &path,
             u64::try_from(MAX_PACKAGE_BYTES).map_err(|_| "Budget physique invalide")?,
         )?;
@@ -159,28 +208,20 @@ fn validate_transport(
     if model.sha256 != carrier {
         return Err("Carrier physique différent du modèle".into());
     }
-    let glb = forge_assets::source_graph_glb::read_source_graph_glb_with_budget(
-        &model.bytes,
-        forge_assets::source_graph_glb::SourceGraphGlbReadBudget::LargeDesktop,
-    )?
-    .ok_or("Carrier physique sans déclaration source")?;
-    let mut used = BTreeSet::new();
-    forge_assets::source_physics_transport::read_source_physics_transport(
-        &package.manifest,
-        manifest,
-        carrier,
-        &glb,
-        |path| {
-            used.insert(path.to_owned());
-            package
-                .candidates
-                .get(path)
-                .cloned()
-                .ok_or("Buffer physique absent du paquet".into())
-        },
-    )?;
-    if used.len() != package.candidates.len() {
-        return Err("Buffer physique sans propriétaire".into());
-    }
+    package
+        .resolve_for_carrier(
+            &model.bytes,
+            forge_assets::source_graph_glb::SourceGraphGlbReadBudget::LargeDesktop,
+        )
+        .map_err(|error| match error.as_str() {
+            "Source physics carrier declaration absent" => {
+                "Carrier physique sans déclaration source".into()
+            }
+            "Physics package candidate absent" => "Buffer physique absent du paquet".into(),
+            "Physics package candidate without declared owner" => {
+                "Buffer physique sans propriétaire".into()
+            }
+            _ => error,
+        })?;
     Ok(())
 }

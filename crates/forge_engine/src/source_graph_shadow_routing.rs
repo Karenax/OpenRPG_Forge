@@ -34,6 +34,30 @@ struct SourceGraphShadowProxy {
     owner: Entity,
     private_layer: usize,
 }
+
+/// A proxy belongs to an original only while both sides retain the same route.
+#[must_use]
+pub fn source_graph_shadow_proxy_owned_by(world: &World, original: Entity, proxy: Entity) -> bool {
+    let Some(route) = world.get::<SourceGraphShadowRoute>(original) else {
+        return false;
+    };
+    route.proxy == proxy
+        && world
+            .get::<SourceGraphShadowProxy>(proxy)
+            .is_some_and(|marker| {
+                marker.owner == original && marker.private_layer == route.private_layer
+            })
+        && world
+            .get::<ChildOf>(proxy)
+            .is_some_and(|parent| parent.parent() == original)
+        && world
+            .get::<MeshMaterial3d<SourceGraphMaterial>>(proxy)
+            .is_some_and(|material| material.0 == route.shadow_material)
+        && world
+            .get::<Mesh3d>(original)
+            .zip(world.get::<Mesh3d>(proxy))
+            .is_some_and(|(original_mesh, proxy_mesh)| original_mesh.0 == proxy_mesh.0)
+}
 /// Transient author enablement retained while the derived route is detached.
 /// Original native casting stays disabled to avoid a camera-threshold fallback.
 #[derive(Component, Clone)]
@@ -593,6 +617,10 @@ mod tests {
                 .unwrap()
                 .intersects(w.get::<RenderLayers>(proxy).unwrap())
         );
+        assert!(source_graph_shadow_proxy_owned_by(&w, main, proxy));
+        assert!(!source_graph_shadow_proxy_owned_by(&w, camera, proxy));
+        w.entity_mut(proxy).remove::<ChildOf>();
+        assert!(!source_graph_shadow_proxy_owned_by(&w, main, proxy));
     }
     #[test]
     fn source_graph_shadow_route_repeated_install_keeps_ids_and_material_count() {

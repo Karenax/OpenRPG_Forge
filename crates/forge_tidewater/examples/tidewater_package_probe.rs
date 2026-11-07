@@ -1,9 +1,10 @@
 //! Prepare every building from the portable package without scene fixtures.
+use forge_assets::source_surface_package::SurfacePackage;
 use forge_core::ContentHash;
-use forge_tidewater::tidewater_assets::{
-    GeometrySpace, PreparedLibrary, PreparedMeshes, ResidentMeshes, meshes,
-};
-use forge_tidewater_assets::tidewater_package::BuildingPackage;
+use forge_engine::source_surface::geometry::ResidentMeshes;
+use forge_engine::source_surface::package::GeometrySpace;
+use forge_engine::source_surface::package::PreparedLibrary;
+use forge_engine::source_surface::package::meshes;
 use std::{error::Error, fs, io::Read, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -17,7 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     fs::File::open(root.join("package.json"))?
         .take(2 * 1024 * 1024 + 1)
         .read_to_end(&mut manifest)?;
-    let package = BuildingPackage::load(&manifest, expected, |name, limit| {
+    let package = SurfacePackage::load(&manifest, expected, |name, limit| {
         let path = root.join(name).canonicalize().map_err(|e| e.to_string())?;
         if path.parent() != Some(root.as_path()) {
             return Err("Escaping package payload".into());
@@ -58,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     assert_eq!((parts, vertices), (111, 112_569));
     let mut mesh_assets = bevy::prelude::Assets::default();
-    let prepared = PreparedMeshes::load(&package)?;
+    let prepared = forge_engine::source_surface::package::prepare_meshes(&package)?;
     assert_eq!(mesh_assets.len(), 0);
     let resident = prepared.stage(&mut mesh_assets);
     assert_eq!(mesh_assets.len(), 111);
@@ -92,17 +93,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn verify_entities(package: &BuildingPackage, geometry: &ResidentMeshes) -> Result<(), String> {
+fn verify_entities(package: &SurfacePackage, geometry: &ResidentMeshes) -> Result<(), String> {
     use bevy::prelude::*;
+    use forge_engine::ManualPlacementPart;
+    use forge_engine::ManualPlacementProjection;
+    use forge_engine::source_surface::objects::placement as placements;
     use forge_project::zone_authoring::placements::ManualPlacement;
-    use {
-        forge_engine::{ManualPlacementPart, ManualPlacementProjection},
-        forge_tidewater::tidewater_assets::placements,
-    };
     let record = &package.catalog().assets[0];
     let mut placement = ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: forge_core::EntityId::deterministic("package placement proof"),
         name: "Building".into(),
         asset_id: record.id,

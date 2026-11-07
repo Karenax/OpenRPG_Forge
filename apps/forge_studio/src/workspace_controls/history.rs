@@ -1,4 +1,7 @@
-use super::{HostRequest, WorkspaceAction, WorkspaceHostState};
+use forge_project::{
+    authoring::workspace::{WorkspaceHostRequest as HostRequest, WorkspaceHostState},
+    workspace::session::WorkspaceAction,
+};
 use crate::audit_labels::audit_label;
 use leptos::prelude::*;
 
@@ -44,6 +47,10 @@ fn label(action: &WorkspaceAction) -> String {
         WorkspaceAction::CreateProject { name, .. } => format!("Création du projet « {name} »"),
         WorkspaceAction::CreateModule { name, .. } => format!("Création du module « {name} »"),
         WorkspaceAction::ImportModule { name, .. } => format!("Import du module « {name} »"),
+        WorkspaceAction::ImportModulePackage { module, .. } => {
+            format!("Import du module « {} »", module.name)
+        }
+        WorkspaceAction::ConfigureGame { .. } => "Configuration du jeu".into(),
         WorkspaceAction::AttachZone { .. } => {
             "Ajout d’une zone au module (création ou adoption)".into()
         }

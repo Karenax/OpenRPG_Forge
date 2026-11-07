@@ -18,6 +18,8 @@ mod creator_settings;
 mod module_history;
 pub use super::ModuleCreatorReview;
 mod managed;
+mod module_import;
+pub use module_import::PreparedModuleImport;
 pub mod recovery;
 
 pub struct FileWorkspaceSession {
@@ -34,6 +36,13 @@ pub struct FileWorkspaceSession {
 }
 
 impl FileWorkspaceSession {
+    pub(super) fn read_export_sources(
+        &self,
+        snapshot: &mut super::export::ModuleExportSnapshot,
+    ) -> Result<(), String> {
+        snapshot.capture_sources(&self.root.join("workspace-v1"))
+    }
+
     /// Only an explicitly authorized workspace root is accepted by this adapter.
     /// Existing zone directories are never touched or implicitly adopted.
     pub fn create(root: &Path) -> Result<Self, String> {
@@ -85,6 +94,17 @@ impl FileWorkspaceSession {
         })
     }
 
+    pub(crate) fn open_if_present(root: &Path) -> Result<Option<Self>, String> {
+        match fs::symlink_metadata(root.join("workspace-v1")) {
+            Ok(_) => Self::open(root).map(Some),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                fs::metadata(root).map_err(|error| error.to_string())?;
+                Ok(None)
+            }
+            Err(error) => Err(error.to_string()),
+        }
+    }
+
     #[must_use]
     pub fn session(&self) -> &WorkspaceSession {
         &self.session
@@ -108,7 +128,35 @@ impl FileWorkspaceSession {
         self.saved_commands != Some(self.session.audit().len())
     }
 
+    /// Read the persisted authority again before deriving a delivery plan.
+    /// A successful earlier save does not rule out external file changes.
+    pub(super) fn require_saved_unchanged(&self) -> Result<(), String> {
+        if self.is_dirty() {
+            return Err("Save the workspace before exporting the game".into());
+        }
+        if self
+            .store
+            .pending()
+            .map_err(|error| error.to_string())?
+            .is_some()
+        {
+            return Err("Resolve the interrupted workspace save before exporting the game".into());
+        }
+        let saved = self
+            .store
+            .load()
+            .map_err(|error| error.to_string())?
+            .ok_or("The saved workspace is missing")?;
+        if Some(saved.hash) != self.saved_hash {
+            return Err("The saved workspace changed outside the current session".into());
+        }
+        Ok(())
+    }
+
     pub fn execute(&mut self, request: &WorkspaceRequest) -> Result<WorkspaceReceipt, String> {
+        if matches!(request.action, WorkspaceAction::ImportModulePackage { .. }) {
+            return Err("Module packages require the reviewed native import operation".into());
+        }
         if matches!(
             request.action,
             WorkspaceAction::AttachZone { .. }

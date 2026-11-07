@@ -12,22 +12,15 @@ use leptos::prelude::*;
 
 type Edit = Result<AuthoringRequest, String>;
 
-type FieldSource = (String, Option<forge_core::ContentHash>);
-
-fn source_hash(state: RwSignal<Option<AuthoringState>>) -> Option<forge_core::ContentHash> {
-    state
-        .get()
-        .and_then(|state| state.zone_head)
-        .and_then(|head| head.content_hash().ok())
-}
-
 mod blueprint_controls;
 mod cinematic_controls;
 mod container_controls;
 mod creator_controls;
 mod dialogue_controls;
+mod draft;
 mod faction_controls;
 mod item_controls;
+mod quest_definition_controls;
 mod quest_flow_controls;
 mod script_controls;
 mod temporal_controls;
@@ -46,7 +39,7 @@ struct PhysicsFields {
 
 impl PhysicsFields {
     fn apply(&self, properties: &mut ObjectPhysics, door: bool) -> Result<(), String> {
-        let mass = number(&self.mass)?;
+        let mass = number_named(&self.mass, "Masse (kg)", Some(0.0))?;
         if door && (mass != 0.0 || self.push || self.throwing) {
             return Err("Une porte doit rester fixe pour être ouverte ou fermée.".into());
         }
@@ -68,12 +61,16 @@ impl PhysicsFields {
         properties.break_energy_j = if self.break_energy.trim().is_empty() {
             None
         } else {
-            Some(number(&self.break_energy)?)
+            Some(number_named(
+                &self.break_energy,
+                "Énergie de rupture (J)",
+                Some(0.0),
+            )?)
         };
         properties.body_half_extents_m = Vec3::new(
-            number(&self.dimensions[0])? * 0.5,
-            number(&self.dimensions[1])? * 0.5,
-            number(&self.dimensions[2])? * 0.5,
+            number_named(&self.dimensions[0], "Largeur (m)", Some(0.05))? * 0.5,
+            number_named(&self.dimensions[1], "Hauteur (m)", Some(0.05))? * 0.5,
+            number_named(&self.dimensions[2], "Profondeur (m)", Some(0.05))? * 0.5,
         );
         Ok(())
     }
@@ -89,6 +86,41 @@ pub(crate) fn GameplayEditor(
     busy: RwSignal<bool>,
     send: Callback<Edit>,
 ) -> impl IntoView {
+    provide_context(Signal::derive(move || {
+        state
+            .get()
+            .and_then(|state| state.document.map(|document| document.area_id))
+    }));
+    let field_error = RwSignal::new(String::new());
+    let send = Callback::new(move |result: Edit| {
+        field_error.set(result.as_ref().err().cloned().unwrap_or_default());
+        if result.is_err() {
+            leptos::leptos_dom::helpers::request_animation_frame(move || {
+                use wasm_bindgen::JsCast;
+                if let Some(document) = web_sys::window().and_then(|w| w.document()) {
+                    let target = document
+                        .query_selector(".authoring-gameplay-editor [aria-invalid=\"true\"]")
+                        .ok()
+                        .flatten()
+                        .or_else(|| document.get_element_by_id("gameplay-field-error"));
+                    if let Some(target) = target {
+                        let mut ancestor = target.parent_element();
+                        while let Some(element) = ancestor {
+                            if element.tag_name() == "DETAILS" {
+                                let _ = element.set_attribute("open", "");
+                            }
+                            ancestor = element.parent_element();
+                        }
+                        target.scroll_into_view();
+                        if let Some(target) = target.dyn_ref::<web_sys::HtmlElement>() {
+                            let _ = target.focus();
+                        }
+                    }
+                }
+            });
+        }
+        send.run(result);
+    });
     let kind = RwSignal::new("friendly".to_owned());
     let name = RwSignal::new("Nouveau personnage".to_owned());
     let x = RwSignal::new("0".to_owned());
@@ -155,25 +187,55 @@ pub(crate) fn GameplayEditor(
             required_item.set(String::new());
             child.set(String::new());
             destination.set(String::new());
-            let start = state
-                .get_untracked()
-                .and_then(|s| s.zone_head)
-                .and_then(|h| h.corrections.start);
-            x.set(start.as_ref().map_or(0.0, |s| s.x_m).to_string());
-            z.set(start.as_ref().map_or(0.0, |s| s.z_m).to_string());
         }
         area
     });
-    Effect::new(
-        move |previous: Option<(String, Option<forge_core::ContentHash>)>| {
+    let draft_notice = draft::bind(
+        move || {
             let selection = selected.get();
-            let session = state.get();
-            let head = session.as_ref().and_then(|s| s.zone_head.as_ref());
-            let key = (selection.clone(), head.and_then(|h| h.content_hash().ok()));
-            if previous.as_ref() != Some(&key)
-                && let Ok(id) = id(&selection)
-                && let Some(document) = head.and_then(|h| h.corrections.gameplay.as_deref())
-            {
+            let source = draft::records(state, &selection);
+            (selection, source)
+        },
+        vec![
+            draft::Field::new(name),
+            draft::Field::new(x),
+            draft::Field::new(y),
+            draft::Field::new(z),
+            draft::Field::new(reply),
+            draft::Field::new(mass),
+            draft::Field::new(width),
+            draft::Field::new(height),
+            draft::Field::new(depth),
+            draft::Field::new(push),
+            draft::Field::new(throwing),
+            draft::Field::new(flammable),
+            draft::Field::new(heat_damage_per_tick),
+            draft::Field::new(break_energy),
+            draft::Field::new(vitality),
+            draft::Field::new(protection),
+            draft::Field::new(capacity),
+            draft::Field::new(flees),
+            draft::Field::new(patrol),
+            draft::Field::new(kind),
+            draft::Field::new(giver),
+            draft::Field::new(required_item),
+            draft::Field::new(child),
+            draft::Field::new(destination),
+        ],
+        move || {
+            field_error.set(String::new());
+            let selection = selected.get_untracked();
+            if selection.is_empty() {
+                let start = state
+                    .get_untracked()
+                    .and_then(|state| state.zone_head)
+                    .and_then(|head| head.corrections.start);
+                x.set(start.as_ref().map_or(0.0, |start| start.x_m).to_string());
+                z.set(start.as_ref().map_or(0.0, |start| start.z_m).to_string());
+                return;
+            }
+            let current = document();
+            if let (Ok(id), Some(document)) = (id(&selection), current) {
                 let point = if let Some(actor) = document.actor(id) {
                     name.set(actor.name.clone());
                     vitality.set(actor.max_vitality.to_string());
@@ -228,14 +290,30 @@ pub(crate) fn GameplayEditor(
                     selected.set(String::new());
                 }
             }
-            key
         },
     );
+    let add_send =
+        draft_notice.submitter_for(send, &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 19]);
+    let retouch_send = draft_notice.submitter_for(send, &[0, 1, 2, 3, 4]);
+    let physics_send = draft_notice.submitter_for(send, &[5, 6, 7, 8, 9, 10, 11, 12, 13]);
+    let stats_send = draft_notice.submitter_for(send, &[14, 15, 16, 17]);
+    let patrol_send = draft_notice.submitter_for(send, &[18]);
+    let quest_send = draft_notice.submitter_for(send, &[0, 20, 21]);
+    let support_send = draft_notice.submitter_for(send, &[22]);
+    let link_send = draft_notice.submitter_for(send, &[23]);
+
     view! {
         <details class="authoring-gameplay-editor"><summary>"Personnages, objets et objectifs"</summary>
-        <fieldset disabled=disabled>
+        <fieldset disabled=disabled on:input=move |event| {
+            use wasm_bindgen::JsCast;
+            if event.target().and_then(|target|target.dyn_into::<web_sys::Element>().ok())
+                .is_some_and(|element|element.get_attribute("aria-invalid").as_deref()==Some("true")) {
+                field_error.set(String::new());
+            }
+        }><draft::DraftNotice notice=draft_notice/>
+        <p id="gameplay-field-error" class="field-error" role="alert" tabindex="-1" hidden=move || field_error.get().is_empty()>{move ||field_error.get()}</p>
         <Show when=move ||document().is_none()>
-            <button on:click=move |_|send.run(initialize(state.get_untracked()))>"Activer les règles de jeu dans cette zone"</button>
+            <button on:click=move |_|send.run(initialize(state.get_untracked()))>"Activer les règles de jeu dans cette carte"</button>
         </Show>
         <Show when=move ||document().is_some()>
             <creator_controls::CreatorControls state=state busy=busy send=send/>
@@ -262,22 +340,22 @@ pub(crate) fn GameplayEditor(
                 {move ||document().map(|d|[("friendly","PNJ et dialogue"),("enemy","Ennemi"),("pickup","Objet à ramasser"),("door","Porte"),("prop","Objet physique"),("place","Lieu")].into_iter().filter(|(kind,_)|creator_controls::kind_visible(&d,kind)).map(|(kind,label)|view!{<option value=kind>{label}</option>}).collect_view())}
             </select></label>
             <label>"Nom"<input prop:value=move ||name.get() on:input=move |e|name.set(event_target_value(&e))/></label>
-            <label>"X (m)"<input type="number" prop:value=move ||x.get() on:input=move |e|x.set(event_target_value(&e))/></label>
-            <label>"Z (m)"<input type="number" prop:value=move ||z.get() on:input=move |e|z.set(event_target_value(&e))/></label>
-            <label>"Hauteur du centre (m, vide = terrain)"<input type="number" prop:value=move ||y.get() on:input=move |e|y.set(event_target_value(&e))/></label>
+            <label>"X (m)"<input type="number" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("X (m)").to_string() prop:value=move ||x.get() on:input=move |e|x.set(event_target_value(&e))/></label>
+            <label>"Z (m)"<input type="number" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Z (m)").to_string() prop:value=move ||z.get() on:input=move |e|z.set(event_target_value(&e))/></label>
+            <label>"Hauteur du centre (m, vide = terrain)"<input type="number" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Hauteur du centre (m)").to_string() prop:value=move ||y.get() on:input=move |e|y.set(event_target_value(&e))/></label>
             <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Dialogues)><label>"Réplique"<textarea prop:value=move ||reply.get() on:input=move |e|reply.set(event_target_value(&e))/></label></Show>
             <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Objects)><details><summary>"Propriétés physiques"</summary>
-                <label>"Masse (kg)"<input type="number" min="0" prop:value=move ||mass.get() on:input=move |e|mass.set(event_target_value(&e))/></label>
-                <label>"Largeur (m)"<input type="number" min="0.05" prop:value=move ||width.get() on:input=move |e|width.set(event_target_value(&e))/></label>
-                <label>"Hauteur (m)"<input type="number" min="0.05" prop:value=move ||height.get() on:input=move |e|height.set(event_target_value(&e))/></label>
-                <label>"Profondeur (m)"<input type="number" min="0.05" prop:value=move ||depth.get() on:input=move |e|depth.set(event_target_value(&e))/></label>
+                <label>"Masse (kg)"<input type="number" min="0" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Masse (kg)").to_string() prop:value=move ||mass.get() on:input=move |e|mass.set(event_target_value(&e))/></label>
+                <label>"Largeur (m)"<input type="number" min="0.05" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Largeur (m)").to_string() prop:value=move ||width.get() on:input=move |e|width.set(event_target_value(&e))/></label>
+                <label>"Hauteur (m)"<input type="number" min="0.05" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Hauteur (m)").to_string() prop:value=move ||height.get() on:input=move |e|height.set(event_target_value(&e))/></label>
+                <label>"Profondeur (m)"<input type="number" min="0.05" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Profondeur (m)").to_string() prop:value=move ||depth.get() on:input=move |e|depth.set(event_target_value(&e))/></label>
                 <label><input type="checkbox" prop:checked=move ||push.get() on:change=move |e|push.set(event_target_checked(&e))/>"Poussable"</label>
                 <label><input type="checkbox" prop:checked=move ||throwing.get() on:change=move |e|throwing.set(event_target_checked(&e))/>"Lançable"</label>
                 <label><input type="checkbox" prop:checked=move ||flammable.get() on:change=move |e|flammable.set(event_target_checked(&e))/>"Inflammable"</label>
-                <label>"Dégâts de chaleur par tick (0 = aucun dégât)"<input type="number" min="0" max="1000000" step="1" prop:value=move ||heat_damage_per_tick.get() on:input=move |e|heat_damage_per_tick.set(event_target_value(&e))/></label>
-                <label>"Énergie de rupture (J, vide = solide)"<input type="number" prop:value=move ||break_energy.get() on:input=move |e|break_energy.set(event_target_value(&e))/></label>
+                <label>"Dégâts de chaleur par tick (0 = aucun dégât)"<input type="number" min="0" max="1000000" step="1" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Les dégâts de chaleur").to_string() prop:value=move ||heat_damage_per_tick.get() on:input=move |e|heat_damage_per_tick.set(event_target_value(&e))/></label>
+                <label>"Énergie de rupture (J, vide = solide)"<input type="number" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Énergie de rupture (J)").to_string() prop:value=move ||break_energy.get() on:input=move |e|break_energy.set(event_target_value(&e))/></label>
             </details></Show>
-            <button on:click=move |_|send.run(add(state.get_untracked(),&kind.get_untracked(),&name.get_untracked(),(&x.get_untracked(),&y.get_untracked(),&z.get_untracked()),&reply.get_untracked(),&physics_fields()))>"Examiner l’ajout"</button>
+            <button on:click=move |_|add_send.run(add(state.get_untracked(),&kind.get_untracked(),&name.get_untracked(),(&x.get_untracked(),&y.get_untracked(),&z.get_untracked()),&reply.get_untracked(),&physics_fields()))>"Examiner l’ajout"</button>
             <label>"Élément à retoucher"<select prop:value=move ||selected.get() on:change=move |e|selected.set(event_target_value(&e))>
                 <option value="">"Choisir"</option>
                 {move ||document().map(|d| {
@@ -287,40 +365,39 @@ pub(crate) fn GameplayEditor(
                     d.actors.into_iter().filter(move |_|actors).map(|a|(a.id,a.name)).chain(d.objects.into_iter().filter(move |_|objects).map(|o|(o.id,o.name))).chain(d.places.into_iter().filter(move |_|places).map(|p|(p.id,p.name))).map(|(id,label)|view!{<option value=id.to_string()>{label}</option>}).collect_view()
                 })}
             </select></label>
-            <button on:click=move |_|send.run(retouch(state.get_untracked(),&selected.get_untracked(),&name.get_untracked(),(&x.get_untracked(),&y.get_untracked(),&z.get_untracked()),&reply.get_untracked()))>"Examiner le nom, la position et la réplique"</button>
-            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Objects)><button on:click=move |_|send.run(retouch_physics(state.get_untracked(),&selected.get_untracked(),&physics_fields()))>"Examiner les propriétés physiques"</button></Show>
+            <button on:click=move |_|retouch_send.run(retouch(state.get_untracked(),&selected.get_untracked(),&name.get_untracked(),(&x.get_untracked(),&y.get_untracked(),&z.get_untracked()),&reply.get_untracked()))>"Examiner le nom, la position et la réplique"</button>
+            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Objects)><button on:click=move |_|physics_send.run(retouch_physics(state.get_untracked(),&selected.get_untracked(),&physics_fields()))>"Examiner les propriétés physiques"</button></Show>
             <button on:click=move |_|send.run(remove(state.get_untracked(),&selected.get_untracked()))>"Examiner la suppression de cet élément"</button>
             <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Actors)><details><summary>"Statistiques du personnage sélectionné"</summary>
-                <label>"Vitalité maximale"<input type="number" min="1" step="1" prop:value=move ||vitality.get() on:input=move |e|vitality.set(event_target_value(&e))/></label>
-                <label>"Protection"<input type="number" min="0" step="1" prop:value=move ||protection.get() on:input=move |e|protection.set(event_target_value(&e))/></label>
-                <label>"Capacité d’inventaire"<input type="number" min="0" step="1" prop:value=move ||capacity.get() on:input=move |e|capacity.set(event_target_value(&e))/></label>
+                <label>"Vitalité maximale"<input type="number" min="1" step="1" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Vitalité").to_string() prop:value=move ||vitality.get() on:input=move |e|vitality.set(event_target_value(&e))/></label>
+                <label>"Protection"<input type="number" min="0" step="1" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Protection").to_string() prop:value=move ||protection.get() on:input=move |e|protection.set(event_target_value(&e))/></label>
+                <label>"Capacité d’inventaire"<input type="number" min="0" step="1" aria-describedby="gameplay-field-error" aria-invalid=move ||field_error.get().starts_with("Capacité d’inventaire").to_string() prop:value=move ||capacity.get() on:input=move |e|capacity.set(event_target_value(&e))/></label>
                 <label><input type="checkbox" prop:checked=move ||flees.get() on:change=move |e|flees.set(event_target_checked(&e))/>"Réagit au danger par la fuite"</label>
-                <button on:click=move |_|send.run(retouch_actor(state.get_untracked(),&selected.get_untracked(),&vitality.get_untracked(),&protection.get_untracked(),&capacity.get_untracked(),flees.get_untracked()))>"Examiner les statistiques"</button>
+                <button on:click=move |_|stats_send.run(retouch_actor(state.get_untracked(),&selected.get_untracked(),&vitality.get_untracked(),&protection.get_untracked(),&capacity.get_untracked(),flees.get_untracked()))>"Examiner les statistiques"</button>
             </details>
             <details><summary>"Patrouille du personnage sélectionné"</summary>
                 <label>"Points dans l’ordre : X Z hauteur du centre (m), un point par ligne. Hauteur facultative = terrain."<textarea aria-label="Points de patrouille" prop:value=move ||patrol.get() on:input=move |event|patrol.set(event_target_value(&event))/></label>
                 <p>"Le personnage suit les points en boucle. Effacer tous les points arrête la patrouille. Les obstacles peuvent rendre un trajet inaccessible."</p>
-                <button on:click=move |_|send.run(retouch_patrol(state.get_untracked(),&selected.get_untracked(),&patrol.get_untracked()))>"Examiner la patrouille"</button>
+                <button on:click=move |_|patrol_send.run(retouch_patrol(state.get_untracked(),&selected.get_untracked(),&patrol.get_untracked()))>"Examiner la patrouille"</button>
             </details></Show>
             <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Quests)><details><summary>"Quête de récupération"</summary>
                 <label>"PNJ donneur"<select prop:value=move ||giver.get() on:change=move |e|giver.set(event_target_value(&e))><option value="">"Choisir"</option>{move ||document().map(|d|d.actors.into_iter().filter(|a|a.dialogue.is_some()).map(|a|view!{<option value=a.id.to_string()>{a.name}</option>}).collect_view())}</select></label>
                 <label>"Objet demandé"<select prop:value=move ||required_item.get() on:change=move |e|required_item.set(event_target_value(&e))><option value="">"Choisir"</option>{move ||document().map(|d|d.items.into_iter().map(|i|view!{<option value=i.id.to_string()>{i.name}</option>}).collect_view())}</select></label>
-                <button on:click=move |_|send.run(quest(state.get_untracked(),&name.get_untracked(),&giver.get_untracked(),&required_item.get_untracked()))>"Examiner la quête et ses réponses"</button>
+                <button on:click=move |_|quest_send.run(quest(state.get_untracked(),&name.get_untracked(),&giver.get_untracked(),&required_item.get_untracked()))>"Examiner la quête et ses réponses"</button>
             </details></Show>
             <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Objects)><details><summary>"Mécanismes et supports"</summary>
                 <label>"Charge portée"<select prop:value=move ||child.get() on:change=move |e|child.set(event_target_value(&e))><option value="">"Choisir"</option>{move ||document().map(|d|d.objects.into_iter().map(|o|view!{<option value=o.id.to_string()>{o.name}</option>}).collect_view())}</select></label>
-                <button on:click=move |_|send.run(support(state.get_untracked(),&selected.get_untracked(),&child.get_untracked()))>"Examiner le support et sa charge"</button>
-                <button on:click=move |_|send.run(remove_support(state.get_untracked(),&selected.get_untracked(),&child.get_untracked()))>"Examiner le retrait de cette charge"</button>
+                <button on:click=move |_|support_send.run(support(state.get_untracked(),&selected.get_untracked(),&child.get_untracked()))>"Examiner le support et sa charge"</button>
+                <button on:click=move |_|support_send.run(remove_support(state.get_untracked(),&selected.get_untracked(),&child.get_untracked()))>"Examiner le retrait de cette charge"</button>
             </details></Show>
             <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Places)><details><summary>"Liaisons entre lieux"</summary>
                 <label>"Lieu de destination"<select prop:value=move ||destination.get() on:change=move |e|destination.set(event_target_value(&e))><option value="">"Choisir"</option>{move ||document().map(|d|d.places.into_iter().map(|p|view!{<option value=p.id.to_string()>{p.name}</option>}).collect_view())}</select></label>
-                <button on:click=move |_|send.run(link(state.get_untracked(),&selected.get_untracked(),&destination.get_untracked()))>"Examiner la liaison entre les lieux"</button>
-                <button on:click=move |_|send.run(remove_link(state.get_untracked(),&selected.get_untracked(),&destination.get_untracked()))>"Examiner le retrait de cette liaison"</button>
+                <button on:click=move |_|link_send.run(link(state.get_untracked(),&selected.get_untracked(),&destination.get_untracked()))>"Examiner la liaison entre les lieux"</button>
+                <button on:click=move |_|link_send.run(remove_link(state.get_untracked(),&selected.get_untracked(),&destination.get_untracked()))>"Examiner le retrait de cette liaison"</button>
             </details></Show>
         </Show>
         </fieldset></details>
         <crate::authoring_gameplay_visuals::GameplayVisualControls state=state busy=busy send=send/>
-        <crate::module_export_ui::ModuleExportControls state=state busy=busy/>
     }
 }
 
@@ -446,6 +523,18 @@ fn number(value: &str) -> Result<f32, String> {
         .ok_or_else(|| "Valeur numérique invalide".into())
 }
 
+fn number_named(value: &str, label: &str, minimum: Option<f32>) -> Result<f32, String> {
+    let number = number(value).map_err(|_| format!("{label} : saisir un nombre fini."))?;
+    if let Some(minimum) = minimum
+        && number < minimum
+    {
+        return Err(format!(
+            "{label} : saisir une valeur supérieure ou égale à {minimum}."
+        ));
+    }
+    Ok(number)
+}
+
 #[allow(
     clippy::cast_possible_truncation,
     reason = "Canonical terrain heights fit the validated world-coordinate range"
@@ -457,8 +546,8 @@ fn position(
     z: &str,
     offset: f32,
 ) -> Result<Vec3, String> {
-    let x = number(x)?;
-    let z = number(z)?;
+    let x = number_named(x, "X (m)", None)?;
+    let z = number_named(z, "Z (m)", None)?;
     let y = if y.trim().is_empty() {
         let head = state.zone_head.as_ref().ok_or("Zone absente")?;
         let terrain = crate::authoring_scene::terrain(head)?;
@@ -474,7 +563,7 @@ fn position(
         };
         ground + offset + 0.02
     } else {
-        number(y)?
+        number_named(y, "Hauteur du centre (m)", None)?
     };
     Ok(Vec3::new(x, y, z))
 }
@@ -506,7 +595,7 @@ fn add(
             if matches!(kind, "friendly" | "enemy") {
                 0.95
             } else {
-                number(&physics.dimensions[1])? * 0.5
+                number_named(&physics.dimensions[1], "Hauteur (m)", Some(0.05))? * 0.5
             },
         )?;
         match kind {
@@ -686,15 +775,15 @@ fn retouch_actor(
     flees: bool,
 ) -> Edit {
     let selected = id(selected)?;
-    let integer = |value: &str| {
+    let integer = |value: &str, label: &str| {
         value
             .trim()
             .parse::<u32>()
-            .map_err(|_| "Saisir un entier positif ou nul".to_owned())
+            .map_err(|_| format!("{label} : saisir un entier positif ou nul."))
     };
-    let vitality = integer(vitality)?;
-    let protection = integer(protection)?;
-    let capacity = integer(capacity)?;
+    let vitality = integer(vitality, "Vitalité")?;
+    let protection = integer(protection, "Protection")?;
+    let capacity = integer(capacity, "Capacité d’inventaire")?;
     edit(state, |_, document| {
         let actor = document
             .actors

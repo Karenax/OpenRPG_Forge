@@ -1,4 +1,7 @@
 #![cfg(not(target_arch = "wasm32"))]
+#[path = "../../../crates/forge_assets/tests/support/source_graph_fixture.rs"]
+mod source_graph_fixture;
+
 use forge_assets::governed_import::{
     AssetProvenance, AssetRights, GovernedAssetKind, RedistributionRights,
 };
@@ -159,6 +162,41 @@ fn three_media_kinds_import_and_read_verified_original_bytes_without_vault() {
         assert_eq!(read.kind, kind);
         assert!(plan.asset.durable_source.is_some());
     }
+}
+
+#[test]
+fn source_graph_import_preserves_model_and_source_and_refuses_tampered_program() {
+    let f = Fixture::new();
+    let mut model = source_graph_fixture::fixture().unwrap();
+    let mut input = candidate("scene.glb", GovernedAssetKind::Mesh, model.clone());
+    input.source = Some(ImportSource {
+        kind: ImportSourceKind::AuthoredFile,
+        upload: upload("scene-source.glb", model.clone()),
+    });
+    let plan = f.store.prepare(&input).unwrap();
+    f.store.apply(plan.command_id, plan.plan_sha256).unwrap();
+    for role in [ImportReadRole::Payload, ImportReadRole::Source] {
+        let read = f
+            .store
+            .read(plan.asset.id, bytes_sha256(&model), role)
+            .unwrap();
+        assert_eq!(read.upload.bytes, model);
+    }
+
+    let offset = model
+        .windows(source_graph_fixture::FORWARD.len())
+        .position(|window| window == source_graph_fixture::FORWARD.as_bytes())
+        .unwrap();
+    model[offset] ^= 1;
+    let invalid = Fixture::new();
+    let before = invalid.store.state().unwrap();
+    assert!(
+        invalid
+            .store
+            .prepare(&candidate("altered.glb", GovernedAssetKind::Mesh, model))
+            .is_err()
+    );
+    assert_eq!(invalid.store.state().unwrap(), before);
 }
 #[test]
 fn reimport_requires_old_pin_and_keeps_id_retouches_and_historical_bytes() {

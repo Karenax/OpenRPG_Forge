@@ -1,8 +1,41 @@
 use super::AuthoringHost;
-use crate::workspace::export::{ModuleAreaArchive, ModuleExportSnapshot};
-use forge_core::ContentHash;
+use crate::workspace::export::{GameExportPlan, ModuleAreaArchive, ModuleExportSnapshot};
+use forge_core::{ContentHash, ModuleId, ProjectId};
 
 impl AuthoringHost {
+    fn saved_game_export_workspace(
+        &self,
+    ) -> Result<&crate::workspace::file_session::FileWorkspaceSession, String> {
+        self.require_closed()?;
+        if self.playtest.is_some() || !self.managed_tabs.is_empty() {
+            return Err(
+                "Close all managed areas and stop playtest before exporting the game".into(),
+            );
+        }
+        self.workspace
+            .as_ref()
+            .ok_or_else(|| "Open a workspace before exporting the game".into())
+    }
+
+    pub fn game_export_plan(
+        &self,
+        project: ProjectId,
+        expected: ContentHash,
+    ) -> Result<GameExportPlan, String> {
+        self.saved_game_export_workspace()?
+            .game_export_plan(project, expected)
+    }
+
+    pub fn game_export_module(
+        &self,
+        project: ProjectId,
+        module: ModuleId,
+        expected: ContentHash,
+    ) -> Result<ModuleExportSnapshot, String> {
+        self.saved_game_export_workspace()?
+            .game_export_module(project, module, expected)
+    }
+
     pub fn module_content_revision(
         &self,
         expected_head: ContentHash,
@@ -50,7 +83,8 @@ impl AuthoringHost {
         if expected_workspace.is_some() {
             return Err("Standalone area has no workspace export revision".into());
         }
-        Ok(ModuleExportSnapshot {
+        let area = head.base.terrain.area_id;
+        let mut snapshot = ModuleExportSnapshot {
             module_id: module,
             project_id: head.base.terrain.project_id,
             primary_area: head.base.terrain.area_id,
@@ -62,7 +96,10 @@ impl AuthoringHost {
                 head_hash: expected_head,
                 bytes: archive,
             }],
-        })
+            source_blobs: std::collections::BTreeMap::new(),
+        };
+        snapshot.capture_sources(&self.directory(area)?)?;
+        Ok(snapshot)
     }
 
     pub fn module_export_revision(

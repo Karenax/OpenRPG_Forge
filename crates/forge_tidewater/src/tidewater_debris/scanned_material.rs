@@ -1,11 +1,11 @@
 //! Acquired scanned surface on the existing Village light and shadow receivers.
-use crate::tidewater_material::VillageMaterial;
 use bevy::{
     pbr::{ExtendedMaterial, MaterialExtension},
     prelude::*,
     render::{render_resource::AsBindGroup, storage::ShaderBuffer},
     shader::ShaderRef,
 };
+use forge_engine::source_surface::SourceSurfaceMaterial;
 
 pub const SHADER: Handle<Shader> =
     bevy::asset::uuid_handle!("c6262aed-a1c4-4cf7-bf27-de02f8c76485");
@@ -44,7 +44,7 @@ impl MaterialExtension for ScannedExtension {
     }
 }
 
-pub type ScannedMaterial = ExtendedMaterial<VillageMaterial, ScannedExtension>;
+pub type ScannedMaterial = ExtendedMaterial<SourceSurfaceMaterial, ScannedExtension>;
 
 /// Apply source opaque/front material defaults while retaining live scene resources.
 ///
@@ -52,7 +52,7 @@ pub type ScannedMaterial = ExtendedMaterial<VillageMaterial, ScannedExtension>;
 /// Rejects malformed terrain parameters. Image layouts, storage record count and
 /// mesh-tag indices must be checked by the scene adapter before adoption.
 pub fn prepare_material(
-    mut base: VillageMaterial,
+    mut base: SourceSurfaceMaterial,
     extension: ScannedExtension,
 ) -> Result<ScannedMaterial, String> {
     let domain = extension.terrain_domain;
@@ -97,7 +97,7 @@ pub fn shader_source(source: &str) -> Result<String, String> {
             return Err("Scanned shader interface differs".into());
         }
     }
-    crate::tidewater_material::scene_shader_source(source)
+    forge_engine::source_surface::receivers::scene_shader_source(source)
 }
 
 /// Install into the existing renderer; never fall back to a fixture shader.
@@ -106,7 +106,7 @@ pub fn shader_source(source: &str) -> Result<String, String> {
 /// Propagates interface and resident asset-store errors.
 pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
     let source = shader_source(source)?;
-    crate::tidewater_material::install_scene_receivers(world)?;
+    forge_engine::source_surface::receivers::install_scene_receivers(world)?;
     world
         .get_resource_mut::<Assets<Shader>>()
         .ok_or("Scanned shader assets unavailable")?

@@ -37,10 +37,13 @@ pub struct SourceParticleSceneOwner {
     lower: LowerCommand,
     inputs: VecDeque<Frame>,
     identity: Arc<()>,
+    queue_identities: Vec<super::RequestIdentity>,
     submitted: u64,
     completed: u64,
     in_flight: bool,
     error: Option<String>,
+    #[cfg(feature = "physics-rapier")]
+    scene_bound: bool,
 }
 
 impl SourceParticleSceneOwner {
@@ -67,10 +70,13 @@ impl SourceParticleSceneOwner {
             lower: Box::new(lower),
             inputs: VecDeque::new(),
             identity: Arc::new(()),
+            queue_identities: Vec::new(),
             submitted: 0,
             completed: 0,
             in_flight: false,
             error: None,
+            #[cfg(feature = "physics-rapier")]
+            scene_bound: false,
         }
     }
 
@@ -145,7 +151,62 @@ impl SourceParticleSceneOwner {
         self.controller.current_buffer()
     }
 
+    #[cfg(feature = "physics-rapier")]
+    pub(crate) fn validate_scene_binding(
+        &self,
+        queue: &SourceParticleComputeQueue,
+    ) -> Result<(), &'static str> {
+        if self.queue_identities.is_empty() {
+            return self.controller.validate_scene_binding(queue);
+        }
+        if !queue.matches_exact(self.slot(), &self.identity, &self.queue_identities) {
+            return Err("Particle producer queue ownership changed before scene admission");
+        }
+        if self.in_flight {
+            self.controller.validate_pending(queue)?;
+        }
+        Ok(())
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(crate) fn bind_scene(
+        &mut self,
+        queue: &mut SourceParticleComputeQueue,
+    ) -> Result<(), &'static str> {
+        self.validate_scene_binding(queue)?;
+        if self.in_flight {
+            self.controller.bind_scene_pending(queue, &self.identity)?;
+        }
+        self.scene_bound = true;
+        Ok(())
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(crate) fn queue_identities(&self) -> Vec<super::RequestIdentity> {
+        self.queue_identities.clone()
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(super) fn owns_current_queue(&self, queue: &SourceParticleComputeQueue) -> bool {
+        if self.queue_identities.is_empty() {
+            !queue.contains_slot(self.slot())
+        } else {
+            queue.matches_exact(self.slot(), &self.identity, &self.queue_identities)
+        }
+    }
+
     fn advance(&mut self, queue: &mut SourceParticleComputeQueue) -> Result<(), String> {
+        if !queue.free_or_owned(self.slot(), &self.identity)
+            || (!self.queue_identities.is_empty()
+                && !queue.matches_exact(self.slot(), &self.identity, &self.queue_identities))
+        {
+            return Err("Source particle producer slot was replaced".into());
+        }
+        if self.in_flight {
+            self.controller
+                .validate_pending(queue)
+                .map_err(str::to_owned)?;
+        }
         if !self.controller.poll()? {
             return Ok(());
         }
@@ -168,6 +229,19 @@ impl SourceParticleSceneOwner {
             frame.reset,
             |command| lower(command, stamp),
         )? {
+            self.controller
+                .bind_owner_pending(queue, &self.identity)
+                .map_err(str::to_owned)?;
+            #[cfg(feature = "physics-rapier")]
+            if self.scene_bound {
+                self.controller
+                    .bind_scene_pending(queue, &self.identity)
+                    .map_err(str::to_owned)?;
+            }
+            self.queue_identities = self
+                .controller
+                .pending_identities()
+                .ok_or("Source particle submitted group disappeared")?;
             self.inputs.pop_front();
             self.submitted = stamp;
             self.in_flight = true;
@@ -179,10 +253,22 @@ impl SourceParticleSceneOwner {
 struct Claim {
     slot: u64,
     identity: Arc<()>,
+    queue_identities: Vec<super::RequestIdentity>,
 }
 #[derive(Resource, Default)]
-struct SceneOwners {
+pub(super) struct SceneOwners {
     claims: BTreeMap<Entity, Claim>,
+}
+
+#[cfg(feature = "physics-rapier")]
+impl SceneOwners {
+    /// The late render refresh may only advance an owner already checked by
+    /// the normal scene update; newly inserted or replaced owners wait for it.
+    pub(super) fn owns(&self, entity: Entity, owner: &SourceParticleSceneOwner) -> bool {
+        self.claims.get(&entity).is_some_and(|claim| {
+            claim.slot == owner.slot() && Arc::ptr_eq(&claim.identity, &owner.identity)
+        })
+    }
 }
 
 /// Opt-in scene adapter; adding it alone enables no effect or implicit clock.
@@ -204,7 +290,7 @@ impl Plugin for SourceParticleScenePlugin {
 }
 
 #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
-fn advance_scene_owners(
+pub(super) fn advance_scene_owners(
     mut queue: ResMut<SourceParticleComputeQueue>,
     mut residents: ResMut<SceneOwners>,
     mut owners: Query<(Entity, &mut SourceParticleSceneOwner)>,
@@ -217,6 +303,7 @@ fn advance_scene_owners(
                 Claim {
                     slot: owner.slot(),
                     identity: owner.identity.clone(),
+                    queue_identities: owner.queue_identities.clone(),
                 },
             )
         })
@@ -225,7 +312,7 @@ fn advance_scene_owners(
         if current.get(entity).is_none_or(|next| {
             next.slot != claim.slot || !Arc::ptr_eq(&next.identity, &claim.identity)
         }) {
-            queue.remove(claim.slot);
+            queue.remove_exact(claim.slot, &claim.identity, &claim.queue_identities);
         }
     }
     let mut counts = BTreeMap::<u64, usize>::new();
@@ -233,14 +320,17 @@ fn advance_scene_owners(
         *counts.entry(claim.slot).or_default() += 1;
     }
     residents.claims = current;
-    for (_, mut owner) in &mut owners {
+    for (entity, mut owner) in &mut owners {
         if counts[&owner.slot()] != 1 {
-            queue.remove(owner.slot());
+            queue.remove_exact(owner.slot(), &owner.identity, &owner.queue_identities);
             owner.error = Some("Source scene owners have a duplicate compute slot".into());
         } else if owner.error.is_none()
             && let Err(error) = owner.advance(&mut queue)
         {
             owner.error = Some(error);
+        }
+        if let Some(claim) = residents.claims.get_mut(&entity) {
+            claim.queue_identities.clone_from(&owner.queue_identities);
         }
     }
 }
@@ -288,6 +378,46 @@ mod tests {
         for request in &app.world().resource::<SourceParticleComputeQueue>().0[&slot] {
             request.set_status(SourceParticleComputeStatus::Encoded);
         }
+    }
+
+    #[test]
+    fn foreign_producer_request_survives_next_cycle_and_owner_removal() {
+        use std::sync::Mutex;
+        let mut app = App::new();
+        app.add_plugins(SourceParticleScenePlugin);
+        let mut assets = Assets::<ShaderBuffer>::default();
+        let mut component = owner(7, &mut assets);
+        component.queue_frame(0.125, &[], false).unwrap();
+        let entity = app.world_mut().spawn(component).id();
+        app.update();
+        let previous = app.world().resource::<SourceParticleComputeQueue>().0[&7].clone();
+        for request in &previous {
+            request.set_status(SourceParticleComputeStatus::Encoded);
+        }
+        let mut foreign = previous[0].clone();
+        foreign.status = Arc::new(Mutex::new(SourceParticleComputeStatus::WaitingForResources));
+        let status = foreign.status.clone();
+        app.world_mut()
+            .resource_mut::<SourceParticleComputeQueue>()
+            .insert(7, foreign);
+        app.update();
+        assert!(Arc::ptr_eq(
+            &app.world().resource::<SourceParticleComputeQueue>().0[&7][0].status,
+            &status
+        ));
+        assert!(
+            app.world()
+                .get::<SourceParticleSceneOwner>(entity)
+                .unwrap()
+                .error()
+                .is_some()
+        );
+        app.world_mut().despawn(entity);
+        app.update();
+        assert!(Arc::ptr_eq(
+            &app.world().resource::<SourceParticleComputeQueue>().0[&7][0].status,
+            &status
+        ));
     }
 
     #[test]

@@ -267,14 +267,12 @@ pub(super) fn picked(cursor: Res<forge_engine::TerrainBrushCursor>) {
             return None;
         }
         if OVERFLOW.with(Cell::get) {
-            let pick = slot.take()?;
             return Some((
                 pick.callback,
                 Err("Tracé trop long : recommencer avec un geste plus court".into()),
             ));
         }
         if cursor.path_hits.iter().any(Option::is_none) {
-            let pick = slot.take()?;
             return Some((
                 pick.callback,
                 Err("Tracé annulé : pointeur hors terrain".into()),
@@ -288,7 +286,6 @@ pub(super) fn picked(cursor: Res<forge_engine::TerrainBrushCursor>) {
                 .is_none_or(|last| (point[0] - last[0]).hypot(point[1] - last[1]) > 0.01)
             {
                 if pick.points.len() == forge_world::terrain_brush_stroke::MAX_STROKE_POINTS {
-                    let pick = slot.take()?;
                     return Some((
                         pick.callback,
                         Err("Tracé trop long : recommencer avec un geste plus court".into()),

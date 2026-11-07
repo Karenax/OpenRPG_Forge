@@ -4,17 +4,17 @@ use bevy_rapier3d::prelude::Collider;
 use forge_core::{
     AssetId, EntityId, Transform as ForgeTransform, UnitQuaternion, Vec3 as ForgeVec3,
 };
+use forge_engine::ManualPlacementCollision;
+use forge_engine::ManualPlacementCollisionExpected;
+use forge_engine::ManualPlacementPart;
+use forge_engine::ManualPlacementProjection;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::mesh::SourceMeshBytes;
 use forge_project::zone_authoring::placements::{MAX_MANUAL_PLACEMENTS, ManualPlacement};
-use forge_tidewater_assets::tidewater_boardwalk::{self as boardwalk, BoardwalkPackage};
+use forge_tidewater_assets::tidewater_boardwalk as boardwalk;
+use forge_tidewater_assets::tidewater_boardwalk::BoardwalkPackage;
 use serde::Deserialize;
 use std::collections::BTreeMap;
-use {
-    crate::{tidewater_material::VillageMaterial, tidewater_mesh::VillageMeshBytes},
-    forge_engine::{
-        ManualPlacementCollision, ManualPlacementCollisionExpected, ManualPlacementPart,
-        ManualPlacementProjection,
-    },
-};
 
 #[derive(Deserialize)]
 struct Description {
@@ -164,7 +164,7 @@ impl PreparedBoardwalk {
                         .ok_or("Boardwalk mesh attribute absent")
                         .and_then(&file)
                 };
-                let mesh = VillageMeshBytes {
+                let mesh = SourceMeshBytes {
                     positions: attr("pos")?,
                     normals: attr("nrm")?,
                     uv: attr("uv")?,
@@ -254,7 +254,7 @@ impl PreparedBoardwalk {
     pub fn stage(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
     ) -> Result<ResidentBoardwalk, String> {
         self.stage_instances(world, materials, None)
     }
@@ -264,7 +264,7 @@ impl PreparedBoardwalk {
     pub fn stage_authored(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
         placements: &[ManualPlacement],
     ) -> Result<ResidentBoardwalk, String> {
         self.stage_instances(world, materials, Some(placements))
@@ -277,7 +277,7 @@ impl PreparedBoardwalk {
     fn stage_instances(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
         placements: Option<&[ManualPlacement]>,
     ) -> Result<ResidentBoardwalk, String> {
         let source_instances = placements.is_none();
@@ -574,7 +574,7 @@ mod tests {
         }
     }
 
-    fn materials() -> BTreeMap<String, Handle<VillageMaterial>> {
+    fn materials() -> BTreeMap<String, Handle<SourceSurfaceMaterial>> {
         BTreeMap::from([("fixture".into(), Handle::default())])
     }
 
@@ -618,6 +618,7 @@ mod tests {
             .map(|index| ManualPlacement {
                 particles: None,
                 physics: None,
+                local_lights: None,
                 id: EntityId::deterministic(format!("boardwalk-common-{index}")),
                 name: "Fixture boardwalk".into(),
                 asset_id: boardwalk::asset_id(0).unwrap(),
@@ -708,6 +709,7 @@ mod tests {
         let placement = ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: EntityId::deterministic("boardwalk-authored-test"),
             name: "Passerelle déplacée".into(),
             asset_id: template.asset_id,
@@ -720,11 +722,11 @@ mod tests {
         let materials = BTreeMap::from([
             (
                 "material-0".to_owned(),
-                Handle::<VillageMaterial>::default(),
+                Handle::<SourceSurfaceMaterial>::default(),
             ),
             (
                 "material-1".to_owned(),
-                Handle::<VillageMaterial>::default(),
+                Handle::<SourceSurfaceMaterial>::default(),
             ),
         ]);
         let resident = prepared

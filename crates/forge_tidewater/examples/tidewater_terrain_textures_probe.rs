@@ -1,6 +1,6 @@
 //! Verify terrain package preparation in CPU-owned Bevy assets, without GPU claims.
+use forge_assets::source_terrain_package::TerrainPackage;
 use forge_core::ContentHash;
-use forge_tidewater_assets::tidewater_terrain::TerrainPackage;
 use std::{error::Error, fs, io::Read, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -29,8 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     let package = TerrainPackage::load(&manifest, expected, reader)?;
     let mut images = bevy::prelude::Assets::<bevy::prelude::Image>::default();
-    let prepared =
-        forge_tidewater::tidewater_terrain::textures::PreparedSurface::from_package(&package)?;
+    let prepared = forge_engine::source_terrain::textures::PreparedSurface::from_package(&package)?;
     assert_eq!(images.len(), 0);
     let resident = prepared.stage(&mut images);
     assert_eq!(images.len(), 3);
@@ -71,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let normal = package
         .file("terrain-normal.bin")
         .ok_or("Missing normals")?;
-    let image = forge_tidewater::tidewater_terrain::textures::normal_image(normal)?;
+    let image = forge_engine::source_terrain::textures::normal_image(normal)?;
     assert_eq!(image.data.as_deref(), Some(normal));
     assert_eq!(image.texture_descriptor.mip_level_count, 12);
     assert!(
@@ -81,16 +80,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             .contains(bevy::render::render_resource::TextureUsages::RENDER_ATTACHMENT)
     );
     assert!(
-        forge_tidewater::tidewater_terrain::textures::normal_image(&normal[..normal.len() - 1])
-            .is_err()
+        forge_engine::source_terrain::textures::normal_image(&normal[..normal.len() - 1]).is_err()
     );
-    assert!(
-        forge_tidewater::tidewater_terrain::textures::PreparedSurface::new(normal, &[0; 4])
-            .is_err()
-    );
-    assert!(
-        forge_tidewater::tidewater_terrain::textures::PreparedSurface::new(&[], &[0; 4]).is_err()
-    );
+    assert!(forge_engine::source_terrain::textures::PreparedSurface::new(normal, &[0; 4]).is_err());
+    assert!(forge_engine::source_terrain::textures::PreparedSurface::new(&[], &[0; 4]).is_err());
     assert_eq!(images.len(), 3);
     println!(
         "PASS: package textures staged without byte changes; mip formats and samplers preserved; malformed inputs rejected before staging"

@@ -7,10 +7,7 @@ use forge_project::zone_authoring::{
 
 #[must_use]
 pub fn plant_asset_id(head: &ZoneAuthoringHead, layer: &str) -> AssetId {
-    AssetId::deterministic(format!(
-        "imported-instance:{}:{}:{layer}",
-        head.base.terrain.project_id, head.base.terrain.area_id
-    ))
+    forge_project::zone_authoring::imported_plants::source_asset_id(head, layer)
 }
 
 #[must_use]
@@ -49,6 +46,7 @@ pub fn placement(
     Ok(ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: entity.id,
         name: vegetation
             .layers
@@ -113,8 +111,16 @@ pub(super) fn apply(
             copy.id = object.id;
             copy.source.position_m =
                 [t.translation_m.x, t.translation_m.y, t.translation_m.z].map(f64::from);
-            copy.source.rotation_xyzw =
-                [t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w].map(f64::from);
+            // Authoring validates a unit quaternion at f32 precision. Promote
+            // its direction, then restore the f64 unit-length contract used by
+            // streaming; the canonical edit and immutable source stay intact.
+            let rotation = [t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w].map(f64::from);
+            let length = rotation
+                .iter()
+                .map(|value| value * value)
+                .sum::<f64>()
+                .sqrt();
+            copy.source.rotation_xyzw = rotation.map(|value| value / length);
             copy.source.scale = [t.scale.x, t.scale.y, t.scale.z].map(f64::from);
             result.push(copy);
         }

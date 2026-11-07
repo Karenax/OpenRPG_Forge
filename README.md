@@ -85,12 +85,12 @@ ou contribution ; les assets tiers et privés conservent leurs propres droits.
 
 ## Où en est le projet ?
 
-Au **22 octobre 2026**, les étapes jusqu’à Gate 5 disposent de leurs clôtures
-documentées, avec leurs périmètres et réserves. **Gate 5 est clôturée localement** :
-ses treize domaines et R5-P01/P02 valident les mécanismes de base du Creator et du
-runtime permettant de créer des quêtes ensuite, sans livraison d'une aventure.
-Le projet reste en développement ; la distribution générale, les performances
-sur tous les matériels et la qualification multiplateforme restent à établir.
+Au **7 novembre 2026**, les Gates 5 et 6 sont clôturées localement.
+**Gate 7 reste ouverte**. Le candidat privé Windows 049 a couvert l'export
+depuis le Studio, l'installation, le jeu et la reprise via le launcher de
+chaque jeu. La qualification Linux, les droits de redistribution et les
+mesures de performance restent en cours.
+[Matrice d'acceptation de Gate 7](docs/evidence/gate7/GATE7_PROGRESS_20261023.md#matrice-dacceptation).
 
 Les sections suivantes donnent les détails techniques et les preuves datées.
 Le [contexte canonique](PROJECT_CONTEXT.md) et la [roadmap](docs/planning/MIGRATION_ROADMAP.md)
@@ -111,7 +111,7 @@ précisément cartes, personnages et histoire, conserver ces corrections lors de
 régénérations, puis jouer, sauvegarder et distribuer une aventure. Cette vision
 reste distincte des capacités actuellement qualifiées.
 
-## État au 22 octobre 2026
+## État au 7 novembre 2026
 
 | Étape | État documenté |
 |---|---|
@@ -122,7 +122,9 @@ reste distincte des capacités actuellement qualifiées.
 | Gate 3 — première boucle RPG | Clôturée le 15 octobre |
 | Gate 4 — assets gouvernés, modules et installation | Clôturée localement sous Windows le 16 octobre |
 | Gate 5 — Creator RPG étendu | Clôturée localement le 22 octobre |
-| Gate 6 et gate bonus | Non ouvertes |
+| Gate 6 — IA et MCP gouvernés | Clôturée localement sous Windows le 23 octobre |
+| Gate 7 — Monde étendu et distribution | Ouverte, R7-01 à R7-06 qualifiés localement sous Windows |
+| Gates 8 et 9, perspective bonus | Non ouvertes |
 
 Le lot Gate 4 est `0.1.0-preview.20261016.019`. Les rapports
 [Gate 3](docs/evidence/gate3/GATE3_CLOSURE_20261015.md) et

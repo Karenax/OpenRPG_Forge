@@ -14,8 +14,9 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 mod export;
 mod media;
+mod package;
 mod storage;
-pub use export::ImportedExportSnapshot;
+pub use export::{AvailableExportSnapshot, ImportedExportSnapshot, MAX_EXPORT_BYTES};
 
 const MAX_HISTORY: usize = 256;
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -148,7 +149,7 @@ impl AssetImportStore {
         plan_sha256: ContentHash,
     ) -> Result<ImportReceipt, String> {
         let _lock = self.lock()?;
-        let mut head = self.head()?;
+        let head = self.head()?;
         if let Some(receipt) = &head.current.last_receipt
             && receipt.command_id == command_id
         {
@@ -199,6 +200,17 @@ impl AssetImportStore {
             asset_sha256: Some(asset.payload.sha256),
             undo: false,
         };
+        self.accept_catalog(head, &receipt, Some(plan_sha256))?;
+        Ok(receipt)
+    }
+
+    fn accept_catalog(
+        &self,
+        mut head: Head,
+        receipt: &ImportReceipt,
+        plan_sha256: Option<ContentHash>,
+    ) -> Result<(), String> {
+        let hash = receipt.catalog_sha256.ok_or("Accepted import has no catalogue")?;
         if head.history.len() >= MAX_HISTORY
             || (!head.catalogs.contains(&hash) && head.catalogs.len() >= MAX_HISTORY)
         {
@@ -215,14 +227,13 @@ impl AssetImportStore {
             revision: receipt.revision,
             catalog_sha256: Some(hash),
             last_receipt: Some(receipt.clone()),
-            last_plan: Some(plan_sha256),
+            last_plan: plan_sha256,
         };
         self.publish_bytes(
-            &format!("receipts/{}-{command_id}.json", receipt.revision),
-            &serde_json::to_vec(&receipt).map_err(|e| e.to_string())?,
+            &format!("receipts/{}-{}.json", receipt.revision, receipt.command_id),
+            &serde_json::to_vec(receipt).map_err(|e| e.to_string())?,
         )?;
-        self.write_head(&head)?;
-        Ok(receipt)
+        self.write_head(&head)
     }
     pub fn undo(
         &self,

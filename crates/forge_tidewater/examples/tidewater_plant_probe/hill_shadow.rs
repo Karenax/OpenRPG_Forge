@@ -4,10 +4,10 @@ use bevy::{
     prelude::*,
     render::render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages},
 };
-use forge_tidewater::tidewater_hill_shadow::Settings;
-pub use forge_tidewater::tidewater_hill_shadow::{Images, Ready};
+use forge_engine::source_shadows::heightfield::Settings;
+pub use forge_engine::source_shadows::heightfield::{Images, Ready};
 use std::{collections::BTreeMap, error::Error};
-pub type Input = forge_tidewater::tidewater_hill_shadow::PreparedInput;
+pub type Input = forge_engine::source_shadows::heightfield::PreparedInput;
 
 pub fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Option<Input>, Box<dyn Error>> {
     if !files.contains_key("hill-shadow.wgsl") {
@@ -38,7 +38,7 @@ pub fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Option<Input>, Box<dyn 
     if heights.iter().any(|v| !v.is_finite()) {
         return Err("nonfinite shadow input".into());
     }
-    let mut packed = forge_tidewater::tidewater_hill_shadow::mip_chain(&heights)?;
+    let mut packed = forge_engine::source_shadows::heightfield::mip_chain(&heights)?;
     if meta["coarse_sha256"] != forge_core::bytes_sha256(&packed).to_string() {
         return Err("native shadow mip chain differs from source".into());
     }
@@ -50,7 +50,7 @@ pub fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Option<Input>, Box<dyn 
     )?)?;
     if !document.height_deltas.is_empty() || document.height_sampling.base_elevation_m != 0.0 {
         let plan = forge_world::sampled_terrain::SampledTerrainPlan::from_document(&document, raw)?;
-        packed = forge_tidewater::tidewater_hill_shadow::mip_chain(&plan.cell_center_heights())?;
+        packed = forge_engine::source_shadows::heightfield::mip_chain(&plan.cell_center_heights())?;
         eprintln!(
             "authored hill shadow: document={}, coarse={}",
             plan.document_hash(),

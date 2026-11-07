@@ -23,14 +23,19 @@ required-features = ["desktop"]
 default = ["desktop"]
 desktop = ["dep:tauri"]
 production = ["desktop", "tauri/custom-protocol"]
+standalone = ["production", "dep:winsafe"]
 
 [dependencies]
+base64 = "=0.22.1"
 forge_delivery = { path = "../../tools/forge_delivery" }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tauri = { version = "=2.11.5", optional = true, features = [] }
+tauri = { version = "=2.11.5", optional = true, features = ["image-png"] }
+
+[target.'cfg(windows)'.dependencies]
+winsafe = { version = "=0.0.28", optional = true, features = ["shell", "advapi"] }
 
 [build-dependencies]
 tauri-build = "=2.6.3"
@@ -50,3 +55,7 @@ codegen-units = 1
 lto = "thin"
 opt-level = 3
 strip = "debuginfo"
+
+[patch.crates-io]
+# ADR-0038: same verified GTK3 security backport as the root workspace.
+glib = { path = "../../third_party/glib-0.18.5" }

@@ -1,6 +1,6 @@
 //! Render-thread shadow cadence proof, sampled from its acknowledged statistics.
 use bevy::{diagnostic::FrameCount, prelude::*};
-use forge_tidewater::tidewater_object_shadow::graph::animation;
+use forge_engine::source_shadows::casters::graph::animation;
 
 #[derive(Clone, Copy, Default, serde::Serialize)]
 pub(super) struct Snapshot {

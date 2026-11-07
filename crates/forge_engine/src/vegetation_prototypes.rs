@@ -8,6 +8,7 @@ use bevy::{
 use forge_assets::VegetationPrototypeBinding;
 use std::{error::Error, fmt};
 mod authored;
+pub mod imported;
 mod promotion;
 pub use promotion::{TreePromotionSelection, prepare_tree_promotion};
 mod loading;

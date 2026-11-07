@@ -1316,7 +1316,7 @@ mod tests {
                 }
             }
         }
-        let terrain = include_str!("shaders/visual_valley_terrain.wgsl");
+        let terrain = include_str!("shaders/terrain_palette.wgsl");
         assert!(terrain.contains("let wet_roughness_multiplier = sqrt(mix("));
         let vegetation = include_str!("shaders/visual_valley_vegetation_deform.wgsl");
         assert_eq!(

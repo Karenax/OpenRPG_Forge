@@ -24,6 +24,120 @@ pub struct LoadedModuleZone {
 }
 
 impl LoadedModuleZone {
+    /// A host cannot execute modules whose placement companions are not connected.
+    /// Inspection and authoring can still load their verified transport.
+    pub fn reject_unhandled_placement_companions(&self) -> Result<()> {
+        if !self.manifest.placement_companions.is_empty() {
+            return Err("Le module contient des effets ou composants physiques qui ne sont pas encore pris en charge par le jeu".into());
+        }
+        Ok(())
+    }
+
+    /// Temporary fail-closed guard for scene hosts which do not render declared ocean inputs.
+    pub fn reject_unrendered_ocean(&self) -> Result<()> {
+        if self
+            .manifest
+            .ocean_inputs
+            .iter()
+            .any(|binding| binding.area_id == self.zone.head().base.terrain.area_id)
+        {
+            return Err("The selected area declares ocean inputs but the module water renderer is not yet connected".into());
+        }
+        Ok(())
+    }
+
+    /// Resolve only FFT inputs explicitly associated with the selected area.
+    pub fn ocean(&self) -> Result<Option<crate::module_ocean::ResolvedOcean>> {
+        let files: BTreeMap<_, _> = self
+            .manifest
+            .files
+            .iter()
+            .map(|file| (file.path.as_str(), file))
+            .collect();
+        crate::module_ocean::resolve(
+            &self.manifest,
+            self.zone.head().base.terrain.area_id,
+            |path, maximum| {
+                let file = files
+                    .get(path)
+                    .ok_or("Runtime payload is absent from the module inventory")?;
+                read_pinned(&self.package_root, path, file.bytes, file.sha256, maximum)
+            },
+        )
+    }
+
+    /// Resolve the selected area's explicit terrain package against its effective source.
+    pub fn terrain(&self) -> Result<Option<crate::module_terrain::ResolvedTerrain>> {
+        let document = self.zone.head().effective()?.0;
+        crate::module_terrain::resolve(
+            &self.manifest,
+            document.area_id,
+            &document,
+            |path, maximum| self.read_payload(path, maximum),
+        )
+    }
+
+    /// Resolve only the source object palette explicitly bound to this area.
+    pub fn objects(&self) -> Result<Option<crate::module_objects::ResolvedObjects>> {
+        crate::module_objects::resolve(
+            &self.manifest,
+            self.zone.head().base.terrain.area_id,
+            |path, maximum| self.read_payload(path, maximum),
+        )
+    }
+
+    /// Resolve fish profiles explicitly bound to this area's admitted resources.
+    /// Rendering and module API admission remain separate from this accessor.
+    pub fn fish_profiles(&self) -> Result<Vec<crate::module_fish::ResolvedFish>> {
+        crate::module_fish::resolve(
+            &self.manifest,
+            self.zone.head().base.terrain.area_id,
+            |path, maximum| self.read_payload(path, maximum),
+        )
+    }
+
+    pub fn local_lights(&self) -> Result<crate::module_local_lights::ResolvedModuleLocalLights> {
+        crate::module_local_lights::resolve_zone(&self.manifest, &self.zone, |path, maximum| {
+            self.read_payload(path, maximum)
+        })
+    }
+    /// Decode only the environment explicitly bound to the selected installed area.
+    pub fn environment(
+        &self,
+    ) -> Result<Option<crate::module_environment::ResolvedModuleEnvironment>> {
+        crate::module_environment::resolve(
+            &self.manifest,
+            self.zone.head().base.terrain.area_id,
+            |path, maximum| self.read_payload(path, maximum),
+        )
+    }
+
+    /// Decode exact installed source-profile resources; native render admission is separate.
+    pub fn vegetation_imported(
+        &self,
+    ) -> Result<Option<crate::module_vegetation::ResolvedModuleImported>> {
+        crate::module_vegetation::resolve_imported(
+            &self.manifest,
+            self.zone.head(),
+            |path, maximum| self.read_payload(path, maximum),
+        )
+    }
+
+    /// Read companion metadata only from the verified installed package. No external kit lookup.
+    pub fn vegetation_species(
+        &self,
+    ) -> Result<Option<crate::module_vegetation::ResolvedModuleSpecies>> {
+        let bytes =
+            self.read_payload(&self.manifest.asset_catalog_path, MAX_MODULE_MANIFEST_BYTES)?;
+        let catalog = serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+        crate::module_vegetation::resolve_species(
+            &self.manifest,
+            self.zone.head(),
+            &catalog,
+            |path, maximum| self.read_payload(path, maximum),
+        )
+    }
+
     /// Read a declared payload from the same bounded buffer whose pin is checked.
     pub fn read_payload(&self, path: &str, maximum: usize) -> Result<Vec<u8>> {
         let file = self
@@ -81,6 +195,29 @@ pub fn load(
             )
         })?
     };
+    let (archive, zone) = read_zone(&root, &module, area_id)?;
+    let selected = module
+        .zones
+        .iter()
+        .find(|zone| zone.area_id == area_id)
+        .ok_or("Requested area is absent from this module")?;
+    let source_blobs = read_sources(&root, &module.files, &selected.source_blobs)?;
+    Ok(LoadedModuleZone {
+        package_root: root,
+        manifest: module,
+        archive,
+        zone,
+        source_blobs,
+    })
+}
+
+/// Read only a pinned zone archive from an already admitted module. Callers
+/// must first validate the containing package and its revision.
+fn read_zone(
+    root: &Path,
+    module: &ModulePackageManifest,
+    area_id: AreaId,
+) -> Result<(Vec<u8>, ZoneEditSession)> {
     let selected = module
         .zones
         .iter()
@@ -92,7 +229,7 @@ pub fn load(
         .find(|file| file.path == selected.archive_path)
         .ok_or("Selected zone archive is absent from module inventory")?;
     let archive = read_pinned(
-        &root,
+        root,
         &archive_file.path,
         archive_file.bytes,
         archive_file.sha256,
@@ -108,25 +245,64 @@ pub fn load(
         "decode selected zone archive",
         ZoneEditSession::from_archive_bytes(&archive),
     )?;
+    Ok((archive, zone))
+}
+
+/// Project the authored name without loading a zone's source blob inventory.
+pub(crate) fn admitted_zone(
+    root: &Path,
+    module: &ModulePackageManifest,
+    area_id: AreaId,
+) -> Result<(String, ZoneEditSession)> {
+    let (_, zone) = read_zone(root, module, area_id)?;
+    let name = zone.head().effective()?.0.name;
+    let name = name.trim();
+    if name.is_empty() || name.len() > 128 || name.chars().any(char::is_control) {
+        return Err("Invalid player-facing zone name".into());
+    }
+    Ok((name.to_owned(), zone))
+}
+
+fn source_budget(
+    files: &[forge_project::module_package::ModuleFile],
+    hashes: &[ContentHash],
+) -> Result<()> {
+    let mut remaining = forge_project::workspace::export::MAX_MODULE_EXPORT_SOURCE_BYTES;
+    for hash in hashes {
+        let file = files
+            .iter()
+            .find(|file| file.role == ModuleFileRole::SourceBlob && file.sha256 == *hash)
+            .ok_or("Selected source blob is absent")?;
+        let length = usize::try_from(file.bytes).map_err(|e| e.to_string())?;
+        if length == 0 || length > forge_project::workspace::source_blobs::MAX_SOURCE_BLOB_BYTES {
+            return Err("Selected source exceeds the runtime's 64 MiB per-blob budget".into());
+        }
+        remaining = remaining
+            .checked_sub(length)
+            .ok_or("Selected module sources exceed the runtime's 256 MiB admission budget")?;
+    }
+    Ok(())
+}
+
+fn read_sources(
+    root: &Path,
+    files: &[forge_project::module_package::ModuleFile],
+    hashes: &[ContentHash],
+) -> Result<BTreeMap<ContentHash, Vec<u8>>> {
+    // Validate every size before opening or allocating even the first source.
+    source_budget(files, hashes)?;
     let mut source_blobs = BTreeMap::new();
-    for hash in &selected.source_blobs {
-        let file = module
-            .files
+    for hash in hashes {
+        let file = files
             .iter()
             .find(|file| file.role == ModuleFileRole::SourceBlob && file.sha256 == *hash)
             .ok_or("Selected source blob is absent")?;
         // Raster dimensions cap one blob at 64 MiB; imported-instance blocks
         // have a smaller bound in their canonical source document.
-        let bytes = read_pinned(&root, &file.path, file.bytes, *hash, 64 * 1024 * 1024)?;
+        let bytes = read_pinned(root, &file.path, file.bytes, *hash, 64 * 1024 * 1024)?;
         source_blobs.insert(*hash, bytes);
     }
-    Ok(LoadedModuleZone {
-        package_root: root,
-        manifest: module,
-        archive,
-        zone,
-        source_blobs,
-    })
+    Ok(source_blobs)
 }
 
 fn absolute(path: &Path) -> Result<PathBuf> {
@@ -340,4 +516,41 @@ fn step<T, E: std::fmt::Display>(
     result: std::result::Result<T, E>,
 ) -> Result<T> {
     result.map_err(|error| format!("Module runtime: {operation} [{}]: {error}", path.display()))
+}
+
+#[cfg(test)]
+mod source_tests {
+    use super::*;
+    use forge_project::module_package::ModuleFile;
+
+    #[test]
+    fn source_metadata_is_bounded_before_opening_or_allocating_any_payload() {
+        let hashes: Vec<_> = (0_u8..5)
+            .map(|byte| forge_core::bytes_sha256(&[byte]))
+            .collect();
+        let mut files: Vec<_> = hashes
+            .iter()
+            .map(|hash| ModuleFile {
+                path: format!("sources/{hash}.bin"),
+                bytes: 64 * 1024 * 1024,
+                sha256: *hash,
+                role: ModuleFileRole::SourceBlob,
+            })
+            .collect();
+        source_budget(&files, &hashes[..4]).unwrap();
+        assert!(
+            read_sources(Path::new("nonexistent-root"), &files, &hashes)
+                .unwrap_err()
+                .contains("256 MiB")
+        );
+        files[0].bytes += 1;
+        assert!(
+            source_budget(&files, &hashes[..1])
+                .unwrap_err()
+                .contains("64 MiB")
+        );
+        files[0].bytes = 0;
+        assert!(source_budget(&files, &hashes[..1]).is_err());
+        assert!(source_budget(&files, &[forge_core::bytes_sha256(b"absent")]).is_err());
+    }
 }

@@ -74,6 +74,148 @@ fn launch() -> Launch {
     }
 }
 
+fn platform_archive(fixture: &Fixture, platform: &str, version: &str) -> PathBuf {
+    let source = fixture.child(&format!("source-platform-{platform}-{version}"));
+    fs::create_dir(&source).unwrap();
+    fs::write(source.join("LICENSE"), b"local platform fixture").unwrap();
+    fs::write(source.join("payload.bin"), b"fixture application").unwrap();
+    fs::write(source.join("data.bin"), b"non executable data").unwrap();
+    let mut descriptor = descriptor("applications", version, Kind::Applications);
+    descriptor.platform = platform.into();
+    let output = fixture.child(&format!("platform-{platform}-{version}.forgepack"));
+    archive::pack(&source, descriptor, &output).unwrap();
+    output
+}
+
+#[test]
+fn foreign_platform_can_be_inspected_but_install_and_transported_plan_fail_before_writes() {
+    let fixture = Fixture::new();
+    let foreign = if cfg!(all(target_os = "windows", target_arch = "x86_64")) {
+        "linux-x64"
+    } else {
+        "windows-x64"
+    };
+    let package = platform_archive(&fixture, foreign, "foreign");
+    let (descriptor, revision) = archive::inspect(&package).unwrap();
+    descriptor.validate().unwrap();
+    assert!(descriptor.validate_host().is_err());
+    let root = fixture.child("installation");
+    assert!(
+        install::prepare(&root, std::slice::from_ref(&package))
+            .unwrap_err()
+            .contains("incompatible")
+    );
+    assert!(!root.exists());
+
+    let any = platform_archive(&fixture, "any", "native");
+    let mut plan = install::prepare(&root, &[any]).unwrap();
+    plan.user_root = fixture.child("user").to_string_lossy().into_owned();
+    plan.target.core.revision.clone_from(&revision);
+    plan.inputs[0].archive = package.to_string_lossy().into_owned();
+    plan.inputs[0].archive_sha256 = forge_delivery::file_hash(&package).unwrap();
+    plan.inputs[0].manifest_sha256 = revision;
+    plan.command_id.clear();
+    plan.command_id = hash(&forge_delivery::json(&plan).unwrap());
+    assert!(install::apply(&plan).unwrap_err().contains("incompatible"));
+    assert!(!root.exists());
+}
+
+#[test]
+fn linux_entry_point_spelling_must_match_the_inventory_on_every_build_host() {
+    let fixture = Fixture::new();
+    let package = platform_archive(&fixture, "linux-x64", "case");
+    let (mut descriptor, _) = archive::inspect(&package).unwrap();
+    descriptor
+        .product
+        .as_mut()
+        .unwrap()
+        .apps
+        .get_mut("game")
+        .unwrap()
+        .executable = "PAYLOAD.bin".into();
+    assert!(
+        descriptor
+            .validate()
+            .unwrap_err()
+            .contains("match the inventory exactly")
+    );
+}
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+#[test]
+fn linux_install_executes_only_declared_apps_and_detects_permission_tampering() {
+    use std::os::unix::fs::PermissionsExt;
+    let fixture = Fixture::new();
+    let source = fixture.child("source-linux");
+    fs::create_dir(&source).unwrap();
+    fs::write(source.join("LICENSE"), b"local runtime fixture").unwrap();
+    fs::write(source.join("data.bin"), b"data").unwrap();
+    fs::copy("/usr/bin/true", source.join("payload.bin")).unwrap();
+    fs::set_permissions(
+        source.join("payload.bin"),
+        fs::Permissions::from_mode(0o4755),
+    )
+    .unwrap();
+    fs::set_permissions(source.join("data.bin"), fs::Permissions::from_mode(0o755)).unwrap();
+    let mut descriptor = descriptor("applications", "linux", Kind::Applications);
+    descriptor.platform = "linux-x64".into();
+    let package = fixture.child("linux.forgepack");
+    archive::pack(&source, descriptor, &package).unwrap();
+    let root = fixture.child("installation");
+    let mut plan = install::prepare(&root, &[package]).unwrap();
+    plan.user_root = fixture.child("user").to_string_lossy().into_owned();
+    plan.command_id.clear();
+    plan.command_id = hash(&forge_delivery::json(&plan).unwrap());
+    let state = install::apply(&plan).unwrap();
+    let installed = install::package_root(&root, &state.active.core).unwrap();
+    let executable = installed.join("payload.bin");
+    let data = installed.join("data.bin");
+    assert_eq!(
+        fs::metadata(&executable).unwrap().permissions().mode() & 0o7777,
+        0o755
+    );
+    assert_eq!(
+        fs::metadata(&data).unwrap().permissions().mode() & 0o7777,
+        0o644
+    );
+    assert!(
+        forge_delivery::launch::command(&root, "game")
+            .unwrap()
+            .status()
+            .unwrap()
+            .success()
+    );
+    fs::set_permissions(&data, fs::Permissions::from_mode(0o755)).unwrap();
+    assert!(
+        install::verify(&root)
+            .unwrap_err()
+            .contains("execution permissions")
+    );
+    fs::set_permissions(&data, fs::Permissions::from_mode(0o644)).unwrap();
+    fs::set_permissions(&executable, fs::Permissions::from_mode(0o644)).unwrap();
+    assert!(
+        install::verify(&root)
+            .unwrap_err()
+            .contains("execution permissions")
+    );
+    fs::set_permissions(&executable, fs::Permissions::from_mode(0o4755)).unwrap();
+    assert!(
+        install::verify(&root)
+            .unwrap_err()
+            .contains("execution permissions")
+    );
+    fs::set_permissions(&executable, fs::Permissions::from_mode(0o755)).unwrap();
+    install::verify(&root).unwrap();
+    assert_eq!(
+        fs::metadata(source.join("payload.bin"))
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o7777,
+        0o4755
+    );
+}
+
 #[test]
 fn repeated_game_launches_have_distinct_outputs_and_preserve_previous_captures() {
     let f = Fixture::new();

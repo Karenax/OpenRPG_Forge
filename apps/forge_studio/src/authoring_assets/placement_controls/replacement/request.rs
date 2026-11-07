@@ -3,8 +3,19 @@ use forge_core::{AssetId, ContentHash};
 use forge_project::zone_authoring::placements::{ManualPlacement, PlacementEdit};
 
 pub(super) fn same_reference(a: &ManualPlacement, b: &ManualPlacement) -> bool {
-    (a.asset_id, a.asset_hash, &a.physics, &a.particles)
-        == (b.asset_id, b.asset_hash, &b.physics, &b.particles)
+    (
+        a.asset_id,
+        a.asset_hash,
+        &a.physics,
+        &a.particles,
+        &a.local_lights,
+    ) == (
+        b.asset_id,
+        b.asset_hash,
+        &b.physics,
+        &b.particles,
+        &b.local_lights,
+    )
 }
 
 pub(super) fn prepare(
@@ -19,9 +30,9 @@ pub(super) fn prepare(
         .filter(|p| p.id == source.id || (include_matching && same_reference(p, source)))
         .map(|p| p.id)
         .collect();
-    if source.physics.is_some() || source.particles.is_some() {
+    if source.physics.is_some() || source.particles.is_some() || source.local_lights.is_some() {
         if !remove_physics {
-            return Err("Confirmer le retrait du paquet physique pour ce remplacement".into());
+            return Err("Confirmer le retrait des données physiques, d’effet et d’éclairage pour ce remplacement".into());
         }
         Ok(PlacementEdit::ReplacePinnedAsset {
             ids,
@@ -29,10 +40,12 @@ pub(super) fn prepare(
             expected_asset_hash: source.asset_hash,
             expected_physics: source.physics.clone(),
             expected_particles: source.particles.clone(),
+            expected_local_lights: source.local_lights.clone(),
             asset_id: target.0,
             asset_hash: target.1,
             physics: None,
             particles: None,
+            local_lights: None,
         })
     } else {
         Ok(PlacementEdit::ReplaceAsset {

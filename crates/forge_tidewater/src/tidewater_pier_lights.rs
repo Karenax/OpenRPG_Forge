@@ -1,12 +1,16 @@
 //! Source-identity joins onto the live lantern pivots of an authored pier.
 //! The common placement remains the only mutable document; captures verify
 //! anchors and never substitute for the current hierarchy or transform.
-use {crate::{source_local_lights::projection::{PreparedSourceLights, ResidentSourceLights}, tidewater_pier::{PierLanternPivot, ResidentPier}}, forge_engine::{ManualPlacementProjection, domain_transform_to_bevy}};
+use {crate::{ tidewater_pier::{PierLanternPivot, ResidentPier}}, forge_engine::{ManualPlacementProjection, domain_transform_to_bevy}};
+use forge_engine::source_lighting::local_lights::projection::{PreparedSourceLights, ResidentSourceLights};
 use bevy::{
     math::{DMat4, DVec3},
     prelude::*,
 };
-use {forge_tidewater_assets::{tidewater_pier::{self as pier, PierPackage}}, forge_assets::{source_local_lights::{SourceLocalLightsPackage, ownership::SourceLightOwnership}}};
+use forge_tidewater_assets::tidewater_pier as pier;
+use forge_tidewater_assets::tidewater_pier::PierPackage;
+use forge_assets::source_local_lights::SourceLocalLightsPackage;
+use forge_assets::source_local_lights::ownership::SourceLightOwnership;
 use forge_project::zone_authoring::placements::ManualPlacement;
 use serde::Deserialize;
 use std::collections::{BTreeMap, BTreeSet};

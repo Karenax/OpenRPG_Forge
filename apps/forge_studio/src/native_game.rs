@@ -367,12 +367,19 @@ fn launch(expected: ContentHash) -> Result<u32, String> {
         .map(|document| document.functional_hash().map_err(|e| e.to_string()))
         .transpose()?;
     let (terrain, _) = zone.head().effective()?;
-    if terrain.sampled_source.is_none() {
+    let imported_vegetation = zone
+        .head()
+        .base
+        .vegetation
+        .as_ref()
+        .and_then(|vegetation| vegetation.imported_source.as_ref());
+    if terrain.sampled_source.is_none() || imported_vegetation.is_none() {
         if functional_hash.is_none() {
             return Err("Créer les définitions RPG de cette carte avant de lancer le jeu.".into());
         }
         // The exporter and module launcher acquire their own host/game locks.
-        // Keep the ordinary imported-terrain recipe below unchanged.
+        // Raster maps without an imported population use the same autonomous module
+        // runtime; the specialized recipe still requires its imported source data.
         drop(current);
         return launch_authored_module(expected, terrain.name);
     }
@@ -380,13 +387,7 @@ fn launch(expected: ContentHash) -> Result<u32, String> {
         .sampled_source
         .as_ref()
         .ok_or("Le runtime configuré attend un terrain importé")?;
-    let vegetation = zone
-        .head()
-        .base
-        .vegetation
-        .as_ref()
-        .and_then(|v| v.imported_source.as_ref())
-        .ok_or("Végétation importée absente")?;
+    let vegetation = imported_vegetation.ok_or("Végétation importée absente")?;
     let stamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|e| e.to_string())?
@@ -546,13 +547,16 @@ mod tests {
 
     impl Directory {
         fn new() -> Self {
+            static NEXT_DIRECTORY: std::sync::atomic::AtomicU64 =
+                std::sync::atomic::AtomicU64::new(0);
             let parent = std::env::temp_dir().canonicalize().unwrap();
             let stamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_nanos();
+            let nonce = NEXT_DIRECTORY.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             let root = parent.join(format!(
-                "forge-studio-native-report-{}-{stamp}",
+                "forge-studio-native-report-{}-{stamp}-{nonce}",
                 std::process::id()
             ));
             fs::create_dir(&root).unwrap();

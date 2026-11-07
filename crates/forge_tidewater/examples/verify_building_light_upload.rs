@@ -21,14 +21,17 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::{
-    source_local_lights::{
-        Flashlight, Light, Packet, Settings, collection::Collection, scene::SourceLight,
-    },
-    tidewater_material::local_lights::gpu,
-    tidewater_sky::solar,
-    tidewater_temporal::frame::{self, Frames, ViewPacket},
-};
+use forge_engine::source_lighting::local_lights::Flashlight;
+use forge_engine::source_lighting::local_lights::Light;
+use forge_engine::source_lighting::local_lights::Packet;
+use forge_engine::source_lighting::local_lights::Settings;
+use forge_engine::source_lighting::local_lights::collection::Collection;
+use forge_engine::source_lighting::local_lights::gpu;
+use forge_engine::source_lighting::local_lights::scene::SourceLight;
+use forge_engine::source_sky::solar;
+use forge_engine::source_temporal::frame;
+use forge_engine::source_temporal::frame::Frames;
+use forge_engine::source_temporal::frame::ViewPacket;
 use std::{
     error::Error,
     io::Write,
@@ -85,7 +88,10 @@ fn app() -> Result<App, Box<dyn Error>> {
             .disable::<WinitPlugin>()
             .disable::<PipelinedRenderingPlugin>(),
     );
-    gpu::register(&mut app)?;
+    gpu::register_with_temporal::<
+        forge_engine::source_temporal::frame::ViewPacket,
+        forge_engine::source_temporal::render_owned::Control,
+    >(&mut app)?;
     app.init_resource::<Frames>()
         .add_plugins(ExtractComponentPlugin::<ViewPacket>::default());
     let target = app

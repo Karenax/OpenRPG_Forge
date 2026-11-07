@@ -6,15 +6,10 @@ use bevy::{
     prelude::*,
     render::{
         Render, RenderApp, RenderSystems,
-        diagnostic::{
-            DiagnosticsRecorder, RecordDiagnostics, RenderDiagnosticsPlugin, resolve_encoder,
-        },
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         mesh::RenderMesh,
         render_asset::RenderAssets,
-        renderer::{
-            PendingCommandBuffers, RenderAdapterInfo, RenderDevice, RenderGraph, RenderGraphSystems,
-        },
+        renderer::RenderAdapterInfo,
     },
 };
 use forge_engine::{
@@ -22,6 +17,7 @@ use forge_engine::{
     gameplay::GameplayRuntime,
     navigation::{NavigationPolicy, NavigationRuntime, NavigationSet},
     playtest_timing::{PlaytestTiming, PlaytestTimingPlugin, PlaytestTimingSnapshot, TimingState},
+    render_timing::{MainClock, RenderClock, RenderTimingPlugin, TimingSet},
 };
 use forge_project::{
     authoring::playtest::PlaytestSnapshot, zone_authoring::session::ZoneEditSession,
@@ -125,9 +121,6 @@ struct Perf {
     admission: AdmissionWindow,
     prewarm: Option<camera_prewarm::Prewarm>,
     epoch: Option<Instant>,
-    frame_start: Option<Instant>,
-    previous_start: Option<Instant>,
-    wall_ms: f64,
     phase: usize,
     phase_seconds: f64,
     yaw: f32,
@@ -148,15 +141,6 @@ struct Sample {
     tile_counts: [[usize; 2]; 2],
     records: Arc<Mutex<Vec<serde_json::Value>>>,
 }
-#[derive(Resource, Default)]
-struct RenderClock {
-    start: Option<Instant>,
-    last: Option<Instant>,
-    stages: BTreeMap<&'static str, f64>,
-    graph_last: Option<Instant>,
-    graph_bands: BTreeMap<&'static str, f64>,
-}
-
 pub(super) fn requested() -> bool {
     std::env::var("FORGE_TIDEWATER_CAMERA_PERF").as_deref() == Ok("1")
 }
@@ -170,10 +154,10 @@ pub(super) fn install(app: &mut App) {
         })
         .init_resource::<Sample>()
         .add_plugins((
-            RenderDiagnosticsPlugin,
+            RenderTimingPlugin,
             ExtractResourcePlugin::<Sample>::default(),
         ))
-        .add_systems(First, begin_frame)
+        .add_systems(First, begin_frame.after(TimingSet::MainBegin))
         .add_systems(PreUpdate, drive.before(InputSystems))
         .add_systems(
             PostUpdate,
@@ -182,71 +166,13 @@ pub(super) fn install(app: &mut App) {
         .add_systems(Last, finish_frame);
     asset_perf::install(app);
     app.sub_app_mut(RenderApp)
-        .init_resource::<RenderClock>()
         .add_systems(
             Render,
             (
-                render_begin.before(RenderSystems::ExtractCommands),
-                render_mark::<0>
-                    .after(RenderSystems::ExtractCommands)
-                    .before(RenderSystems::PrepareAssets),
-                render_mark::<1>
-                    .after(RenderSystems::PrepareAssets)
-                    .before(RenderSystems::PrepareMeshes),
-                render_mark::<2>
-                    .after(RenderSystems::PrepareMeshes)
-                    .before(RenderSystems::CreateViews),
-                render_mark::<3>
-                    .after(RenderSystems::CreateViews)
-                    .before(RenderSystems::Specialize),
-                render_mark::<4>
-                    .after(RenderSystems::Specialize)
-                    .before(RenderSystems::PrepareViews),
-                render_mark::<5>
-                    .after(RenderSystems::PrepareViews)
-                    .before(RenderSystems::Queue),
-                render_mark::<6>
-                    .after(RenderSystems::Queue)
-                    .before(RenderSystems::PhaseSort),
-                render_mark::<7>
-                    .after(RenderSystems::PhaseSort)
-                    .before(RenderSystems::Prepare),
-                render_mark::<8>
-                    .after(RenderSystems::Prepare)
-                    .before(RenderSystems::Render),
-                render_mark::<9>
-                    .after(RenderSystems::Render)
-                    .before(RenderSystems::Cleanup),
-                render_mark::<10>
-                    .after(RenderSystems::Cleanup)
-                    .before(RenderSystems::PostCleanup),
                 residency
                     .after(RenderSystems::QueueMeshes)
                     .before(RenderSystems::PhaseSort),
-                render_end.after(RenderSystems::PostCleanup),
-            ),
-        )
-        .add_systems(
-            RenderGraph,
-            (
-                gpu_begin
-                    .after(RenderGraphSystems::Begin)
-                    .before(RenderGraphSystems::Render),
-                gpu_end
-                    .after(RenderGraphSystems::Render)
-                    .before(resolve_encoder),
-                graph_begin
-                    .after(gpu_begin)
-                    .before(forge_tidewater::tidewater_atmosphere::AtmosphereCompute),
-                graph_mark::<0>
-                    .after(forge_tidewater::tidewater_atmosphere::AtmosphereCompute)
-                    .before(forge_tidewater::tidewater_clouds::CloudCompute),
-                graph_mark::<1>
-                    .after(forge_tidewater::tidewater_clouds::CloudCompute)
-                    .before(bevy::core_pipeline::schedule::camera_driver),
-                graph_mark::<2>
-                    .after(bevy::core_pipeline::schedule::camera_driver)
-                    .before(gpu_end),
+                render_end.after(TimingSet::RenderEnd),
             ),
         );
 }
@@ -418,11 +344,6 @@ fn begin_frame(world: &mut World) {
     let gameplay_ready = begin_gameplay_capture(world, ready);
     {
         let mut perf = world.resource_mut::<Perf>();
-        perf.wall_ms = perf
-            .previous_start
-            .map_or(0.0, |p| now.duration_since(p).as_secs_f64() * 1000.0);
-        perf.previous_start = Some(now);
-        perf.frame_start = Some(now);
         perf.costs.clear();
         if ready && gameplay_ready && perf.epoch.is_none() {
             perf.epoch = Some(now);
@@ -636,7 +557,7 @@ fn finish_frame(world: &mut World) {
         })
         .collect::<BTreeMap<_, _>>();
     let atmosphere_sample = world.resource::<DiagnosticsStore>().iter()
-        .find(|d| d.path().to_string() == "render/tidewater_atmosphere/elapsed_cpu")
+        .find(|d| d.path().to_string() == "render/source_atmosphere/elapsed_cpu")
         .and_then(|d| d.measurement().map(|m| serde_json::json!({"cpu_ms":m.value,"age_ms":m.time.elapsed().as_secs_f64()*1000.0,"sample":format!("{:?}",m.time)})));
     // Completion updates the lifecycle observer, which requires Perf in the World.
     // resource_scope temporarily removes Perf, so finish timing before entering it.
@@ -645,6 +566,9 @@ fn finish_frame(world: &mut World) {
         perf.epoch.is_some() && perf.phase >= 4
     };
     let gameplay_timing = finishing.then(|| finish_gameplay_capture(world)).flatten();
+    let main = world.resource::<MainClock>();
+    let wall_ms = main.wall_ms();
+    let main_schedule_ms = main.elapsed_ms();
     world.resource_scope(|world, mut perf: Mut<Perf>| {
         if perf.epoch.is_none() { return; }
         let origin = *perf.origin.get_or_insert(transform.translation);
@@ -653,10 +577,10 @@ fn finish_frame(world: &mut World) {
         perf.previous_pose = Some(transform);
         let sampled = perf.phase < 4 && perf.phase_seconds > 1.0 && perf.phase_seconds < LENGTHS[perf.phase]-1.0;
         if sampled {
-            let value = serde_json::json!({"frame":frame,"phase":perf.phase,"phase_seconds":perf.phase_seconds,"wall_ms":perf.wall_ms,"main_schedule_ms":perf.frame_start.expect("frame start").elapsed().as_secs_f64()*1000.0,"costs_ms":perf.costs,"gpu_diagnostics_latest_ms":diagnostics,"atmosphere_sample":atmosphere_sample,"sky_visible":!perf.sky_ab || perf.phase<2,"fish_activity":crate::source_fish::activity(world),"refraction_activity":world.get_resource::<forge_tidewater::tidewater_refraction::Activity>(),"refraction_ready":world.get_resource::<forge_tidewater::tidewater_refraction::Observation>().map(|v|v.ready)});
+            let value = serde_json::json!({"frame":frame,"phase":perf.phase,"phase_seconds":perf.phase_seconds,"wall_ms":wall_ms,"main_schedule_ms":main_schedule_ms,"costs_ms":perf.costs,"gpu_diagnostics_latest_ms":diagnostics,"atmosphere_sample":atmosphere_sample,"sky_visible":!perf.sky_ab || perf.phase<2,"fish_activity":crate::source_fish::activity(world),"refraction_activity":world.get_resource::<forge_engine::source_refraction_capture::Activity>(),"refraction_ready":world.get_resource::<forge_engine::source_refraction_capture::Observation>().map(|v|v.ready)});
             perf.frames.push(value);
         }
-        let terrain = world.resource::<forge_tidewater::tidewater_terrain::scene::ResidentTerrain>().entity.expect("terrain");
+        let terrain = world.resource::<forge_engine::source_terrain::scene::ResidentTerrain>().entity.expect("terrain");
         let mesh = world.get::<Mesh3d>(terrain).map(|m| m.0.id());
         let ocean = world.query_filtered::<&Mesh3d, With<crate::ocean_geometry::OceanSurface>>().single(world).ok().map(|m| m.0.id());
         let tiles = super::tile_entities(world).into_iter().filter_map(|entity| world.get::<Mesh3d>(entity).map(|mesh| mesh.0.id())).collect();
@@ -683,10 +607,7 @@ fn finish_frame(world: &mut World) {
 }
 fn sky_visibility(
     perf: Res<Perf>,
-    mut skies: Query<
-        &mut Visibility,
-        With<MeshMaterial3d<forge_tidewater::tidewater_sky::SkyMaterial>>,
-    >,
+    mut skies: Query<&mut Visibility, With<MeshMaterial3d<forge_engine::source_sky::SkyMaterial>>>,
 ) {
     if !perf.sky_ab {
         return;
@@ -702,67 +623,24 @@ fn sky_visibility(
         }
     }
 }
-fn render_begin(mut clock: ResMut<RenderClock>) {
-    let now = Instant::now();
-    clock.start = Some(now);
-    clock.last = Some(now);
-    clock.stages.clear();
-}
-fn render_mark<const STAGE: usize>(mut clock: ResMut<RenderClock>) {
-    const STAGES: [&str; 11] = [
-        "ExtractCommands",
-        "PrepareAssets",
-        "PrepareMeshes",
-        "CreateViews",
-        "Specialize",
-        "PrepareViews",
-        "Queue",
-        "PhaseSort",
-        "Prepare",
-        "Render",
-        "Cleanup",
-    ];
-    let now = Instant::now();
-    let elapsed = now
-        .duration_since(clock.last.expect("render phase start"))
-        .as_secs_f64()
-        * 1000.0;
-    clock.last = Some(now);
-    clock.stages.insert(STAGES[STAGE], elapsed);
-}
 fn render_end(
     clock: Res<RenderClock>,
     sample: Res<Sample>,
     assets: Option<Res<asset_perf::Stats>>,
 ) {
     if sample.frame != 0 {
+        let timing = clock.snapshot();
         let mut records = sample.records.lock().expect("render samples");
         if let Some(record) = records.last_mut().filter(|r| r["frame"] == sample.frame) {
-            record["render_schedule_ms"] = serde_json::json!(
-                clock.start.expect("render start").elapsed().as_secs_f64() * 1000.0
-            );
-            record["render_stages_ms"] = serde_json::json!(clock.stages);
-            record["graph_bands_ms"] = serde_json::json!(clock.graph_bands);
+            record["render_schedule_ms"] = serde_json::json!(timing.schedule_ms);
+            record["render_stages_ms"] = serde_json::json!(timing.stages_ms);
+            record["graph_bands_ms"] = serde_json::json!(timing.graph_bands_ms);
             if let Some(assets) = assets {
                 record["asset_prepare_bands_ms"] = serde_json::json!(assets.bands_ms);
                 record["asset_extracted"] = serde_json::json!(assets.extracted);
             }
         }
     }
-}
-fn graph_begin(mut clock: ResMut<RenderClock>) {
-    clock.graph_last = Some(Instant::now());
-    clock.graph_bands.clear();
-}
-fn graph_mark<const BAND: usize>(mut clock: ResMut<RenderClock>) {
-    const NAMES: [&str; 3] = ["atmosphere_band", "clouds_band", "camera_band"];
-    let now = Instant::now();
-    let ms = now
-        .duration_since(clock.graph_last.expect("graph start"))
-        .as_secs_f64()
-        * 1000.0;
-    clock.graph_last = Some(now);
-    clock.graph_bands.insert(NAMES[BAND], ms);
 }
 fn residency(
     sample: Res<Sample>,
@@ -773,31 +651,6 @@ fn residency(
         sample.records.lock().expect("render samples").push(serde_json::json!({"frame":sample.frame,"phase":sample.phase,"mesh":format!("{:?}",sample.mesh),"ocean":format!("{:?}",sample.ocean),"mesh_ready":sample.mesh.is_some_and(|id| meshes.get(id).is_some()),"ocean_ready":sample.ocean.is_some_and(|id| meshes.get(id).is_some()),"all_tiles_ready":sample.tiles.iter().all(|id| meshes.get(*id).is_some()),"tile_counts":sample.tile_counts,"dirty_renderables":dirty.changed_renderables.len(),"dirty_views":dirty.views.len()}));
     }
 }
-// Both functions are exclusive: the matching diagnostic span opens/closes on
-// the render schedule's driving thread, while encoders retain queue order.
-fn gpu_begin(world: &mut World) {
-    let mut encoder = world
-        .resource::<RenderDevice>()
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
-    world
-        .resource::<DiagnosticsRecorder>()
-        .begin_time_span(&mut encoder, "camera_perf_gpu".into());
-    world
-        .resource_mut::<PendingCommandBuffers>()
-        .push([encoder.finish()]);
-}
-fn gpu_end(world: &mut World) {
-    let mut encoder = world
-        .resource::<RenderDevice>()
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
-    world
-        .resource::<DiagnosticsRecorder>()
-        .end_time_span(&mut encoder);
-    world
-        .resource_mut::<PendingCommandBuffers>()
-        .push([encoder.finish()]);
-}
-
 #[cfg(test)]
 mod lifecycle_tests {
     use super::*;

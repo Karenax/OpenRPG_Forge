@@ -1,4 +1,5 @@
 //! Captured game fish, separate from the village's immutable prop inventory.
+use forge_assets::source_fish_package::{PinnedFishPayload, ResourcePin as Entry};
 use forge_core::{AssetId, ContentHash, bytes_sha256};
 use serde::Deserialize;
 use serde_json::Value;
@@ -20,13 +21,6 @@ pub fn asset_id(ordinal: usize) -> Option<AssetId> {
 #[must_use]
 pub fn package_hash() -> ContentHash {
     PACKAGE.parse().expect("Pinned game fish digest is valid")
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Entry {
-    bytes: usize,
-    sha256: ContentHash,
 }
 
 #[derive(Deserialize)]
@@ -65,15 +59,10 @@ impl GameFishPackage {
     pub fn load(
         manifest: &[u8],
         expected: ContentHash,
-        mut read: impl FnMut(&str, usize) -> Result<Vec<u8>, String>,
+        read: impl FnMut(&str, usize) -> Result<Vec<u8>, String>,
     ) -> Result<Self, String> {
         let index = parse(manifest, expected)?;
-        let mut files = BTreeMap::new();
-        for (name, entry) in &index.files {
-            let bytes = read(name, entry.bytes)?;
-            verify(entry, &bytes)?;
-            files.insert(name.clone(), bytes);
-        }
+        let files = PinnedFishPayload::load(&index.files, read)?.into_files();
         Self::finish(&index, files)
     }
 
@@ -84,19 +73,16 @@ impl GameFishPackage {
     pub async fn load_async<F, Fut>(
         manifest: &[u8],
         expected: ContentHash,
-        mut read: F,
+        read: F,
     ) -> Result<Self, String>
     where
         F: FnMut(String, usize) -> Fut,
         Fut: std::future::Future<Output = Result<Vec<u8>, String>>,
     {
         let index = parse(manifest, expected)?;
-        let mut files = BTreeMap::new();
-        for (name, entry) in &index.files {
-            let bytes = read(name.clone(), entry.bytes).await?;
-            verify(entry, &bytes)?;
-            files.insert(name.clone(), bytes);
-        }
+        let files = PinnedFishPayload::load_async(&index.files, read)
+            .await?
+            .into_files();
         Self::finish(&index, files)
     }
 
@@ -192,6 +178,30 @@ impl GameFishPackage {
     }
 }
 
+impl forge_assets::source_fish_payload::SourceFishPayload for GameFishPackage {
+    fn file(&self, name: &str) -> Option<&[u8]> {
+        GameFishPackage::file(self, name)
+    }
+}
+
+impl forge_assets::source_fish_payload::SourceFishProfile for GameFishPackage {
+    fn description(&self) -> &[u8] {
+        GameFishPackage::description(self)
+    }
+
+    fn inventory(&self) -> (usize, usize) {
+        (18, 23)
+    }
+
+    fn identify(&self, ordinal: usize, source_id: &str) -> Result<Option<AssetId>, String> {
+        let id = asset_id(ordinal).ok_or("Fish ordinal out of range")?;
+        if source_id != format!("tidewater:{COMMIT}:game-fish:{ordinal}") {
+            return Err("Fish source identity differs".into());
+        }
+        Ok((ordinal >= 18).then_some(id))
+    }
+}
+
 fn parse(manifest: &[u8], expected: ContentHash) -> Result<Manifest, String> {
     if manifest.len() > 128 * 1024
         || bytes_sha256(manifest) != expected
@@ -225,13 +235,6 @@ fn parse(manifest: &[u8], expected: ContentHash) -> Result<Manifest, String> {
     Ok(index)
 }
 
-fn verify(entry: &Entry, bytes: &[u8]) -> Result<(), String> {
-    if bytes.len() != entry.bytes || bytes_sha256(bytes) != entry.sha256 {
-        return Err("Game fish payload hash or byte count differs".into());
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -261,6 +264,10 @@ mod tests {
     fn captured_package_loads_and_catalog_excludes_parked_slots() {
         let root = fixture();
         let manifest = std::fs::read(root.join("package.json")).unwrap();
+        let index =
+            forge_assets::source_fish_package::resource_index(&manifest, package_hash()).unwrap();
+        assert_eq!(index.files.len(), 248);
+        assert_eq!(index.license, "LICENSE-Tidewater.txt");
         let mut calls = 0;
         let package = GameFishPackage::load(&manifest, package_hash(), |name, limit| {
             calls += 1;

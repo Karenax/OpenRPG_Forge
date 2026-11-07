@@ -1,6 +1,7 @@
 use super::*;
-use crate::tidewater_assets::{MaterialParameters, materials::LightingBindings};
 use forge_core::{AssetId, ContentHash, Transform as DomainTransform};
+use forge_engine::source_surface::LightingBindings;
+use forge_engine::source_surface::package::MaterialParameters;
 use forge_project::zone_authoring::placements::ManualPlacement;
 
 fn setup() -> (
@@ -23,7 +24,7 @@ fn setup() -> (
         },
         &BTreeMap::from([("cpu-test".into(), Handle::default())]),
         &LightingBindings {
-            scene_lighting: crate::tidewater_material::SceneLighting::new(
+            scene_lighting: forge_engine::source_lighting::SceneLighting::new(
                 [0.0, 1.0, 0.0],
                 [1.0; 3],
                 [[0.0; 3]; 9],
@@ -32,15 +33,14 @@ fn setup() -> (
             environment: Handle::default(),
             hill_shadow: Handle::default(),
             object_shadow: Handle::default(),
-            object_settings: crate::tidewater_material::ObjectShadowSettings::default(),
+            object_settings: forge_engine::source_shadows::ObjectShadowSettings::default(),
             clouds: [Vec4::ZERO; 5],
             cloud_shadow: None,
             wind: Vec4::ZERO,
             flags: Vec4::ZERO,
-            caustics: crate::tidewater_caustics::CausticMaterialInputs::disabled(&mut Assets::<
-                Image,
-            >::default(
-            )),
+            caustics: forge_engine::source_surface::underwater::CausticMaterialInputs::disabled(
+                &mut Assets::<Image>::default(),
+            ),
             ground_bounce: None,
             bounce_settings: Vec4::ZERO,
         },
@@ -111,6 +111,7 @@ fn placement(i: usize) -> ManualPlacement {
     ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic(format!("scanned-buffer-regression:{i}")),
         name: "cpu-test".into(),
         asset_id: AssetId::deterministic("scanned-buffer-test-asset"),

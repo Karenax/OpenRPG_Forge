@@ -6,7 +6,8 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::{tidewater_atmosphere as atmosphere, tidewater_sky::solar};
+use forge_engine::source_atmosphere as atmosphere;
+use forge_engine::source_sky::solar;
 use serde_json::{Value, json};
 use std::io::Write;
 use std::{
@@ -48,9 +49,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             return Err(format!("acquisition hash differs: {name}").into());
         }
     }
-    let input = atmosphere::from_acquisition(&meta, false, |name| {
-        std::fs::read(root.join(name)).map_err(|e| e.to_string())
-    })?;
+    let input =
+        forge_engine::source_atmosphere::acquisition::from_acquisition(&meta, false, |name| {
+            std::fs::read(root.join(name)).map_err(|e| e.to_string())
+        })?;
     let mut app = App::new();
     app.add_plugins(
         DefaultPlugins

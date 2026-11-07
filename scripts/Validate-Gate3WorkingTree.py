@@ -258,6 +258,40 @@ def verify_release_artifacts(pins, expected_paths, target_dir):
         require(pin == release_artifact_pin(path, target_dir), f'Release artifact changed: {path}')
 
 
+NAVIGATION_WORKER_PROFILE_ARGS = [
+    '--config', 'profile.forge-navigation-worker.inherits="release"',
+    'build', '-p', 'forge_navigation', '--lib', '--no-default-features', '--features', 'web',
+    '--target', 'wasm32-unknown-unknown', '--locked', '--offline', '-j1',
+    '--profile', 'forge-navigation-worker',
+]
+
+
+def validate_navigation_worker_header(worker):
+    require(isinstance(worker, dict) and worker.get('schema') == 'forge.navigation-worker-build'
+            and worker.get('version') in (1, 2) and worker.get('build_only') is True
+            and worker.get('runtime_verified') is False and worker.get('source_unchanged_during_build') is True
+            and worker.get('configuration') == 'release',
+            'Navigation worker receipt is incomplete or incompatible')
+    if worker['version'] == 2:
+        require(worker.get('cargo_profile') == 'forge-navigation-worker'
+                and worker.get('profile_inherits') == 'release'
+                and worker.get('cargo_target') == 'wasm32-unknown-unknown'
+                and worker.get('cargo_arguments') == NAVIGATION_WORKER_PROFILE_ARGS
+                and worker.get('effective_profile_overrides_verified') is False,
+                'Navigation worker release profile receipt differs')
+
+
+def navigation_worker_source_paths(worker, source_files):
+    expected = {'Cargo.toml', 'Cargo.lock', 'crates/forge_navigation/Cargo.toml',
+                'crates/forge_navigation/build.rs', 'third_party/rerecast-0.4.0/Cargo.toml',
+                'apps/forge_studio/forge-navigation-worker.js'}
+    if worker['version'] == 2:
+        expected.add('.cargo/config.toml')
+    expected.update(name for name, pin in source_files.items() if pin is not None and
+                    name.startswith(('crates/forge_navigation/src/', 'third_party/rerecast-0.4.0/src/')))
+    return expected
+
+
 def validate_frontend(frontend, source_files, require_assets=False, expected_asset_manifest_sha256=None):
     """Close the generated frontend and authenticate both common hook receipts."""
     physical_path(frontend, frontend)
@@ -278,15 +312,8 @@ def validate_frontend(frontend, source_files, require_assets=False, expected_ass
         require(any(re.fullmatch(expression, name) for name in files),
                 f'Canonical Trunk artifact missing: {expression}')
     worker = read_json(frontend / 'forge-navigation-worker-manifest.json')
-    require(worker.get('schema') == 'forge.navigation-worker-build' and worker.get('version') == 1
-            and worker.get('build_only') is True and worker.get('runtime_verified') is False
-            and worker.get('source_unchanged_during_build') is True and worker.get('configuration') == 'release',
-            'Navigation worker receipt is incomplete or incompatible')
-    expected_worker = {'Cargo.toml', 'Cargo.lock', 'crates/forge_navigation/Cargo.toml',
-                       'crates/forge_navigation/build.rs', 'third_party/rerecast-0.4.0/Cargo.toml',
-                       'apps/forge_studio/forge-navigation-worker.js'}
-    expected_worker.update(name for name, pin in source_files.items() if pin is not None and
-                           name.startswith(('crates/forge_navigation/src/', 'third_party/rerecast-0.4.0/src/')))
+    validate_navigation_worker_header(worker)
+    expected_worker = navigation_worker_source_paths(worker, source_files)
     worker_sources = worker.get('source_pins', [])
     require(len(worker_sources) == len(expected_worker)
             and {pin['path'] for pin in worker_sources} == expected_worker,

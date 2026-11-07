@@ -12,7 +12,8 @@ use forge_tidewater::tidewater_debris::{
     pebble_scene::ResidentField,
     pebbles,
 };
-use forge_tidewater_assets::tidewater_debris::{DebrisPackage, pebble_program::Program};
+use forge_tidewater_assets::tidewater_debris::DebrisPackage;
+use forge_tidewater_assets::tidewater_debris::pebble_program::Program;
 use std::{error::Error, io::Read, path::Path};
 
 #[derive(Resource)]
@@ -29,7 +30,7 @@ struct Live {
     cells: CellMap,
     selector: Selector,
     field: ResidentField,
-    source: Handle<super::village::VillageMaterial>,
+    source: Handle<forge_engine::source_surface::SourceSurfaceMaterial>,
     material: Handle<PebbleMaterial>,
     terrain_revision: forge_core::ContentHash,
     published: bool,
@@ -74,8 +75,8 @@ pub fn load(package: DebrisPackage) -> Result<Option<Input>, Box<dyn Error>> {
         },
     )?;
     let adapted = pebble_material::shader_source(program.source())?;
-    forge_tidewater::tidewater_temporal::shaders::derive(
-        forge_tidewater::tidewater_temporal::shaders::Family::Pebble,
+    forge_engine::source_temporal::shaders::derive(
+        forge_engine::source_temporal::shaders::Family::Pebble,
         &adapted,
         &adapted,
     )?;
@@ -106,12 +107,12 @@ fn stage(world: &mut World, input: Input) -> Result<(), String> {
         .ok_or("Pebbles require Village lighting")?
         .clone();
     let base = world
-        .resource::<Assets<super::village::VillageMaterial>>()
+        .resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
         .get(&source)
         .ok_or("Pebble base material absent")?
         .clone();
     let terrain_handle = world
-        .get_resource::<forge_tidewater::tidewater_terrain::scene::ResidentTerrain>()
+        .get_resource::<forge_engine::source_terrain::scene::ResidentTerrain>()
         .and_then(|terrain| terrain.material.as_ref())
         .ok_or("Pebbles require resident terrain")?;
     let terrain = world
@@ -244,7 +245,7 @@ pub fn update(world: &mut World) {
             live.field.synchronize(world, &live.selector)?;
         }
         let base = world
-            .resource::<Assets<super::village::VillageMaterial>>()
+            .resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
             .get(&live.source)
             .ok_or("Pebble source lighting retired")?
             .clone();

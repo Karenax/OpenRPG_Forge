@@ -9,8 +9,8 @@ use bevy::{
     prelude::*,
     world_serialization::{WorldAsset, WorldAssetRoot, WorldInstance, WorldInstanceSpawner},
 };
+use forge_engine::authoring_buildings::ProjectionRapierColliderHandle;
 use forge_project::{authoring::AuthoringState, zone_authoring::placements::ManualPlacement};
-use forge_tidewater::authoring_buildings::ProjectionRapierColliderHandle;
 use std::{
     cell::{Cell, RefCell},
     collections::{BTreeMap, BTreeSet},
@@ -49,6 +49,7 @@ thread_local! {
     static SOURCE_OUTPUT: Cell<Option<leptos::prelude::RwSignal<u64>>> = const { Cell::new(None) };
     static ACCEPTED_HEAD: RefCell<Option<forge_project::zone_authoring::ZoneAuthoringHead>> = const { RefCell::new(None) };
     static ACCEPTED_HASH: Cell<Option<forge_core::ContentHash>> = const { Cell::new(None) };
+    static OBSERVED_SOURCE: Cell<Option<crate::module_resources_acquisition::SourceToken>> = const { Cell::new(None) };
     static ACCEPTED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static DESIRED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static EPOCH: Cell<u64> = const { Cell::new(0) };
@@ -72,6 +73,18 @@ pub(crate) fn focus(id: forge_core::EntityId) {
             crate::authoring_camera::focus_object(
                 Vec3::new(t.translation_m.x, t.translation_m.y, t.translation_m.z),
                 8.0 * t.scale.x.max(t.scale.y).max(t.scale.z),
+            );
+            return;
+        }
+        if crate::authoring_module_resources::owns_source()
+            && let Some(head) = accepted_head()
+            && let Ok(object) = super::objects::lookup(&head, id)
+            && super::imported_buildings::is_fish_props_asset(object.asset_id)
+        {
+            let t = object.transform;
+            crate::authoring_camera::focus_object(
+                Vec3::new(t.translation_m.x, t.translation_m.y, t.translation_m.z),
+                3.0,
             );
             return;
         }
@@ -110,6 +123,12 @@ fn current(epoch: u64) -> bool {
 }
 
 pub(crate) fn observe(state: &AuthoringState) {
+    super::scene_wind::observe(
+        state
+            .zone_head
+            .as_ref()
+            .and_then(|head| head.corrections.wind),
+    );
     super::source_graph_physics::observe(
         state
             .zone_head
@@ -128,6 +147,26 @@ pub(crate) fn observe(state: &AuthoringState) {
                 .and_then(|head| head.content_hash().ok()),
         );
     });
+    let source = if crate::authoring_module_resources::owns_source() {
+        crate::authoring_module_resources::current_companion_scope()
+            .ok()
+            .filter(|token| {
+                let scope = token.scope();
+                Some(scope.head) == ACCEPTED_HASH.with(Cell::get)
+                    && state
+                        .zone_head
+                        .as_ref()
+                        .is_some_and(|head| scope.area == head.base.terrain.area_id)
+            })
+    } else {
+        None
+    };
+    let previous_source = OBSERVED_SOURCE.with(|slot| slot.replace(source));
+    let restart = crate::module_resources_acquisition::SourceToken::projection_needs_restart(
+        previous_source,
+        source,
+        READY.with(Cell::get),
+    );
     let placements = state
         .zone_head
         .as_ref()
@@ -135,7 +174,7 @@ pub(crate) fn observe(state: &AuthoringState) {
         .unwrap_or_default();
     ACCEPTED.with(|slot| slot.replace(placements.clone()));
     selection::reconcile(&placements);
-    show(placements);
+    show_inner(placements, restart);
 }
 
 pub(crate) fn restore() {
@@ -226,6 +265,10 @@ pub(super) fn desired_fish_stands() -> Vec<ManualPlacement> {
 }
 
 pub(super) fn desired_fish_props() -> Vec<ManualPlacement> {
+    if crate::authoring_module_resources::owns_source() {
+        // Managed modules use the common fish host in authoring_module_viewport.
+        return Vec::new();
+    }
     DESIRED.with(|slot| {
         slot.borrow()
             .iter()
@@ -244,21 +287,31 @@ pub(super) fn retry_library() {
 
 /// Current requested placement projection, including a non-applied proposal.
 pub(crate) fn proposal_ready() -> Result<bool, String> {
-    if FAILED.with(Cell::get) {
-        return Err(STATUS.with(|s| s.borrow().clone()));
-    }
-    Ok(READY.with(Cell::get)
-        && REQUEST.with(|s| s.borrow().is_none())
+    Ok(base_ready()?
         && super::imported_scene::ready()?
         && super::fish_stand_scene::ready()?
         && super::fish_props_scene::ready()?)
 }
 
-pub(super) fn accepted_head() -> Option<forge_project::zone_authoring::ZoneAuthoringHead> {
+pub(crate) fn base_ready() -> Result<bool, String> {
+    if FAILED.with(Cell::get) {
+        return Err(STATUS.with(|s| s.borrow().clone()));
+    }
+    Ok(READY.with(Cell::get) && REQUEST.with(|s| s.borrow().is_none()))
+}
+
+pub(crate) fn requested_revision() -> u64 {
+    EPOCH.with(Cell::get)
+}
+pub(crate) fn requested() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| slot.borrow().clone())
+}
+
+pub(crate) fn accepted_head() -> Option<forge_project::zone_authoring::ZoneAuthoringHead> {
     ACCEPTED_HEAD.with(|slot| slot.borrow().clone())
 }
 
-pub(super) fn accepted_hash() -> Option<forge_core::ContentHash> {
+pub(crate) fn accepted_hash() -> Option<forge_core::ContentHash> {
     ACCEPTED_HASH.with(Cell::get)
 }
 
@@ -307,7 +360,11 @@ pub(crate) fn proposal(
 }
 
 fn show(placements: Vec<ManualPlacement>) {
-    if DESIRED.with(|slot| *slot.borrow() == placements) && !FAILED.with(Cell::get) {
+    show_inner(placements, false);
+}
+
+fn show_inner(placements: Vec<ManualPlacement>, force: bool) {
+    if !force && DESIRED.with(|slot| *slot.borrow() == placements) && !FAILED.with(Cell::get) {
         return;
     }
     DESIRED.with(|slot| slot.replace(placements.clone()));
@@ -345,7 +402,43 @@ fn show(placements: Vec<ManualPlacement>) {
     });
 }
 
+fn ensure_preparation(
+    epoch: u64,
+    scope: Option<crate::module_resources_acquisition::SourceToken>,
+) -> Result<(), String> {
+    if !current(epoch) {
+        return Err("Chargement des placements remplacé".into());
+    }
+    if let Some(scope) = scope {
+        crate::authoring_module_resources::ensure_companion_scope(scope)?;
+    }
+    Ok(())
+}
+
 async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepared, String> {
+    let module_head = if crate::authoring_module_resources::owns_source() {
+        Some(accepted_head().ok_or("Aucune carte ouverte")?)
+    } else {
+        None
+    };
+    let module_scope = module_head
+        .as_ref()
+        .map(crate::authoring_module_resources::capture_companion_scope)
+        .transpose()?;
+    let module_fish = if let Some(head) = &module_head {
+        let acquired = crate::authoring_module_resources::for_head(head).await?;
+        ensure_preparation(epoch, module_scope)?;
+        Some(
+            acquired
+                .iter()
+                .flat_map(|data| &data.fish_profiles)
+                .flat_map(|profile| &profile.catalog.assets)
+                .map(|asset| asset.id)
+                .collect::<BTreeSet<_>>(),
+        )
+    } else {
+        None
+    };
     let placements: Vec<_> = placements
         .into_iter()
         .filter(|p| {
@@ -357,24 +450,38 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
                 && !super::imported_buildings::is_village_props_asset(p.asset_id)
                 && !super::imported_buildings::is_beach_props_asset(p.asset_id)
                 && !super::imported_buildings::is_debris_asset(p.asset_id)
-                && !super::imported_buildings::is_fish_props_asset(p.asset_id)
+                && !module_fish.as_ref().map_or_else(
+                    || super::imported_buildings::is_fish_props_asset(p.asset_id),
+                    |assets| assets.contains(&p.asset_id),
+                )
         })
         .collect();
     let (assets, source_keys, mut total) = prepare_geometry(&placements, epoch).await?;
+    ensure_preparation(epoch, module_scope)?;
     let mut physics = BTreeMap::new();
     let mut particles = BTreeMap::new();
+    let mut physics_cache = BTreeMap::new();
     let mut particle_cache = BTreeMap::new();
     for placement in &placements {
+        ensure_preparation(epoch, module_scope)?;
         if let Some(pin) = &placement.physics {
             if !source_keys.contains(&(placement.asset_id, placement.asset_hash)) {
                 return Err("Le paquet physique sauvegardé exige son host source ; aucun remplacement par collision GLB ordinaire.".into());
             }
-            let payload = super::vault::saved_physics_for_model(
+            let key = (
                 placement.asset_id,
                 placement.asset_hash,
-                pin,
-            )
-            .await?;
+                pin.manifest_sha256,
+                pin.package_sha256,
+            );
+            let payload = if let Some(payload) = physics_cache.get(&key) {
+                Clone::clone(payload)
+            } else {
+                let payload = physics_for_placement(module_scope, placement, pin).await?;
+                account_companion_bytes(&mut total, payload.wire.len())?;
+                physics_cache.insert(key, payload.clone());
+                payload
+            };
             physics.insert(placement.id, payload);
         }
         if let Some(pin) = &placement.particles {
@@ -390,28 +497,103 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
             let payload = if let Some(payload) = particle_cache.get(&key) {
                 Clone::clone(payload)
             } else {
-                let payload = super::vault::saved_particles_for_model(
-                    placement.asset_id,
-                    placement.asset_hash,
-                    pin,
-                )
-                .await?;
-                total += payload.wire.len();
-                if total > 256 * 1024 * 1024 {
-                    return Err("Budget de fichiers placements et effets dépassé (256 Mio)".into());
-                }
+                let payload = particles_for_placement(module_scope, placement, pin).await?;
+                account_companion_bytes(&mut total, payload.wire.len())?;
                 particle_cache.insert(key, payload.clone());
                 payload
             };
             particles.insert(placement.id, payload);
         }
     }
+    ensure_preparation(epoch, module_scope)?;
     Ok(Prepared {
         placements,
         assets,
         physics,
         particles,
     })
+}
+
+async fn physics_for_placement(
+    scope: Option<crate::module_resources_acquisition::SourceToken>,
+    placement: &ManualPlacement,
+    pin: &forge_project::zone_authoring::placements::PhysicsPackageReference,
+) -> Result<super::source_graph_physics::SourcePhysicsPayload, String> {
+    if pin.schema_version != 1 || pin.carrier_sha256 != placement.asset_hash {
+        return Err("Référence physique incompatible avec le modèle sauvegardé".into());
+    }
+    let saved = forge_project::zone_authoring::session::SourceCompanionPin {
+        asset_id: placement.asset_id,
+        carrier_sha256: pin.carrier_sha256,
+        manifest_sha256: pin.manifest_sha256,
+        package_sha256: pin.package_sha256,
+    };
+    let origin = if let Some(scope) = scope {
+        crate::authoring_module_resources::placement_companion(
+            scope,
+            forge_project::module_package::ModulePlacementCompanionKind::Physics,
+            saved,
+        )
+        .await?
+    } else {
+        None
+    };
+    if let Some(wire) = origin {
+        Ok(super::source_graph_physics::SourcePhysicsPayload {
+            wire: wire.into(),
+            carrier_sha256: saved.carrier_sha256,
+            manifest_sha256: saved.manifest_sha256,
+            package_sha256: saved.package_sha256,
+        })
+    } else {
+        super::vault::saved_physics_for_model(placement.asset_id, placement.asset_hash, pin).await
+    }
+}
+
+async fn particles_for_placement(
+    scope: Option<crate::module_resources_acquisition::SourceToken>,
+    placement: &ManualPlacement,
+    pin: &forge_project::zone_authoring::placements::ParticlePackageReference,
+) -> Result<super::source_graph_particles::SourceParticlePayload, String> {
+    if pin.schema_version != 1 || pin.carrier_sha256 != placement.asset_hash {
+        return Err("Référence d'effet incompatible avec le modèle sauvegardé".into());
+    }
+    let saved = forge_project::zone_authoring::session::SourceCompanionPin {
+        asset_id: placement.asset_id,
+        carrier_sha256: pin.carrier_sha256,
+        manifest_sha256: pin.manifest_sha256,
+        package_sha256: pin.package_sha256,
+    };
+    let origin = if let Some(scope) = scope {
+        crate::authoring_module_resources::placement_companion(
+            scope,
+            forge_project::module_package::ModulePlacementCompanionKind::Particles,
+            saved,
+        )
+        .await?
+    } else {
+        None
+    };
+    if let Some(wire) = origin {
+        Ok(super::source_graph_particles::SourceParticlePayload {
+            wire: wire.into(),
+            carrier_sha256: saved.carrier_sha256,
+            manifest_sha256: saved.manifest_sha256,
+            package_sha256: saved.package_sha256,
+        })
+    } else {
+        super::vault::saved_particles_for_model(placement.asset_id, placement.asset_hash, pin).await
+    }
+}
+
+fn account_companion_bytes(total: &mut usize, bytes: usize) -> Result<(), String> {
+    *total = total
+        .checked_add(bytes)
+        .ok_or("Budget de fichiers placements et effets dépassé (256 Mio)")?;
+    if *total > 256 * 1024 * 1024 {
+        return Err("Budget de fichiers placements et effets dépassé (256 Mio)".into());
+    }
+    Ok(())
 }
 
 struct Object {
@@ -636,7 +818,7 @@ fn refresh_sources() {
                 population_owner.filter(|owner| *owner == hash),
             )));
         });
-        if ACCEPTED.with(|slot| *slot.borrow() != objects) {
+        if ACCEPTED.with(|slot| *slot.borrow() != objects) || FAILED.with(Cell::get) {
             ACCEPTED.with(|slot| slot.replace(objects.clone()));
             selection::reconcile(&objects);
             show(objects);
@@ -1057,7 +1239,7 @@ async fn prepare_geometry(
                     .await
                     .map_err(|e| format!("Catalogue : {kit_error}; Modèle installé : {e}"))?,
             };
-            let source = super::source_graph_route::read(&bytes)?.is_some();
+            let source = forge_engine::source_graph_route::read(&bytes)?.is_some();
             if source
                 && matches!(
                     layout,

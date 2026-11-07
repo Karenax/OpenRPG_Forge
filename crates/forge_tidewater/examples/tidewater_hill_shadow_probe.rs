@@ -8,7 +8,7 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::tidewater_hill_shadow::{self as hill, Images, PreparedInput, Settings};
+use forge_engine::source_shadows::heightfield::{self as hill, Images, PreparedInput, Settings};
 use std::{error::Error, fs, io::Write, path::PathBuf, sync::atomic::Ordering, time::Duration};
 
 #[derive(Resource)]
@@ -19,14 +19,17 @@ struct Proof {
     expected: Vec<u8>,
     requested: bool,
     complete: usize,
+    compare_engine: bool,
+    received: Vec<Option<Vec<u8>>>,
 }
 #[derive(Component)]
 struct Generation(usize);
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
-    if args.len() != 4 {
-        return Err("SCENE_ROOT NEW_OUTPUT EXPECTED_SHADOW_BIN HEIGHTS_BIN required".into());
+    let compare_engine = args.len() == 5 && args[4] == "--compare-engine-kernel";
+    if args.len() != 4 && !compare_engine {
+        return Err("SCENE_ROOT NEW_OUTPUT EXPECTED_SHADOW_BIN HEIGHTS_BIN [--compare-engine-kernel] required".into());
     }
     let source = PathBuf::from(&args[0]);
     let root = PathBuf::from(&args[1]);
@@ -68,8 +71,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         return Err("Invalid input accepted".into());
     }
-    let actual = PreparedInput::new(shader.clone(), mips.clone(), settings(sun))?;
-    let first = PreparedInput::new(shader, mips, settings(Vec3::Y))?;
+    if !hill::SOURCE_KERNEL.ends_with(&shader) {
+        return Err("Engine heightfield kernel differs from the pinned source body".into());
+    }
+    let actual = PreparedInput::from_heights(&heights, settings(sun))?;
+    let first = PreparedInput::from_heights(&heights, settings(Vec3::Y))?;
+    let baseline = PreparedInput::new(shader, mips, settings(sun))?;
     let mut empty = World::new();
     empty.insert_resource(Assets::<Image>::default());
     if actual.clone().stage(&mut empty).is_ok() || !empty.resource::<Assets<Image>>().is_empty() {
@@ -97,12 +104,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     .add_plugins(hill::HillShadowPlugin);
     fs::create_dir(&root)?;
     app.insert_resource(Proof {
-        inputs: vec![actual, first],
+        inputs: if compare_engine {
+            vec![actual, baseline, first]
+        } else {
+            vec![actual, first]
+        },
         generations: Vec::new(),
         root,
         expected,
         requested: false,
         complete: 0,
+        compare_engine,
+        received: vec![None; if compare_engine { 3 } else { 2 }],
     })
     .add_systems(Update, update);
     if app.run() != AppExit::Success {
@@ -139,8 +152,16 @@ fn update(world: &mut World) {
         println!("staged heightfield shadows at frame {frame}");
         return;
     }
-    if world.resource::<Proof>().complete == 2 {
-        world.write_message(AppExit::Success);
+    if world.resource::<Proof>().complete == world.resource::<Proof>().received.len() {
+        let result = finish(world.resource::<Proof>());
+        if let Err(error) = &result {
+            eprintln!("{error}");
+        }
+        world.write_message(if result.is_ok() {
+            AppExit::Success
+        } else {
+            AppExit::error()
+        });
         return;
     }
     if world.resource::<Proof>().requested {
@@ -156,6 +177,41 @@ fn update(world: &mut World) {
     }
 }
 
+fn finish(proof: &Proof) -> Result<(), Box<dyn Error>> {
+    if !proof.compare_engine {
+        return Ok(());
+    }
+    let first = proof.received[0]
+        .as_ref()
+        .ok_or("Vertical generation absent")?;
+    let baseline = proof.received[1]
+        .as_ref()
+        .ok_or("Acquired shader baseline absent")?;
+    let engine = proof.received[2]
+        .as_ref()
+        .ok_or("Engine kernel generation absent")?;
+    let same = baseline == engine && first != baseline;
+    let report = serde_json::json!({
+        "schema":"forge.heightfield-engine-kernel-comparison.v1",
+        "passed":same,"baseline_sha256":forge_core::bytes_sha256(baseline),
+        "engine_sha256":forge_core::bytes_sha256(engine),
+        "archived_reference_sha256":forge_core::bytes_sha256(&proof.expected),
+        "archived_reference_equal":engine == &proof.expected,
+        "archived_different_bytes":engine.iter().zip(&proof.expected).filter(|(a,b)|a!=b).count(),
+        "scope":"Acquired shader and engine kernel on the same device and inputs; archived reference parity remains a separate result",
+        "gate_closed":false,
+    });
+    fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(proof.root.join("comparison.json"))?
+        .write_all(&serde_json::to_vec_pretty(&report)?)?;
+    if !same {
+        return Err("Engine kernel differs from acquired shader baseline".into());
+    }
+    Ok(())
+}
+
 fn receive(
     event: On<ReadbackComplete>,
     items: Query<&Generation>,
@@ -168,9 +224,6 @@ fn receive(
         if event.data.len() != proof.expected.len() {
             return Err("Readback length differs".into());
         }
-        if (index == 1) != (event.data == proof.expected) {
-            return Err("Replacement did not produce the expected distinct generation".into());
-        }
         fs::OpenOptions::new()
             .create_new(true)
             .write(true)
@@ -180,6 +233,10 @@ fn receive(
             "generation {index} sha256 {}",
             forge_core::bytes_sha256(&event.data)
         );
+        proof.received[index] = Some(event.data.clone());
+        if !proof.compare_engine && (index == 1) != (event.data == proof.expected) {
+            return Err("Replacement did not produce the expected distinct generation; actual readback retained".into());
+        }
         Ok(())
     })();
     match result {

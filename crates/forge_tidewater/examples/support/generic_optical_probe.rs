@@ -3,8 +3,11 @@
 use bevy::render::pipelined_rendering::PipelinedRenderingPlugin;
 use bevy::{
     app::PluginsState,
-    camera::{RenderTarget, visibility::RenderLayers},
-    core_pipeline::{prepass::DepthPrepass, tonemapping::DebandDither},
+    camera::{Hdr, RenderTarget, visibility::RenderLayers},
+    core_pipeline::{
+        prepass::DepthPrepass,
+        tonemapping::{DebandDither, Tonemapping},
+    },
     platform::time::Instant,
     prelude::*,
     render::{
@@ -22,12 +25,11 @@ use std::{
     time::Duration,
 };
 use {
+    forge_engine::ambient_occlusion::AmbientOcclusionSettings,
+    forge_engine::film_grain::FilmGrain,
+    forge_engine::lens_flare::LensFlare,
     forge_engine::lens_flare_sun::SceneSun,
-    forge_tidewater::{
-        ambient_occlusion::{AmbientOcclusionPlugin, AmbientOcclusionSettings},
-        film_grain::{FilmGrain, FilmGrainPlugin},
-        lens_flare::{LensFlare, LensFlarePlugin},
-    },
+    forge_engine::source_final_post::{Controls, PluginSourceFinal},
 };
 type Error = Box<dyn std::error::Error>;
 type Captures = Arc<Mutex<BTreeMap<String, Vec<u8>>>>;
@@ -39,7 +41,7 @@ struct View {
     target: Handle<Image>,
 }
 
-fn build() -> App {
+fn build() -> Result<App, Error> {
     let mut app = App::new();
     let settings = WgpuSettings {
         backends: Some(if cfg!(target_arch = "wasm32") {
@@ -63,7 +65,8 @@ fn build() -> App {
     #[cfg(not(target_arch = "wasm32"))]
     let plugins = plugins.disable::<PipelinedRenderingPlugin>();
     app.add_plugins(plugins);
-    app.add_plugins((FilmGrainPlugin, AmbientOcclusionPlugin, LensFlarePlugin));
+    forge_engine::source_graphics::install(&mut app)?;
+    app.add_plugins(PluginSourceFinal);
     app.insert_resource(GlobalAmbientLight {
         brightness: 120.0,
         ..default()
@@ -75,7 +78,7 @@ fn build() -> App {
         )
         .expect("constant unit sun"),
     );
-    app
+    Ok(app)
 }
 
 fn scene(app: &mut App, layer: usize, name: &'static str, color: Color) -> View {
@@ -243,7 +246,7 @@ async fn capture(
 }
 
 pub async fn run(output: Option<&str>) -> Result<serde_json::Value, Error> {
-    let mut app = build();
+    let mut app = build()?;
     let deadline = Instant::now() + Duration::from_secs(30);
     while app.plugins_state() != PluginsState::Ready {
         if Instant::now() > deadline {
@@ -297,7 +300,11 @@ pub async fn run(output: Option<&str>) -> Result<serde_json::Value, Error> {
         }
         capture(&mut app, &views, phase, &captures, output).await?;
     }
+    final_phases(&mut app, &views, &captures, output).await?;
+    let final_submissions = final_submissions(&mut app, &views)?;
+    let shared_graphics = shared_graphics_phase(&mut app, &views[0], &captures, output).await?;
     let captures = captures.lock().map_err(|e| e.to_string())?;
+    let final_post = compare_final(&captures, &views)?;
     let (passed, rows, failure) = match compare_effects(&captures, &views) {
         Ok(rows) => (true, rows, None),
         Err(error) => (false, Vec::new(), Some(error.to_string())),
@@ -313,8 +320,254 @@ pub async fn run(output: Option<&str>) -> Result<serde_json::Value, Error> {
             .is_some_and(|(baseline, control)| baseline == control)
     });
     Ok(
-        serde_json::json!({"schema":"forge.generic-optical-gpu-proof.v1","passed":passed,"failure":failure,"observations":observations,"width":WIDTH,"height":HEIGHT,"source_assets":0,"control_frames_byte_equal":control_equal,"imported_materials":0,"comparisons":rows,"images":images,"global_engine_genericity_qualified":false,"adapter":format!("{:?}", app.get_sub_app(RenderApp).ok_or("Render app absent")?.world().resource::<bevy::render::renderer::RenderAdapterInfo>().0)}),
+        serde_json::json!({"schema":"forge.generic-optical-gpu-proof.v1","passed":passed,"failure":failure,"observations":observations,"width":WIDTH,"height":HEIGHT,"source_assets":0,"control_frames_byte_equal":control_equal,"imported_materials":0,"comparisons":rows,"final_post":final_post,"final_submissions":final_submissions,"shared_graphics":shared_graphics,"images":images,"global_engine_genericity_qualified":false,"adapter":format!("{:?}", app.get_sub_app(RenderApp).ok_or("Render app absent")?.world().resource::<bevy::render::renderer::RenderAdapterInfo>().0)}),
     )
+}
+
+fn matching_view(app: &mut App, reference: &View) -> Result<View, Error> {
+    let world = app.world_mut();
+    let transform = *world
+        .get::<Transform>(reference.camera)
+        .ok_or("Reference camera absent")?;
+    let clear = world
+        .get::<Camera>(reference.camera)
+        .ok_or("Reference camera absent")?
+        .clear_color;
+    let mut image = Image::new_target_texture(WIDTH, HEIGHT, TextureFormat::Rgba8UnormSrgb, None);
+    image.texture_descriptor.usage |= TextureUsages::COPY_SRC;
+    let target = world.resource_mut::<Assets<Image>>().add(image);
+    let camera = world
+        .spawn((
+            Camera3d::default(),
+            Camera {
+                clear_color: clear,
+                ..default()
+            },
+            RenderTarget::Image(target.clone().into()),
+            RenderLayers::layer(0),
+            Msaa::Off,
+            DepthPrepass,
+            DebandDither::Disabled,
+            transform,
+        ))
+        .id();
+    Ok(View {
+        name: "slate-module",
+        camera,
+        target,
+    })
+}
+
+/// Compare two actual camera renders on the same procedural scene and inputs.
+async fn shared_graphics_phase(
+    app: &mut App,
+    reference: &View,
+    captures: &Captures,
+    output: Option<&str>,
+) -> Result<serde_json::Value, Error> {
+    let twin = matching_view(app, reference)?;
+    let quality = forge_project::PostProcessQualitySettings {
+        bloom_enabled: true,
+        color_grading_enabled: true,
+        tonemapping_enabled: true,
+    };
+    let reference_values = forge_engine::source_graphics::Settings {
+        film_grain: 0.0,
+        auto_exposure: 0.0,
+        ..default()
+    };
+    let mut module_values = forge_engine::source_graphics::Settings::for_quality(quality, false)?;
+    module_values.film_grain = 0.0;
+    module_values.auto_exposure = 0.0;
+    if reference_values != module_values {
+        return Err("Reference and module settings differ".into());
+    }
+    for (view, values) in [(reference, reference_values), (&twin, module_values)] {
+        forge_engine::source_graphics::apply(
+            app.world_mut(),
+            view.camera,
+            values,
+            quality,
+            forge_engine::source_graphics::Pipeline::Reference,
+        )?;
+        if !forge_engine::source_graphics::reference_matches(
+            app.world(),
+            view.camera,
+            values,
+            quality,
+        ) {
+            return Err("Shared graphics camera inputs differ".into());
+        }
+    }
+    settle(app).await?;
+    capture(
+        app,
+        &[
+            View {
+                name: reference.name,
+                camera: reference.camera,
+                target: reference.target.clone(),
+            },
+            twin,
+        ],
+        "shared",
+        captures,
+        output,
+    )
+    .await?;
+    let images = captures.lock().map_err(|e| e.to_string())?;
+    let first = images
+        .get("slate-courtyard-shared")
+        .ok_or("Reference shared readback absent")?;
+    let second = images
+        .get("slate-module-shared")
+        .ok_or("Module shared readback absent")?;
+    if first != second {
+        return Err("Shared graphics camera images differ".into());
+    }
+    Ok(serde_json::json!({
+        "same_scene_and_camera":true,
+        "same_settings_and_engine_application":true,
+        "identical_gpu_readback":true,
+        "sha256":forge_core::bytes_sha256(first).to_string(),
+        "grain_and_auto_exposure_disabled_for_determinism":true,
+        "actual_module_scene_qualified":false,
+        "performance_qualified":false
+    }))
+}
+
+fn final_submissions(app: &mut App, views: &[View]) -> Result<Vec<serde_json::Value>, Error> {
+    let mut rows = Vec::new();
+    for view in views {
+        let submission =
+            forge_engine::source_final_post::observation::submitted(app.world(), view.camera)
+                .ok_or("Final encoding observation absent")?;
+        let controls = app
+            .world()
+            .get::<Controls>(view.camera)
+            .ok_or("Final controls absent")?;
+        if !submission.matches(
+            controls,
+            UVec2::new(WIDTH, HEIGHT),
+            app.world().resource::<bevy::diagnostic::FrameCount>().0,
+        ) {
+            return Err("Final encoding observation is stale or mismatched".into());
+        }
+        rows.push(serde_json::json!({"scene":view.name,"first_frame":submission.first_frame,"last_frame":submission.last_frame,"submitted":submission.submitted,"settings_bits":submission.control_bits,"encoding_only":true}));
+    }
+    app.world_mut()
+        .entity_mut(views[0].camera)
+        .remove::<Controls>();
+    advance(app)?;
+    if forge_engine::source_final_post::observation::submitted(app.world(), views[0].camera)
+        .is_some()
+    {
+        return Err("Retired final controls retained a live encoding receipt".into());
+    }
+    Ok(rows)
+}
+
+async fn final_phases(
+    app: &mut App,
+    views: &[View],
+    captures: &Captures,
+    output: Option<&str>,
+) -> Result<(), Error> {
+    for phase in [
+        "final-input",
+        "final-control",
+        "final-grade",
+        "final-bloom",
+        "final-ae",
+    ] {
+        for view in views {
+            let world = app.world_mut();
+            world
+                .get_mut::<AmbientOcclusionSettings>(view.camera)
+                .ok_or("AO absent")?
+                .set_strength(0.0);
+            world
+                .entity_mut(view.camera)
+                .insert((Hdr, Tonemapping::None));
+            if !matches!(phase, "final-input" | "final-control") {
+                world.entity_mut(view.camera).insert(Controls {
+                    grade: Vec4::new(0.0, 1.0, 1.0, 0.0),
+                    effects: Vec4::new(
+                        0.0,
+                        if phase == "final-bloom" { 1.5 } else { 0.0 },
+                        0.55,
+                        if phase == "final-ae" { 1.0 } else { 0.0 },
+                    ),
+                    timing: Vec4::ZERO,
+                    frame: UVec4::ZERO,
+                });
+            }
+        }
+        settle(app).await?;
+        if phase == "final-ae" {
+            // Actual successive final submissions and next-frame GPU exposure;
+            // no captured exposure or replacement renderer is supplied.
+            for _ in 0..140 {
+                advance(app)?;
+                next_frame().await?;
+            }
+            settle(app).await?;
+        }
+        capture(app, views, phase, captures, output).await?;
+    }
+    Ok(())
+}
+
+fn compare_final(
+    captures: &BTreeMap<String, Vec<u8>>,
+    views: &[View],
+) -> Result<Vec<serde_json::Value>, Error> {
+    let mut rows = Vec::new();
+    for view in views {
+        let get = |phase| {
+            captures
+                .get(&format!("{}-{phase}", view.name))
+                .ok_or("Final-pass image absent")
+        };
+        if get("final-input")? != get("final-control")? {
+            return Err("Unstable HDR input/control before the shared final pass".into());
+        }
+        for (before, after) in [
+            ("final-input", "final-grade"),
+            ("final-grade", "final-bloom"),
+            ("final-grade", "final-ae"),
+        ] {
+            let a = get(before)?;
+            let b = get(after)?;
+            if a.len() != WIDTH as usize * HEIGHT as usize * 4 || a.len() != b.len() {
+                return Err("Unexpected final-pass readback storage".into());
+            }
+            // Ignore <= 8 levels of per-frame dither; a changed hash alone is
+            // insufficient to prove bloom or exposure executed.
+            let large_changes = a
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .zip(b.as_chunks::<4>().0.iter())
+                .filter(|(a, b)| a[..3].iter().zip(&b[..3]).any(|(a, b)| a.abs_diff(*b) > 8))
+                .count();
+            let mean_rgb = |bytes: &[u8]| {
+                bytes
+                    .as_chunks::<4>()
+                    .0
+                    .iter()
+                    .map(|p| f64::from(p[0]) + f64::from(p[1]) + f64::from(p[2]))
+                    .sum::<f64>()
+                    / (f64::from(WIDTH) * f64::from(HEIGHT) * 3.0)
+            };
+            let mean_change = mean_rgb(b) - mean_rgb(a);
+            if large_changes < 64 || (after == "final-bloom" && mean_change <= 2.0) {
+                return Err(format!("Shared final effect {after} insufficient: {large_changes} large changes, mean delta {mean_change}").into());
+            }
+            rows.push(serde_json::json!({"scene":view.name,"before":before,"after":after,"large_changed_pixels":large_changes,"mean_rgb_delta_u8":mean_change,"sha256":forge_core::bytes_sha256(b).to_string(),"temporal_resolve_qualified":false}));
+        }
+    }
+    Ok(rows)
 }
 
 #[cfg(not(target_arch = "wasm32"))]

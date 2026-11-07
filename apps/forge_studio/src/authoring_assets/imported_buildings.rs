@@ -4,38 +4,78 @@ pub(super) use catalog::entries as catalog_entries;
 pub(crate) use debris::Prepared as PreparedDebrisInput;
 
 pub(crate) fn debris_input() -> Option<Rc<PreparedDebrisInput>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     debris::input()
 }
 
 pub(crate) fn debris_templates() -> Vec<forge_tidewater::tidewater_debris::DebrisTemplate> {
+    if crate::authoring_module_resources::owns_source() {
+        return Vec::new();
+    }
     debris::templates()
 }
 
 pub(crate) fn is_debris_asset(asset: forge_core::AssetId) -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return false;
+    }
     debris::contains(asset)
 }
 mod source_objects;
 pub(crate) use source_objects::source_placements;
 // Explicit acquisition of the locally deployed imported building library.
 use bevy::ecs as bevy_ecs;
+use forge_assets::source_environment_package::EnvironmentPackage;
+use forge_assets::source_ocean_package::OceanPackage;
+use forge_assets::source_shore_sim_package::ShoreSimPackage;
+use forge_assets::source_surface_package::SurfacePackage;
+use forge_assets::source_terrain_package::TerrainPackage;
+use forge_assets::source_water_surface_package::WaterSurfacePackage;
 use forge_core::ContentHash;
-use forge_tidewater::tidewater_assets::{PreparedLibrary, PreparedMeshes};
-use forge_tidewater::tidewater_terrain::textures::PreparedSurface;
-use forge_tidewater_assets::{
-    tidewater_beach_props::BeachPropPackage, tidewater_boardwalk::BoardwalkPackage,
-    tidewater_environment::EnvironmentPackage, tidewater_fish_props::FishPropPackage,
-    tidewater_fish_stand::FishStandPackage, tidewater_game_fish::GameFishPackage,
-    tidewater_ground_bounce::GroundBouncePackage, tidewater_ocean::OceanPackage,
-    tidewater_package::BuildingPackage, tidewater_pier::PierPackage, tidewater_plaza::PlazaPackage,
-    tidewater_shore_sim::ShoreSimPackage, tidewater_village_props::VillagePropPackage,
-    tidewater_water_surface::WaterSurfacePackage,
-};
-use forge_tidewater_assets::{tidewater_plants::PlantPackage, tidewater_terrain::TerrainPackage};
-type PreparedBuildings = (PreparedMeshes, PreparedLibrary);
-pub(super) enum PlantUpdate {
+use forge_engine::source_surface::geometry::PreparedMeshes;
+use forge_engine::source_surface::package::PreparedLibrary;
+use forge_engine::source_terrain::textures::PreparedSurface;
+use forge_tidewater_assets::tidewater_beach_props::BeachPropPackage;
+use forge_tidewater_assets::tidewater_boardwalk::BoardwalkPackage;
+use forge_tidewater_assets::tidewater_fish_props::FishPropPackage;
+use forge_tidewater_assets::tidewater_fish_stand::FishStandPackage;
+use forge_tidewater_assets::tidewater_game_fish::GameFishPackage;
+use forge_tidewater_assets::tidewater_ground_bounce::GroundBouncePackage;
+use forge_tidewater_assets::tidewater_pier::PierPackage;
+use forge_tidewater_assets::tidewater_plants::PlantPackage;
+use forge_tidewater_assets::tidewater_plaza::PlazaPackage;
+use forge_tidewater_assets::tidewater_village_props::VillagePropPackage;
+pub(crate) type PreparedBuildings = (PreparedMeshes, PreparedLibrary);
+pub(crate) enum BuildingUpdate {
     Remove,
-    Replace(Box<forge_tidewater::tidewater_plants::textures::PreparedTextures>),
+    Replace {
+        prepared: Box<PreparedBuildings>,
+        module_index: Option<ContentHash>,
+    },
 }
+pub(crate) enum EnvironmentUpdate {
+    Remove,
+    Replace {
+        prepared: Box<forge_engine::source_environment::scene::PreparedEnvironment>,
+        module_index: Option<ContentHash>,
+    },
+}
+#[derive(bevy::prelude::Resource)]
+pub(crate) struct ResidentObjectSource(pub Option<ContentHash>);
+#[derive(bevy::prelude::Resource)]
+pub(crate) struct ResidentEnvironmentSource(pub Option<ContentHash>);
+pub(crate) enum PlantUpdate {
+    Remove,
+    Replace {
+        package: Rc<PlantPackage>,
+        prepared: Box<forge_engine::source_vegetation::textures::PreparedTextures>,
+        module_index: Option<ContentHash>,
+    },
+}
+#[derive(bevy::prelude::Resource)]
+pub(crate) struct ResidentPlantSource(pub Option<ContentHash>);
 pub(super) enum TerrainUpdate {
     Remove,
     Replace(Box<PreparedSurface>),
@@ -59,9 +99,9 @@ thread_local! {
     static GENERATION: Cell<u64> = const { Cell::new(0) };
     static PUBLISHED: Cell<u64> = const { Cell::new(0) };
     static PROJECTION_LOADING: Cell<bool> = const { Cell::new(false) };
-    static PREPARED_ENVIRONMENT: RefCell<Option<forge_tidewater::tidewater_scene_environment::PreparedEnvironment>> = const { RefCell::new(None) };
+    static PREPARED_ENVIRONMENT: RefCell<Option<forge_engine::source_environment::scene::PreparedEnvironment>> = const { RefCell::new(None) };
     static ENVIRONMENT: RefCell<Option<(ContentHash, Rc<EnvironmentPackage>)>> = const { RefCell::new(None) };
-    static ENVIRONMENT_PROGRAMS: RefCell<Option<Rc<forge_tidewater_assets::tidewater_environment::programs::ProgramsPackage>>> = const { RefCell::new(None) };
+    static ENVIRONMENT_PROGRAMS: RefCell<Option<Rc<forge_assets::source_environment_package::programs::ProgramsPackage>>> = const { RefCell::new(None) };
     static OCEAN: RefCell<Option<(ContentHash, Rc<OceanPackage>)>> = const { RefCell::new(None) };
     static WATER_SURFACE: RefCell<Option<(ContentHash, Rc<WaterSurfacePackage>)>> = const { RefCell::new(None) };
     static SHORE_SIM: RefCell<Option<(ContentHash, Rc<ShoreSimPackage>)>> = const { RefCell::new(None) };
@@ -81,13 +121,53 @@ thread_local! {
     static BEACH_PROPS_TEMPLATES: RefCell<Vec<forge_tidewater::tidewater_beach_props::BeachPropsTemplate>> = const { RefCell::new(Vec::new()) };
     static FISH_PROPS: RefCell<Option<(ContentHash, Rc<FishPropPackage>)>> = const { RefCell::new(None) };
     static GAME_FISH: RefCell<Option<Rc<GameFishPackage>>> = const { RefCell::new(None) };
-    static FISH_PROPS_TEMPLATES: RefCell<Vec<forge_tidewater::tidewater_fish_props::FishPropsTemplate>> = const { RefCell::new(Vec::new()) };
+    static FISH_PROPS_TEMPLATES: RefCell<Vec<forge_engine::source_fish::prepare::FishPropsTemplate>> = const { RefCell::new(Vec::new()) };
     static PLAZA_READY: RefCell<Option<RwSignal<bool>>> = const { RefCell::new(None) };
-    static PACKAGE: RefCell<Option<(ContentHash, Rc<BuildingPackage>)>> = const { RefCell::new(None) };
+    static PACKAGE: RefCell<Option<(ContentHash, Rc<SurfacePackage>)>> = const { RefCell::new(None) };
     static LOCAL_LIGHTS: RefCell<Option<std::sync::Arc<forge_assets::source_local_lights::SourceLocalLightsPackage>>> = const { RefCell::new(None) };
 }
 
+fn canonical_projection(
+    document: &forge_project::TerrainDocument,
+) -> Result<LibraryLoaded, String> {
+    let active = crate::authoring_viewport::imported_document().ok_or("Aucune carte ouverte")?;
+    if (active.project_id, active.area_id, &active.sampled_source)
+        != (
+            document.project_id,
+            document.area_id,
+            &document.sampled_source,
+        )
+    {
+        return Err("La carte a changé pendant le choix de son affichage.".into());
+    }
+    let hash = active.content_hash().map_err(|error| error.to_string())?;
+    CANONICAL_PROJECTION.with(|choice| choice.replace(Some(hash)));
+    crate::authoring_viewport::retry_imported();
+    Ok(LibraryLoaded::CanonicalProjection)
+}
+
+pub(crate) fn verify_terrain_projection(
+    document: &forge_project::TerrainDocument,
+) -> Result<(), String> {
+    source_objects::verify_projection_source(
+        document,
+        terrain_package().as_deref(),
+        plant_package().as_deref(),
+    )
+}
+
 const RESUME_KEY: &str = "forge.imported-library.resume.v1";
+
+#[derive(Clone, Copy)]
+pub(crate) enum ProjectionResources {
+    Loading,
+    Library,
+    Canonical,
+}
+
+thread_local! {
+    static CANONICAL_PROJECTION: RefCell<Option<ContentHash>> = const { RefCell::new(None) };
+}
 
 fn resume_store() -> Option<web_sys::Storage> {
     web_sys::window()?.session_storage().ok().flatten()
@@ -129,25 +209,51 @@ fn remember_choice(document: &forge_project::TerrainDocument, hash: ContentHash)
 pub(crate) fn ensure_for_projection(
     document: &forge_project::TerrainDocument,
     playtest: bool,
-) -> Result<bool, String> {
+) -> Result<ProjectionResources, String> {
+    if crate::authoring_module_resources::owns_source() {
+        if let Some(data) = crate::authoring_module_resources::acquired()
+            && data.imported.is_some()
+            && crate::authoring_imported_population::ready_head_hash()
+                != Some(data.snapshot.head_hash)
+        {
+            crate::authoring_viewport::report("Chargement de la végétation de la carte…".into());
+            return Ok(ProjectionResources::Loading);
+        }
+        return if crate::authoring_module_resources::available() {
+            Ok(ProjectionResources::Canonical)
+        } else {
+            crate::authoring_module_resources::loading_status()?;
+            Ok(ProjectionResources::Loading)
+        };
+    }
+    let hash = document.content_hash().map_err(|error| error.to_string())?;
+    if !source_objects::supports_geometry(document)?
+        || CANONICAL_PROJECTION.with(|choice| *choice.borrow() == Some(hash))
+    {
+        return Ok(ProjectionResources::Canonical);
+    }
     if building_package().is_some()
         && terrain_package().is_some()
         && plant_package().is_some()
         && has_environment()
     {
-        source_objects::verify_projection_source(
+        let matches = source_objects::projection_matches(
             document,
             terrain_package().as_deref(),
             plant_package().as_deref(),
         )?;
-        return Ok(true);
+        return Ok(if matches {
+            ProjectionResources::Library
+        } else {
+            ProjectionResources::Canonical
+        });
     }
     let choice = restore_choice(document)?;
     if choice.is_none() && !playtest && !crate::authoring_viewport::requested() {
         return Err("Charger les ressources du terrain importé avant sa projection.".into());
     }
     if PROJECTION_LOADING.with(|loading| loading.replace(true)) {
-        return Ok(false);
+        return Ok(ProjectionResources::Loading);
     }
     let ticket = next();
     let source = (document.area_id, document.sampled_source.clone());
@@ -170,13 +276,18 @@ pub(crate) fn ensure_for_projection(
             crate::authoring_loading::finish();
         }
     });
-    Ok(false)
+    Ok(ProjectionResources::Loading)
 }
 
 #[derive(Clone, Copy)]
 enum LibraryPurpose {
     Projection,
     Catalog,
+}
+
+enum LibraryLoaded {
+    Library { count: usize, environment: bool },
+    CanonicalProjection,
 }
 
 #[derive(serde::Deserialize)]
@@ -244,10 +355,24 @@ async fn load(
     ticket: u64,
     expected: Option<crate::library_resume::LibraryResume>,
     purpose: LibraryPurpose,
-) -> Result<(usize, bool), String> {
+) -> Result<LibraryLoaded, String> {
     use crate::governed_kit::transport;
     let document = crate::authoring_viewport::imported_document();
-    let bytes = transport::fetch_building_candidate().await?;
+    let bytes = if matches!(purpose, LibraryPurpose::Projection) {
+        match transport::fetch_optional_building_candidate().await? {
+            Some(bytes) => bytes,
+            None if expected.is_none() => {
+                return canonical_projection(document.as_ref().ok_or("Aucune carte ouverte")?);
+            }
+            None => {
+                return Err(
+                    "La bibliothèque retenue est absente. Vérifiez son installation.".into(),
+                );
+            }
+        }
+    } else {
+        transport::fetch_building_candidate().await?
+    };
     let candidate_hash = forge_core::bytes_sha256(&bytes);
     if let Some(choice) = &expected {
         if !document
@@ -264,7 +389,7 @@ async fn load(
     }
     let hash = candidate.package_sha256;
     let manifest = transport::fetch_building_payload(hash, "package.json", 2 * 1024 * 1024).await?;
-    let package = BuildingPackage::load_async(&manifest, hash, |name, limit| async move {
+    let package = SurfacePackage::load_async(&manifest, hash, |name, limit| async move {
         if !current(ticket) {
             return Err("Chargement remplacé".into());
         }
@@ -285,7 +410,7 @@ async fn load(
         })
         .await?;
         prepared_environment = Some(
-            forge_tidewater::tidewater_scene_environment::PreparedEnvironment::new(&resources)
+            forge_engine::source_environment::package::prepare(&resources)
                 .map_err(|e| e.to_string())?,
         );
         Some((pin, Rc::new(resources)))
@@ -302,7 +427,7 @@ async fn load(
         let manifest =
             transport::fetch_building_payload(pin, "environment-programs.json", 2_000_000).await?;
         let package =
-            forge_tidewater_assets::tidewater_environment::programs::ProgramsPackage::load_async(
+            forge_assets::source_environment_package::programs::ProgramsPackage::load_async(
                 &manifest,
                 pin,
                 |name, limit| async move {
@@ -314,7 +439,7 @@ async fn load(
             )
             .await?;
         // Validate kernel identities/layouts before publishing any library resources.
-        forge_tidewater::tidewater_environment::programs::Input::from_package(&package)?;
+        forge_engine::source_environment::programs::package::from_package(&package)?;
         Some(Rc::new(package))
     } else {
         None
@@ -510,9 +635,11 @@ async fn load(
             transport::fetch_building_payload(pin, &name, limit).await
         })
         .await?;
-        let prepared =
-            forge_tidewater::tidewater_fish_props::PreparedFishProps::from_package(&resources)?;
-        (Some((pin, Rc::new(resources))), prepared.templates())
+        let prepared = forge_engine::source_fish::prepare::profile(&resources)?;
+        (
+            Some((pin, Rc::new(resources))),
+            forge_engine::source_fish::prepare::summaries(&prepared),
+        )
     } else {
         (None, Vec::new())
     };
@@ -559,7 +686,7 @@ async fn load(
         .as_ref()
         .map(|p| PreparedSurface::from_package(p))
         .transpose()?;
-    let prepared_plants = prepare_plants(plants.as_deref())?;
+    let prepared_plants = prepare_plants(plants.clone(), None)?;
     let pier_motion = if let Some(pin) = candidate.pier_motion_sha256 {
         let (_, geometry) = pier
             .as_ref()
@@ -597,7 +724,7 @@ async fn load(
     {
         return Err("Le bundle FishStand ne correspond pas à la bibliothèque de bâtiments".into());
     }
-    let geometry = PreparedMeshes::load(&package)?;
+    let geometry = forge_engine::source_surface::package::prepare_meshes(&package)?;
     let library = PreparedLibrary::load(&package)?;
     let local_lights =
         load_local_lights(ticket, candidate.source_local_lights_sha256, &package).await?;
@@ -606,11 +733,14 @@ async fn load(
     }
     if let Some(document) = &document {
         if matches!(purpose, LibraryPurpose::Projection) {
-            source_objects::verify_projection_source(
+            let matches = source_objects::projection_matches(
                 document,
                 terrain.as_deref(),
                 plants.as_deref(),
             )?;
+            if !matches {
+                return canonical_projection(document);
+            }
         }
         let scope = crate::library_resume::LibraryResume::new(document, candidate_hash)
             .ok_or("Source terrain invalide pour la bibliothèque")?;
@@ -675,7 +805,10 @@ async fn load(
         remember_choice(document, candidate_hash);
     }
     crate::authoring_viewport::retry_imported();
-    Ok((count, has_environment))
+    Ok(LibraryLoaded::Library {
+        count,
+        environment: has_environment,
+    })
 }
 
 async fn load_fish_stand(
@@ -701,7 +834,7 @@ async fn load_fish_stand(
 async fn load_local_lights(
     ticket: u64,
     pin: Option<ContentHash>,
-    buildings: &BuildingPackage,
+    buildings: &SurfacePackage,
 ) -> Result<
     Option<std::sync::Arc<forge_assets::source_local_lights::SourceLocalLightsPackage>>,
     String,
@@ -726,8 +859,10 @@ async fn load_local_lights(
     if !current(ticket) {
         return Err("Chargement remplacé".into());
     }
-    forge_tidewater::tidewater_assets::local_lights::BuildingLightBindings::from_packages(
-        buildings, &lights,
+    forge_engine::source_lighting::local_lights::projection::source_object::SourceObjectLightBindings::from_sources(
+        buildings.source_commit(),
+        forge_engine::source_lighting::local_lights::projection::source_object::sources_from_surfaces(buildings)?,
+        &lights,
     )?;
     Ok(Some(std::sync::Arc::new(lights)))
 }
@@ -741,10 +876,17 @@ pub(super) struct VerifiedLocalLights(
 
 pub(super) fn local_lights_package()
 -> Option<std::sync::Arc<forge_assets::source_local_lights::SourceLocalLightsPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     LOCAL_LIGHTS.with(|slot| slot.borrow().clone())
 }
 
 pub(super) fn stage_local_lights(world: &mut bevy::prelude::World) {
+    if crate::authoring_module_resources::owns_source() {
+        world.remove_resource::<VerifiedLocalLights>();
+        return;
+    }
     LOCAL_LIGHTS.with(|slot| {
         let package = slot.borrow();
         if let Some(package) = package.as_ref() {
@@ -777,24 +919,36 @@ async fn load_plants(
     Ok(Some(Rc::new(resources)))
 }
 
-fn prepare_plants(package: Option<&PlantPackage>) -> Result<PlantUpdate, String> {
-    package
-        .map(forge_tidewater::tidewater_plants::textures::PreparedTextures::from_package)
-        .transpose()
-        .map(|value| {
-            value
-                .map(Box::new)
-                .map_or(PlantUpdate::Remove, PlantUpdate::Replace)
-        })
+pub(crate) fn prepare_plants(
+    package: Option<Rc<PlantPackage>>,
+    module_index: Option<ContentHash>,
+) -> Result<PlantUpdate, String> {
+    let Some(package) = package else {
+        return Ok(PlantUpdate::Remove);
+    };
+    let prepared = Box::new(
+        forge_engine::source_vegetation::textures::PreparedTextures::from_package(&package)?,
+    );
+    Ok(PlantUpdate::Replace {
+        package,
+        prepared,
+        module_index,
+    })
 }
 pub(super) fn take_plants() -> Option<PlantUpdate> {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::take_plants();
+    }
     PREPARED_PLANTS.with(|slot| slot.borrow_mut().take())
 }
-pub(super) fn restore_plants() -> Result<(), String> {
+pub(crate) fn restore_plants() -> Result<(), String> {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::restore_plants();
+    }
     if PREPARED_PLANTS.with(|slot| slot.borrow().is_some()) {
         return Ok(());
     }
-    let prepared = PLANTS.with(|slot| prepare_plants(slot.borrow().as_deref()))?;
+    let prepared = PLANTS.with(|slot| prepare_plants(slot.borrow().clone(), None))?;
     PREPARED_PLANTS.with(|slot| slot.replace(Some(prepared)));
     Ok(())
 }
@@ -803,56 +957,119 @@ pub(crate) fn plant_package() -> Option<Rc<PlantPackage>> {
     PLANTS.with(|slot| slot.borrow().clone())
 }
 
+pub(crate) fn authored_plant_package() -> Option<Rc<PlantPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        crate::authoring_module_resources::plant_package()
+    } else {
+        plant_package()
+    }
+}
+
+pub(crate) fn plant_resources_ready(world: &bevy::prelude::World) -> bool {
+    if crate::authoring_module_resources::owns_source()
+        && !crate::authoring_module_resources::available()
+    {
+        return false;
+    }
+    let expected = if crate::authoring_module_resources::owns_source() {
+        crate::authoring_module_resources::expected_index()
+    } else {
+        None
+    };
+    world
+        .get_resource::<ResidentPlantSource>()
+        .is_some_and(|actual| actual.0 == expected)
+}
+
 pub(crate) fn terrain_package() -> Option<Rc<TerrainPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     TERRAIN.with(|slot| slot.borrow().clone())
 }
 
 pub(crate) fn ocean_package() -> Option<Rc<OceanPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     OCEAN.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn water_surface_package() -> Option<Rc<WaterSurfacePackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     WATER_SURFACE.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn shore_sim_package() -> Option<Rc<ShoreSimPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     SHORE_SIM.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn ground_bounce_package() -> Option<Rc<GroundBouncePackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     GROUND_BOUNCE.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn boardwalk_package() -> Option<Rc<BoardwalkPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     BOARDWALK.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn pier_package() -> Option<Rc<PierPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     PIER.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn plaza_package() -> Option<Rc<PlazaPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     PLAZA.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn plaza_templates() -> Vec<forge_tidewater::tidewater_plaza::PlazaTemplate> {
+    if crate::authoring_module_resources::owns_source() {
+        return Vec::new();
+    }
     PLAZA_TEMPLATES.with(|slot| slot.borrow().clone())
 }
 
 pub(crate) fn is_plaza_asset(id: forge_core::AssetId) -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return false;
+    }
     forge_tidewater_assets::tidewater_plaza::asset_ordinal(id).is_some()
 }
 
 pub(crate) fn village_props_package() -> Option<Rc<VillagePropPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     VILLAGE_PROPS.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn village_props_templates()
 -> Vec<forge_tidewater::tidewater_village_props::VillagePropsTemplate> {
+    if crate::authoring_module_resources::owns_source() {
+        return Vec::new();
+    }
     VILLAGE_PROPS_TEMPLATES.with(|slot| slot.borrow().clone())
 }
 
 pub(crate) fn is_village_props_asset(id: forge_core::AssetId) -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return false;
+    }
     forge_tidewater_assets::tidewater_village_props::asset_ordinal(id).is_some()
 }
 
@@ -863,15 +1080,24 @@ fn invalidate_village_props() {
 }
 
 pub(crate) fn beach_props_package() -> Option<Rc<BeachPropPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     BEACH_PROPS.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
 pub(crate) fn beach_props_templates()
 -> Vec<forge_tidewater::tidewater_beach_props::BeachPropsTemplate> {
+    if crate::authoring_module_resources::owns_source() {
+        return Vec::new();
+    }
     BEACH_PROPS_TEMPLATES.with(|slot| slot.borrow().clone())
 }
 
 pub(crate) fn is_beach_props_asset(id: forge_core::AssetId) -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return false;
+    }
     forge_tidewater_assets::tidewater_beach_props::asset_ordinal(id).is_some()
 }
 
@@ -881,20 +1107,33 @@ fn invalidate_beach_props() {
     super::catalog::changed();
 }
 
-pub(crate) fn fish_props_templates() -> Vec<forge_tidewater::tidewater_fish_props::FishPropsTemplate>
-{
+pub(crate) fn fish_props_templates() -> Vec<forge_engine::source_fish::prepare::FishPropsTemplate> {
+    if crate::authoring_module_resources::owns_source() {
+        return Vec::new();
+    }
     FISH_PROPS_TEMPLATES.with(|slot| slot.borrow().clone())
 }
 
-pub(super) fn fish_props_package() -> Option<Rc<FishPropPackage>> {
-    FISH_PROPS.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
+pub(super) fn fish_props_package() -> Option<(ContentHash, Rc<FishPropPackage>)> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
+    FISH_PROPS.with(|slot| slot.borrow().clone())
 }
 
 pub(super) fn game_fish_package() -> Option<Rc<GameFishPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     GAME_FISH.with(|slot| slot.borrow().clone())
 }
 
 pub(crate) fn is_fish_props_asset(id: forge_core::AssetId) -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::fish_catalog_profiles()
+            .iter()
+            .any(|profile| profile.catalog.assets.iter().any(|asset| asset.id == id));
+    }
     forge_tidewater_assets::tidewater_fish_props::asset_ordinal(id).is_some()
 }
 
@@ -922,10 +1161,16 @@ fn invalidate_plaza() {
 }
 
 pub(crate) fn pier_template() -> Option<forge_tidewater::tidewater_pier::PierTemplate> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     PIER_TEMPLATE.with(|slot| slot.borrow().clone())
 }
 
 pub(crate) fn is_pier_asset(id: forge_core::AssetId) -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return false;
+    }
     id == forge_tidewater_assets::tidewater_pier::asset_id()
 }
 
@@ -947,10 +1192,16 @@ fn invalidate_pier() {
 
 pub(crate) fn boardwalk_templates() -> Vec<forge_tidewater::tidewater_boardwalk::BoardwalkTemplate>
 {
+    if crate::authoring_module_resources::owns_source() {
+        return Vec::new();
+    }
     BOARDWALK_TEMPLATES.with(|slot| slot.borrow().clone())
 }
 
 pub(crate) fn is_boardwalk_asset(id: forge_core::AssetId) -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return false;
+    }
     forge_tidewater_assets::tidewater_boardwalk::asset_ordinal(id).is_some()
 }
 
@@ -970,28 +1221,55 @@ fn invalidate_boardwalk() {
     super::catalog::changed();
 }
 
-pub(crate) fn building_package() -> Option<Rc<BuildingPackage>> {
+pub(crate) fn building_package() -> Option<Rc<SurfacePackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::objects();
+    }
     PACKAGE.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
 
+pub(super) fn with_lighting_shader<T>(
+    use_source: impl FnOnce(&str) -> Result<T, String>,
+) -> Result<T, String> {
+    if crate::authoring_module_resources::owns_source()
+        && !crate::authoring_module_resources::available()
+    {
+        return Err("Ressources de la carte en cours de chargement".into());
+    }
+    let package = building_package();
+    let source = match package.as_ref() {
+        Some(package) => forge_engine::source_surface::package::shader_source(package)?,
+        None => forge_engine::source_surface::PROFILE_PROGRAM,
+    };
+    use_source(source)
+}
+
 pub(crate) fn contains_asset(id: forge_core::AssetId) -> bool {
-    PACKAGE.with(|slot| {
-        slot.borrow().as_ref().is_some_and(|(_, package)| {
-            package
-                .catalog()
-                .assets
-                .iter()
-                .any(|record| record.id == id)
-        })
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::object_catalog_package()
+            .is_some_and(|package| package.catalog().assets.iter().any(|asset| asset.id == id));
+    }
+    building_package().is_some_and(|package| {
+        package
+            .catalog()
+            .assets
+            .iter()
+            .any(|record| record.id == id)
     })
 }
 
 pub(crate) fn fish_stand_reference()
 -> Option<forge_tidewater_assets::tidewater_fish_stand::FishStandReference> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     FISH_STAND.with(|slot| slot.borrow().as_ref().map(|package| package.reference()))
 }
 
 pub(crate) fn fish_stand_package() -> Option<Rc<FishStandPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     FISH_STAND.with(|slot| slot.borrow().clone())
 }
 
@@ -1013,14 +1291,50 @@ fn invalidate_fish_stand() {
 }
 
 pub(crate) fn is_fish_stand_asset(id: forge_core::AssetId) -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return false;
+    }
     id == forge_tidewater_assets::tidewater_fish_stand::asset_id()
 }
 
 pub(crate) fn published_generation() -> u64 {
+    if crate::authoring_module_resources::owns_source() {
+        return (1_u64 << 63) | crate::authoring_module_resources::render_revision();
+    }
     PUBLISHED.with(Cell::get)
 }
 
+pub(crate) fn module_source_changed() {
+    super::catalog::changed();
+}
+
+pub(crate) fn object_resources_ready(world: &bevy::prelude::World) -> bool {
+    if !crate::authoring_module_resources::owns_source() {
+        return true;
+    }
+    if !crate::authoring_module_resources::available() {
+        return false;
+    }
+    let expected = crate::authoring_module_resources::objects_index();
+    world
+        .get_resource::<ResidentObjectSource>()
+        .and_then(|source| source.0)
+        == expected
+        && (expected.is_none()
+            || (world
+                .contains_resource::<forge_engine::source_surface::geometry::ResidentMeshes>()
+                && world
+                    .contains_resource::<forge_engine::source_surface::package::ResidentLibrary>()))
+        && world
+            .get_resource::<ResidentEnvironmentSource>()
+            .and_then(|source| source.0)
+            == crate::authoring_module_resources::environment_index()
+}
+
 pub(crate) fn has_environment() -> bool {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::environment().is_some();
+    }
     ENVIRONMENT.with(|slot| slot.borrow().is_some())
 }
 
@@ -1030,6 +1344,10 @@ pub(super) fn take_terrain() -> Option<TerrainUpdate> {
 }
 
 pub(super) fn restore_terrain() -> Result<(), String> {
+    if crate::authoring_module_resources::owns_source() {
+        PREPARED_TERRAIN.with(|slot| slot.replace(Some(TerrainUpdate::Remove)));
+        return Ok(());
+    }
     if PREPARED_TERRAIN.with(|slot| slot.borrow().is_some()) {
         return Ok(());
     }
@@ -1049,15 +1367,30 @@ pub(super) fn restore_terrain() -> Result<(), String> {
     Ok(())
 }
 
-pub(super) fn take_buildings() -> Option<PreparedBuildings> {
-    PREPARED_BUILDINGS.with(|slot| slot.borrow_mut().take())
+pub(super) fn take_buildings() -> Option<BuildingUpdate> {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::take_buildings();
+    }
+    PREPARED_BUILDINGS
+        .with(|slot| slot.borrow_mut().take())
+        .map(|prepared| BuildingUpdate::Replace {
+            prepared: Box::new(prepared),
+            module_index: None,
+        })
 }
 
 pub(super) fn take_fish_stand() -> Option<forge_tidewater::tidewater_stall::FishStandPrepared> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     PREPARED_FISH_STAND.with(|slot| slot.borrow_mut().take())
 }
 
 pub(super) fn restore_fish_stand() -> Result<(), String> {
+    if crate::authoring_module_resources::owns_source() {
+        PREPARED_FISH_STAND.with(|slot| slot.borrow_mut().take());
+        return Ok(());
+    }
     if PREPARED_FISH_STAND.with(|slot| slot.borrow().is_some()) {
         return Ok(());
     }
@@ -1074,6 +1407,9 @@ pub(super) fn restore_fish_stand() -> Result<(), String> {
 }
 
 pub(super) fn restore_buildings() -> Result<(), String> {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::restore_buildings();
+    }
     if PREPARED_BUILDINGS.with(|slot| slot.borrow().is_some()) {
         return Ok(());
     }
@@ -1082,7 +1418,7 @@ pub(super) fn restore_buildings() -> Result<(), String> {
             .as_ref()
             .map(|(_, package)| {
                 Ok::<_, String>((
-                    PreparedMeshes::load(package)?,
+                    forge_engine::source_surface::package::prepare_meshes(package)?,
                     PreparedLibrary::load(package)?,
                 ))
             })
@@ -1092,15 +1428,26 @@ pub(super) fn restore_buildings() -> Result<(), String> {
     Ok(())
 }
 
-pub(super) fn take_environment()
--> Option<forge_tidewater::tidewater_scene_environment::PreparedEnvironment> {
-    PREPARED_ENVIRONMENT.with(|slot| slot.borrow_mut().take())
+pub(super) fn take_environment() -> Option<EnvironmentUpdate> {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::take_environment();
+    }
+    PREPARED_ENVIRONMENT
+        .with(|slot| slot.borrow_mut().take())
+        .map(|prepared| EnvironmentUpdate::Replace {
+            prepared: Box::new(prepared),
+            module_index: None,
+        })
 }
 
 pub(super) fn environment_programs() -> Option<(
     u64,
-    Rc<forge_tidewater_assets::tidewater_environment::programs::ProgramsPackage>,
+    Rc<forge_assets::source_environment_package::programs::ProgramsPackage>,
 )> {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::programs()
+            .map(|programs| (crate::authoring_module_resources::revision(), programs));
+    }
     ENVIRONMENT_PROGRAMS
         .with(|slot| slot.borrow().clone())
         .map(|package| (PUBLISHED.with(Cell::get), package))
@@ -1108,10 +1455,16 @@ pub(super) fn environment_programs() -> Option<(
 
 pub(crate) fn pier_motion_package()
 -> Option<Rc<forge_tidewater_assets::tidewater_pier_motion::PierMotionPackage>> {
+    if crate::authoring_module_resources::owns_source() {
+        return None;
+    }
     PIER_MOTION.with(|slot| slot.borrow().clone())
 }
 
 pub(super) fn restore_environment() -> Result<(), String> {
+    if crate::authoring_module_resources::owns_source() {
+        return crate::authoring_module_resources::restore_environment();
+    }
     if PREPARED_ENVIRONMENT.with(|slot| slot.borrow().is_some()) {
         return Ok(());
     }
@@ -1119,7 +1472,7 @@ pub(super) fn restore_environment() -> Result<(), String> {
         slot.borrow()
             .as_ref()
             .map(|(_, package)| {
-                forge_tidewater::tidewater_scene_environment::PreparedEnvironment::new(package)
+                forge_engine::source_environment::package::prepare(package)
                     .map_err(|e| e.to_string())
             })
             .transpose()
@@ -1183,13 +1536,14 @@ pub(super) fn LibraryControls() -> impl IntoView {
                         return;
                     }
                     status.set(match result {
-                        Ok((count, environment)) => {
+                        Ok(LibraryLoaded::Library { count, environment }) => {
                             let sky = if environment { " Ressources de ciel et de nuages vérifiées et chargées." } else { "" };
                             let plants = if plant_package().is_some() { " Ressources végétales chargées ; leur affichage reste à raccorder." } else { "" };
                             let stand = if fish_stand_reference().is_some() { " L’échoppe de Joe est disponible dans Ajouter un objet depuis le catalogue." } else { "" };
                             let debris = debris::summary();
                             format!("{count} bâtiments vérifiés et chargés en mémoire.{sky}{plants} Les bâtiments déjà placés seront projetés dans la carte importée.{stand}{debris}")
                         },
+                        Ok(LibraryLoaded::CanonicalProjection) => "La carte utilise son terrain auteur.".into(),
                         Err(error) => format!("Bibliothèque indisponible : {error}"),
                     });
                 });

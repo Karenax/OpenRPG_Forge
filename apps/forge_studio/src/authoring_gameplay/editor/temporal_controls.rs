@@ -1,5 +1,5 @@
 //! Temporal authoring through the common preview/apply/history boundary.
-use super::{Edit, edit, id, source_hash};
+use super::{Edit, edit, id};
 use forge_core::{EntityId, canonical_json_sha256};
 use forge_gameplay::{CreatorSurface, GameplayDocument};
 use forge_project::authoring::AuthoringState;

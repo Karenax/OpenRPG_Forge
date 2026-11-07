@@ -1,10 +1,9 @@
 //! CPU contract checks for authored terrain shadows; no GPU or source mutation.
 use bevy::math::{DMat4, DQuat, DVec3};
+use forge_engine::sampled_terrain_corrections::Corrections;
+use forge_engine::source_shadows::casters::terrain::authored;
+use forge_engine::sun_cascades::CascadeView;
 use forge_project::{TerrainDocument, TerrainHeightDelta};
-use forge_tidewater::{
-    sun_cascades::CascadeView, tidewater_object_shadow::terrain::authored,
-    tidewater_terrain_edits::Corrections,
-};
 use std::{error::Error, fs};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -68,8 +67,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn same(
-    left: &forge_tidewater::tidewater_object_shadow::terrain::Input,
-    right: &forge_tidewater::tidewater_object_shadow::terrain::Input,
+    left: &forge_engine::source_shadows::casters::terrain::Input,
+    right: &forge_engine::source_shadows::casters::terrain::Input,
 ) {
     assert_eq!(left.heights, right.heights);
     assert_eq!(left.edits, right.edits);

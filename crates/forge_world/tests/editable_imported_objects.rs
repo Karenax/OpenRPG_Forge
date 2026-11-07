@@ -34,6 +34,7 @@ fn fixture() -> (VegetationDocument, Vec<u8>) {
         }
     }
     document.imported_source = Some(ImportedVegetationSource {
+        grass: None,
         schema: "forge.imported-vegetation".into(),
         version: 1,
         blocks: vec![ImportedVegetationBlock {
@@ -178,7 +179,16 @@ fn generic_source_transform_preserves_parameters_and_copy_identity() {
         transformed.rotation.w,
     ]
     .map(f64::from);
-    assert_eq!(edited.source.rotation_xyzw, expected_rotation);
+    let rotation = edited.source.rotation_xyzw;
+    assert!((rotation.iter().map(|value| value * value).sum::<f64>() - 1.0).abs() < 1e-12);
+    for axis in 0..4 {
+        // Proportional components preserve orientation independently of the
+        // conversion's normalization algorithm.
+        assert!(
+            (rotation[axis] * expected_rotation[3] - expected_rotation[axis] * rotation[3]).abs()
+                < 1e-12
+        );
+    }
     assert_eq!(edited.source.scale, [2.0, 0.5, 3.0]);
     let copy = view.layers[0]
         .instances

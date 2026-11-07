@@ -210,6 +210,7 @@ fn imported_plant_session() -> (
     let layer_id = vegetation.layers[0].id.clone();
     let source_key = bytes_sha256(b"delta-imported-plant-source");
     vegetation.imported_source = Some(ImportedVegetationSource {
+        grass: None,
         schema: "forge.imported-vegetation".into(),
         version: 1,
         blocks: vec![ImportedVegetationBlock {

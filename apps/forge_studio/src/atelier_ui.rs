@@ -474,16 +474,17 @@ pub(super) fn SecondaryWorkspace() -> impl IntoView {
                     <div class="atelier-topic-grid">{AuthoringTab::ALL.into_iter().map(move |tab|view! {
                         <button aria-pressed=move ||(reply.get().snapshot.topic==tab as u8).to_string() on:click=move |_|submit.run(Intent::Topic {index:tab as u8})><span>{tab.label()}</span><small>"Ouvrir le panneau"</small></button>
                     }).collect_view()}</div>
-                    <h2 class="atelier-library-heading">"Bibliothèque partagée"</h2>
+                    <h2 class="atelier-library-heading">"Modèles disponibles dans la carte"</h2>
+                    <p>"Ce catalogue reprend les modèles vérifiés déjà chargés dans l’atelier. La bibliothèque complète et ses vignettes s’ouvrent avec Bibliothèque d’assets sur l’écran principal."</p>
                     <label>"Rechercher un objet"<input placeholder="Nom ou catégorie…" prop:value=move ||asset_filter.get() on:input=move |e|asset_filter.set(event_target_value(&e))/></label>
                     <div class="atelier-detached-assets">{move || {
                         let snapshot=reply.get().snapshot;let query=asset_filter.get().to_lowercase();
-                        snapshot.catalog.into_iter().filter(|a|format!("{} {}",a.id,a.category).to_lowercase().contains(&query)).map(|asset| {
+                        snapshot.catalog.into_iter().filter(|a|format!("{} {} {}",a.label,a.id,a.category).to_lowercase().contains(&query)).map(|asset| {
                             let id=asset.id.clone();let selected=id.clone();
                             view! {<button aria-pressed=move ||(reply.get().snapshot.catalog_selected.as_ref()==Some(&selected)).to_string()
                                 on:click=move |_|submit.run(Intent::CatalogSelect {id:id.clone()})>
                                 {asset_glyph(&asset.category)}
-                                <strong>{asset.id}</strong><small>{asset.category}</small>
+                                <strong>{if asset.label.is_empty() {asset.id} else {asset.label}}</strong><small>{asset.category}</small>
                             </button>}
                         }).collect_view()
                     }}</div>

@@ -18,6 +18,7 @@ fn manual_projection_rejects_preview_stale_backend_and_wrong_source() {
     let placement = ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic("placed"),
         name: "Fixture".into(),
         asset_id: AssetId::deterministic("fixture"),

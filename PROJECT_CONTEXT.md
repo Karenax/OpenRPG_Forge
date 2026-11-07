@@ -37,7 +37,7 @@ depuis le projet, sans identité de jeu codée en dur dans le socle commun.
 Cette décision remplace toute prescription antérieure de maintenir durablement
 le couple launcher Aube / Hub comme deux applications de distribution.
 Le retrait 048 enlève la cible Hub et ses recettes d'assemblage du checkout
-de qualification. Le Studio conserve la reprise des installations et données historiques.
+commun. Le Studio conserve la reprise des installations et données historiques.
 
 **Gate 7 reste en cours.** La transition s'intègre à ses critères de packaging,
 lanceur et installation, avec les validations de plateforme, licences et machine
@@ -45,6 +45,14 @@ propre ; elle ne crée aucune nouvelle gate et ne clôt aucun critère par ce te
 R7-01 à R7-06 disposent de verdicts locaux Windows datés. R7-07 à R7-10
 restent ouverts sur leur périmètre complet. Le [plan unique de transition dans Gate 7](docs/planning/GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher)
 fixe les lots, leurs dépendances et la requalification des parcours affectés.
+
+Stockage des assets, décision propriétaire du 27 octobre : les modèles livrés
+sur F: utilisent la mutualisation sans perte avec les lecteurs compatibles
+(ADR-0058). Les copies et diagnostics de conversion sur E: sont retirés après
+vérification du contenu conservé et des références encore utiles. Le
+[contrat de stockage et clôture](docs/ASSET_STORAGE_POLICY.md) encadre les
+nouveaux lots, leur publication et leur bilan résiduel ; aucune qualification
+visuelle ou fin de migration n'est déduite de cette organisation.
 
 ## Gate 7 ouverte — 23 octobre 2026
 
@@ -67,6 +75,1488 @@ sur OS propre restent à qualifier. Les exports 049 restent privés pendant
 l'établissement des droits et notices. Sur le trajet Tidewater du 049
 au profil Moyen, la dernière mesure moyenne est de 18,85 ms pour un
 budget de 16,67 ms. La comparaison appariée avec la référence reste à faire.
+
+**R7-06 qualifié localement Windows — 5 novembre.** Identité du projet,
+lancement/reprise et retour réels 008/011 rapprochés du frontend et des sources
+015 identiques. Les 32 tests actuels comblent le lien des refus et du suivi du
+processus ; les 45 preuves et 11 sources du reçu ont été revérifiées.
+Reçu `R7-06-game-launcher-assessment-015.json`, SHA-256
+`decfb4a2c863f3304040240a4bdbc6f5a65d96288a70b4b5df9088626f6025e1`.
+**Six critères qualifiés localement Windows ; quatre ouverts : R7-07/08/09/10.**
+015 n'est pas installé ; les réglages audio/affichage/accessibilité indiqués
+comme non appliqués dans le launcher ne deviennent pas fonctionnels par ce verdict.
+
+**R7-02 qualifié localement Windows — 5 novembre.** Le moteur commun 017
+exécute les 18 étapes sur le module issu de l'export privé 1.0.2 : lot GPU
+à distance sur les quatre profils, retour au détail, puis réactivation.
+La scène conserve les casters d'origine. Le cas dense texturé mesure la
+réduction séparément. Reçu `R7-02-hlod-assessment-017.json`, SHA-256
+`e8878ffdf90deb114011fa627a47d56dbda5dad9c54d8b000219ebc5688212e2`.
+Le moteur 017 a été exécuté séparément ; pas d'installation 017 ni de parité
+de performance Tidewater établie.
+
+**R7-04 qualifié localement Windows — 5 novembre.** L'export réel 015 et les
+exécutions natives se rapprochent des mêmes entrées fermées ; l'absence de
+fallback vers workspace/Vault/IA est vérifiée sur les chemins de lecture, pas
+déduite du seul nettoyage d'environnement. Les 25 tests actuels couvrent les
+refus après modification des services. Les 49 preuves ont été revérifiées.
+Reçu `R7-04-runtime-packaging-assessment-015.json`, SHA-256
+`5ef6f45265c58aeb924523d1b1578e315a71aa5c75792a440eda80b68bb8a2be`.
+R7-04 rejoint les qualifications locales Windows indiquées dans l'état courant ci-dessus.
+Ni OS propre, ni installation 015, ni redistribution/licences ne sont déduits.
+
+**R7-05 qualifié localement sous Windows — 5 novembre.** Le rapprochement 015
+vérifie les quatre profils réels, persistance/relecture High, ressources des
+domaines installés et refus/préférences sur sources rapprochées. L'ancien refus
+Medium reste conservé ; le motif de halos n'est pas observé dans la capture 015
+inspectée. Les 45 preuves épinglées ont été revérifiées. Reçu
+`R7-05-graphics-profiles-assessment-015.json`, SHA-256
+`cf9dc52a2f100dc62fa3284e60183307d59c4050d728801c47a6729c97e83b38`.
+R7-05 rejoint les qualifications locales Windows indiquées dans l'état courant ci-dessus.
+Les fenêtres mesurées par profil sont courtes : elles ne ferment ni un benchmark
+FPS ni la parité de performance Tidewater attendue pour le moteur commun.
+
+**État courant du 5 novembre : R7-01 qualifié localement sous Windows.** Le
+rapprochement vérifié couvre la région de 2 km, le trajet réel 014 de 291 m,
+ses 29 transitions, les 72 tests actuels et les services de persistance inchangés
+depuis la reprise installée 011. Les 60 preuves épinglées sont relues et valides.
+Reçu 015 `R7-01-streaming-assessment-015.json`, SHA-256
+`e4e7c0b2cc98fb6849e9f26b5d67c907d23f46028988a9605d3c6b8819341569`.
+R7-03 conserve son PASS local Windows ; R7-05 est également qualifié ci-dessus.
+Ni HLOD général, ni performance, ni Linux, ni machine propre ne sont déduits de
+ce verdict. Les bilans datés plus bas conservent leur portée historique.
+
+Le Studio 015 est compilé et son export réel `game-33412-1793890314656093300`
+est vérifié : quatre fichiers / 431 789 877 octets, runtime corrigé `41939b16…`,
+module C5 et session auteur inchangés. Reçu `studio-ui-export.json`, SHA-256
+`0434e332d728edc7230305298f48956eaca8f8cc34050a989859c12b60a1529f`.
+Le Studio 015 a été fermé après l'export. Le retour autorisé 011 → 008 est
+vérifié : installation révision 3, reprise depuis `Jouer.exe` avec fichier et
+état sauvegardé identiques. Reçu `installed-rollback-resume-cycle.json`, SHA-256
+`b80cbbbcd6f47fffbb6d913bf9adaac3de1d53e2ffa5471e81d487276d5f76a3`.
+La désinstallation du Camp 017 a préservé les sauvegardes des deux jeux.
+Le parcours du Studio installé a depuis été vérifié sur le candidat Windows 049.
+Les replis 014 (341 912 159 octets) restent en place
+après refus du nettoyage automatique ; aucun contournement.
+
+**R7-05 : crash Ultra → Low corrigé et vérifié au 015.** Le cycle natif des quatre
+profils et le redémarrage avec High persisté passent ; cinq tests ciblés et
+Clippy natif/Web passent. Aucun nouveau fichier de module ni sauvegarde joueur
+modifiés. Reçu 015 `qualification-assessment.json`, SHA-256
+`f218506709e3dbc37a0a7678805bbd51c9c99899e2ffd91ef67333b1140e328e`.
+Sources figées, consolidation du kit/Studio 015 en cours. Le 014 reste le dernier
+export réel et le 011 le jeu installé ; aucun critère global supplémentaire clos.
+
+**Historique R7-05 : crash du profil 014 Ultra → Low.** Le cycle réel de
+la scène riche révèle un cache de pipeline de prépass encore présent après
+désactivation des vecteurs de mouvement. Le correctif de cycle de vie est dans
+le contrôleur moteur commun ; sa vérification est en cours. Reçu central 014
+`profile-cycle-001/assessment.json` (`70257f32…`). Les succès antérieurs du
+trajet et de l'export ne qualifient pas ce changement de profil.
+
+**Runtime 014 mesuré, consolidation Studio et export terminés.** Le trajet de 290,96 m
+passe avec 799 observations physiques prêtes et au sol, sans erreur de projection.
+Même scénario et profilage que 013 : audits 71 055 → 40 956, temps cumulé
+33,16 → 28,42 s. Moyenne/p95 strictement prêts 41,09/52,29 ms ; performance
+globale et parité Tidewater restent ouvertes. Reçu 014 `qualification-assessment.json`,
+SHA-256 `06d8af99b9ac48631ec415bb699d5d742b5caa0c45a01ad58537a44a5c411440`.
+Les cinq stages sont terminés sur la même source stable ; le Studio charge
+réellement la scène puis exporte `game-18328-1793885930736376800`, quatre fichiers /
+431 771 957 octets. Empreintes et inspections natives vérifiées, module identique,
+révision auteur 12 inchangée. Reçu 014 `studio-ui-export.json`, SHA-256
+`61e76c7226803dde3789c3473e69522061a8003c3b9a9f0d6a927467933b670b`.
+Studio fermé ; ce candidat n'est pas installé. Le jeu installé 011 et sa
+sauvegarde reprise ont été vérifiés séparément. Le rollback 011 → 008 attend
+encore sa confirmation distincte. Retrait des replis 011 refusé par la politique
+automatique avant exécution : 341 810 271 octets conservés ; reçu 014
+`replaced-011-retirement-result.json`. Ne pas contourner ce refus.
+
+**Mise à jour 011 et reprise vérifiées le 5 novembre.** Après confirmation du
+propriétaire, le clic réel « Mettre à jour » fait passer l'installation de
+qualification en révision 2. Le module reste identique ; le core 008 demeure
+la version précédente de rollback. Le launcher 011 reprend la sauvegarde,
+HUD et rapports natifs à l'appui, sans modifier ses octets (`223dc3c4…`) ni
+son identité d'état (`340b4ed5…`). Les trois processus sont fermés. Reçu central
+011 `installed-update-resume-cycle.json`, SHA-256
+`c08bd213d06e61f823d04a97c38a618edefd671a495862cbd3c3de3a68a7eab2`.
+La confirmation 011 est exécutée. Rollback, désinstallation et OS propre restent
+à qualifier. Le runtime 014 est désormais mesuré et intégré à l'export Studio
+014 ; il n'est pas installé et ne modifie pas l'export historique 011.
+
+**Mesure 013 terminée, regroupement 014 en vérification.** Le même trajet de
+291,24 m passe, sortie 0, 801 observations physiques prêtes et au sol. Moyenne/p95
+strictement prêts : 44,08/53,23 ms, avec profilage CPU supplémentaire ; aucun
+gain FPS net déduit. Le profil constate 71 055 appels d'audit des modèles,
+33 164,69 ms cumulées. L'API moteur 014 partage désormais un audit local entre
+les observations GPU/ombres/ressources sous le même emprunt immuable du monde.
+Aucun cache par frame/tick ; le contrôle des mutations dans le même tick passe.
+Clippy natif et Web du raccord passent ; runtime 014 en construction, aucun
+binaire 014 mesuré. Reçu 013
+`retained-imported-primitives-20261105-013/qualification-assessment.json`, SHA-256
+`ce3a3e6ba138295724b2b990ffc792d8799613687a8994f186993a2b4337d60a`.
+Le jeu installé reste le 008 et l'export Studio le 011 ; Gate 7 reste ouverte.
+
+**Sources 013 : conservation des primitives modèles déjà sélectionnées.** Un
+écart précis au résident utilisé par Tidewater est corrigé : le sélecteur de
+modèles réécrivait tous les composants des clés retenues, dont le receiver
+d'éclairage. Il conserve maintenant les entités préalablement auditées, et ne
+crée que les nouvelles clés. La scène observée comptait environ 18 000–20 000
+primitives modèles ; aucun gain de cadence n'est encore mesuré. Contrôle CPU
+ciblé passé ; Clippy natif strict passé. Build runtime 013 en cours, sans nouveau
+kit ni export Studio. Les spans CPU existants du contrôle graphique sont aussi
+disponibles avec le profilage opt-in de production. Ces correctifs suivent la
+mesure 012 ; ils ne sont pas réputés présents dans ce binaire.
+
+**Correction moteur 012 observée le 5 novembre : immobilisations fortement réduites.**
+Sur le même scénario et les mêmes payloads du Camp, le trajet de 291,10 m passe
+avec 799 observations physiques prêtes et au sol, 29 transitions de terrain et
+aucune erreur de projection. Les intervalles consécutifs de simulation suspendue
+totalisent 2,23 s contre 87,22 s au 011 ; leur durée comprend l'ordonnancement et
+ne mesure pas exactement le temps immobile. Le temps instrumenté après le premier
+démarrage de simulation passe de 269,21 à 151,12 s. Trois captures inspectées par
+l'agent, sans validation esthétique propriétaire. Les intervalles strictement
+prêts restent à 44,75 ms de moyenne et 56,90 ms de p95 : aucune qualification à
+60 FPS ni parité Tidewater. Comparaison centrale
+`simulation-resource-admission-20261105-012/dense-route-comparison.json`, SHA-256
+`11088e7ff05c8b2b92ca1bcbfaa7bd7a76261f61515d620e6aa439feda2c7bc3`.
+Le moteur conserve les ressources admises, vérifie leur contexte et les sources,
+et sépare l'admission physique de la preuve stricte de nouvelle visibilité.
+109 contrôles CPU passent (deux cas existants ignorés), Clippy natif/Web stricts
+passent. Le runtime 012 est construit ; le Studio/export/installation restent
+au 011/008. Un ajustement ultérieur du délai d'attente des espèces suit la même
+admission physique ; il n'est pas inclus dans le binaire 012 mesuré. Aucun critère
+global supplémentaire clos ; Linux reste différé.
+
+**Trajet riche 011 du 5 novembre terminé : comportement observé, performance ouverte.**
+Le runtime de production partagé a parcouru 291,01 m aller/retour dans le Camp
+des Falaises exporté : 942 observations physiques prêtes et au sol, 29 transitions
+de terrain, aucune erreur de projection. Les positions du trajet reprennent la
+référence Tidewater et passent par les contrôles joueur ordinaires. Reçu central
+`procedural-production-20261105-011/dense-route-001/assessment.json`, SHA-256
+`8c28140be73fdebfde873f0ff70e4e6732c647b749eb2e3b26e2e4e27c197e1f`.
+Les intervalles instrumentés prêts donnent une moyenne de 40,59 ms et un p95 de
+50,60 ms ; ils incluent la collecte et ne qualifient ni le GPU ni une parité avec
+Tidewater. La trace confirme des immobilisations pendant certaines admissions
+graphiques. Correction en cours dans les services communs : conserver une
+admission de ressources réellement acquise sans présenter un ancien reçu comme
+preuve d'une nouvelle sélection. Le candidat 011 reste figé ; aucune correction
+ultérieure n'est réputée compilée ou qualifiée par ses reçus.
+
+**Historique avant mise à jour — export Studio 011 vérifié.** Les cinq stages de
+construction sont terminés sur les mêmes sources stables. Le WASM est identique
+au 010 ; le Studio natif 011 embarque le nouveau manifeste et son kit adjacent.
+Le geste réel dans le Studio produit `game-31840-1793869726891704700` : quatre
+fichiers / 431 679 285 octets, kit `0.1.0-preview.20261105.011`, module 1.0.1
+identique octet pour octet au précédent. Tous les payloads, empreintes et les
+deux inspections natives passent. Reçu central 011 `studio-ui-export.json`,
+SHA-256 `53f11d24f8cd6b9e309503037829ce3f33c84bd3b834ce21e947af136845248c`.
+Workspace de révision 12 inchangé (`a1f2e466…`). Le contrôle de viewport 010
+est référencé comme observation antérieure réutilisée, pas comme nouveau rejeu.
+
+Le plan UI 011 prépare la mise à jour de l’installation 008 existante,
+`.build/qualification-data/gate7/camp-des-falaises-20261105-008/install`.
+Installateur PID 10556 sur le plan « Mettre à jour » ; clic non effectué,
+confirmation Computer Use requise. Installation toujours en révision 1 et
+sauvegarde joueur `223dc3c4…` inchangée. Reçus `installer-plan-ui.json` et
+`update-preflight.json`. Le plan 010 est fermé sans application et obsolète.
+Studio 011 PID 31840 fermé proprement ; aucun build ni jeu actif. Contrôleurs
+92591 et 95022 terminés ; ne pas les relancer.
+
+Les rapports des deux sessions joueur 008 ont été conservés et vérifiés sur F: ;
+73 215 octets de métadonnées temporaires terminées ont été retirés sur E:.
+Le retrait de trois copies remplacées du `bin` a été refusé automatiquement
+(« blocked by policy ») : **482 363 070 octets conservés, zéro retiré** ; reçu
+010 `candidate-replacement.json`. Ne pas contourner ce refus.
+Après vérification de l’export 011, les deux replis temporaires 010 créés pour
+l’intégration ont été retirés : **341 807 711 octets**, aucun résidu sur ces deux
+cibles. Reçus 011 `replaced-010-retirement-preflight.json` et
+`replaced-010-retirement-result.json`. Les anciens replis 005/008 dont le retrait
+avait été refusé restent intacts ; cette opération ne les concerne pas.
+
+À cette étape du lot 011, seul R7-03 disposait d'un verdict local Windows
+sur l'ensemble du critère. Linux était différé.
+
+**Runtime procédural de production 011 construit et démarré.** Le jeu utilise
+par défaut l’hôte de streaming moteur pour ses terrains procéduraux ; le mode
+complet reste une référence explicitement réservée aux builds de qualification.
+Le lancement normal optimisé, sans feature ni variable de qualification, passe
+sur le module existant Trois Cairns : 25 cellules résidentes sur 64, physique
+prête, source synchronisée, sept tuiles distantes agrégées, aucune erreur de
+projection. Capture inspectée ; scène peu chargée, aucun trajet riche ni gain de
+performance déduit. Trois contrôles Rust, 16 contrôles du runner et Clippy strict
+passent. Reçu central `procedural-production-20261105-011/production-assessment.json`,
+SHA-256 `ecc37420b40426e1d0576db16cf1cd02beccae2d701ddf8da902742386ff3105`. Runtime `584f7c60…`, manifeste source
+`442b1ac847312c699ef2f76e04369e579ff8c334ddaf947cd33715e249434a32`.
+Build 94922, tests 2611 et Clippy 1173 terminés ; aucun jeu actif.
+Le frontend et le Studio natif 011 avec le kit sont terminés ;
+`frontend-byte-comparison.json` conserve l’identité du WASM.
+Le runtime, le launcher protégé et la CLI 011 sont construits sur les mêmes sources
+stables. Kit privé `0.1.0-preview.20261105.011` assemblé : 471 fichiers /
+141 085 279 octets sous `.build/tmp/gate7-windows-game-kit-engine-20261105-011`.
+Reçu d’assemblage SHA-256 `5a7114e3b87a1d9efc2ab50b992e322b5773ea59eada75688d763bbd7ef136e2`.
+Le kit a été intégré et exporté depuis le Studio ; le plan 011 attend sa
+confirmation. Le plan 010 est fermé sans application. Les trois fichiers du premier lancement mal paramétré
+ont été retirés (2 359 octets) ; cause conservée dans le bilan. Aucun critère
+global clos. Les contrôleurs 16779, 25594 et 88317 sont terminés.
+
+**Protection de réinstallation ajoutée aux sources, après le build 010.** Le
+service commun refuse une nouvelle installation dans une racine où subsiste un
+ancien relais de désinstallation ; contrôle répété sous verrou avant staging.
+Les mises à jour restent possibles et aucun relais/donnée utilisateur n’est
+supprimé par ce refus. Sept contrôles CPU ciblés et Clippy strict passent.
+Reçu central `installation-root-reuse-20261105-001/assessment.json`, SHA-256
+`6d44735f144d65ca0ac9e145c5c7c96fcba0a1c5be5ef34ff5fed6fd88cc8cd7`. Ce correctif n’est pas dans le kit 010 ; son intégration et le
+parcours Windows réel restent à faire. Les anciens installateurs ne reçoivent
+pas rétroactivement cette protection ; R7-09 reste ouvert.
+
+Le détail suivant conserve les états historiques datés.
+
+**État du 5 novembre — Gate 7 reste ouverte.** Le candidat
+`windows-editor-engine-20261105-001` est construit et intégré. Le cycle réel de
+sélection, rotation de 10°, sauvegarde et réouverture d'un modèle remplacé passe.
+L'export privé actualisé depuis le Studio réussit : module 1.0.1, kit moteur
+`0.1.0-preview.20261105.001`, quatre fichiers et 431 196 469 octets. Les empreintes,
+les deux archives, les trois retouches végétales et les réglages correspondent
+à la sauvegarde ; les lecteurs natifs acceptent les deux paquets.
+Reçus du lot : `studio-species-retouch-cycle.json`, `studio-ui-export.json` et
+`installer-plan-ui.json`. Le lancement direct du module exporté révèle ensuite
+un refus avant rendu : le runtime cherche les retouches de plantes importées
+comme des maillages manuels. Le plan d'installation 001 est donc suspendu et
+son installateur fermé sans application ; sa confirmation en attente est
+obsolète. Le raccord est corrigé dans l'adapter du runtime en réutilisant la
+classification commune et l'hôte végétal existant. Le runtime optimisé du lot
+`windows-editor-engine-20261105-002` passe Clippy et le démarrage normal du même
+module, capture comprise : projection végétale, espèces, collisions et rendu
+sont prêts. Le lot 004 corrige ensuite le coût des matériaux végétaux en
+réutilisant le buffer temporel partagé : le passage du temps n'invalide plus
+les matériaux de chaque arbre. Trois cas CPU, deux tests GPU existants et
+Clippy natif/Web stricts passent. La scène complète passe en natif avec capture.
+À caméra, module et instrumentation identiques en Ultra, la cadence locale
+passe de 20,24 à 25,88 intervalles de frame/s (+27,9 %) ; le p95 de 51,98 à
+42,11 ms, sur les 300 frames communes 300–599. La performance reste insuffisante.
+Le reçu 004 `shared-clock-runtime-comparison.json` conserve les limites :
+1280×800, Fifo, mesure du thread principal instrumenté, aucune parité Tidewater
+ni acceptation visuelle. Le lot 005 filtre ensuite les casters des modèles par
+frustum de chaque cascade avec les bornes de déformation existantes, sans
+réduire les modèles ni les distances. Deux tests CPU, le test GPU de profondeur
+inchangée et Clippy natif/Web passent. La scène complète et sa capture passent :
+25,88 → 31,58 intervalles/s, p95 42,11 → 33,76 ms sur la même fenêtre de
+300 samples, soit +56,1 % depuis la référence initiale. Le reçu 005
+`cascade-runtime-comparison.json` garde les mêmes limites de qualification.
+Les cinq constructions 005 sont terminées sur les mêmes sources stables. Le
+Studio mis à jour a exporté le jeu : module 1.0.1 strictement identique au
+précédent, kit moteur `0.1.0-preview.20261105.005` avec le runtime corrigé.
+Les empreintes de tous les fichiers et les deux lecteurs natifs passent ; reçu
+005 `studio-ui-export.json`. Le plan d’installation isolé est vérifié ; le clic
+Installer attend la confirmation imposée par Computer Use. 341 304 927 octets
+de copies remplacées ont été retirés après vérification du nouvel export. Le jeu autonome et la parité
+de performance restent à qualifier ; R7-03 demeure seul qualifié globalement.
+
+Le contrôle indépendant 005 des profils natifs est terminé sans recompilation :
+Low, Medium et High démarrent sur l’export courant, atteignent l’état prêt et
+écrivent les préférences attendues. Ultra réutilise le rejeu déjà terminé.
+Même projection canonique attendue, caméra et fenêtre observée 1280×800/Fifo ;
+300 intervalles instrumentés par profil (290 prêts). Moyennes Low 25,287 ms,
+Medium 27,022 ms, High 30,091 ms, Ultra 31,662 ms. Ce sont des intervalles du
+thread principal, pas des timestamps GPU. Les captures Low/Medium/High sont
+inspectées ; luminosité/motifs de l’herbe et ombrage des arbres remplacés restent
+non acceptés, sans cause attribuée. Pas de rejeu de réouverture des préférences
+ni de parcours installé. Reçu 005 `native-graphics-profiles-001/assessment.json`,
+SHA-256 `6dbf273ae0a6c0e39f05102951ff43593e2c64d3b8dd3377f26a97f7f1cfc56a`.
+R7-05 reste ouvert ; ces contrôles ne sont pas à relancer sur les mêmes entrées.
+
+Le correctif 006 raccorde les espèces remplacées au même récepteur d’éclairage
+source que les objets et le terrain, via la composition matérielle existante.
+Vertex, vent, alpha et prepasses restent ceux du matériau végétal ; inventaire
+et préchauffage suivent le matériau effectivement affiché. Deux tests de
+projections, le test GPU existant des ombres et Clippy natif/Web passent.
+Le runtime 006 est construit, mais son lancement est refusé par une famille
+matérielle omise dans l’admission du runtime. Le raccord d’admission est corrigé
+et vérifié avant le rejeu ; cause visuelle et résultat réel restent à confirmer.
+Aucun asset ni format persistant modifié. Reçu de travail 006
+`correction-assessment.json` ; le kit et l’export 005 restent datés.
+L’admission passe sur 007, puis le GPU refuse des imports de shader en double.
+L’assemblage 008 retire seulement les imports déjà déclarés par le shader de
+vent. Son lancement normal en profil debug passe : capture, projection prête,
+espèces et collisions prêtes, 109 pipelines sans attente/échec. La projection
+canonique attendue est identique à 005. Ce diagnostic ne qualifie ni le binaire
+optimisé, ni les performances, ni le Studio livré.
+Le build optimisé 008 termine sur sources stables, puis le lancement normal
+passe avec capture à 570 : projection canonique attendue identique à 005,
+espèces/collisions prêtes, 109 pipelines et aucun en attente/échec. Runtime :
+`3d2948d2752d0bb14dd056b5712c8061452c6b960541845ab36ef82ee4dc44fb`.
+Sur les mêmes 300 intervalles, 31,662 → 32,252 ms (31,58 → 31,01 intervalles/s) ;
+aucun gain de performance revendiqué. Reçu `shared-lighting-runtime-assessment.json`,
+SHA-256 `73ba23a34bb0638cd265fbe8378b856c28e89ed3ae3e9613ecfc63536151fb26`.
+Low/Medium/High passent ensuite avec relecture des préférences réelles de 005,
+prioritaires sur le défaut Ultra contradictoire, et fichiers inchangés. Reçu
+`native-graphics-profiles-001/assessment.json`, SHA-256
+`58d749b31130565f54ce22eb00fe7659904f57a0ed81d4b988fec807d0e893c4`.
+Leurs moyennes sont 26,523 / 28,613 / 31,294 ms ; captures inspectées, motifs et
+luminosité d’herbe encore non acceptés. Pas de validation humaine ni de parcours
+installé. Le frontend Studio 008 compile hors ligne, session 19446, mêmes outils
+épinglés Trunk 0.21.14 et wasm-opt 131 que 005. Après frontend : launcher/CLI,
+kit version `0.1.0-preview.20261105.008`, Studio avec overlay, puis export UI.
+Réutiliser les notices privées 014, sans nouvelle collecte ; tous les manifests
+Cargo et locks sont identiques à 005. Ne pas reconstruire le runtime 008.
+
+
+Le propriétaire ouvre **Gate 7 — Monde étendu et distribution** avec pour
+objectif sa clôture documentée sur preuves. Le
+[plan de réalisation](docs/planning/GATE7_IMPLEMENTATION_PLAN.md) et le
+[suivi des critères](docs/evidence/gate7/GATE7_PROGRESS_20261023.md) rassemblent
+les travaux du checkout commun et leurs validations. Le critère des sauvegardes
+multi-zones a été qualifié localement sous Windows le 27 octobre
+(`R7-03-saves-assessment-001.json`). À cette date, neuf critères restaient ouverts,
+dont ceux portant sur Linux et la machine propre. ADR-0034 retire les contrôles GitHub des critères, sans
+retirer ces qualifications locales ou de distribution.
+
+Le 2 novembre, le calcul de sélection à trois niveaux et de transition des
+objets scannés rejoint le moteur commun ; Tidewater ne fournit plus que ses
+distances et son réglage d'ombre. Sept tests moteur passent, ainsi que le rejeu
+des 7 332 cas de la référence source. Le jeu d'un autre module n'utilise pas
+encore ce raccord ; son rendu et sa performance restent à vérifier.
+
+Actualisation du 4 novembre : le Studio a exporté le jeu indépendant « Les
+Hautes Terres » avec le kit Windows commun. Une installation isolée, le
+lancement, la sauvegarde et la reprise depuis son launcher ont été observés.
+Ce candidat précède les transferts moteur ultérieurs ; il ne qualifie ni une
+machine propre, ni une scène riche ou la parité de performance. Le détail et
+les reçus restent dans le suivi Gate 7. Les essais Linux supplémentaires sont
+différés à la demande du propriétaire, sans suppression des critères associés.
+
+Le cycle des objets de décor, leurs sous-ensembles de casters et le suivi du
+retrait physique rejoignent aussi le moteur ; le Studio consomme son résident.
+Tidewater conserve les vérifications de ses paquets et des repères acquis.
+Trois tests ciblés moteur et 30 tests graphiques CPU du runtime passent, ainsi
+que Clippy moteur/Tidewater et la compilation Studio WebGPU. Cette reprise ne
+qualifie pas une nouvelle image, un gain de cadence ou le candidat final.
+
+Le 4 novembre, l'entrée normale du runtime dirige les placements de scène source
+vers le même hôte moteur que le diagnostic, avec inventaire GPU et collisions
+avant publication. Le paquet synthétique indépendant déjà conservé démarre sans
+option de qualification : son modèle est visible en natif, avec sa primitive
+physique enregistrée et son inventaire GPU courant. Le recensement temporel
+tient désormais compte de ces scènes hors diagnostic. Cette preuve porte sur
+le binaire de développement ; elle ne réactualise pas le kit Studio ni ne
+qualifie une scène riche, les gros modèles ou la performance. L'entrée de
+production accepte maintenant les compagnons physiques lorsque les empreintes
+de zone, archive et transport attendues sont toutes fournies et vérifiées.
+Le module physique synthétique démarre sans mode spécial : un solide et un
+capteur sont enregistrés, et une forme désactivée est synchronisée, sans
+collision triangulaire ajoutée au visuel. Les réglages de contacts et les
+familles HLOD source suivent désormais la présence réelle de ces scènes.
+Les paquets particulaires épinglés passent également par l'entrée normale et
+l'hôte moteur commun. Deux modules synthétiques, effets seuls puis effets et
+physique, démarrent sous Windows/Vulkan avec sortie particulaire liée au
+matériau, inventaire GPU courant et aucune collision ajoutée aux particules.
+Les 121 tests de scènes source, 58 tests particulaires et 89 tests du runtime
+passent ; deux tests privés d'eau restent ignorés. Le contrôle Studio WebGPU
+passe aussi. Les interactions physiques en jeu, les effets riches, les espèces
+importées et les distributions finales restent à qualifier.
+Une scène dense de référence démarre aussi par l’entrée normale du même
+binaire : 65 383 instances végétales canoniques, terrain streamé, ombres
+communes et les six inventaires GPU, eau comprise, sont admis. Ce lancement
+à caméra fixe ne compare pas la performance à Tidewater et n’exerce pas le
+remplacement HLOD statique. Les preuves de développement ne mettent pas à
+jour le kit livré. La préparation des modèles d’espèces est corrigée pour
+sélectionner la population visible complète avant de retirer les anciens
+visuels ; le moteur sait aussi exclure et restaurer leurs anciennes ombres
+par head et identité. Trente-neuf tests ciblés et le contrôle Studio WebGPU
+passent. Un adaptateur de ces modèles utilise maintenant les maillages et textures
+résidents de Bevy dans le passage commun des ombres, avec les fonctions de
+vent et de couverture du shader partagé. Une lecture GPU native sur Radeon
+RX 7800 XT/Vulkan vérifie le masque alpha, le déplacement par le vent et le
+cas sans UV. La préparation masquée attend aussi les pipelines couleur et
+prépass du vrai matériau Bevy et de la caméra courante ; l’essai GPU passe
+avec profondeur, normales et mouvement, sans ombre du candidat encore masqué.
+Les shaders en cours de chargement restent en attente. Les bornes de visibilité
+conservent le vent des arbres inclinés à échelle non uniforme. Quarante-deux
+tests ciblés, Clippy strict et le contrôle Studio WebGPU passent sur les mêmes
+entrées. Ce contrôle ne lit pas les pixels couleur et ne qualifie pas le
+parcours réel du Studio. Le jeu ordinaire raccorde maintenant les espèces au
+même hôte streamé pour les plantes importées avec environnement source admis.
+Il garde la population corrigée et ses collisions, agrandit les bornes avec
+les modèles réels et exclut leurs anciens visuels/ombres après préparation.
+Aucun nouveau scatter n’est généré. Quarante-trois tests moteur et 87 tests
+runtime passent, avec Clippy strict, le contrôle Studio WebGPU et le build
+natif du jeu. L’entrée normale exécute ensuite la combinaison sur la scène
+dense : 65 383 plantes canoniques, 13 434 collisions canoniques, 18 326 primitives
+de modèles remplacés, capture à l’image 690 et projection finale prête. Le
+buffer temporel commun et les identités sans ancien caster sont raccordés ;
+le rapport v4 distingue les primitives des modèles des LOD source.
+L’audit incrémental existant est désormais partagé avec les modèles : sur les
+51 mêmes images admises et la même vue, l’intervalle médian passe de 318,84 à
+49,24 ms (environ 3,1 à 20,3 images/s). Cette comparaison instrumentée ne prouve
+ni la parité Tidewater ni le budget final. Quarante tests moteur, neuf contrôles
+runtime, un contrôle de métadonnées et 26 contrôles du contrat de livraison
+passent, ainsi que Clippy strict et le contrôle Studio WebGPU. Le parcours
+Studio, le picking, le cas sans modèles visibles, la qualité complète et les
+distributions restent à qualifier. Les données de composition remplacées sont
+retirées ; un paquet privé autonome sur F: et son cache actif sur E: permettent
+la reprise, selon `imported-species-native-assessment-20261104-001.json`.
+Gate 7 demeure ouverte.
+
+La sélection des modèles remplacés rejoint ensuite la même passe GPU et la
+même table d’identités que les plantes importées, pour les deux consommateurs
+Studio. Elle réemploie les maillages et le shader de vent/masque existants.
+Une lecture GPU native vérifie l’identité devant/derrière, les trous alpha,
+le déplacement par le vent et le refus d’un head périmé. Le cas d’une
+affectation entièrement vide n’invente plus d’inventaire GPU de modèles ; son
+cycle CPU et les refus du contrat passent. Clippy strict moteur/runtime passe.
+La compilation intermédiaire du frontend sous
+`windows-editor-engine-20261104-001` est arrêtée avant qualification : l’import
+Studio refuse encore l’océan et son viewport ne le raccorde pas.
+Le raccord doit réemployer `source_water_host`, déjà utilisé par le jeu,
+avant le nouveau build. Les gestes Studio, le cas vide dans
+l’hôte complet et les distributions restent à qualifier. Le reçu borné est
+`imported-species-picking-assessment-20261104-001.json`.
+
+Le canal de ressources acquiert ensuite les trois paquets épinglés océan,
+surface et ressac avec les codecs existants et une fermeture de ressources
+commune au natif et au navigateur. Sur le module dense, 1 744 fichiers sont
+restaurés et décodés ; le cache est réutilisé et une altération de rôle est
+refusée. Dix-neuf contrôles du canal et ce cas privé passent ; les cinq autres
+cas privés ne sont pas rejoués. Le contrôle Studio WebGPU passe aussi. Le
+paquet de surface est partagé avec l’hôte moteur par Arc. Aucun viewport
+océan n’est encore activé : restent son installation, sa disponibilité GPU et
+le cycle terrain/ressac/effets lors des retouches, avant de retirer le refus
+d’import. Voir `studio-ocean-transport-assessment-20261104-001.json` et
+`studio-ocean-shared-surface-check-20261104-001.json`.
+
+Le raccord du viewport au même hôte d’eau est ensuite implémenté : niveau
+d’eau du module, récepteurs des objets, ressac/effets et remplacement cohérent
+lors d’un changement de relief, en conservant le FFT existant. Les anciens
+retours GPU sont isolés de la nouvelle génération. Le bootstrap admet le
+module dense complet ; les scènes d’océan incomplètes restent refusées. La
+sélection suit aussi les paramètres de vent courants des modèles visibles.
+Les contrôles ciblés passent. Le frontend, le jeu natif ordinaire, le launcher
+et le shell Studio compilent ensuite sous
+`windows-editor-engine-20261104-002`, sur le même inventaire de sources stable.
+Le kit privé actualisé est intégré au Studio et vérifié à côté du binaire.
+L’ouverture réelle de la zone dense dans le Studio termine son chargement :
+terrain, végétation, bâtiments, eau et écume sont visibles. La rotation d’un
+palmier capturé, son annulation/rétablissement, sa sauvegarde et la réouverture
+dans un nouveau processus passent ensuite par le Studio. Une retouche de relief
+sur 453 échantillons est appliquée et sauvegardée ; l’eau et le ressac restent
+visibles après remplacement. Cela ne qualifie ni le picking des modèles
+d’espèces remplacés, ni la performance ou l’acceptation visuelle. L’export réel
+du jeu configuré « Le Camp des Falaises » échoue : la référence d’un bloc
+d’instances végétales est prise pour un GLB externe, puis la lecture de la
+bibliothèque dépasse son budget JSON. La classification commune est corrigée
+sans modifier les formats de stockage ; son contrôle ciblé passe. Les cinq
+constructions du candidat `windows-editor-engine-20261104-003` terminent sur
+les mêmes sources stables. Son export réel depuis le Studio réussit : le
+paquet du jeu, le module à deux cartes et l’installateur conservent le palmier,
+les 453 corrections de relief et la configuration enregistrée. Le plan de
+l’installateur graphique est vérifié dans le dossier de qualification isolé ;
+son application attend la confirmation au moment de l’action imposée par
+Computer Use. L’installation, le jeu autonome et les distributions complètes
+restent à qualifier. Voir
+`windows-editor-engine-20261104-002/candidate-assessment.json`.
+Les reçus `studio-authoring-cycle.json` et
+`studio-relief-export-assessment.json` du même lot bornent les gestes observés,
+les empreintes sauvegardées, le refus d’export et les réserves de rendu/outil.
+Le reçu du nouvel export est
+`windows-editor-engine-20261104-003/studio-ui-export.json`.
+En attendant la confirmation d’installation, le défaut de brosse après un
+point refusé est corrigé dans les sources : l’outil choisi n’est plus consommé
+sur ce refus, et le nettoyage du geste reste assuré par `suspend`. Le contrôle
+Studio WebGPU passe. Ce changement n’est pas embarqué dans le candidat 003 et
+son geste réel reste à vérifier lors du prochain lot groupé ; le picking du
+terrain HLOD éloigné sans collider détaillé reste ouvert. Voir
+`studio-brush-retry-assessment-20261104-001.json`.
+Le pointage réemploie ensuite l’intersection de maillage Bevy sur les seuls
+terrains déjà résidents, avec l’identité du contrôleur admis. Il retient la
+surface visible la plus proche du rayon et compare le résultat physique,
+sans nouveau raster ni collider lointain. Deux tests CPU passent, puis le
+contrôle strict moteur/Studio WebGPU. Le lancement des modules installés
+retire aussi un refus devenu obsolète pour l’entrée dédiée `module-game` :
+les compagnons physiques/particulaires reçoivent leurs trois empreintes et
+le runtime normal conserve son admission épinglée. Les chemins anciens et la
+redistribution gardent leurs refus ; un test de plan sur installation réelle
+de fixture et Clippy livraison passent, sans démarrer son exécutable inerte.
+Les validations végétales et la préparation du viewport sont réorganisées sans
+changer leurs règles, pour le contrôle strict. Ces corrections sont postérieures
+au candidat 003 ; leur nouveau candidat et leurs gestes réels restent à qualifier.
+Voir `terrain-and-companion-corrections-20261104-001.json`.
+Les cinq constructions de `windows-editor-engine-20261104-004` ont terminé sur
+le manifeste stable `9dd50220c6e7191c2caad387ba1c8115877383af5d62db8392de7b48f03f8018`.
+Le kit et le Studio sont intégrés au même workspace isolé ; la fermeture de
+003 a confirmé ses retouches enregistrées. Le remplacement vérifié retire
+140 605 535 octets du précédent kit adjacent ; le nouveau contient
+140 605 023 octets. La session sauvegardée reste identique. Le Studio 004 est
+ouvert avec un profil WebView neuf et charge la carte dense ; ses gestes réels
+restent à qualifier. Les reçus `studio-adjacent-kit.json` et
+`candidate-replacement.json` bornent cette intégration, sans verdict de jeu.
+L'installateur 003 conserve ses paquets et son plan inchangés, en attente de
+la confirmation demandée ; aucune installation n'est déduite du temps écoulé.
+
+Le parcours réel du candidat 004 confirme le maintien de la brosse après un
+clic dans le ciel, mais refuse encore la plage. Le rendu source masque les
+cellules techniques de la même partition ; le filtre de pointage les écartait.
+Le marqueur propriétaire `PhysicsProjection` et son empreinte autorisent
+maintenant leur réemploi sans nouvelle géométrie, raster ou collider.
+Trois tests CPU passent, puis le contrôle strict moteur/Studio WebGPU.
+Le même essai sélectionne un arbre `trees`, prépare/applique/sauvegarde une
+rotation de 15° sans modifier position/échelle : archive
+`faca92c12c03f92398b65937bda361348fc9ed716285a738cc3437a2dce7242e`,
+head `b196c8ddbf6f9a98fb6997ccf7bbcaf574a27f48b11b4556678f9874fa09afb9`.
+Ce n'est pas une preuve de modèle remplacé : le viewport des modules omettait
+l'appel `PreparedHost.with_species`, déjà employé par le jeu normal.
+Il est raccordé au même chargeur de prototypes et au même catalogue épinglé ;
+aucune population procédurale supplémentaire n'est générée. Le contrôle strict
+moteur/Studio WebGPU passe sur ces quatre fichiers modifiés. Les gestes de
+remplacement et de brosse restent à vérifier après construction.
+La séquence unique du candidat 005 est lancée sous
+`windows-editor-engine-20261104-005`, manifeste
+`483b3cca9f97028e81210ff0c41721fb989dfac57768e5a7b1bf26f7ae8b4ed8`.
+Elle enchaîne frontend, jeu, launcher, livraison, kit puis Studio sur le cache
+commun avec 8 jobs ; conserver ses sources stables. Le reçu groupé est
+`source-terrain-and-module-species-corrections-20261104-001.json`, le constat UI
+`windows-editor-engine-20261104-004/studio-ui-observations.json`.
+L'installateur 003 attend toujours la confirmation déjà demandée ; le Studio
+004 reste ouvert sur sa retouche sauvegardée. Aucun nouveau critère Gate 7
+n'est déclaré PASS et aucun contrôle Linux n'est lancé.
+
+
+Le 5 novembre, le Studio 004 est fermé proprement après confirmation des
+retouches enregistrées. La session conserve exactement le SHA-256
+`3d4cda396b1b60a29fdff85660c191688f91585a68c2fffcfbe5940319553e99`.
+Reçu : `windows-editor-engine-20261104-004/studio-clean-close.json`. Le build
+005 a terminé ses cinq constructions ; les sessions 51685 et 13457 sont terminées. Le kit adjacent 004 est à conserver pour le remplacement vérifié
+par 005. L’installateur 003 reste ouvert et n’est pas appliqué.
+
+
+Le retrait des profils temporaires fermés `webview` et `webview-004` du même
+workspace est ensuite refusé par le contrôle d'approbation automatique
+(`blocked by policy`), avant exécution. Ils conservent 844 fichiers,
+972 286 819 octets. Ne pas relancer cette suppression par un autre shell ou
+outil ; le reçu `windows-editor-engine-20261104-004/studio-webview-retirement.json`
+porte le statut `NOT_EXECUTED_AUTOMATIC_APPROVAL_REJECTED`. La session auteur,
+les exports et le cache `module-cache` précédemment protégé sont préservés.
+
+
+Le frontend et le jeu natif 005 terminent en `BUILD_ONLY`, sources stables.
+La séquence initiale 51685 s'arrête ensuite au contrôle des arguments du
+launcher, avant construction : `--shared-jobs` n'est pas admis pour ce rôle.
+L'appel est corrigé sans modification du produit ; les deux étapes réussies
+sont préservées et la reprise 13457 part du launcher, puis livraison, kit et
+Studio. `orchestrator-resume.json` conserve cet arrêt et sa reprise dans le
+lot 005. Ne pas recommencer le frontend ou le jeu natif.
+
+
+Les cinq constructions du candidat 005 sont maintenant terminées en
+`BUILD_ONLY`, sur le manifeste stable
+`483b3cca9f97028e81210ff0c41721fb989dfac57768e5a7b1bf26f7ae8b4ed8`.
+Le kit adjacent et le Studio sont remplacés par le lecteur canonique, session
+auteur inchangée à `3d4cda396b1b60a29fdff85660c191688f91585a68c2fffcfbe5940319553e99`.
+Le Studio est épinglé à `e675daa5dcd4a0b2df0ad09a0cce0342de2a486752b5600893d877b99ee78e2f`.
+Le remplacement retire les 140 605 023 octets du kit adjacent 004 vérifié ;
+le nouveau kit occupe également 140 605 023 octets. Les refus de suppression
+`module-cache`, `webview` et `webview-004` sont respectés et ces chemins restent
+intacts. Reçus 005 : `studio-adjacent-kit.json` et `candidate-replacement.json`.
+Le Studio 005 est ouvert (PID 19704 au lancement) sur le même workspace,
+profil neuf `webview-005`. La seconde carte dense est sélectionnée et charge
+ses ressources ; reprendre les gestes de brosse et de modèles remplacés.
+Les sessions de build 51685 et 13457 sont terminées ; ne pas les relancer.
+L'installateur exporté 003 reste ouvert, sans application de son plan ni
+réponse présumée à la confirmation demandée. Aucun nouveau verdict Gate 7.
+
+Le reçu des raccords ciblés est
+`studio-water-viewport-assessment-20261104-001.json`. Le workspace isolé garde
+858 258 001 octets avant le candidat emballé (341 295 711 octets) et le profil
+WebView temporaire, dont 247 657 387 de cache redondant : son retrait est refusé
+par le contrôle d’approbation automatique (« blocked by policy »), sans
+contournement. Gate 7 reste ouverte.
+
+Le 2 novembre, la validation commune des médias sait contrôler explicitement
+un GLB de scène source, ses programmes, géométries et images, sans copier son
+bloc binaire complet. Les tests des assets et de la livraison passent, ainsi que
+les contrôles stricts natifs et Web. Une scène synthétique isolée a été rendue
+sur GPU ; elle ne qualifie ni le rendu complet, ni la cadence. L'export et le
+jeu de modules refusent toujours ces scènes tant que leur montage, leurs passes
+et leurs compagnons ne sont pas raccordés et qualifiés.
+
+Le 2 novembre, le montage des scènes source, avec leurs paquets physiques,
+effets et routes d'ombres, est commun au moteur et appelé par les deux chemins
+du Studio. Les empreintes des paquets sont vérifiées avant montage et la
+préparation de la scène ainsi que le décodage du paquet physique ne sont plus
+répétés à cette étape. Les tests moteur et le contrôle Studio Web passent ;
+aucun gain de performance ni rendu GPU de scène source n'est déduit de cette
+reprise. Le jeu de modules ne consomme pas encore ce montage et refuse toujours
+les scènes source complètes et leurs compagnons.
+
+Le 2 novembre, le cycle d'exécution des scènes source, auparavant dans le
+Studio, rejoint le moteur commun ; le Studio appelle désormais cette même
+implémentation. L'inventaire graphique commun recense aussi les textures et
+buffers de six matériaux composés sans changer leur rendu. Sur Windows/Vulkan,
+un module indépendant avec végétation procédurale prépare 20 maillages, 10
+matériaux, 30 textures et un buffer, avec collisions prêtes. Les scènes source
+complètes restent masquées et leur hôte n'est pas encore raccordé aux modules
+installés ; physique et particules compagnons restent également refusées.
+Ce résultat ne prouve pas la parité visuelle ou de performance avec Tidewater.
+
+Le 2 novembre, le matériau source fragment est raccordé au jeu de modules par
+le même chargeur et la même composition que le moteur. Un paquet synthétique
+indépendant de Tidewater démarre sous Windows/Vulkan : placement et personnage
+partagent le modèle, les collisions sont enregistrées, la simulation avance et
+les trois textures attendues sont préparées sur le GPU. Un modèle demandant les
+couleurs de sommets non prises en charge est refusé. Ce contrôle ne qualifie ni
+la fidélité visuelle ni la parité de performance ; le rapport de cet arrêt
+précoce ne restitue pas encore correctement le motif détaillé du journal.
+
+Actualisation du 1er novembre : l'hôte terrain commun admet un domaine
+échantillonné rectangulaire et un contexte d'eau explicite. Un module de
+qualification indépendant de 4 096 × 2 048 m démarre avec ce terrain, ses
+ombres et le streaming sur le GPU Windows. La capture couvre une zone presque
+plate ; elle ne qualifie ni l'aspect du relief, ni la parité de performance.
+La simulation de rivage et les textures d'eau du moteur acceptent désormais une
+emprise rectangulaire et un niveau d'eau explicite. Sur GPU Windows sans fenêtre,
+un terrain synthétique de 4 096 × 2 048 m, dérivé du littoral de référence,
+a produit une simulation et des réservations d'embruns après correction du
+repérage des ombres. Celle-ci passe aussi un test GPU ciblé comparant les
+coordonnées du terrain et de l'eau. Le parcours normal des modules refuse
+toujours l'océan tant que son rendu complet n'est pas qualifié.
+L'optique visible, un module d'eau indépendant, la parité visuelle et les
+performances restent à vérifier. Gate 7 demeure ouverte.
+
+Actualisation du 3 novembre : le refus systématique de l'océan a été retiré
+des sources du jeu de module et de son lancement depuis le Studio. Le jeu utilise
+désormais le chemin d'eau du moteur déjà raccordé en qualification, y compris
+depuis le Studio ; il refuse les entrées nécessaires manquantes ou incohérentes.
+La compilation ciblée et la construction du runtime optimisé passent, mais le
+parcours normal et son rendu restent à vérifier avec un module. Le nouveau
+runtime n'est pas encore raccordé au kit Studio et précède l'optimisation
+ultérieure de sélection des plantes. Cette actualisation ne qualifie ni la
+parité ni Gate 7.
+
+La logique réutilisable doit appartenir au moteur ; Tidewater fournit ses
+données et ses réglages. Les calculs de balancement, leur projection sur les
+pivots et le cycle des instances résident maintenant dans le moteur ; le Studio
+les utilise pour le ponton, dont l'adaptateur conserve les données et contrôles
+propres. Sur les paquets réels, 240 images et une reconstruction conservent les
+rotations attendues. Le runtime d'un autre module ne dispose pas encore d'une
+déclaration de ces mouvements : son raccord produit et sa qualification visuelle
+restent à réaliser. La séparation de toutes les capacités n'est pas achevée.
+Le moteur sait maintenant conserver l'identité et la pose locale des seuls
+nœuds de modèle demandés, y compris pour une hiérarchie source et des échelles
+locales non uniformes ou inversées. Le chargeur GLB commun est testé avec les
+sources mémoire ordinaires et Studio ; les instances restent indépendantes.
+Ce mécanisme n'est pas encore activé par une déclaration auteur : le parcours
+complet d'un autre module, son vent et ses collisions mobiles restent à réaliser.
+Le montage groupé des effets source et la préparation de leurs trames résident
+maintenant dans le moteur commun ; le Studio lui transmet le paquet déjà vérifié
+et conserve son contrôle sur l'identité du modèle. Les ressources ne sont plus
+décodées une seconde fois en mémoire à cette étape. Un module installé refuse
+encore les paquets de particules et de physique : leur transport et leur rendu
+effectifs restent à raccorder, sans modification du stockage des assets.
+La préparation des ressources de scène source, l'assemblage de leur hiérarchie
+et l'actualisation de leurs matériaux résident également dans le moteur ; le
+Studio les appelle directement. Les tests moteur et le rejeu du ponton passent,
+mais le jeu de modules n'emploie pas encore cet hôte de scène source : sa
+qualification visuelle et sa parité de performance restent ouvertes.
+L'hôte de scène source, ses repères, son état auteur, ses lumières et ses niveaux
+de détail sont à leur tour communs au moteur ; le Studio les appelle directement.
+Deux éléments partageant une identité de prototype sont maintenant distingués
+par leur chemin de scène pour le choix du niveau de détail. Les tests natifs et
+le contrôle Studio Web passent, mais ce test synthétique ne qualifie ni l'image
+ni la cadence en jeu. Les observations GPU ont ensuite été découplées de la
+qualité physique : Clippy strict passe pour le moteur sans fonctionnalités et
+deux tests ciblés passent. L'hôte terrain ne revendique pas de synchronisation
+physique sans backend ; le reste de la suite minimale n'a pas été rejoué.
+Un mouvement pendulaire actif conserve son objet en détail et retire immédiatement
+un éventuel proxy statique ; ses poses successives ne reconstruisent pas les
+groupes statiques voisins dans le test CPU. Le rejeu du ponton réel préserve ses
+240 images et libère cette protection en fin d'usage. Aucun gain de cadence ni
+aucune synchronisation physique n'est déduit de ces essais.
+
+Le temps transmis par l'hôte moteur aux matériaux de surface et de terrain est
+maintenant celui de la scène, indépendamment de la fréquence de végétation ; les
+vitres et lanternes suivent aussi la nuit du ciel affiché. Les tests CPU et les
+contrôles stricts natifs et Web passent. La vitesse du vent reste toutefois à
+généraliser indépendamment de la végétation ; le rendu et le coût des mises à jour
+de matériaux restent à mesurer sur Tidewater et un autre module réel.
+
+Les paragraphes suivants conservent l'historique des étapes et de leurs limites
+au moment des essais ; l'état courant est résumé ci-dessus.
+L'entrée native générique des modules a été déplacée dans le runtime commun ;
+la sonde Tidewater appelle cette même bibliothèque et un exécutable autonome
+est en cours de qualification. Les deux binaires admettent le même paquet et
+refusent les mêmes entrées invalides avant ouverture d'une fenêtre. Les recettes
+de la future distribution désignent désormais le runtime commun pour le Studio et
+les modules installés, en conservant l'entrée de la démo Tidewater. Le raccord et
+la désinstallation ont été testés avec un paquet d'applications simulé et le vrai
+runtime release ; l'installateur produit, le rendu réel et les performances ne sont
+pas qualifiés par cet essai. Des comportements réutilisables restent à rapprocher
+de la référence.
+Un premier build Linux avait perdu son inventaire détaillé de sources après
+vérification du ZIP. Le rejeu corrigé réussit les tests, Clippy et le build, et
+conserve cette fois son manifeste exact. Il précède les transferts de vent et de
+locomotion ; les builds de Gate 7 restent à qualifier sur les sources finales.
+La géométrie d'océan prépare désormais le raster rectangulaire et son niveau
+d'eau, en réutilisant le plan déjà validé. Ses tests CPU, 36 échantillons de
+hauteur GPU et la préparation du paquet de référence passent. L'hôte d'eau complet
+refuse encore un niveau non nul : le ressac et les optiques exigent le domaine
+historique. Aucun rendu d'eau sur une autre carte ni gain de FPS n'est encore établi.
+Le champ de littoral CPU peut maintenant conserver la finesse de 4 m sur une
+emprise de 4 096 m avec un budget explicite : ses cinq tests et la comparaison
+exacte des 1 048 576 valeurs de référence passent. Le repérage commun du
+littoral dans les shaders passe aussi sept tests CPU et un contrôle GPU sur
+sept points d'une emprise de 4 096 m, avec Clippy strict et 37 frontières.
+La simulation, les optiques et les textures de production ne sont pas encore
+raccordées à cette résolution ; aucun rendu d'eau ni FPS n'est ainsi qualifié.
+La simulation fine de référence couvre 380 m avec 768 × 768 cellules. Le
+moteur peut préparer une zone équivalente à une position explicite, avec les
+mêmes paramètres pour simulation, optique et effets : les paquets réels,
+1 247 tests moteur et 68 tests Tidewater passent. Le suivi dynamique, le raccord
+normal du module et la conservation de l'état GPU restent à réaliser.
+Les réglages graphiques et l’installation des passes de référence utilisent
+désormais le même code moteur dans la sonde Tidewater et le runtime des
+modules. Les tests moteur, runtime et préférences de la référence passent ;
+une scène GPU procédurale retrouve des pixels identiques pour deux caméras
+appliquant ces réglages communs. Le grain et l’exposition automatique sont
+neutralisés pour cette comparaison. L’exécution GPU de chaque effet dans un
+module réel, la reconstruction temporelle et la parité de performance
+restent à qualifier ; aucun critère supplémentaire n’est clos.
+Les noyaux GPU de la FFT océanique, leurs liaisons et leurs passages sont
+désormais communs à la sonde Tidewater et au moteur des modules. Les deux
+buffers initiaux et 21 sorties après 120 pas reproduisent exactement les
+empreintes natives historiques. Leur transaction de trame vivante est aussi
+partagée : elle attend l'encodage du rivage et des embruns lorsqu'ils doivent
+consommer cette étape. Une sonde GPU sans fenêtre avec un paquet de module
+vérifie cette attente et leur reprise à la même étape ; une autre vérifie le
+raccord tardif d'un rivage. Ces observations ne sont pas une clôture GPU ni
+une comparaison d'images. L'orchestration complète des scènes reste à réunir ;
+tempête, rendu en jeu et performance restent à qualifier.
+Le décodage commun des horloges et du vent appartient au moteur : 23 tests
+moteur, le rejeu des données de référence et le contrôle strict du Studio Web
+passent. La revue a identifié deux contrôleurs de déplacement : le module sec
+utilisait 5 m/s et une gravité de 24 m/s², contre 3 m/s et 9,81 m/s² pour
+Tidewater. Un premier raccord utilise maintenant la locomotion moteur sans exiger
+d'eau : 10 tests de calcul, 40 tests de physique et 41 tests du runtime passent
+(deux tests du runtime sont ignorés). Le rejeu des scènes réelles et les
+performances restent à vérifier. Les chiffres précédents proviennent du code
+antérieur, pas d'un benchmark.
+La projection des bâtiments de module et sa disponibilité physique ont été
+transférées sans changement d'octets dans le moteur, puis raccordées au jeu de
+modules. Leur rejeu natif de scène complète reste nécessaire.
+La règle qui retient le joueur tant que les objets et les corps de gameplay ne
+sont pas prêts rejoint aussi le moteur ; son test d'origine, la suite moteur et
+les tests du parcours de module passent. Le rejeu natif reste à compléter.
+
+Point du 1er novembre : le parcours Tidewater utilise désormais la résidence de
+tuiles d'océan du moteur commun, déjà consommée par le module de qualification.
+Les tests de propriété et le parcours du module passent ; deux trajets Tidewater
+et les quatre trajets comparatifs ancien/commun ont échoué au seuil de 60 FPS,
+puis un trajet du binaire restauré a réussi à 60,34 FPS. Ces résultats courts
+ne qualifient pas une cadence soutenue ni une parité. L'eau normale des modules
+reste protégée et les hôtes de terrain source et d'eau exigent encore le domaine
+fixe de référence : leur généralisation et un essai sur une carte indépendante
+restent nécessaires. Les détails et les limites sont dans le suivi Gate 7.
+
+Une erreur de bornes aux frontières de tuiles a ensuite été corrigée dans le
+monde commun : les voisins utilisés par l'interpolation et la hauteur extérieure
+sont pris en compte, et la pyramide CPU accepte les rasters rectangulaires.
+Terrain source, eau et ombres utilisent un contrôle commun de leur profil
+actuellement supporté ; leur rendu reste limité à la grille de référence.
+Tests monde et moteur, Clippy et parcours fonctionnels Windows passent ; le
+trajet Tidewater final échoue toutefois à 58,50 FPS sous charge. Les trois tests
+de bornes passent aussi sous Linux, dont la suite complète reste en cours. Ces
+résultats ne qualifient pas encore le rendu d'une carte indépendante.
+
+Les retouches de relief du moteur acceptent désormais une grille échantillonnée
+rectangulaire et sa maille ; sur GPU Windows, leurs hauteurs correspondent au
+monde pour 30 points de deux profils indépendants, avec et sans retouches. Le
+chemin historique conserve son programme inchangé. Ce test ciblé ne qualifie
+pas le rendu complet : le paquet terrain v1/v2, les textures, normales et racines
+CDLOD restent liés au profil de référence, et les protections restent actives.
+Après l'ajout de garde-fous aux points d'entrée des shaders, la suite moteur,
+Clippy moteur et la comparaison GPU passent à nouveau, aussi avec une hauteur
+extérieure différente ; Clippy du consommateur Tidewater et du Web passent aussi.
+Le candidat natif réussit un trajet Tidewater court à 63,20 FPS et un aller-retour
+du module de qualification sur le profil de référence. La durée totale du lanceur
+Tidewater atteint 234,58 s sans diagnostic de phase ; aucune cadence soutenue ni
+parité visuelle n'est établie. La suite Linux complète passe sur l'instantané
+antérieur `1a8fb532…` ; elle ne couvre pas ces dernières retouches.
+Depuis ces essais, la préparation des textures accepte des chaînes rectangulaires
+et le graphe de normales utilise leur nombre réel de niveaux. Les quatre générations
+de la sonde matérielle passent sur Radeon, dont deux formats rectangulaires avec
+dégradé. Le calcul CPU des normales/AO accepte aussi d'autres dimensions et une
+hauteur d'eau explicite : cinq tests ciblés et un essai CPU–GPU 7 × 5 passent,
+et l'AO de référence reste identique sur 4 194 304 texels. Le contrat exige ensuite
+explicitement le niveau d'eau ou son absence pour les autres profils ; les essais
+ont été rejoués : 1 208 tests moteur passent, huit sont ignorés, et la sonde
+CPU–GPU réussit à nouveau sur Radeon. Les gardes du rendu restent actifs.
+Le conteneur Linux a réussi ses dix contrôles sur l'instantané `b0766f9b…` de ces
+sources, sans constituer une machine propre ou une qualification GPU Linux. Le
+shader de hauteur a depuis été adapté aux domaines rectangulaires : 36 points
+GPU concordent avec le monde, et la référence conserve son programme. Cette
+modification n'est pas comprise dans l'instantané Linux ; son rendu complet et
+les autres composants terrain restent protégés.
+Sur ce candidat, le module de qualification réussit son aller-retour sur le profil
+de référence ; le trajet Tidewater est fonctionnel mais échoue à 58,51 FPS. Le
+processus direct dure 65,59 s et a comptabilisé environ 566 Mo de lectures ; ces
+compteurs ne permettent pas d'identifier les fichiers ou le disque responsables.
+
+Le candidat suivant, intégrant le shader de hauteur, compile sous Windows. Son
+parcours Tidewater est fonctionnel mais échoue à 58,74 FPS ; le module de
+qualification réussit son aller-retour avec le même binaire et le profil de
+terrain de référence. Le sélecteur CDLOD du monde accepte ensuite une emprise
+rectangulaire et ignore les tuiles entièrement extérieures ; les tuiles au bord
+restent carrées et doivent être découpées par le rendu, encore non raccordé.
+Les tests du monde et Clippy monde passent ; Linux ne couvre pas ces nouveautés.
+La chaîne complète, les cartes indépendantes et la cadence restent à qualifier.
+
+Le shader de sommet commun découpe maintenant les tuiles de bord pour un domaine
+échantillonné rectangulaire, tout en conservant à l'octet près le programme du
+profil de référence. Sur Radeon/Vulkan, six sommets et leurs hauteurs passent ;
+une rasterisation de terrain plat 23 × 11 m avec deux niveaux de détail couvre
+1 012 pixels intérieurs sans pixel extérieur sur les 3 084 autres. Cet essai ne
+qualifie ni les textures, ni la scène complète, ni toutes les vues possibles ;
+le profil non historique reste protégé. Le candidat suivant réussit le parcours
+Tidewater à 61,88 images/s sur un essai court et le parcours du module de
+qualification sur le profil de référence. La sélection de géométrie rectangulaire
+a depuis été raccordée au moteur : ses tests, une rasterisation GPU ciblée, les
+1 211 tests moteur et Clippy natif/Web passent. Le binaire construit ensuite
+réussit un trajet Tidewater court à 60,53 images/s et l'aller-retour du module
+de qualification sur le profil de référence. Ces résultats ne qualifient pas
+une cadence stable. Depuis ce binaire, la préparation du maillage et des textures
+de hauteur et de retouche accepte des dimensions rectangulaires et vérifie le
+hash des hauteurs ; le rendu GPU ciblé du maillage préparé, 1 212 tests moteur et
+Clippy natif/Web passent. Le candidat natif réussit un trajet Tidewater court à
+63,36 images/s et l'aller-retour du module sur le profil de référence. Depuis,
+l'adaptation commune des coordonnées de texture passe les tests sur deux domaines
+rectangulaires, avec 1 213 tests moteur et Clippy natif/Web réussis. Le candidat
+natif réussit un trajet Tidewater court à 63,11 images/s et le parcours du module
+sur le profil historique. L'hôte et la scène continuent de refuser un paquet
+incompatible ; le rendu complet d'un autre terrain et la cadence stable restent à
+qualifier.
+
+Point du 31 octobre : les générateurs, la chaîne GPU des textures et les shaders
+du ruban et des embruns résident dans le moteur commun. Tidewater reprend ces
+programmes lorsque leurs entrées correspondent exactement à la référence et
+conserve ses variantes. La caméra et l'horloge de l'eau sont communes aux deux
+parcours ; l'ordre GPU ressac, crêtes puis embruns est commun à Tidewater et à
+un test GPU de module. Les 15 niveaux lus sur un GPU Windows correspondent
+aux captures ; un parcours court réussit avec 65,39 images/s moyennes sur 215
+intervalles. Les déferlantes ne
+sont pas encore raccordées au rendu normal des modules et cette mesure ne
+qualifie pas leur parité ou une cadence stable. Les huit tests ciblés du
+lecteur mutualisé et des paquets d'effets passent sur les sources courantes,
+sans qualifier une migration du Vault ni un parcours Studio complet. Cinq
+dépendances tierces restent sans texte de licence vérifié et trois notices
+candidates demandent une revue d'applicabilité ; la distribution reste ouverte.
+Le rejeu Linux en conteneur confirme les textures de base et les paramètres CPU,
+sans qualifier le GPU, la machine propre ou la distribution complète.
+Voir le [suivi et les limites](docs/evidence/gate7/GATE7_PROGRESS_20261023.md).
+
+Point du 28 octobre : le traitement final commun est raccordé aux modules,
+mais le rendu complet reste à qualifier. La lecture GPU appariée du candidat 052 trouve
+un pixel RGB non fini avant le post-traitement, puis sa propagation dans le
+bloom (`shared-final-post-view-probe-011`). La tentative de correction de la
+nervure d'herbe est contredite par le GPU et retirée ; la couverture blanche
+de l'herbe sur 053 puis du terrain sur 055 n'élimine pas ce pixel, à profondeur et matrices identiques.
+Les contre-essais plantes 057 éliminent le défaut en couverture, tandis que
+l'albédo et la normale restent non finis. La sonde 058 lit, aux pixels concernés,
+un tronc à hauteur positive et coordonnée locale négative : le calcul d'écorce
+élève cette coordonnée normalisée à la puissance fractionnaire 2,2. La correction
+059 borne uniquement la base de cette puissance dans les deux chemins communs
+des plantes. Les rejeux Low/Medium/High/Ultra `021` à `024` ne contiennent plus
+de valeur non finie dans les quatre plans lus ; le rectangle noir est absent
+des quatre captures inspectées (`shared-plant-bark-domain-assessment-001.json`).
+Clippy natif/Web, 77 tests moteur et 26 frontières passent ; aucune parité globale,
+performance ou chaîne source complète n'est qualifiée par ce contrôle ciblé.
+Le raccord temporel 062 ajoute la dérivation des matériaux végétaux monde et
+leur enregistrement dans le Studio : 16 modules Naga réels, 91 tests temporels,
+Clippy natif/Web et 26 frontières passent. Cette validation CPU n'active pas
+la reconstruction temporelle dans les modules ; les passages optiques et leur
+couverture GPU restent à qualifier selon ADR-0057. Le candidat 072 vérifie
+huit encodages de la géométrie réelle du module : 18 981 commandes, aucun type
+inconnu ni entrée en attente après correction des classes de visibilité périmées.
+Le contrat de coque manque toujours et empêche toute promotion d'historique ;
+la chaîne complète reste à qualifier. Les requêtes de hauteur d'eau et cartes
+photoniques sont ensuite transférées dans le moteur sur 073, sans modification
+d'algorithme : Clippy strict natif/Web, neuf tests transférés et 27 frontières
+passent sur les entrées 073 inchangées. La brume, le passage sous-marin et leurs
+cartes d'éclairage sont transférés sur 076 : 24 fichiers, onze WGSL comparés
+exactement après changements de noms, 18 tests optiques et 92 temporels passent,
+ainsi que Clippy natif/Web et 28 frontières. Le candidat 076 retrouve les huit
+encodages de géométrie du module. Le premier rejeu pipeliné de référence refuse
+avant encodage valide : lancement sans la chaîne statique HDR et ancien contrat
+de frame du shader auxiliaire des poissons. Le lancement est corrigé ; la
+reconnaissance stricte de l'horloge commune sur 077 passe 94 tests temporels,
+le matériau réel et quatre modules Naga, avec Clippy natif/Web. Le rejeu 002
+encode les sept rôles HDR, mais deux maillages StandardMaterial skinnés/morphés
+bloquent la couverture auxiliaire : aucun historique ni resolve n'avance.
+Le moteur reprend ensuite les buffers articulaires courant et précédent de Bevy
+sous contrat de continuité ; les morph targets restent refusés. Sur 089, 97 tests
+temporels, huit compositions de shader et Clippy de l'exemple natif/Web passent.
+Le rejeu de référence 006 couvre 19 081 maillages et reprend après trois frames
+Render sans caméra, avec les 32 phases observées. Il qualifie l'encodage, pas les
+vitesses lues sur GPU, la parité visuelle ou les performances. L'activation et la
+qualification complètes dans les modules restent à réaliser.
+Le raccord moteur du masque de coque réutilise la passe de distance existante
+sur la même frame, sous inventaire explicite et contrôlé de la scène. Un volume
+synthétique valide l'encodage avec mouvement, reset, redimensionnement et reprise
+de caméra sur les sources 094 ; le module continue à refuser la promotion sans
+inventaire. Sur 096, la même sonde reprend la géométrie du bateau source avec
+des matériaux de diagnostic et observe une commande de coque dans les frames
+valides, après les transitions de caméra. L'apparence du bateau, l'exclusion de
+l'eau, les lectures GPU, les performances et l'intégration des modules restent
+à qualifier.
+La copie de profondeur opaque et les métadonnées de caméra de contact sont
+ensuite transférées dans le moteur commun. Le rejeu 010 sur les sources 099
+retrouve les contacts liés à la bonne caméra avec la coque du bateau source,
+y compris la reprise après une frame refusée au redimensionnement. Il ne qualifie
+que l'encodage ; le module continue à refuser l'historique faute d'intégration
+et d'inventaire de coque.
+Le producteur GPU des contacts et du temps de surface rejoint ce même module
+moteur sur 101 ; son buffer et son calcul sont conservés. Le rejeu de référence
+011 retrouve les contacts et la coque dans les frames valides ; l'audit module
+012 maintient le refus de coque. Les pixels et les performances restent à qualifier.
+La simulation FFT d'océan et son horloge sont ensuite transférées dans le
+moteur commun, avec un contrat d'entrée indépendant du lecteur Tidewater. Sur
+les sources 106, 72 textures et trois buffers lus sur GPU sont identiques avant
+et après transfert pour le paquet vérifié à 124 étapes. La surface d'eau complète,
+la performance et l'intégration des données d'océan aux modules restent à qualifier.
+La géométrie CDLOD qui porte ce matériau rejoint aussi le moteur commun sur 109 ;
+le lecteur de surface reste responsable des empreintes et de la provenance. Le
+contrat courant refuse un relief qui ne correspond pas au domaine fixe du shader.
+Le test ciblé, Clippy strict natif/Web et 29 frontières passent ; la surface
+complète, son affichage et son raccord à des modules restent à qualifier.
+Sur les sources 111, la préparation du ressac et de l'optique refuse un plan
+de terrain d'une autre révision ; le registre d'eau refuse les réallocations
+de taille incompatible. Douze tests de terrain, cinq de requêtes, Clippy strict
+natif/Web et 29 frontières passent, sans qualifier un rendu ou module.
+Le lecteur FFT rejoint `forge_assets::source_ocean_package` : Studio et les
+sondes utilisent le même lecteur et ses contrôles de fichiers et d'empreintes.
+Sur les sources 112, cinq tests passent (un test historique reste ignoré),
+Clippy strict natif/Web et 29 frontières passent ; le calcul GPU retrouve les
+75 sorties identiques à la référence 106. Le transport de ces ressources dans
+les modules et l'eau complète restent à réaliser et qualifier.
+L'API module 9 transporte désormais les entrées FFT explicites par zone, avec
+contrôles de fermeture, pins et licence, et les conserve au réexport. Les
+anciens formats restent admis. Un paquet réel de 260 fichiers est emballé et
+relu ; le cas multizone conserve l'océan sur la seule zone déclarée. Le producteur
+Studio refuse ces modules et le jeu refuse les zones concernées tant que l'eau
+complète n'est pas raccordée.
+Voir [ADR-0060](docs/ADR/ADR-0060-closed-module-ocean-inputs.md).
+Le calcul de champ de rivage source rejoint le moteur commun, octet pour octet.
+La simulation résidente de ressac et son shader partagé résident aussi dans le
+moteur ; leurs deux sorties GPU restent identiques après ce transfert.
+L'optique, la capture de réfraction et les requêtes de surface sont désormais
+dans le moteur commun ; le joueur y fournit explicitement sa position. Leurs
+tests de préparation et de locomotion passent, mais les lectures GPU de ces
+deux passes restent à rejouer après transfert.
+Un hôte commun prépare et compose les paquets d'eau pour un terrain admis ; le
+jeu de module possède son adaptateur. Les tests de préparation passent, mais le
+garde de lancement reste actif jusqu'aux preuves de rendu, de complétion GPU et
+de locomotion sur un module installé.
+Un module installé de qualification produit un reçu GPU courant pour les
+ressources d'eau et son scénario atteint la physique après correction du choix
+de caméra dans le système commun d'ombres. Un second parcours montre l'océan et
+le ressac à l'écran ; le lancement normal reste protégé et la fidélité, la
+réfraction, la locomotion aquatique et les performances restent à qualifier.
+Voir le suivi Gate 7 et les essais `module-water-runtime-native-001/` à `003/`
+et `module-water-runtime-view-001/` et `002/`.
+Le calcul et le contrôleur physique de locomotion amphibie résident dans le
+moteur commun, avec réexport pour Tidewater. Un parcours de qualification en
+module observe l'entrée en nage puis le retour à la marche avec des lectures GPU.
+La caméra du module utilise le passage sous-marin partagé ; un rejeu observe une
+vue immergée et des passes encodées. La plongée, la fidélité appariée, la
+complétion de ce passage et les performances restent à qualifier.
+Les reçus graphiques sont renouvelés par famille ; un parcours avec et un sans
+eau passent, ainsi que le cycle des quatre profils. La comparaison courte ne
+montre pas encore de gain de temps et ne remplace pas le benchmark Tidewater.
+Le module et Tidewater réutilisent les tuiles résidentes d'océan du moteur ;
+le trajet avec nage et les quatre profils passent localement. La comparaison
+courte ne prouve pas de gain de performance ni d'équivalence visuelle.
+La simulation et l'optique réutilisent le champ capturé seulement si le raster
+et les ressources correspondent ; elles dérivent autrement le champ du terrain
+actuel et refusent un champ d'une autre révision ou d'une autre surface. Une
+lecture GPU du ressac résident réussit sur le raster source et un terrain
+synthétique côtier distinct. L'API 10 transporte aussi les paquets explicites
+de surface et de ressac : leur installation et leur réexport réels passent, ainsi
+que le refus de paramètres contradictoires. Leurs lecteurs sont communs dans
+`forge_assets`. Le rendu complet et les performances dans les modules restent
+à raccorder et qualifier ; voir [ADR-0061](docs/ADR/ADR-0061-module-water-surface-shore.md).
+Les 21 tests ciblés de stockage Python/Rust passent sur
+fixtures isolées, sans qualifier la migration réelle ni l'export final depuis
+le Vault en évolution. Sur les sources 089 inchangées, six tests ciblés du
+lecteur mutualisé et deux tests d'intégrité des paquets d'effets passent ; ils
+passent de nouveau sur les sources 109 inchangées, sans qualifier les migrations
+de stockage concurrentes en cours ni un parcours Studio complet. Aucun de
+ces contrôles ne clôt un critère supplémentaire.
+L'agrégat de notices vérifié couvre neuf scopes Cargo et 831 paquets ; les
+suppléments amont exacts sont rattachés à 61 paquets, pour 426 textes uniques.
+Il reste 25 paquets sans texte disponible, l'applicabilité des suppléments
+et les composants hors Cargo à rapprocher. Neuf tests du collecteur passent ;
+R7-08 reste ouvert.
+
+Campagne unique : `../Preuves-et-analyses/actives/gate7-monde-distribution/` ;
+compilations et temporaires dans le cache E: commun. La règle propriétaire
+actualisée remplace le budget initial par une décision de conservation selon
+l'utilité : mesurer les copies nécessaires, réutiliser les entrées immuables
+et retirer les intermédiaires remplacés après contrôle de leurs usages, sans
+archivage systématique. Les sources et métadonnées nécessaires à la reprise
+restent conservées. Les originaux des Gates 5/6,
+les travaux concurrents et les installations utilisées sont préservés.
+L'ouverture autorise réalisation, corrections, tests et documentation de Gate 7 ;
+elle n'ouvre ni Gate 8 ni la perspective bonus et ne demande aucune publication Git.
+
+Clarification propriétaire des 24 et 25 octobre : les mécanismes réutilisables
+construits pour Tidewater doivent appartenir au moteur commun et être repris
+par tout module qui utilise ces capacités. Tidewater fournit une carte de
+référence, ses ressources et ses réglages ; il ne doit pas réserver un chemin
+de rendu, LOD, streaming ou physique plus complet que celui des autres modules.
+Gate 7 doit reprendre et généraliser ces mécanismes existants, puis raccorder
+le jeu de modules au même chemin. Examiner et retirer les doublons après preuve
+de reprise ; ne pas reconstruire une variante par module ou par campagne.
+Le Studio conserve encore des références à des intégrations Tidewater ; leur
+retrait demande de raccorder les capacités concernées au chemin commun tout en
+préservant les données et comportements propres au module. Certaines références
+ne sont que des réexports de fonctions déjà présentes dans le moteur.
+Le parcours natif de qualification des modules reste lui-même lancé par l'option
+`--module` de l'exemple `tidewater_plant_probe` ; ce point d'entrée historique
+ne démontre pas encore un lecteur distribué indépendant de cet exemple.
+
+La reprise du soir vérifie la retouche Nature du candidat diagnostique 010 :
+annulation, rétablissement et réouverture retrouvent exactement leurs archives,
+avec relief, peinture et autre carte conservés. Le même palmier est relu puis
+sélectionné par GPU après redémarrage. Un refus shader temporaire reste consigné
+et le build final entièrement gelé reste dû. Le bloom, l'exposition et le
+traitement final existants rejoignent le moteur selon ADR-0059, avec cinq
+shaders identiques. La sonde GPU 037 passe ensuite sur deux scènes : vingt PNG
+et 227 étapes d'exposition observées sur le GPU. Le raccord du jeu de modules
+est écrit en 040 et reste en qualification, avec reçus d'encodage par vue et
+barrière GPU conservée. Le stockage compacté du Vault évolue en parallèle selon ADR-0058 :
+45 tests du lecteur Studio et six tests séquentiels du stockage/export passent.
+Une collision de répertoire temporaire de tests parallèles reste enregistrée.
+Les anciens candidats et preuves ne qualifient pas les nouvelles sources.
+
+Le 27 octobre, `shared-lens-validation-001.json` qualifie le transfert du flare
+solaire existant dans `forge_engine::lens_flare` sur les sources 019 : mêmes
+shaders/calculs, Clippy natif/Web, cinq tests, 25 frontières et huit images GPU
+exactes sur deux scènes indépendantes. Le grain variable ne reçoit pas de
+verdict de parité exacte. Le raccord de toute la chaîne optique aux modules
+reste dû. Le cycle Low/Medium/High/Ultra du module terrain source et la reprise
+des préférences passent, mais la revue refuse les points lumineux persistants
+dans l'herbe en Medium (`source-profiles-visual-review-001.json`) ; R7-05 reste
+ouvert. Le protocole Linux des sources 018 termine avec dix étapes PASS,
+dont jeu/parcours/lanceur release et contrôle du bundle ; ses 6 577 entrées
+restent inchangées (`linux-current-003.host-receipt.json`). Les transferts
+019/020 restent à requalifier sous Linux. Nature Studio et la qualification
+complète du produit restent en cours.
+
+Le transfert suivant `shared-buildings-validation-001.json` place la projection
+des bâtiments auteur dans le moteur, consommée directement par Studio et jeu
+de modules : sept tests de projection/portes/collisions, deux tests de casters,
+Clippy natif/Web et jeu, format et 25 frontières passent sur les sources 020
+inchangées. Calculs et assertions existants sont conservés ; parcours auteur,
+GPU et performances restent à qualifier. Les notices source sont complétées
+avec le texte MIT Tidewater exact et les références des dépendances maintenues,
+sans qualifier encore l'inventaire complet de distribution.
+
+Les sources 023 poursuivent cette extraction : reconstruction temporelle,
+contrat de frame, AO, grain, masques de coque et helpers de réfraction rejoignent
+le moteur commun selon ADR-0057. Quarante fichiers déplacés sont comparés aux
+originaux après les seuls changements déclarés de propriétaire et de noms ;
+UUID de shaders et calculs sont conservés. Clippy natif/Web, format, 25 frontières
+et 2 780 tests principaux passent (68 ignorés selon leurs protocoles). Les sondes
+GPU et l'activation de toute cette chaîne dans le jeu de modules restent dues.
+Ces résultats ne qualifient pas Linux 023.
+
+Ubuntu est passée à 4 vCPU et 8 Gio, sans redémarrage du PC. Le nouvel essai
+High reste refusé au délai graphique. Low atteint l'état prêt, sauvegarde et
+capture, puis échoue au contrôle de sortie d'une seconde avec des reçus GPU
+indisponibles (`linux-clean-current-game-assessment-003.json`). Le rejeu ciblé
+005 attend de nouveau l'état prêt après la capture, puis passe les sept étapes
+et la sortie inchangée (`linux-clean-current-game-assessment-004.json`). Ce
+parcours autonome Low des sources 018 est qualifié dans Ubuntu sans SDK ;
+lanceur/installeur, sources actuelles et Windows propre restent dus. Aucun délai
+ou garde n'est abaissé. Le candidat Studio 006 consomme le readback Nature mais
+refuse sa validité deux fois ; le candidat de diagnostic suivant doit identifier
+la condition périmée. Le candidat 007 confirme le seul résident végétal non prêt,
+avec carte, caméra, génération et séquence valides. Les sources 024 attendent
+son état prêt avant le readback, sans changer réception, gardes ou délai ;
+Clippy Web passe. Sélection, retouches et réouverture Nature restent dues.
+
+Le rejeu 008 expire sans retouche : l'attente ne suffit pas car l'inventaire GPU
+compte la caméra ID hors écran comme une seconde caméra de scène. Les sources
+026 corrigent ce filtre avec le marqueur commun existant ; le test ajouté
+conserve la révocation par une seconde caméra ordinaire. La première variante
+de filtre échoue dans les mondes où le composant optionnel n'est pas enregistré,
+puis est corrigée ; ses échecs restent conservés. Requalification en cours.
+Les neuf tests d'inventaire et Clippy strict natif/Web passent sur 026 ;
+le candidat Studio 009 compile pour le rejeu réel.
+Le rejeu 009 réussit la sélection du palmier dans l'inspecteur commun. La hausse
+de 0,5 m et rotation de 15° sont sauvegardées dans la copie de qualification,
+mais la projection révèle une conversion f32→f64 sans renormalisation, refusée
+par le streaming. Les sources 029 corrigent la copie projetée sans modifier
+les données canoniques ou la tolérance ; le test reproduit d'abord le refus,
+puis 314 tests monde et Clippy natif passent. La reprise de cette même sauvegarde,
+annuler/rétablir et le rendu de la retouche restent à qualifier dans le candidat 010.
+La sonde optique GPU 024 passe sur deux scènes indépendantes, avec dix PNG
+identiques à l'essai 019 ; TAA et raccord complet aux modules restent dus.
+
+Le 26 octobre, l'API de module 8 ajoute les ressources terrain explicitement liées
+au descripteur raster canonique complet. Le bilan
+`module-terrain-resources-validation-001.json` qualifie admission fermée, licence,
+refus d'altération, retouche et réexport sur un paquet réel, avec le codec commun.
+Le bilan suivant `module-terrain-transport-validation-001.json` qualifie l'autorité
+native du Studio, l'acquisition commune et le lecteur installé, avec cache et
+annulation sur le paquet réel : 2 752 tests principaux et 126 de livraison passent.
+Ce bilan de transport ne qualifie pas l'exécution WebView ni le rendu des modules.
+Le 27 octobre, `module-terrain-paint-validation-001.json` qualifie la peinture
+canonique dans le terrain source commun : la palette existante est extraite sans
+changement de calcul, les poids reprennent l'évaluateur auteur et les captures GPU
+montrent les trois retouches. L'image sans peinture reste identique octet pour
+octet. Les 2 757 tests principaux, Clippy natif/Web et 25 frontières passent.
+Ce résultat de peinture ne prouve, à lui seul, ni l'adoption par les modules,
+ni le parcours de peinture dans le Studio, ni la parité de performances.
+Le bilan suivant `module-source-terrain-runtime-validation-001.json` qualifie
+le raccord du **jeu natif** au profil terrain explicitement embarqué : même scène,
+CDLOD et cache moteur, avec les cellules conservées pour la partition/physique.
+Le paquet API 8 réel présente 57 patches, 13 textures et 5 buffers observés prêts
+sur le GPU ; les captures sont inspectées. Les 2 764 tests principaux, 87 tests
+du consommateur natif, 126 de livraison, Clippy strict natif/Web et 25 frontières
+passent sur des entrées stables. Le viewport Studio, les parcours peinture/relief,
+les déplacements/remplacements et la comparaison de performances restent à qualifier.
+Le point de contrôle `studio-source-terrain-code-checkpoint-001.json` qualifie
+ensuite le code du raccord Studio : 2 771 tests principaux, Clippy strict natif/Web
+et 25 frontières passent sur 2 518 entrées stables. Le même host accepte une seule
+préparation en cours et la dernière demande en attente ; une vue initialement vide
+conserve un patch masqué possédé par le cache. Les modules locaux sans paquet
+d'origine possèdent leur portée de ressources ; module, zone et origine optionnelle
+participent à l'identité du rendu. Ce point de contrôle ne qualifie pas encore
+l'exécution Studio, les remplacements GPU ou les performances. Une retouche de
+peinture déclenche encore une préparation complète du terrain ; sa réutilisation
+et les parcours d'édition restent à terminer avant tout verdict de clôture.
+Le premier candidat Tauri affiche effectivement ce terrain dans le Studio, mais
+son parcours Peindre refuse le document raster v4. Ce refus est conservé dans
+`studio-source-terrain-webview-001.json`. La brosse corrigée reprend le noyau
+commun et les coordonnées réelles du raster ; 2 773 tests principaux, Clippy
+strict natif/Web et 25 frontières passent sur `studio-source-terrain-inputs-009.json`.
+Le candidat corrigé est en compilation ; son parcours interactif et la persistance
+des retouches restent à rejouer. L'affichage observé ne qualifie pas les performances.
+Le second candidat arme bien la peinture v4 mais refuse encore le point sur le
+sol visible (`studio-source-terrain-webview-002.json`). La requête Rapier sur une
+simulation suspendue est reproduite et corrigée dans le moteur commun : deux
+tests ciblés et Clippy strict natif/Web passent sur les 2 522 entrées de
+`studio-source-terrain-inputs-011.json`. La suite complète passe ensuite avec
+2 775 PASS, 68 ignorés et 144 suites, sur les mêmes sources. Le rejeu réel
+`studio-source-terrain-webview-003.json` retrouve ensuite peinture (454 échantillons)
+et relief (453 deltas) après sauvegarde et réouverture ; l'annulation/rétablissement
+du relief est visible. Le verdict global reste refusé : annuler la peinture bloque
+la préparation des shaders, puis arrête le renderer à l'échéance de la végétation.
+Cette transition reste à réparer. Les deux premiers candidats n'ont pas créé le
+profil WebView annoncé ; le troisième utilise `FORGE_WEBVIEW_DATA_ROOT`, avec
+chemin effectif vérifié sur E:. Les anciens reçus restent conservés.
+Le point de contrôle `studio-source-terrain-code-checkpoint-002.json` vérifie
+ensuite le correctif de programme terrain : mêmes 2 775 tests, Clippy natif/Web,
+25 frontières et cycle GPU peint/vide/peint passent sur 2 523 entrées stables.
+Les images peintes et sans peinture restent identiques aux références. Le
+programme garde ses imports ; un paramètre uniforme désactive la peinture vide.
+Le candidat Studio corrigé est ensuite compilé sur ces mêmes entrées. Le rejeu
+réel `studio-source-terrain-webview-004.json` confirme annulation puis rétablissement
+de la peinture et du relief, retour du terrain prêt, rotation de caméra,
+aperçu de tracé continu abandonné, sauvegarde et réouverture avec les deux retouches.
+L'archive finale retrouve exactement son hash précédent ; le refus du candidat 003
+reste conservé. Ce résultat Windows ne qualifie pas les performances.
+Le raccord suivant évite la préparation complète du renderer pour une peinture
+seule : le paquet admis et tous les champs hors peinture/révision doivent rester
+identiques. Le host conserve alors géométrie, cache CDLOD, textures et génération
+des normales ; ses gardes physiques et son nouveau reçu GPU restent exigés.
+`studio-source-terrain-repaint-native-validation-001.json` observe ces handles
+conservés et des PNG exacts, avec Clippy natif/Web et 25 frontières, sur les
+2 525 entrées de `studio-source-terrain-inputs-016.json`. La suite principale
+passe ensuite avec 2 778 tests, 68 ignorés et 144 suites, sur ces mêmes entrées
+(`studio-source-terrain-code-checkpoint-003.json`). Le rejeu du candidat Studio
+005 passe ensuite sur le terrain déjà sculpté : peinture earth, annuler/rétablir,
+retour du relief, sauvegarde et réouverture (`studio-source-terrain-webview-005.json`).
+Le cycle GPU passe aussi dans le binaire release Windows, avec le PNG exact.
+Linux refuse un test HLOD dont le canal bloquant monopolise l'unique worker ;
+ce refus est reproduit isolément puis corrigé par une attente coopérative, sans
+changer les assertions ni les échéances. Seul ce fichier de test diffère entre
+les sources 016 et 017. La suite Windows passe avec 2 778 tests, 68 ignorés et
+144 suites, ainsi que Clippy strict. Le bilan
+`studio-source-terrain-current-validation-001.json` vérifie les 2 525 entrées
+inchangées : jeu release et WASM sont identiques ; les 24 octets différents du
+shell Studio appartiennent aux horodatages COFF/debug et au GUID CodeView.
+Tous les autres octets sont identiques ; les hashes complets restent distincts.
+Linux passe 192 tests monde et 920 tests moteur, puis poursuit ses builds release.
+Cette comparaison diagnostique ne qualifie
+ni les FPS release du candidat complet ni les performances globales.
+Le rejeu Nature suivant conserve un refus : le clic est reçu, mais le viewport
+canonique n'installe pas le sélecteur de l'ancien résident capturé. Le raccord
+des sources 018 reprend le passage ID existant et les instances publiées du
+host commun, avec le shader et les buffers du matériau éclairé par le monde
+(ADR-0043). Clippy strict natif/Web, format, 25 frontières, les 2 780 tests
+principaux et le shader privé épinglé passent sur des entrées inchangées
+(`studio-source-terrain-code-checkpoint-004.json`). Le candidat 006 compile
+pour son rejeu interactif. Linux termine aussi le
+build release du parcours, puis refuse le lockfile du lanceur. Les deux liens
+base64 manquants sont rétablis sans changement de version ; le protocole est
+rejoué sur les sources 018. Dans Ubuntu sans SDK, les essais High puis Low
+du jeu autonome expirent avant la fin du bootstrap du ciel sur llvmpipe ; ils
+ne qualifient pas le produit sur machine propre.
+Les données/licences spécifiques et gardes du dataset restent dans leur
+intégration, sans dépendance du moteur vers une carte nommée. Comparer ensuite
+le comportement et les performances à conditions identiques.
+
+L'absence de dépendance du moteur vers la crate de carte ne prouve pas ce
+raccordement : les mécanismes réutilisables doivent effectivement résider dans
+le moteur, puis être employés par Tidewater et les autres modules. Les
+ports réutilisables encore dans `forge_tidewater` restent un travail
+d'extraction et d'intégration explicite de Gate 7 ; leur nom historique ou une
+façade d'appel ne vaut pas achèvement de cette reprise. La reprise validée
+place dans `forge_engine::source_vegetation` les layouts GPU, la frame courante
+et précédente, le matériau sous éclairage monde, la sélection et le résident
+de buffers/entités, avec appels directs depuis Studio, la référence et le jeu
+de modules. Les chargeurs et gardes du dataset restent dans leur intégration.
+La tranche suivante transfère également la préparation canonique, les bornes,
+la publication et l'hôte `scene::streamed`, les textures et la dérivation du
+shader sous éclairage monde. Le packing et la description du profil sont dans
+le codec commun des ressources ; ses pins et gardes du dataset sont conservés.
+Le Studio emploie la préparation commune, sans exiger une population auteur
+égale à toute l'île. Le bilan `shared-streaming-validation-001.json` rapproche
+200 tests assets, 732 tests moteur, 355 tests de bibliothèque de carte,
+83 tests d'exemple, le shader épinglé et neuf contrôles d'architecture,
+avec Clippy natif/WebGPU réussi. Les natifs 017/018 conservent les plans,
+packages et projections attendues de 015/016 ; 018 termine 17 étapes avec
+137 observations GPU datées, sans troncature. Les 2 417 entrées compilables
+restent inchangées après les essais. La vérification visuelle/picking complète
+du Studio et celle de la référence après transfert restent à réaliser.
+La tranche `shared-lighting-validation-001.json` transfère ensuite le matériau
+capturé, son staging, le vent partagé, la lumière directe/SH et ses baux GPU,
+ainsi que les récepteurs d'ombres, dans le moteur. Studio et référence les
+appellent directement. Clippy natif/WebGPU, 748 tests moteur, 339 tests de
+bibliothèque de carte, 83 tests d'exemple, le shader épinglé et dix contrôles
+d'architecture passent ; les natifs du module 019/020 passent sur les mêmes
+plans et projections attendues que 017/018. Les entrées compilables restent
+stables. Cette tranche conserve le refus visuel des captures noires 004/005,
+malgré leur code de sortie réussi ; il ne vaut ni rendu valide ni preuve de draws.
+Le bilan suivant `lighting-diagnostic-validation-001.json` attribue puis corrige
+cette image noire : le shader échantillonnait encore les ombres de nuages avec
+une étendue nulle, alors que leur force était nulle. Le récepteur moteur commun
+retourne maintenant une transmission neutre avant ce calcul ; le chemin actif
+est conservé. La lumière CPU et les 176 octets relus du GPU sont identiques
+avant/après. À ressources, caméra et lumière inchangées, la scène de référence
+réduite affiche à nouveau terrain, village et plantes, avec ou sans readback.
+Les natifs du module 021/022 passent ; 022 termine 17 étapes avec 140 observations
+GPU datées. Formatage, Clippy natif/WebGPU, 752 tests moteur, 339 tests de carte,
+83 tests d'exemple, shader épinglé et dix contrôles structurels passent.
+Les 2 422 entrées compilables restent stables après les essais. Ce résultat
+ne qualifie pas la référence complète : grass, ciel/eau, profils et Studio
+restent distincts. Graphe de profondeur, picking et autres ports réutilisables
+restent à extraire et qualifier ; le raccordement global reste incomplet.
+Le bilan `shared-grass-validation-001.json` transfère ensuite le sélecteur CDLOD
+et les bornes de culling dans `forge_world`, et la sélection/résidence d'herbe
+dans `forge_engine::source_vegetation::grass`. Studio, terrain, océan et ombres
+appellent les propriétaires communs ; la capture statique emploie désormais
+le même résident que la marche. Les schémas du profil restent dans le codec
+des ressources. Les 512 tests monde/assets, 759 tests moteur, 332 tests de carte,
+83 tests d'exemple et onze contrôles structurels passent, avec Clippy natif/WebGPU.
+Deux captures natives montrent la scène et la couverture d'herbe, avec les
+7/12/0 cellules de l'oracle source. Les natifs de module 023/024 passent sur
+les mêmes plans et projections attendues que 021/022 ; 024 termine 17 étapes
+et 134 observations GPU datées. Les 2 423 entrées compilables restent stables.
+Cette tranche laissait le raccordement d'herbe au matériau et à l'hôte du jeu
+de modules à réaliser ; le transfert de propriétaire seul ne le qualifiait pas.
+Le bilan suivant `module-grass-validation-001.json` réalise ce raccordement
+avec le même sélecteur/résident moteur, le shader source et les vrais champs
+terrain/masque. Les corrections de terrain et la caméra finie rejoignent aussi
+leurs propriétaires moteur communs. Selon
+[ADR-0042](docs/ADR/ADR-0042-explicit-imported-grass-fields.md), le document
+végétal v2 déclare explicitement son champ par un profil gouverné ; le v1 garde
+sa sérialisation et n'active aucune herbe implicitement. Le nouveau candidat
+conserve terrain, retouches RPG, blocs et ressources : 103 des 106 payloads
+restent identiques. Les natifs 025 (ancien module), 026 et 027 passent ;
+027 termine 17 étapes, avec 136 observations GPU principales et 301 achèvements
+de ressources d'herbe datés, sur le même binaire que les deux captures de
+référence 003/004 (oracle 7/12/0). Les images inspectées montrent les brins
+dans le module et la référence. Les 764 tests moteur, 858 tests domaine/assets,
+108 tests de livraison, 332 tests de carte, 84 tests d'exemple, le shader
+épinglé et douze contrôles structurels passent, ainsi que Clippy natif/WebGPU
+et le formatage. Les 2 425 entrées / 282 818 999 octets restent stables.
+Le profil repris reste contraint à ses champs source ; le parcours auteur
+Studio v2, l'édition/picking, les autres profils, le graphe de profondeur et
+les autres ports restent à qualifier. Cette preuve ne vaut ni parité complète
+avec Tidewater, ni qualification générale des performances ou de distribution.
+La tranche `shared-picking-validation-001.json` transfère le matériau ID, son
+shader, le passage hors écran et le snapshot d'occlusion dans le moteur.
+Studio et référence les appellent directement avec les matériaux de terrain
+et de surface fournis par l'intégration. Les cinq tests de skinning/hiérarchie
+et le test de profondeur échantillonnable suivent leur propriétaire ; un test
+de matériaux indépendants s'ajoute. Les 771 tests moteur, 326 tests de carte,
+84 tests d'exemple et treize contrôles structurels passent. Le shader source
+conserve ses déformations, rejets alpha et frontières d'IDs. Trois images GPU
+sur la zone exacte du module résolvent 37 plantes vers les UUID canoniques ;
+terrain/surfaces occultent 5 108 pixels, puis l'objet standard 3 970 autres.
+Les ressources sources restent inchangées. Le natif 028 termine les mêmes
+17 étapes avec la projection attendue de 027, 141 observations GPU principales
+et 301 achèvements d'herbe. Clippy natif/WebGPU et formatage passent.
+Le marqueur hors écran est désormais commun à tous ses producteurs/filtres ;
+AO et flare emploient l'exigence de profondeur du moteur. Ce dernier transfert
+ne comprenait pas encore le graphe d'ombres à cascades. La sélection
+interactive et les retouches Studio, les autres profils et les critères
+généraux restent à qualifier ; aucune clôture de Gate 7 n'est déduite.
+Le bilan `shared-cascades-validation-001.json` transfère ensuite ce graphe dans
+`forge_engine::source_shadows::casters`, avec uploads opaque/terrain/plantes,
+poses retenues, cadence et reprise. Les frames et kernels des casters masqués
+et prototypes indexés deviennent communs ; les codecs et collecteurs de carte
+conservent leurs ressources et gardes d'acquisition. Les anciens chemins GPU
+sont retirés. Le marqueur hors écran est extrait pour la sélection de caméra
+du graphe. Les 787 tests moteur, 311 tests de carte, 84 tests d'exemple, un
+smoke d'extraction, quatorze contrôles structurels, Clippy natif/WebGPU et
+formatage passent. Avec le même pilote, les mêmes ressources, caméra et pose,
+les 50 331 648 octets des trois profondeurs GPU sont identiques avant/après.
+Installation tardive, désactivation, remplacement et refus atomique passent
+sur GPU. Les images finales présentent de petits écarts mesurés, sans parité
+pixel déclarée. Le natif 029 termine 17 étapes avec la projection attendue de
+028, 137 observations GPU principales et 301 achèvements d'herbe. Les 2 429
+entrées / 282 826 130 octets restent stables. Ce transfert ne raccorde pas
+automatiquement chaque hôte aux récepteurs/effets de référence ; cette reprise
+effective, les parcours Studio, profils et qualifications générales restent
+à poursuivre selon [ADR-0044](docs/ADR/ADR-0044-shared-source-cascade-graph.md).
+Le bilan `shared-wind-validation-001.json` corrige ensuite un raccordement
+effectivement divergent : le module intégrait ses propres rafales et utilisait
+16 phases, tandis que la référence disposait déjà de l'horloge source et de
+64 phases. `forge_engine::source_wind` possède maintenant temps/vent de scène
+et horloge de végétation ; le module consomme cette même horloge. Force,
+fréquence et phase initiale du module restent ses entrées, sans modifier les
+documents. Le transport reprend `0.7 * vitesse + 1.5` ; la fréquence auteur
+ne modifie que la forme d'onde. L'ancien intégrateur privé est retiré et le
+commit de l'horloge suit la publication réussie de la frame précédente/courante.
+Les vues hors écran ne déplacent plus la caméra de simulation. Les 792 tests
+moteur, 309 tests de carte, cinq tests d'entrées génériques, 84 tests d'exemple,
+quinze contrôles structurels, Clippy natif/WebGPU et formatage passent. Les
+natifs 030 (ancien module) et 031 (17 étapes, 139 observations GPU principales,
+300 achèvements d'herbe) passent ; la référence statique 005 est inspectée.
+Les 2 431 entrées / 282 831 569 octets restent stables, sans nouveau payload
+d'assets. Ce résultat ne raccorde pas les récepteurs/éclairages de référence
+au chemin PBR actuel du module et ne qualifie pas le vent animé GPU de la
+référence complète. Les suites restent ouvertes selon
+[ADR-0045](docs/ADR/ADR-0045-shared-source-wind-clock.md).
+Le transfert suivant place l'exécution existante des LUT d'atmosphère, nuages,
+ciel et environnement HDR dans `forge_engine::source_atmosphere`, `source_clouds`,
+`source_sky` et `source_environment`. Studio et référence les appellent directement ;
+les lecteurs d'acquisition et leurs gardes restent dans l'intégration. Les agrégats
+préparés/résidents sont communs, sans accès au disque. Les 155 fonctions comparées
+conservent leur corps après adaptations explicites des propriétaires, diagnostics
+et virgules de formatage ; les 64 fichiers WGSL conservent leurs octets.
+Le bilan central `shared-environment-validation-001.json` rapproche 825 tests moteur,
+278 tests de carte, 43 tests d'intégration, 84 tests d'exemple, seize contrôles
+structurels, Clippy natif/WebGPU et formatage. Quatre phases solaires ont de vrais
+readbacks distincts et des handles conservés ; les deux générations de nuages et
+la capture du ciel commun passent. Les 22 programmes de production sont compilés
+sur le périphérique Bevy, sans revendiquer l'exécution du graphe HDR vivant.
+Les natifs 032/033 et la référence statique 006 passent ; la projection attendue
+du module reste identique au 031. Les 2 436 entrées / 282 833 868 octets sont
+inchangés après validation. Le transfert ne raccorde pas encore l'environnement,
+les récepteurs PCSS/PCF et l'éclairage source au chemin PBR actuel du module.
+L'admission des ressources dans son paquet fermé et leur consommation effective
+restent nécessaires, selon [ADR-0046](docs/ADR/ADR-0046-shared-source-environment-graph.md).
+Le raccord suivant, [ADR-0047](docs/ADR/ADR-0047-closed-module-environment-admission.md),
+ajoute l'environnement explicite par aire à l'API de module 4. Ses codecs sont
+communs dans `forge_assets` ; le paquet autonome ferme ses ressources et le moteur
+possède son hôte ciel/nuages/HDR. Le bilan `module-environment-validation-001.json`
+rapproche transport, tests, Clippy natif/WebGPU et natifs 034/036/037. Le 035 a
+révélé le refus du ciel par le contrôle graphique du module ; ce refus est conservé.
+Le contrôle admet maintenant uniquement le ciel possédé par l'hôte commun et exige
+une completion GPU postérieure à l'application du profil, sans accepter un matériau
+inconnu ou ambigu. Le 037 termine 17 étapes, 3 705 soumissions vivantes et une
+publication HDR d'identifiant 3 619 ; les 22 programmes sont préparés.
+La projection canonique et les ressources de terrain/végétation/RPG sont conservées.
+Cette admission ne raccorde toujours pas les surfaces PBR aux récepteurs/éclairage
+source ; les vues de parcours ne prouvent pas la parité pixel du ciel. L'export
+fidèle de cet environnement, la commande auteur, les profils, les parcours Studio
+et les dix critères de Gate 7 restent ouverts.
+Le raccord des surfaces suit désormais [ADR-0048](docs/ADR/ADR-0048-shared-source-surface-lighting.md).
+Les ombres du relief, leur kernel attribué et la préparation/sélection des casters
+végétaux ont rejoint le moteur, avec appels directs depuis Studio/référence. Les
+hashes vérifient le code conservé et le test épinglé conserve les fonctions de
+lumière directe, d'environnement et de translucidité. Le matériau du monde porte
+une spécialisation source et une liaison explicite aux générations résidentes ;
+**cette première tranche n'activait pas le module**. Les natifs 040/041 restent donc des contrôles
+du chemin PBR existant, pas une preuve de rendu des surfaces sous lumière source.
+Le kernel moteur et le shader acquis produisent des sorties GPU identiques sur
+les mêmes entrées ; 22 pixels de hauteur diffèrent avec l'image archivée, de
+0,03125 au maximum, sans qualifier cette parité. Le bilan central
+`module-surface-validation-001.json` conserve les échecs et les résultats.
+Le raccord suivant fournit aux plantes du module les ressources résidentes de
+l'environnement et les vrais casters du terrain, des objets opaques et des plantes.
+Le graphe, la sélection et l'adaptateur de caméra existants sont réemployés ;
+rendu et casters partagent leur frame de vent. Les changements de sources
+renouvellent les inventaires et exigent un nouvel achèvement GPU. Le transport
+des nuages utilise la frame commune plutôt qu'une modification de tous les
+matériaux. Le bilan `module-surface-live-validation-001.json` conserve les essais,
+la régression de spécialisation 044 et le refus de caméra 045. Les récepteurs du
+terrain et des objets standards, les casters standards alpha/skinnés, les profils,
+Studio et les critères généraux restent à qualifier ; aucune parité complète
+ou clôture de Gate 7 n'en est déduite.
+Le bilan `shared-surface-validation-001.json` rapproche ensuite les récepteurs
+du terrain à palette auteur et des objets standards du module essayé. Ils
+consomment les fonctions communes de soleil, SH/HDR et ombres, en conservant
+géométrie, textures, prépasses et liaison aux surfaces originales du gameplay.
+Les dépendances des matériaux composés sont déclarées explicitement et contrôlées
+sur le GPU. Le 051 passe 17 étapes avec une trace non tronquée, le 052 six étapes
+historiques et les références réduites 007/008 leurs contrôles de masque/scène.
+Les échecs 048/049/050 restent conservés. Ce raccord reste **partiel** : les
+lumières ponctuelles intérieures existantes et leurs ombres ne sont pas encore
+reçues par ces surfaces. Leur fonctionnement doit être restauré en réemployant
+l'existant. L'activation reste liée à l'hôte végétal et doit couvrir aussi les
+modules sans végétation. Les autres mécanismes réutilisables, Studio, les profils,
+les performances appariées et les dix critères généraux restent à qualifier.
+Le bilan `shared-plants-validation-001.json` rapproche 704 tests moteur,
+381 tests de bibliothèque, 83 tests d'exemple, le shader épinglé, Clippy
+natif/WebGPU et huit contrôles structurels. Les natifs 015/016 passent après
+transfert ; l'aller-retour termine 17 étapes avec 133 observations GPU datées
+et les mêmes identités attendues. Les qualifications générales restent ouvertes.
+
+Mesures du 25 octobre : les horloges CPU/rendu et scopes GPU de la référence
+sont repris dans le moteur et utilisés par le jeu de modules. Sur le candidat
+complet, la boucle fixe coûte environ 35,7 ms par pas et est répétée environ
+13,5 fois par image ; les temps GPU publiés observés sont de 4,5 à 7,8 ms.
+Ces observations ont conduit à borner la résidence dans le plugin physique
+commun existant, avec conservation des 13 434 sources et acquittements réels
+de Rapier. Les essais natifs 013/014 passent : 23 proxies au camp, 23 à 62 sur
+l'aller-retour, 17 étapes et 139 observations GPU datées. Le scénario
+stationnaire identique passe de 576,55 à 19,01 ms d'intervalle moyen des images
+prêtes ; le parcours complet donne 13,28 ms, avec ses images non prêtes
+conservées. Ces diagnostics en développement ne sont pas une qualification
+release, une comparaison complète à Tidewater ou une clôture de Gate 7.
+Le bilan `physical-residency-validation-001.json` est dans la campagne centrale.
+
+## Gate 6 clôturée localement — 23 octobre 2026
+
+**Gate 6 — IA et MCP gouvernés est clôturée localement sur Windows**, selon
+[le rapport final](docs/evidence/gate6/GATE6_CLOSURE_20261023.md) : treize fondations
+et huit parcours vérifiés, régression finale 721 PASS / 11 ignorés, Clippy
+natif/WASM et build Studio réussis, archive ZIP64 intégralement vérifiée et cataloguée.
+Les commandes et documents Forge restent l'autorité ; aucune permission ou
+application n'est accordée par un modèle ou par un argument MCP.
+
+Le Qwen local `qwen3.8-flash-next-iq4-xs`, avec raisonnement demandé, crée une
+vraie aventure dans Studio ; porte et dialogue sont retouchés, puis une variante
+locale conserve les retouches après réouverture. Reprise de jobs sans doublon,
+quotas et MCP durable/conflit sont qualifiés avec distinction entre fournisseur
+réel, plans synthétiques et fautes contrôlées. Les deux solutions des résultats
+avec assistant et manuel sont jouées puis reprises exactement dans le refuge
+sans fournisseur au runtime. Les modèles du kit livré et du Vault rejoignent
+les packages privés avec leurs pins et preuves. Le
+[bilan comparatif](docs/evidence/gate6/GATE6_COMPARISON_20261023.md) ne démontre
+aucun gain général de productivité et explicite les différences entre les recettes.
+
+La disponibilité actuelle de Qwen reste une réserve : la dernière sonde est
+injoignable, sans annuler les générations réussies historiques. Les captures
+ne valent pas acceptation esthétique, ni qualification Linux/Windows vierge ou
+distribution générale. Le Studio actif du propriétaire et les travaux concurrents
+sont préservés. Gate 7 et suivantes, la perspective bonus et toute publication
+Git restent non ouvertes ou non autorisées. Le
+[rapport chronologique](docs/evidence/gate6/GATE6_PROGRESS_20261022.md) conserve
+l'ouverture du 22 octobre, les refus et les réparations sans réécrire leurs verdicts.
 
 ## Gate 5 clôturée localement — 22 octobre 2026
 
@@ -2213,6 +3703,23 @@ formeront une tranche distincte du rendu océanique.
 Ne commence qu’après stabilité du solo. Transport, synchronisation, reconnexion et sécurité sont
 séparés de la simulation. Une tranche coopérative réelle doit être prouvée avant toute promesse WAN.
 
+### Gate 9 — Tidewater reproductible par les capacités communes
+
+**Décision propriétaire du 7 novembre 2026 — planifiée, non ouverte.** Tidewater doit être
+un jeu créé avec l'éditeur Forge et exporté avec son propre launcher. Ses cartes, assets,
+réglages et règles de jeu restent ses données ; tous les mécanismes et outils réutilisables
+nécessaires à leur création et à leur exécution appartiennent au moteur et à l'éditeur communs.
+Ils doivent être configurables et reproductibles dans d'autres jeux créés avec Forge, sans
+dépendre du nom, du contenu, des chemins ou d'un exécutable particulier de Tidewater.
+
+La clôture exige un inventaire exhaustif et traçable des capacités et dépendances, leur
+généralisation et leur raccord effectif à l'éditeur, au moteur et au jeu exporté, puis un
+parcours réel de création, sauvegarde, réouverture, export et jeu de Tidewater et d'au moins
+un autre jeu indépendant. Les preuves doivent couvrir les comportements et rendus concernés,
+les limites et performances requises, ainsi que les plateformes pertinentes. Un changement
+de nom, un déplacement de fichiers, une compilation ou l'export de Tidewater seuls ne prouvent
+pas la reproductibilité. Voir les critères détaillés de Gate 9 dans la roadmap.
+
 Le détail opérationnel est dans `docs/planning/MIGRATION_ROADMAP.md`.
 
 ---
@@ -2682,3 +4189,853 @@ accepté sur le correctif 005 du 8 octobre ; intégration du candidat RPG et CI
 finale restent distinctes. CI du 9 octobre : WASM/supply-chain PASS,
 Windows/Linux FAIL à Clippy. La généralisation du moteur reste en pause.
 ```
+
+
+Le bilan suivant `shared-local-lights-validation-001.json` rapproche la
+restauration des lumières photométriques ponctuelles et spots existantes sur les
+surfaces communes. L'adaptateur appelle les fonctions Bevy de lumière et d'ombre,
+sans nouveau solveur. Le natif 054 passe 17 étapes, le 055 six étapes historiques.
+Dans l'essai GPU isolé 008, les contributions ponctuelle, spot et d'ombre passent,
+et le témoin sans lumière est noir. Le verdict strict reste **FAIL** : chaque
+comparaison ponctuelle/spot diffère sur un pixel, d'un niveau de canal ; aucune
+tolérance n'est ajoutée. L'activation sans végétation et le transfert des lumières
+locales en unités source encore privées restent à réaliser. Aucune parité complète,
+qualification de performances ou clôture de critère n'en est déduite.
+
+
+Le bilan `shared-scene-validation-001.json` vérifie ensuite le découplage du cycle
+de vie : `source_lighting::surfaces::{scene,live}` possède le heightfield, les
+casters, les générations et leur animation ; `source_lighting::frame` possède
+la frame courante/précédente de 176 octets et le transport des nuages. Le fichier
+d'adaptation du vent est déplacé sans changement d'octets. Les plantes ajoutent
+leurs casters optionnels et consomment cette même frame ; elles ne pilotent plus
+les ombres des autres surfaces. Le module 058 passe 17 étapes, le 059 six étapes
+historiques. Un module autonome de qualification sans végétation passe six étapes
+sur le même binaire : 313 récepteurs terrain, 17 objets, zéro lot végétal et
+completion GPU datée, sans observation d'hôte végétal. Cette preuve couvre le
+profil source raster 2048 admis ; elle ne qualifie pas tous les terrains/profils,
+Studio, la parité visuelle ou les performances release. Les lumières locales en
+unités source encore privées, les casters alpha/skinnés et les autres mécanismes
+réutilisables restent à reprendre. Les dix critères généraux restent ouverts.
+
+
+Le bilan `shared-source-lights-validation-001.json` reprend ensuite les mécanismes
+de lumières locales en unités source dans `source_lighting::local_lights` :
+collecteur, projection, paquet de 448 octets, récepteur WGSL et transport GPU.
+Les sept corps de calcul contrôlés, le WGSL et la projection conservent leurs
+entrées exactes ; les consommateurs Tidewater et les imports Studio appellent
+leur propriétaire moteur directement. Le tag de caméra commun est transféré
+sans créer de seconde séquence temporelle ; les producteurs existants fournissent
+leur vrai paquet et leur sélection au transport typé. L'oracle CPU/GPU passe
+ses douze scénarios et 36 refus. Les six lectures du buffer des 32 lampes réelles
+et les six synthétiques passent, avec effacement/récupération et avec/sans packet
+temporel. Les natifs 061/062 et le cas sans plantes 003 passent sur les entrées
+figées. Le 060 conserve son arrêt de fenêtre avant fin de parcours.
+
+Ce transfert ne prouve pas encore le dessin d'un matériau éclairé par ces
+paquets, leur consommation non vide par les matériaux standards/terrain/plantes
+du jeu générique ou une exécution Studio. Les points/spots photométriques déjà
+raccordés restent distincts des unités source. La fermeture des compagnons de
+module, ce raccord, Studio, les profils et les performances appariées restent
+obligatoires. Les dix critères généraux restent ouverts.
+
+
+### Réception des lumières source par les surfaces communes — 25 octobre 2026
+
+Les matériaux standard et terrain communs lient maintenant le même paquet local
+source de 448 octets et utilisent les équations du récepteur existant. La dérivation
+rend explicites le type de surface, le binding et les entrées optiques du milieu ;
+les scènes sèches admises emploient des coefficients nuls. Le WGSL acquis reste
+inchangé. Le bilan `shared-source-receivers-validation-001.json` relie le dessin
+natif d'un paquet non vide, ses contrôles jour/désactivation/inventaire/reprise,
+les tests, les compilations et les parcours 063 et sans plantes 004. La réception
+lumineuse des plantes, les compagnons d'assets et leurs vrais repères d'instances,
+Studio, tous les profils et les performances appariées restent à terminer.
+La parité photométrique stricte conserve son échec d'un pixel ; Gate 7 reste ouverte.
+
+
+### Références lumineuses persistantes — 25 octobre 2026
+
+`ManualPlacement.local_lights` conserve désormais les pins du porteur, du
+manifest et du descripteur, les sources sélectionnées et leurs repères locaux.
+Les documents sans cette capacité omettent le champ. La nouvelle capacité exige
+le head 18 et les archives 49/50/51 ; les anciens numéros restent figés.
+La projection commune réutilise `PreparedSourceLights` sur la racine canonique
+réelle, conserve les phases et invalide la publication lors du staging/retrait.
+La découverte des paquets requis parcourt aussi les checkpoints et l'historique.
+Le bilan `shared-light-bindings-validation-001.json` relie 2 709 tests workspace,
+112 tests de distribution et les contrôles natifs/WebGPU. La collecte des
+ressources lumineuses par l'exporteur, leur chargement dans le jeu de modules,
+le raccordement des producteurs Studio et la réception végétale restent ouverts.
+Les API de module actuelles refusent cette capacité, même seulement historique,
+plutôt que de produire une archive incomplète. Aucun critère général de Gate 7
+n'est déclaré clos par cette fondation de données.
+
+
+### Fermeture des paquets lumineux de module — 25 octobre 2026
+
+La version 5 de l'API de module transporte maintenant les paquets lumineux
+requis par les zones et leur historique complet. Le codec existant vérifie
+les manifestes et fichiers originaux, les phases, les sources sélectionnées,
+la fermeture des repères et les licences. Les sources originales sont des
+données inertes encodées ; l'interdiction des programmes exécutables dans un
+module reste inchangée. L'export mono-zone et multi-zone et le chargeur installé
+utilisent cette fermeture commune, sans dépendance à une identité de carte.
+
+`shared-module-lights-validation-001.json` date les entrées et les vérifications.
+Cette étape valide le transport et l'admission, pas la consommation graphique.
+Le lecteur de jeu refuse encore explicitement les archives qui nécessitent ces
+lumières tant que son raccordement au producteur moteur n'est pas terminé.
+Le raccordement doit utiliser les racines canoniques réelles, le même inventaire
+attendu, la caméra et la valeur nocturne de la scène ; il ne doit pas déduire
+l'inventaire attendu des seuls émetteurs présents. Les producteurs Studio, les
+plantes, les profils et les performances appariées restent ouverts, avec les dix
+critères généraux de Gate 7. La règle propriétaire reste : tous les mécanismes
+réutilisables de Tidewater appartiennent au moteur et chaque module les consomme.
+
+
+### Producteur commun des placements lumineux — 25 octobre 2026
+
+`source_lighting::local_lights::projection::placement::host` prépare désormais
+l'inventaire attendu à partir des placements admis et des paquets fermés. Les
+ordres sont stables entre copies, les vrais modèles doivent avoir une racine
+canonique unique et les nouveaux émetteurs attendent la propagation ordinaire
+des transforms. Toute absence, altération ou source étrangère invalide la
+publication. Le producteur et le Studio partagent la lecture de la caméra,
+du temps et de la valeur nocturne du ciel affiché. Une collection ne peut avoir
+qu'un producteur de scène. Les calculs source et le récepteur WGSL sont conservés.
+
+Le lecteur de modules utilise maintenant ce producteur pour les références
+lumineuses courantes ; le refus général décrit dans l'entrée précédente est
+retiré. Le chemin admis requiert encore l'environnement source déclaré et ses
+surfaces communes ; un contexte non pris en charge est refusé explicitement.
+Les paquets uniquement historiques restent transportés sans créer d'émetteurs.
+Le verdict de préparation du jeu exige l'identité attendue, les inventaires,
+la caméra et une observation de mise en file datée. Cette observation ne prouve
+ni un dessin ni une complétion GPU. Le bilan
+`shared-placement-light-host-validation-001.json` distingue les tests CPU,
+compilations et preuves encore manquantes. La scène native avec paquet non vide,
+Studio en exécution, les plantes, les profils et les performances appariées
+restent à qualifier ; les dix critères généraux restent ouverts.
+
+
+### Premier module natif avec référence lumineuse enregistrée — 25 octobre 2026
+
+Le cas `saved-lights-module-native-001` lance le lecteur réellement compilé sur
+un module API 5 de 523 fichiers, avec un porteur canonique et une source du
+paquet lumineux original. L'attache au porteur est une donnée explicite de
+qualification, pas une preuve de fidélité d'un luminaire source. Les six étapes
+natives passent. La projection relève un émetteur attendu, la même caméra et
+287 mises en file datées sans erreur. Les 330 récepteurs communs et les graphes
+d'environnement sont prêts. La capture de jour est inspectée.
+
+Le paquet sélectionné reste vide dans l'état diurne conservé ; cette preuve
+qualifie le chargement, la résidence et la mise en file, pas une contribution
+lumineuse non nulle. Le bilan `saved-lights-module-validation-001.json` conserve
+les pins, le module d'origine inchangé et la portée exacte. Le dessin nocturne
+et les contrôles actifs/désactivés doivent encore réutiliser la publication
+solaire existante, puis être observés. La comparaison release, les quatre
+profils, Studio et les dix critères généraux de Gate 7 restent ouverts.
+
+
+## Publication solaire commune et modules — 25 octobre 2026
+
+Consigne propriétaire réaffirmée : tout mécanisme réutilisable construit pour
+Tidewater appartient au moteur et doit être consommé par les autres modules.
+La carte conserve ses contenus, acquisitions et réglages ; une extraction seule
+ne prouve pas que le lecteur, le Studio et la référence utilisent le même chemin.
+
+`source_sky::publication` réemploie l'horloge, le contrôleur d'atmosphère,
+le readback et le contrat lumineux existants. Studio, présentation de référence
+et hôte des modules le consomment. L'API de module 6 déclare les paramètres
+solaires bornés et exige le graphe HDR vivant ; les anciennes API gardent leur
+représentation sans ce champ. Trois essais natifs du même binaire passent :
+nuit avec référence enregistrée, nuit après retrait, jour avec référence.
+Les captures inspectées montrent la contribution sur terrain et faces de modèles.
+Le bilan `shared-solar-publication-validation-001.json` centralise les preuves.
+
+Cette preuve porte sur un module privé sans plantes, avec horloge en pause.
+Elle ne prouve pas la fidélité au porteur source, l'édition/export complet dans
+Studio, les plantes, les quatre profils ou les performances release appariées.
+La généralisation des autres mécanismes et les dix critères Gate 7 restent ouverts.
+
+
+## Lumières locales et végétation communes — 26 octobre 2026
+
+Les matériaux végétaux de monde et acquis consomment désormais le même récepteur
+`source_lighting::local_lights::receiver::plant_shader_source` et le même buffer
+lumineux par caméra. Studio et référence construisent le matériau acquis ; le
+lecteur de modules construit celui de monde. Aucune collecte ni équation lumineuse
+supplémentaire n'est introduite. La publication ne modifie pas chaque matériau
+à chaque frame. Les entrées des quatre familles sont raccordées au générateur commun.
+
+Les rejeux `plant-light-module-native-002/003` passent à minuit avec référence
+présente puis retirée : 65 383 plantes, 13 434 collisions canoniques et huit buffers
+végétaux sur huit préparés. Les captures inspectées montrent la contribution sur
+les herbes proches. Le probe PBR conserve palmier, canopée proche/lointaine et
+ombres ; ses layouts complets demandent six buffers vertex et huit fragment.
+Le bilan `shared-plant-local-lights-validation-001.json` conserve contrôles et échecs.
+La revue GPU spécifique du Studio/matériau acquis, le contrôle interactif, l'export,
+les profils et le benchmark release apparié restent à faire. Gate 7 reste ouverte.
+
+
+## Export fidèle des compagnons d'origine — 26 octobre 2026
+
+L'exporteur commun reprend désormais les déclarations d'environnement/soleil,
+les compagnons végétaux et les lumières enregistrées depuis le paquet d'origine
+admis. Il conserve les ressources et leurs pins, puis contrôle le nouvel export
+avec les codecs existants. La révision du document végétal effectif est réépinglée
+après retouche. L'API reste au maximum requis par toutes les cartes, y compris
+quand le soleil et les lumières sont sur une carte secondaire. Les droits privés
+et les conflits de ressources restent bloquants avant publication locale.
+
+Le bilan central `shared-origin-companions-validation-001.json` relie le test privé
+de l'exporteur réellement appelé par Studio et la lecture native du paquet produit.
+Les 594 pins de compagnons sont conservés après déplacement de 0,5 m d'un porteur,
+avec 65 383 plantes et 13 434 collisions canoniques. Le lecteur API 6 existant passe
+les six étapes ; ce n'est pas une reconstruction fraîche du runtime. Le bootstrap
+Studio refuse encore la végétation et le parcours UI complet n'est pas qualifié.
+Les paramètres auteur, le contrôle interactif, les profils, la référence et les
+performances/distributions finales restent à traiter. Les dix critères restent ouverts.
+
+
+## 26 octobre 2026 — Liaison des lumières d’objets dans le moteur commun
+
+`forge_engine::source_lighting::local_lights::projection::source_object`
+possède désormais la jointure des identités source, les attestations de
+construction, la vérification des ancres et la projection/remplacement des
+lumières sur une racine auteur unique et propagée. Son entrée est un inventaire
+typé d’objets vérifiés, sans catalogue ni scène de carte imposés. Le Studio
+(admission et réconciliation) et les deux sondes de qualification appellent ce
+propriétaire directement. L’adaptateur de carte ne garde que le décodage de ses
+descripteurs vérifiés ; aucune réexportation ne conserve l’ancien mécanisme.
+
+Le bilan central `shared-object-light-bindings-validation-001.json` rapproche les 2 721 tests
+workspace (63 ignorés), 21 contrôles d’architecture, Clippy natif/WASM et le
+formatage. Un cycle indépendant de toute scène de carte vérifie copie, retouche,
+suppression, phases et refus atomiques des racines ambiguës, parentes ou changées.
+Les données réelles produisent 19 objets lumineux et 32 émetteurs ; six relectures
+du buffer GPU de 448 octets vérifient caméra, invalidation et reprise, avec et
+sans paquet temporel. Les deux manifestes acquis gardent leurs pins.
+
+Ces sondes ne dessinent pas les maillages et ne qualifient pas le parcours Studio
+complet, les performances ni la parité visuelle. L’outil natif de restauration
+de module refuse encore la végétation ; la matérialisation auteur complète
+des compagnons, les autres reprises moteur et les dix critères Gate 7 restent
+à terminer et qualifier. Les échecs intermédiaires de compilation/emprunt puis
+d’inventaire dans le test indépendant restent conservés avec leurs corrections.
+
+
+## 26 octobre 2026 — Lecture native des compagnons végétaux du module ouvert
+
+Le Studio possède un protocole natif de description et de lecture par blocs de
+64 Kio des ressources végétales de l’origine du module ouvert. La résolution
+des espèces gouvernées et des prototypes importés emploie les mêmes décodeurs
+`forge_delivery::module_vegetation` que le jeu installé. Le nouveau chemin
+`restore_authoring` vérifie séparément le head d’origine admis et le head auteur
+courant ; il produit une liaison dérivée, sans réécrire un manifeste, une archive,
+une preuve ni un droit. L’admission installée garde son exigence de head exact.
+Les identités et pins viennent du host canonique ; la vue ne choisit aucun chemin
+natif. Chaque ressource est assemblée intégralement puis vérifiée par SHA-256.
+
+Le bootstrap de qualification ne refuse plus globalement la végétation : il
+restaure et vérifie chaque zone avant activation, et conserve l’origine et ses
+payloads. Le bilan central `module-vegetation-restore-validation-001.json` rapproche
+2 723 tests workspace, 121 tests de transport, 21 contrôles d’architecture,
+Clippy natif/WASM et formatage. L’essai privé du module complet à deux zones
+lit exactement 84 ressources (46 605 576 octets), vérifie une retouche canonique
+après revue, les lectures obsolètes/refusées et la réouverture du lecteur.
+Les tests synthétiques couvrent les deux familles de ressources en édition,
+tout en conservant le refus des heads différents dans l’admission installée.
+
+Le parcours qualifié est natif et son aller-retour JSON est testé. Aucun WebView
+ni draw GPU n’est exécuté par cet essai. Le viewport consomme encore la
+bibliothèque de référence : son raccordement à cette lecture du module, les
+catalogues d’auteur et la qualification visuelle complète restent à terminer.
+Ce bilan ne qualifie ni les performances, ni Linux, ni une machine propre et ne
+clôture aucun des dix critères généraux Gate 7. Les essais échoués restent
+conservés : revue obligatoire manquante dans le test, puis confusion initiale
+entre le head installé et le head auteur, avant correction du chemin commun.
+
+
+## 26 octobre 2026 — Végétation du module dans le viewport commun
+
+La végétation du module ouvert est maintenant acquise depuis son origine
+canonique par le WebView, puis confiée aux propriétaires existants du moteur :
+préparation, textures, rendu, herbe, sélection et projection des espèces. Le
+Studio ne réimplémente pas ces mécanismes. Le chargement vérifie head, module,
+zone, origine, ressources et hashes ; un échec ne bascule pas sur la bibliothèque
+de référence. Les ressources immuables sont réutilisées et les réponses d'une
+ancienne sélection sont rejetées, y compris au retour d'un picking GPU.
+
+Le bilan central `module-vegetation-viewport-validation-001.json` rapproche
+2 726 tests workspace (65 ignorés), 21 contrôles d'architecture, Clippy natif/WASM,
+formatage et les deux builds du Studio. L'acquisition privée lit 84 ressources
+avec 765 requêtes, puis une seule description en réutilisant le paquet immuable.
+L'instance réelle ouvre les deux zones enregistrées : zéro matériau végétal sur
+la première, onze sur la seconde, avec herbe source annoncée et végétation visible.
+Les captures et sorties DOM sont conservées ; elles ne prouvent pas seules
+l'origine des octets, vérifiée séparément par le test d'autorité/acquisition.
+
+La vérification révèle encore des objets de référence affichés sur la première
+zone malgré une liste canonique vide. Le terrain, les objets et l'environnement
+gardent des acquisitions de référence à raccorder aux données du module.
+L'éclairage du Studio reste fixe. Les instantanés de cadence ne sont pas un
+benchmark apparié. L'édition/sauvegarde/réouverture/réexport dans l'UI, la fidélité
+complète, les performances et les distributions restent à qualifier. Les dix
+critères généraux Gate 7 restent ouverts. L'instance de qualification a été fermée
+sans demander de sauvegarde ; aucun essai historique n'est réécrit.
+
+
+## 26 octobre 2026 — Matériau et géométrie de surfaces dans le moteur commun
+
+`forge_engine::source_surface` possède maintenant le matériau de surfaces source,
+sa spécialisation GPU, la conversion des surfaces opaques neutres, les attributs
+de maillage, les paramètres de lumière sous l'eau et le relais solaire. Studio,
+runtime et référence utilisent directement les mêmes types. Le shader garde son
+UUID et les attributs gardent leurs identifiants et formats. Le flare consomme un
+set de publication moteur ; le moteur ne dépend plus d'un système optique de carte.
+Les ressources acquises et les raccords de shader encore présents dans l'adaptateur
+ne deviennent pas des fonctions spécifiques à Tidewater : leur extraction reste
+à poursuivre, ainsi que les projections d'objets et l'acquisition depuis le module.
+
+Le bilan central `shared-source-surfaces-validation-001.json` rapproche 2 728 tests
+workspace (65 ignorés), 22 contrôles d'architecture, Clippy natif/WASM, formatage
+et un binaire natif reconstruit. Le décodeur de maillage conserve ses tokens après
+les renommages documentés et aucun fichier WGSL ne change. Le module exporté
+inchangé passe les six étapes du scénario natif avec végétation, herbe, environnement,
+récepteurs de surfaces et lumière locale admis. Les captures sont inspectées.
+
+Cette reprise ne corrige pas encore les objets hérités implicitement du relief
+dans Studio. Elle ne qualifie pas l'UI complète, tous les matériaux/profils, la
+parité visuelle ni les performances release. Les dix critères généraux Gate 7
+restent ouverts. Voir ADR-0049 pour la propriété des contrats et les limites.
+
+
+## 26 octobre 2026 — Projection commune des objets source triangulés
+
+`forge_engine::source_surface::{geometry,objects}` possède le cache de géométries
+par révision, la projection des placements et leurs surfaces de collision, ainsi
+que leur remplacement et retrait dans Rapier. Le décodage du paquet acquis reste
+un adaptateur ; il fournit des parties typées au moteur. Studio, sondes et collecte
+d'ombres emploient directement les propriétaires moteur, sans anciens types en façade.
+L'essai moteur indépendant de toute carte couvre copie, transformations, géométrie
+partagée, révisions/refus atomiques, racine parentée et retrait/rétablissement du backend.
+
+Le bilan central `shared-source-objects-validation-001.json` rapproche 2 730 tests
+workspace (65 ignorés), 23 contrôles d'architecture, Clippy natif/WASM, formatage et
+deux sondes natives reconstruites. Le paquet réel fournit 23 bâtiments, 111 parties
+et 112 569 sommets. Les collisions, copies et rayons passent ; 107 parties opaques
+alimentent le graphe GPU sur trois cascades. Les trois générations de profondeur
+diffèrent après transformation et la suppression laisse zéro texel occupé.
+Les données brutes et leur vue de couverture inspectée sont conservées.
+
+La fixture native est explicitement dérivée du paquet, sans prétendre relire une
+carte auteur. Le rendu couleur, les autres familles d'objets, l'acquisition explicite
+des ressources du module dans Studio et son parcours complet restent à qualifier.
+L'héritage implicite des objets de référence n'est pas encore corrigé. Aucun gain
+de performances ni critère général Gate 7 n'est déclaré clos. Voir ADR-0050.
+
+
+## 26 octobre 2026 — Objets explicitement embarqués dans le module, API 7
+
+Le contrat du module possède une liaison d'objets par zone : index, inventaire fermé,
+identités et pins des assets source. Elle reste distincte des GLB gouvernés. Le
+transport vérifie tailles, hashes, fermeture exacte et présence de la licence dans
+la provenance ; l'absence de liaison n'infère aucun objet depuis le relief. Le codec
+`forge_assets::source_surface_package` et la préparation moteur
+`forge_engine::source_surface::package` reprennent les implémentations existantes.
+Les anciennes API gardent leur forme JSON quand la liaison est absente.
+
+Le bilan central `module-source-objects-validation-001.json` rapproche 2 734 tests
+workspace, 122 tests de distribution, Clippy natif/WASM, formatage et contrôles
+d'architecture. L'essai privé sur une zone RPG de qualification embarque les 23
+assets du paquet réel et ses 821 ressources, puis vérifie placement, retouche et
+réexport avec conservation des pins et des droits d'origine. Les refus d'inventaire,
+de corruption et de licence non déclarée sont testés. Les trois relectures GPU de
+profondeur restent identiques à la sonde précédente après transfert du lecteur et
+de la préparation ; cela ne qualifie pas le rendu couleur.
+
+Le nouveau lecteur n'est pas encore raccordé à l'affichage des objets du module
+dans Studio ni dans le jeu. Le chemin natif des placements attend encore un mesh
+gouverné et refuse les nouvelles références source ; l'héritage implicite de référence
+dans Studio reste à corriger. L'UI complète, les autres familles, les profils et les
+performances restent à qualifier. Les dix critères généraux Gate 7 restent ouverts.
+
+## 26 octobre — Consommation native des objets source
+
+Le jeu de module consomme les objets API 7 via la géométrie, les matériaux et les
+collisions du moteur commun. Le rejeu privé `module-object-runtime-native-003`
+affiche deux bâtiments source dans un module indépendant et passe ses six étapes,
+avec ressources GPU réelles et captures inspectées. La couverture HLOD suit les
+originaux détaillés ; leur agrégation n'est pas qualifiée. Studio, autres adapters,
+parité et performances restent à terminer. Voir le suivi Gate 7 et le catalogue
+central `module-object-runtime-validation-001.json`. Les dix critères généraux
+restent ouverts ; aucune clôture ni publication n'est déduite de ce raccord.
+
+## 28 octobre — Eau de module et cache commun de tuiles
+
+Le parcours de qualification d'un module privé réutilise la résidence de
+tuiles du moteur commun pour l'océan ; l'index de propriété conserve les
+contrôles de maillage et de parent. Les parcours GPU court et marche–nage–
+retour réussissent sur Windows. Les empreintes des fichiers déjà inventoriés
+sont rapprochées dans `resident-tiles-owner-index-native-verification-001.json`
+dans le catalogue central, sans détection exhaustive de nouveaux fichiers.
+La parité visuelle, la plongée commandée, les performances appariées et la
+distribution sur systèmes propres restent à qualifier. Les attentes de
+simulation restent fréquentes ; Gate 7 reste ouverte. Voir le suivi Gate 7.
+
+## 31 octobre — Mutualisation de l'eau et limites de qualification
+
+La sélection et la géométrie de l'océan, son matériau de diagnostic et
+l'ordre des passes GPU de ressac et d'embruns sont partagés dans le moteur.
+Tidewater et le chemin de qualification d'un module les utilisent ; le rendu
+optique complet et son ordonnancement dans le jeu de module restent à réunifier.
+Le parcours normal de module conserve sa protection. Les essais récents
+comprennent un échec de cadence Tidewater à 58 images/s suivi d'un succès à
+61,95 images/s avec le même binaire ; ils ne démontrent pas la parité de
+performance. Gate 7 reste ouverte : voir le suivi et les reçus du catalogue
+central, notamment `shared-ocean-diagnostic-validation-001.json`.
+
+Le parcours de qualification d'un module utilise maintenant les passes GPU
+communes ressac, crêtes et embruns en reprenant le ressac résident existant ;
+les numéros d'étape concordent, les retours GPU ont été reçus et le compteur
+de réservations d'embruns est non nul. Cette preuve
+ne couvre pas encore leur affichage, le suivi du rivage avec la caméra ni
+l'historique complet de démarrage. Le chemin normal reste protégé et Gate 7
+reste ouverte. Voir `resident-breaker-module-emission-validation-001.json` et le suivi
+Gate 7 pour les mesures et limites.
+
+Le parcours de qualification affiche depuis les ressources communes du moteur
+les crêtes et embruns du rivage ; son scénario GPU et le contrôle Tidewater
+passent avec le même binaire (`resident-breaker-visible-validation-001.json`).
+La zone de rivage ne suit pas encore la caméra, le démarrage et les émetteurs
+de coque restent incomplets et aucune parité visuelle ou de performance n'est
+certifiée. Le parcours normal reste protégé et Gate 7 demeure ouverte.
+
+## 1er novembre — Terrain de module sans programme embarqué
+
+Le nouveau paquet de surface transporte ses textures, sa géométrie et sa notice ;
+le moteur fournit ses programmes de terrain. La préparation de scène accepte ce
+paquet pour le profil de référence seulement. Le transport rectangulaire et les
+contrôles de licence réussissent, ainsi que la construction et la relecture d'un
+module privé utilisant ce paquet. Un parcours GPU natif avec le nouveau paquet et
+deux parcours avec le paquet historique réussissent sur le même binaire et le
+terrain de référence. Les captures varient aussi entre deux répétitions du paquet
+historique ; elles ne démontrent pas la parité visuelle. Le raccord des autres
+géométries, des ombres et de l'eau reste nécessaire. Les anciens
+paquets restent lisibles et leurs programmes historiques ne sont pas encore
+entièrement remplacés. Voir le suivi Gate 7 pour les tests et leurs limites ;
+la gate reste ouverte.
+
+La préparation commune des ombres admet maintenant des rasters rectangulaires et
+réutilise la sélection CDLOD du terrain visible. Un essai GPU synthétique vérifie
+la couverture et une retouche ; sur le raster de référence, les 64 tuiles et le
+shader retrouvent leurs empreintes historiques. Les shaders historiques identiques
+à la référence utilisent désormais ceux du moteur ; les autres variantes sont
+préservées. La scène complète pour d'autres dimensions reste à raccorder et Gate 7
+reste ouverte ; voir le suivi pour les preuves et les limites.
+
+Le champ d'ombre du relief et sa lecture par le matériau de terrain sont aussi
+préparés par le moteur pour un terrain rectangulaire centré, sans étirement :
+la hauteur extérieure et les retouches sont prises en compte. Des passes GPU
+isolées vérifient le calcul et la lecture ; la pyramide du vrai terrain de
+référence conserve son empreinte historique. Cela ne valide pas encore la scène
+rectangulaire complète, son eau, ses changements en direct ou ses performances.
+
+La racine initiale du cache terrain suit désormais le même domaine que le
+sélecteur CDLOD. La préparation interne sait assembler les textures et normales
+d'un paquet rectangulaire dont la géométrie correspond exactement au document ;
+le moteur et le chargeur partagent ce contrôle. À cette étape, les points d'entrée
+de la scène restaient bornés au profil historique. Depuis, l'hôte commun admet le
+domaine rectangulaire et un premier module indépendant a démarré ; l'eau, les
+retouches en scène et la parité du rendu restent à qualifier.
+
+Le terrain et son champ d'ombre portent maintenant une identité de relief commune,
+indépendante de la peinture. La résidence attend une identité concordante et masque
+une ancienne géométrie si le champ d'ombre a déjà changé ; une peinture seule ne
+change pas cette identité. Cette protection est testée sur CPU, pas encore sur un
+parcours de scène complet ou une retouche réelle dans le Studio.
+
+La physique Rapier d'un maillage manuel synthétique suit un pivot animé par
+l'hôte commun : sa disponibilité physique est refusée pendant la
+désynchronisation et les requêtes retrouvent la nouvelle position. Ce test ne
+qualifie ni le contact joueur ni le parcours d'un module installé ; voir le
+suivi Gate 7.
+
+Le moteur résout aussi les pivots par leurs identités dans la hiérarchie de
+chaque placement ; le ponton Tidewater réutilise ses identités existantes et son
+origine acquise. Le rejeu réel conserve 11 lanternes et un panneau sur 240 images,
+y compris après reconstruction. Un autre module installé, les échelles de pivot
+non unitaires et le contact physique continu restent à raccorder et qualifier.
+
+Le 2 novembre, la sélection de détail, de fondu et d'ombres de certains objets
+est passée de Tidewater à `forge_engine::distance_lod`. Le Studio et Tidewater
+appellent ce calcul commun avec les réglages de leurs données ; le rejeu de
+3 432 cas de référence, les tests ciblés et les contrôles d'architecture passent.
+Un montage GPU hors écran affiche également une scène source synthétique très
+simple par l'hôte moteur commun. Aucun de ces essais ne prouve la parité de
+cadence ou de rendu d'un autre module installé : les scènes source complètes,
+leurs compagnons de physique et de particules, et les autres mécanismes encore
+liés à Tidewater restent à raccorder et qualifier. Gate 7 reste ouverte ; voir le
+suivi et `shared-fish-lod-and-source-graph-assessment-001.json`.
+
+Le runtime de module conserve désormais le motif d'un refus d'asset même s'il
+survient avant la première observation complète ou si le jeu n'a pas de rapport
+RPG. Le diagnostic de projection reste distinct et une erreur ne peut pas être
+présentée comme une projection prête. Les essais Windows/Vulkan sur un paquet
+synthétique valide et un paquet invalide passent ; le cas sans rapport est testé
+sur le cycle du runner Bevy sans paquet installé. Ce correctif ne clôt aucun autre
+critère Gate 7 ; voir `module-diagnostic-assessment-001.json`.
+
+Le vent peut désormais être réglé par zone, indépendamment de la végétation ;
+les surfaces, la végétation et les nuages déjà raccordés consomment la valeur
+commune du moteur. Un parcours Studio local vérifie aperçu, annulation,
+rétablissement et sauvegarde après redémarrage, et un module exporté démarre avec
+cette valeur. Ce module conserve du contenu Tidewater : une carte entièrement
+différente et les autres effets restent à qualifier. L'API 11, la compatibilité
+des archives et les limites sont décrites dans [ADR-0062](docs/ADR/ADR-0062-shared-scene-wind.md).
+
+Un crash intermittent de validation GPU a été reproduit entre deux threads,
+puis corrigé pour les exécutables natifs par l'activation de `wgpu/std` dans le
+moteur ; le même test GPU passe ensuite. La suite moteur réussit 1 334 tests,
+dix ignorés, sur les sources vérifiées. Cela ne qualifie ni la cadence, ni le
+rendu complet, ni Linux ou une machine propre. Gate 7 demeure ouverte ; voir le
+suivi pour les preuves et les restrictions.
+
+La référence Tidewater et les autres consommateurs utilisent maintenant la
+même copie de profondeur de scène du moteur ; le redimensionnement et les
+matériaux ont été vérifiés, ainsi qu'un trajet de référence et un module d'eau
+en mode qualification. Sur les nouvelles sources, 1 337 tests moteur passent,
+dix restent ignorés. Le lancement standard du module contenant l'océan reste
+refusé et la parité visuelle et de cadence n'est pas établie ; le trajet module
+instrumenté mesure environ 48,6 images/s sur ses intervalles de projection
+prête, dans des conditions non directement comparables à Tidewater. Les détails,
+les résultats précédents et les limites figurent dans le suivi et
+`shared-scene-depth-assessment-001.json`. Gate 7 demeure ouverte.
+
+La collecte commune des paquets de lumière inclut maintenant les copies
+d'objets source et leur historique. Un module incomplet est refusé ; un module
+synthétique avec la lumière présente s'exporte et se rouvre. Les contrôles et
+leurs limites sont documentés dans `source-copy-light-assessment-001.json`.
+Les paquets de physique et de particules restent à raccorder aux modules.
+
+La collecte commune des placements recense aussi les références physiques et
+particulaires des copies et de l'historique. Les API actuelles refusent un module
+qui en dépend, même si la référence a disparu de l'état courant ; elles ne les
+transportent pas encore. Le cas qui était accepté incomplet est reproduit et
+corrigé (`source-companion-history-assessment-001.json`).
+
+Le montage et le cycle de vie des placements de scènes source sont maintenant
+communs dans le moteur ; le Studio en conserve l'adaptation et l'ordonnancement.
+Cinq tests ciblés et les contrôles stricts passent. Un diagnostic GPU synthétique
+produit la même image avec le montage commun et le montage direct ; il ne couvre
+pas encore la physique, les particules ou la révélation en production. Le runtime
+normal des modules doit encore utiliser ce propriétaire commun. Voir le suivi
+Gate 7 et `shared-source-placement-assessment-001.json` pour les limites.
+
+L'ordonnancement des scènes source est également commun au moteur : horloge
+Bevy ou fournie par l'hôte, entrées d'effets, mise à jour et placements. Onze
+tests du cycle, cinq tests des placements et les contrôles stricts passent.
+Un diagnostic GPU synthétique reste affiché pendant 63 images avec ce cycle et
+produit la même capture que le montage direct. Le raccordement au runtime normal
+des modules, les effets complets et la qualification de production restent à
+faire ; voir `shared-source-schedule-assessment-001.json` et le suivi Gate 7.
+
+La livraison de module choisit désormais le validateur de média adapté à une
+scène source déclarée. Un paquet synthétique avec placement est exporté et
+rouvert avec ses octets et ses empreintes exacts ; une altération interne est
+refusée. Cela ne qualifie pas le rendu de jeu : le runtime et les adaptateurs
+d'export Vault/kit restent à raccorder. Voir `declared-media-assessment-001.json`
+et le suivi Gate 7 pour les contrôles et leurs limites.
+
+Un module synthétique utilise maintenant le montage et le cycle communs des
+scènes source du moteur en mode de qualification épinglé : l'objet est affiché,
+enregistré et son inventaire GPU est validé. Un module classique démarre aussi
+avec le même binaire. Les tests ciblés et les contrôles stricts passent ; les
+deux échecs initiaux et les reçus sont conservés dans
+`module-source-graph-assessment-001.json`. Le lancement normal refuse encore
+les scènes source et leur famille non éclairée n'a pas de rejeu GPU positif.
+Les compagnons physiques et particulaires, les contenus réels, la parité et les
+autres critères de distribution restent à traiter. Gate 7 demeure ouverte.
+
+L'import direct et les exports privés depuis le Vault ou le kit utilisent
+maintenant le même validateur de médias source que la livraison. Quatre-vingts
+tests ciblés passent, quatre essais sur le Vault réel restent ignorés. Une
+enveloppe mutualisée synthétique est lue par le lecteur commun sans modifier son
+registre ni son contenu physique. Ce contrôle ne qualifie ni l'interface réelle,
+ni un éventuel nouveau stockage des effets et de la physique ; voir
+`source-export-adapters-assessment-001.json` et le suivi Gate 7.
+
+Un module synthétique contenant une scène source est désormais rouvert,
+réexporté et rouvert à nouveau par les API natives, avec conservation du modèle,
+de la zone et de l'origine. Le même paquet affiche l'objet dans le jeu de
+qualification. Les 18 tests du parcours passent ; le premier paquet de test
+utilisait à tort une recette texte et son refus reste documenté. Livraison et
+import Studio ne partagent pas encore un contrat complet pour toutes les
+recettes possibles. Voir `source-graph-bootstrap-assessment-001.json` ; aucun
+de ces résultats ne qualifie l'interface réelle ou la parité des modules.
+
+Les lectures courantes et sauvegardées des paquets physiques et particulaires
+utilisent maintenant le lecteur logique commun du Vault. Sur des données
+synthétiques, les paquets bruts et sous enveloppe `ORPVLT1` restituent les mêmes
+octets ; pins erronés et blocs corrompus restent refusés. Le stockage réel et
+tout autre format en cours d'évolution ne sont pas qualifiés par cet essai.
+Les modules ne transportent toujours pas ces compagnons ; voir
+`source-companion-storage-assessment-001.json` et le suivi Gate 7.
+
+La validation des paquets physiques source est désormais commune au Studio et
+au moteur : le modèle, le manifeste et tous les buffers déclarés sont contrôlés
+avant montage. Un buffer sans propriétaire ou un modèle différent de celui de
+l'hôte est refusé. Dix tests ciblés passent, ainsi que Clippy natif et Web ;
+le défaut initial et les 2 624 entrées vérifiées sont documentés dans
+`source-physics-shared-assessment-001.json`. Ces essais synthétiques ne
+qualifient ni la simulation, ni les contacts, ni le transport des compagnons
+dans un module. Gate 7 reste ouverte.
+
+La déformation des poissons, la préparation de leurs maillages et leur horloge
+ont retrouvé des propriétaires communs dans `forge_engine::source_fish` ;
+Tidewater leur fournit ses données, avec validation unique par modèle. La
+comparaison à la référence GPU historique couvre 169 709 sommets et le paquet
+réel de 78 objets repasse ses tests. À cette étape, matériau, résidence et transport
+de module restent à partager ; ces résultats ne qualifient ni rendu courant ni cadence.
+Voir `shared-fish-assessment-001.json` et le suivi Gate 7.
+
+Le type de matériau des poissons, ses paramètres et les liaisons d'éclairage
+utilisées par Tidewater et le Studio sont également communs au moteur. Les
+programmes de matériau et d'ombre générés sur les données réelles sont identiques
+avant et après le transfert ; les essais de ressources, les variantes Bevy et
+les contrôles ciblés passent. À cette étape, l'assemblage des shaders, la résidence et le
+transport vers un module restent à partager ; aucun nouveau rendu GPU ou gain
+de cadence n'est établi. Voir `shared-fish-material-assessment-001.json`.
+
+L'assemblage des shaders de poissons, la table de peau et le masque d'ombre
+utilisent à leur tour le moteur. Le paquet Tidewater existant et un fournisseur
+de données indépendant produisent les mêmes résultats ; les empreintes restent
+vérifiées par le chargeur du paquet. Les programmes générés retrouvent les
+empreintes précédentes et les contrôles natifs/Web passent. La résidence et le
+transport d'un module installé restent à raccorder ; ce résultat ne prouve pas
+un rendu ou des performances en jeu. Voir `shared-fish-program-assessment-001.json`.
+
+Les copies de poissons placées dans le Studio partagent maintenant une horloge
+vivante du moteur au lieu de réécrire leur matériau à chaque changement d'heure.
+Le buffer n'est pas réémis lorsque l'heure et la frame restent identiques ; le
+paquet réel, les refus de ressources absentes et les shaders passent les essais
+ciblés. La résidence et la mise en veille de groupe restent à partager ; aucun
+rendu réel ou gain de cadence n'est encore démontré. Voir
+`shared-fish-runtime-assessment-001.json`. Gate 7 reste ouverte.
+
+Le calcul des limites et de la mise en veille des groupes de poissons est
+maintenant commun au moteur et appelé par la référence Tidewater et le Studio.
+Les essais couvrent l'éloignement, le réveil, les ombres proches, le déplacement
+d'un membre et l'isolation entre groupes ; le paquet réel repasse ses tests.
+La résidence, les étals et l'éclairage du Studio restent à unifier, puis à
+mesurer en conditions réelles. Voir `shared-fish-group-assessment-001.json`.
+
+Les poissons de l'étal du Studio utilisent eux aussi une horloge moteur
+partagée, retirée avec leurs ressources ; leurs matériaux ne reçoivent plus une
+écriture d'heure par image. Le contrôle Web et les tests de l'horloge commune
+passent. Le chemin de l'étal lui-même n'a pas encore été rejoué visuellement :
+voir `shared-stand-clock-assessment-001.json`.
+
+La résidence des poissons placés, leurs LOD, leur horloge et l'inventaire
+d'ombres appartiennent maintenant au moteur. Tidewater lui fournit ses données
+après vérification de ses identités et empreintes ; le Studio utilise le même
+hôte. Les tests couvrent aussi un module synthétique indépendant, les lots
+altérés et le paquet réel. Le lancement d'un module installé, le chemin d'étal,
+l'orchestration de la référence et l'éclairage restent à raccorder ou mesurer :
+voir `shared-fish-residency-assessment-001.json`. Gate 7 reste ouverte.
+
+La résidence moteur synchronise maintenant l'éclairage des seuls LOD de
+poissons affichés ; un groupe endormi garde ses matériaux sans les parcourir et
+retire sa contribution d'ombre. Les tests couvrent l'éclairage caché, invalide
+et son rattrapage au réveil, ainsi que le paquet Tidewater réel. Le mélange des
+ombres, l'étal et l'orchestration de la référence restent à unifier ou qualifier ;
+aucune cadence réelle n'est encore établie. Voir
+`shared-fish-receivers-assessment-001.json`.
+
+La fusion des contributions d'ombres masquées est également dans le moteur.
+Deux producteurs indépendants peuvent publier, se retirer et revenir sans
+effacer l'autre ; les conflits sont refusés. Le Studio appelle directement ce
+code et conserve l'ordonnancement de ses propres producteurs. Ces tests sont
+synthétiques, sans nouveau rendu réel ni mesure de cadence ; voir
+`shared-shadow-merge-assessment-001.json`.
+
+Les poissons attachés à un objet parent, dont l'étal du Studio, utilisent
+maintenant la même résidence moteur pour le LOD, l'éclairage et la veille.
+Un défaut de cache révélé par le déplacement du parent est corrigé. Les tests
+vérifient les ressources partagées et les cinq poissons du paquet GameFish
+réel. L'interface réelle, le rendu GPU et la cadence restent à qualifier ; voir
+`shared-fish-attachments-assessment-001.json`.
+
+La préparation CPU des modèles et poses de poissons est désormais dans le
+moteur : elle reçoit des données vérifiées, l'inventaire attendu et les
+identités fournies par l'appelant. Tidewater conserve ses pins et la sélection
+de ses instances. Deux tests sur un profil synthétique indépendant et cinq
+tests sur les deux paquets réels passent, ainsi que Clippy natif et Web ; voir
+`shared-fish-preparation-assessment-001.json`. Cela ne qualifie pas l'admission
+d'un module installé ni le rendu GPU.
+
+L'essai du candidat Studio a révélé deux limites : un ancien module local sans
+origine conservée ne retrouve pas ses compagnons végétaux, et l'étal n'est pas
+proposé dans un module géré avec origine. Le document de zone local observé ne
+contient pas le hash du paquet végétal ; son association doit être explicite et
+vérifiée. Le terrain et la végétation du module avec origine s'affichent, mais
+les poissons n'ont pas pu y être placés. Voir
+`shared-fish-studio-observation-001.json`. Gate 7 reste ouverte.
+
+Le Studio appelle maintenant directement la préparation et la résidence des
+poissons du moteur. Le profil fourni par le paquet expose son inventaire et ses
+identités sans imposer de format de stockage. Les paquets Tidewater gardent leurs
+contrôles de pins et la sélection de leurs propres données ; aucun lecteur du
+Vault n'a été modifié. Le rejeu des 169 709 sommets de référence et les tests
+des deux paquets passent, ainsi que 39 contrôles d'architecture et Clippy
+natif/Web. Voir `shared-fish-profile-assessment-003.json`.
+
+Ces tests ne permettent pas encore d'utiliser l'étal dans un module installé :
+le transport explicite de son profil, les ressources des modules locaux et
+certains matériaux et orchestrations restent à généraliser. Le rendu réel et
+les performances restent à mesurer ; Gate 7 n'est pas close.
+
+Un profil de poissons déjà vérifié peut maintenant utiliser directement le
+catalogue d'assets existant pour associer les identités et le hash de son paquet.
+Les deux paquets réels produisent les mêmes poses, matériaux et géométries via
+ce lien ; voir `catalog-fish-profile-assessment-001.json`. Cette association en
+mémoire ne transporte pas encore les fichiers dans un module installé.
+
+Les deux chargeurs de poissons Tidewater réutilisent maintenant le même lecteur
+de ressources vérifiées, synchrone et asynchrone, dans `forge_assets`. Ils
+conservent leurs contrôles propres sur le manifeste et ses pins ; le lecteur ne
+choisit ni chemin de Vault ni droits. Les deux paquets réels, leurs refus et
+leurs maillages repassent ; voir `shared-fish-reader-assessment-001.json`.
+L'archive de module ne déclare ni ne transporte encore ce profil.
+
+Le contrat de manifeste peut désormais décrire explicitement un profil poisson
+par zone, catalogue existant, inventaire et empreintes, dans une API 12 distincte.
+Les formats précédents sont préservés et les contrats terrain, objets, eau et
+végétation coexistent avec cette déclaration. La livraison refuse encore l'API 12
+tant que ses ressources et son rendu ne sont pas raccordés. Le contrôle élargi
+a également corrigé un champ de vent absent d'une fixture de test. Voir
+`module-fish-contract-assessment-004.json` ; Gate 7 reste ouverte.
+
+La livraison sait maintenant vérifier les ressources, les identités et la licence
+déclarée d'un profil poisson de module. Un essai d'archive temporaire transporte et
+relit les deux ensembles réels ; l'historique des placements est également
+contrôlé, y compris après annulation. Voir `module-fish-resolver-assessment-001.json`.
+L'API 12 reste refusée à l'admission : le runtime et le Studio doivent encore être
+raccordés et qualifiés, notamment en rendu et en performances.
+
+Les matériaux simplifié et complet de l'étal, l'assemblage de leur shader et
+l'ombre de contact sont transférés dans le moteur. Le Studio emploie directement
+ces matériaux ; Tidewater fournit ses textures et conserve une passerelle de
+compatibilité. Le programme d'éclairage commun produit le même shader assemblé que
+la source vérifiée. Six tests moteur, la compilation de la scène de référence,
+Clippy natif/Web et 40 contrôles d'architecture passent ; voir
+`shared-stall-assessment-001.json`. Le rendu d'un module installé, les FPS et
+d'autres comportements encore présents dans Tidewater restent à traiter.
+
+L'inventaire et le profil poisson sont maintenant partagés entre le runtime et
+l'acquisition du Studio, avec réutilisation limitée au même module et aux mêmes
+empreintes. Les replays des deux paquets réels passent sur un transport Studio
+simulé, ainsi que les tests de contrat et les contrôles natifs/Web ; voir
+`shared-fish-module-acquisition-assessment-001.json`. L'API 12 reste refusée :
+le rendu et l'export d'un module installé doivent encore être raccordés.
+
+Le cache de géométrie des ombres des poissons placés et de l'étal est désormais
+commun dans le moteur. Le rejeu CPU des données Tidewater retrouve les mêmes
+octets et poses ; les maillages doivent rester immuables ou invalider le cache.
+Voir `shared-fish-shadow-cache-assessment-001.json`. Aucun nouveau résultat GPU
+ou de performance n'est établi.
+
+
+La préparation des profils poissons et la protection contre le remplacement
+d'un shader encore utilisé sont dans le moteur ; le Studio les appelle. Un
+rejeu CPU du paquet réel avec ses identités puis 78 identités remplacées passe,
+comme les contrôles natif/Web et d'architecture ; voir
+`shared-fish-host-assessment-001.json`. Il reste à raccorder et qualifier un
+module installé, les programmes simultanés, le rendu et les performances.
+
+
+La projection statique des bateaux, leurs collisions et leur volume d'exclusion
+d'eau sont maintenant dans le moteur, avec les données fournies par le module.
+Deux profils synthétiques indépendants et le rejeu CPU/Rapier du bateau réel
+passent ; voir `shared-boat-assessment-001.json`. Le rendu, l'intégration d'un
+module installé, les autres projections d'objets et les avertissements de tests
+moteur relevés par le contrôle élargi restent à traiter ; Gate 7 demeure ouverte.
+
+
+Les huit avertissements de tests moteur signalés après le transfert du bateau
+sont corrigés. Clippy strict des cibles de tests passe ; la suite de bibliothèque
+moteur compte 1 374 réussites et 11 tests ignorés, sans échec. Voir
+`shared-boat-engine-suite-assessment-001.json`. Les validations graphiques,
+Linux, module installé et machine propre restent distinctes.
+
+
+La scène commune de poissons prépare uniquement les assets placés, contrôle
+leurs pins et conserve les maillages lors des déplacements. Le Studio de
+référence utilise ce chemin ; les tests moteur, le rejeu CPU réel et les
+contrôles natif/Web passent (`module-fish-scene-assessment-001.json`). La vue
+d'un module installé, le jeu, le rendu GPU et les performances restent à raccorder
+et qualifier.
+
+
+Le code de la vue de module géré et du jeu appelle maintenant le même hôte
+poissons du moteur ; les programmes d'objets sont lus selon leur déclaration de
+paquet. Les tests moteur, transport Studio et export existant passent, ainsi que
+le rejeu CPU d'un profil réel (`module-fish-live-assessment-001.json`). L'API 12
+reste refusée : aucun module installé, rendu GPU ni résultat de performance n'est
+qualifié par ces essais. Les profils aux politiques LOD différentes, les poissons
+attachés et leurs éventuels effets ou ressources physiques restent à traiter.
+Gate 7 demeure ouverte, avec un critère clos sur dix.
+
+
+Le parcours natif de référence utilise désormais lui aussi la résidence commune
+des poissons du moteur : LOD, veille, horloge, éclairage et inventaire d'ombres,
+pour des poissons attachés ou libres dans un même groupe. Quatre parcours courts
+en 1920 × 1080 passent avec 83 poissons : la référence mesure 63,9 à 65,2 FPS et
+le candidat 63,3 à 64,1 FPS. Cette comparaison sur une seule machine ne prouve
+pas la parité statistique, l'aspect des poissons ni les performances d'un autre
+module. Les tests moteur, les contrôles stricts natifs/Web et 45 frontières
+passent ; voir `shared-reference-fish-assessment-001.json`. L'API 12 et neuf des
+dix critères de Gate 7 restent ouverts.
+
+
+La résidence commune accepte maintenant plusieurs profils de poissons aux
+distances de visibilité et d'ombre différentes : chaque instance garde son
+réglage et le groupe utilise une limite conservatrice. Vingt tests moteur et
+un transport Studio simulé à partir du paquet réel passent ; les deux variantes
+de réglages du test sont construites en mémoire. Quatre nouveaux parcours
+Tidewater passent, autour de 64 à 65 FPS avant et après sur cet essai court.
+La performance de plusieurs profils et celle d'un module installé ne sont pas
+qualifiées. L'admission API 12, les shaders incompatibles, les attaches et les
+compagnons physiques ou effets restent à traiter ; voir
+`multifish-policy-assessment-001.json`. Gate 7 reste ouverte.
+
+Un module privé utilisant l'API 12 est maintenant admis et lancé sur Windows :
+cinq spécimens et leurs ressources GPU ont passé le scénario fonctionnel.
+L'admission conserve les empreintes des scripts sources exclus, mais interdit
+leur inclusion et refuse la redistribution des profils poissons tant que leurs
+droits ne sont pas qualifiés. La capture ne permet pas d'évaluer leur apparence
+en détail ; Studio, performance, Linux et machine propre restent à qualifier.
+Voir `fish-installed-assessment-001.json`. R7-03 reste le seul critère clos.
+
+La scène procédurale du Studio utilise maintenant un état de vent neutre si
+son contenu ne fournit aucune capture ; un réglage de carte reste prioritaire.
+La référence historique fournit explicitement sa propre phase à la scène et aux
+ombres. Quinze tests moteur et les contrôles stricts Studio Web et référence
+native passent. Le chemin historique du terrain importé conserve encore son
+adaptateur Tidewater ; le rejeu visuel et les validations de plateforme restent
+ouverts. Voir `wind-common-assessment-001.json`.
+
+Le service commun admet maintenant un produit de jeu autonome v2, contrôle ses
+modules et sépare ses sauvegardes par jeu. Sur archives de test, installation,
+mise à jour, rollback et refus ont réussi 70 tests Windows ; un test de lien
+symbolique reste ignoré faute de privilège. L'export depuis le Studio, le vrai
+launcher et le parcours sur machine propre restent à raccorder et qualifier ;
+le résultat n'ajoute pas de critère clos à Gate 7.
+
+Le panneau projet expose aussi la configuration auteur du jeu et l'historique
+de l'espace de travail, par les commandes existantes d'aperçu, confirmation et
+sauvegarde. Trois tests natifs passent et Clippy Web est strictement validé ;
+la revue réelle de l'interface et l'export autonome restent à faire. Voir
+`studio-game-authoring-assessment-001.json`.

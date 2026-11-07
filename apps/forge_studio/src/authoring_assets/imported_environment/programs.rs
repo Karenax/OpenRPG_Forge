@@ -1,13 +1,10 @@
 //! Prepare library programs on this scene's device, with generation-safe adoption.
 use super::imported_buildings;
 use bevy::{ecs as bevy_ecs, prelude::*, render::renderer::RenderDevice};
-use forge_tidewater::{
-    tidewater_environment::{
-        live,
-        programs::{Input, Prepared},
-    },
-    tidewater_scene_environment::ResidentEnvironment,
-};
+use forge_engine::source_environment::live;
+use forge_engine::source_environment::programs::Input;
+use forge_engine::source_environment::programs::Prepared;
+use forge_engine::source_environment::scene::ResidentEnvironment;
 use std::sync::{Arc, Mutex, atomic::AtomicBool};
 
 #[derive(Resource)]
@@ -33,7 +30,7 @@ pub(super) fn request(world: &mut World) {
     let Some((library, package)) = imported_buildings::environment_programs() else {
         return;
     };
-    let result = Input::from_package(&package);
+    let result = forge_engine::source_environment::programs::package::from_package(&package);
     match result {
         Ok(input) => {
             let generation = world.resource::<ResidentEnvironment>().clouds.ready.clone();
@@ -114,10 +111,9 @@ pub(super) fn update(world: &mut World) {
             resident.clouds.clone(),
         );
         live::stage(world, programs, targets, atmosphere, clouds)?;
-        if let Err(error) = live::bind_lighting(
-            world,
-            forge_tidewater::tidewater_material::scene_buffer::HANDLE,
-        ) {
+        if let Err(error) =
+            live::bind_lighting(world, forge_engine::source_lighting::scene_buffer::HANDLE)
+        {
             live::clear(world);
             return Err(error);
         }

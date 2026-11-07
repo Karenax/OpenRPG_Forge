@@ -120,7 +120,7 @@ pub(super) fn exit(
     ui: Res<NativeGameplayUi>,
     commands: Res<CommandResult>,
 ) {
-    for exit in exits.read() {
+    if let Some(exit_success) = super::exit_outcome(&mut exits) {
         let state = runtime.session().state();
         let player = &state.actors[&runtime.session().document().player];
         let report = NativeReport {
@@ -130,7 +130,7 @@ pub(super) fn exit(
             source_hash: runtime.session().source_hash(),
             archive_hash: sink.archive,
             functional_hash: sink.functional,
-            exit_success: exit.is_success(),
+            exit_success,
             ready: runtime.is_ready(),
             tick: state.tick,
             sequence: state.sequence,

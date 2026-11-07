@@ -1,6 +1,7 @@
 //! Portable, immutable light acquisitions with a caller-selected manifest pin.
 //! The acquisition receipt is retained as provenance; it grants no runtime or
 //! visual qualification. Reads are supplied by a native or browser adapter.
+pub mod transport;
 use super::{SourceLightSet, SourceLocalLights, SourceLocalLightsError};
 use crate::source_geometry::AssetFileReference;
 use forge_core::{ContentHash, bytes_sha256};
@@ -78,6 +79,35 @@ pub struct SourceLocalLightsPackage {
 }
 
 impl SourceLocalLightsPackage {
+    /// Inspect the same bounded, hash-verified manifest before transporting members.
+    pub fn resource_pins(
+        manifest: &[u8],
+        expected: ContentHash,
+    ) -> Result<BTreeMap<String, AssetFileReference>, SourceLocalLightsError> {
+        let index = parse(manifest, expected)?;
+        Ok(index
+            .files
+            .into_iter()
+            .map(|(file, entry)| {
+                (
+                    file.clone(),
+                    AssetFileReference {
+                        file,
+                        bytes: entry.bytes,
+                        sha256: entry.sha256,
+                    },
+                )
+            })
+            .collect())
+    }
+
+    pub fn license_pin(
+        manifest: &[u8],
+        expected: ContentHash,
+    ) -> Result<AssetFileReference, SourceLocalLightsError> {
+        Ok(parse(manifest, expected)?.license)
+    }
+
     /// Validate bounds, portable paths and manifest closure before any reads.
     /// The transport must bound its allocation/read to the supplied byte count;
     /// any returned response with a different size or hash is refused.
@@ -212,6 +242,17 @@ impl SourceLocalLightsPackage {
     #[must_use]
     pub fn license(&self) -> &[u8] {
         &self.files[&self.index.license.file]
+    }
+
+    #[must_use]
+    pub fn license_path(&self) -> &str {
+        &self.index.license.file
+    }
+
+    pub fn files(&self) -> impl Iterator<Item = (&str, &[u8])> {
+        self.files
+            .iter()
+            .map(|(name, bytes)| (name.as_str(), bytes.as_slice()))
     }
 
     #[must_use]

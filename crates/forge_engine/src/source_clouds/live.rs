@@ -1,0 +1,509 @@
+//! Continue a resident cloud generation without replacing its temporal textures.
+use super::{FrameView, StagedInput, Targets};
+use crate::cloud_controller::{Output, bytes};
+use bevy::{prelude::*, render::extract_resource::ExtractResource};
+use std::sync::{Arc, atomic::Ordering};
+
+#[derive(Resource, Clone, Default, ExtractResource)]
+pub(super) struct Pending(pub Option<Arc<Frame>>);
+
+pub(super) struct Frame {
+    pub step: u32,
+    pub output: Output,
+    pub local: Vec<u8>,
+    pub global: Vec<u8>,
+    pub settings: Vec<u8>,
+    pub atmosphere: Option<Vec<u8>>,
+}
+
+/// Immutable uniforms of the submitted cloud frame, for coherent dependent passes.
+pub struct SubmittedFrame {
+    pub step: u32,
+    pub view: usize,
+    /// Source controller frame index, elapsed seconds, delta seconds, padding.
+    /// This belongs to the submitted cloud transaction, not Bevy's wall clock.
+    pub clock: Vec4,
+    pub global: [u8; 720],
+    pub clouds: [Vec4; 5],
+}
+
+pub fn submitted_frame(world: &World) -> Result<SubmittedFrame, String> {
+    let frame = world
+        .get_resource::<Pending>()
+        .and_then(|p| p.0.as_ref())
+        .ok_or("No submitted cloud frame")?;
+    Ok(SubmittedFrame {
+        step: frame.step,
+        view: frame.output.view_index,
+        clock: Vec4::from_array(frame.output.frame[10]),
+        global: frame
+            .global
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Invalid cloud frame uniform size")?,
+        clouds: frame.output.public.map(Vec4::from_array),
+    })
+}
+impl Frame {
+    pub fn view(&self) -> FrameView<'_> {
+        FrameView {
+            step: self.step,
+            final_acquired_frame: true,
+            local: &self.local,
+            global: &self.global,
+            atmosphere: self.atmosphere.as_deref(),
+            shadow_full: self.output.shadow_full,
+            panorama_full: self.output.panorama_full,
+            trace_view: self.output.trace_view,
+            view_index: self.output.view_index,
+        }
+    }
+}
+
+/// One frame awaiting encoding: the caller must retain its controller while waiting.
+/// Already encoded GPU work stays ordered on Bevy's render queue; this is not a GPU fence.
+/// Acquisition readback completion, if required, remains the caller's responsibility.
+pub fn can_submit(world: &World) -> bool {
+    let (Some(targets), Some(pending)) = (
+        world.get_resource::<Targets>(),
+        world.get_resource::<Pending>(),
+    ) else {
+        return false;
+    };
+    world.contains_resource::<StagedInput>()
+        && targets.images.len() == 10
+        && targets.ready.load(Ordering::Acquire)
+        && pending
+            .0
+            .as_ref()
+            .is_none_or(|frame| targets.completed_steps.load(Ordering::Acquire) >= frame.step)
+        && targets.completed_steps.load(Ordering::Acquire) < u32::MAX
+}
+
+/// Submit a fixed-resolution controller frame with the generation's acquired lighting.
+/// Camera, clock, wind, cloud history and shadow sampling are supplied by `output`.
+/// Use `submit_solar` for current sunlight without replacing temporal history.
+/// Changing resolution still requires a separately prepared generation.
+pub fn submit(world: &mut World, output: &Output) -> Result<u32, String> {
+    submit_frame(world, output, false)
+}
+
+/// Preserve the captured light while supplying the current observer to cloud tracing.
+/// Static scattering and sun changes are refused; solar changes use `submit_solar`.
+pub fn submit_observer(world: &mut World, output: &Output) -> Result<u32, String> {
+    submit_frame(world, output, true)
+}
+
+fn submit_frame(world: &mut World, output: &Output, observer: bool) -> Result<u32, String> {
+    validate(output)?;
+    if !can_submit(world) {
+        return Err("cloud generation not ready for a live frame".into());
+    }
+    let staged = world.resource::<StagedInput>();
+    let output = staged.quality.output(output);
+    let global = staged
+        .input
+        .shadow
+        .as_ref()
+        .and_then(|s| s.frames.last())
+        .ok_or("cloud lighting frame absent")?
+        .1
+        .clone();
+    let atmosphere = if observer {
+        let targets = world
+            .get_resource::<crate::source_atmosphere::Targets>()
+            .ok_or("Current cloud atmosphere absent")?;
+        let shared = staged
+            .atmosphere
+            .as_ref()
+            .ok_or("Shared cloud atmosphere absent")?;
+        if !Arc::ptr_eq(&shared.ready, &targets.ready) || shared.images != targets.images {
+            return Err("Cloud atmosphere generation was replaced".into());
+        }
+        let pack = |params: &[Vec4; 4]| {
+            params
+                .iter()
+                .flat_map(Vec4::to_array)
+                .flat_map(f32::to_le_bytes)
+                .collect::<Vec<_>>()
+        };
+        let params = pack(&targets.params);
+        if !crate::source_atmosphere::observer::validate(&params, &pack(&shared.params)) {
+            return Err("Observer-only cloud update changed static atmosphere or sun".into());
+        }
+        Some(params)
+    } else {
+        None
+    };
+    let step = world
+        .resource::<Targets>()
+        .completed_steps
+        .load(Ordering::Acquire)
+        + 1;
+    world.insert_resource(Pending(Some(Arc::new(Frame {
+        step,
+        output: output.clone(),
+        local: bytes(&output.frame),
+        global,
+        settings: bytes(&output.settings),
+        atmosphere,
+    }))));
+    Ok(step)
+}
+
+/// Submit the current sun and last completed atmosphere lighting with unchanged
+/// temporal textures. The supplied solar frame must match the resident LUT params.
+pub fn submit_solar(
+    world: &mut World,
+    output: &Output,
+    solar: crate::source_sky::solar::Frame,
+) -> Result<u32, String> {
+    validate(output)?;
+    if !can_submit(world) {
+        return Err("cloud generation not ready for a live solar frame".into());
+    }
+    let completed = crate::source_atmosphere::readback::latest(world, solar)
+        .ok_or("atmosphere lighting readback unavailable")??;
+    let targets = world.resource::<crate::source_atmosphere::Targets>();
+    let staged = world.resource::<StagedInput>();
+    let output = staged.quality.output(output);
+    let shared = staged
+        .atmosphere
+        .as_ref()
+        .ok_or("shared cloud atmosphere absent")?;
+    if !Arc::ptr_eq(&shared.ready, &targets.ready) || shared.images != targets.images {
+        return Err("cloud atmosphere generation was replaced".into());
+    }
+    let mut global = staged
+        .input
+        .shadow
+        .as_ref()
+        .and_then(|s| s.frames.last())
+        .ok_or("cloud lighting frame absent")?
+        .1
+        .clone();
+    if global.len() != 720 {
+        return Err("source Frame uniform must be 720 bytes".into());
+    }
+    write_solar(&mut global, &completed)?;
+    let atmosphere = targets
+        .params
+        .iter()
+        .flat_map(Vec4::to_array)
+        .flat_map(f32::to_le_bytes)
+        .collect();
+    let step = world
+        .resource::<Targets>()
+        .completed_steps
+        .load(Ordering::Acquire)
+        + 1;
+    world.insert_resource(Pending(Some(Arc::new(Frame {
+        step,
+        output: output.clone(),
+        local: bytes(&output.frame),
+        global,
+        settings: bytes(&output.settings),
+        atmosphere: Some(atmosphere),
+    }))));
+    Ok(step)
+}
+
+fn write_solar(
+    global: &mut [u8],
+    completed: &crate::source_atmosphere::readback::Completed,
+) -> Result<(), String> {
+    crate::source_sky::frame_lighting::FrameLighting::new(
+        completed.current_solar,
+        &completed.lighting,
+    )?
+    .write_bytes(global)
+}
+
+fn validate(output: &Output) -> Result<(), String> {
+    if output.source_size != [240, 135]
+        || output.history_size != [960, 540]
+        || output.view_index > 1
+        || output.weather_dispatch
+        || output
+            .frame
+            .iter()
+            .chain(output.settings.iter())
+            .chain(output.public.iter())
+            .flatten()
+            .any(|v| !v.is_finite())
+    {
+        return Err("unsupported or invalid live cloud frame".into());
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicBool, AtomicU32};
+    #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The test compares the retained f64 solar state with its required GPU f32 representation"
+    )]
+    fn solar_uniform_update_preserves_camera_water_wind_and_exposure() {
+        let solar = *crate::source_sky::solar::Clock::new(default())
+            .unwrap()
+            .frame();
+        let lighting = crate::source_sky::solar_lighting::Lighting {
+            sun_color: [1.0, 2.0, 3.0],
+            sky_irradiance: [0.1, 0.2, 0.3],
+            horizon_color: [0.4, 0.5, 0.6],
+        };
+        let completed = crate::source_atmosphere::readback::Completed {
+            current_solar: solar,
+            lighting,
+        };
+        let mut global = vec![0x5a; 720];
+        write_solar(&mut global, &completed).unwrap();
+        for (i, byte) in global.iter().enumerate() {
+            if !(592..620).contains(&i) && !(624..636).contains(&i) && !(640..652).contains(&i) {
+                assert_eq!(*byte, 0x5a, "unrelated Frame byte {i}");
+            }
+        }
+        assert_eq!(
+            f32::from_le_bytes(global[608..612].try_into().unwrap()),
+            1.0
+        );
+        assert_eq!(
+            f32::from_le_bytes(global[604..608].try_into().unwrap()),
+            solar.night as f32
+        );
+        let before = global.clone();
+        let mut invalid = completed;
+        invalid.lighting.sun_color[0] = f64::NAN;
+        assert!(write_solar(&mut global, &invalid).is_err());
+        assert_eq!(before, global);
+    }
+
+    fn output() -> Output {
+        Output {
+            frame: [[0.0; 4]; 34],
+            settings: [[0.0; 4]; 13],
+            public: [[0.0; 4]; 5],
+            weather_dispatch: false,
+            shadow_full: false,
+            panorama_full: false,
+            trace_view: true,
+            view_index: 0,
+            source_size: [240, 135],
+            history_size: [960, 540],
+        }
+    }
+    fn world() -> World {
+        let mut world = World::new();
+        world.insert_resource(Targets {
+            completed_steps: Arc::new(AtomicU32::new(120)),
+            submissions: Arc::new(AtomicU32::new(120)),
+            images: vec![Handle::default(); 10],
+            ready: Arc::new(AtomicBool::new(true)),
+        });
+        world.insert_resource(Pending::default());
+        world.insert_resource(StagedInput {
+            quality: default(),
+            input: Arc::new(super::super::Input {
+                stepped: true,
+                shaders: default(),
+                settings: vec![0; 208],
+                shadow: Some(super::super::shadow::Input {
+                    shader: String::new(),
+                    noise: vec![],
+                    schedule: None,
+                    atmosphere_frames: None,
+                    frames: vec![(vec![0; 544], vec![0; 720])],
+                    trace: None,
+                }),
+            }),
+            atmosphere: None,
+        });
+        world
+    }
+    #[test]
+    fn observer_submission_preserves_captured_light_and_refuses_static_or_generation_changes() {
+        let mut world = world();
+        let mut params = [Vec4::ZERO; 4];
+        params[1].w = 6360.014;
+        let images = vec![Handle::default(); 3];
+        let ready = Arc::new(AtomicBool::new(true));
+        world.resource_mut::<StagedInput>().atmosphere = Some(super::super::SharedAtmosphere {
+            params,
+            images: images.clone(),
+            ready: ready.clone(),
+        });
+        world.insert_resource(crate::source_atmosphere::Targets {
+            params,
+            images,
+            ready,
+            irradiance: Handle::default(),
+        });
+        world
+            .resource_mut::<crate::source_atmosphere::Targets>()
+            .params[1]
+            .w = 6360.004;
+        assert_eq!(submit_observer(&mut world, &output()).unwrap(), 121);
+        let frame = world.resource::<Pending>().0.as_ref().unwrap();
+        assert_eq!(&frame.global, &vec![0; 720]);
+        let raw = frame.atmosphere.as_ref().unwrap();
+        assert_eq!(&raw[28..32], &6360.004_f32.to_le_bytes());
+        world.insert_resource(Pending::default());
+        world
+            .resource_mut::<crate::source_atmosphere::Targets>()
+            .params[3]
+            .x = 1.0;
+        assert!(submit_observer(&mut world, &output()).is_err());
+        assert!(world.resource::<Pending>().0.is_none());
+        world
+            .resource_mut::<crate::source_atmosphere::Targets>()
+            .params[3]
+            .x = 0.0;
+        world
+            .resource_mut::<crate::source_atmosphere::Targets>()
+            .ready = Arc::new(AtomicBool::new(true));
+        assert!(submit_observer(&mut world, &output()).is_err());
+        assert!(world.resource::<Pending>().0.is_none());
+    }
+
+    #[test]
+    fn backpressure_keeps_each_temporal_frame_until_encoded() {
+        assert!(!can_submit(&World::new()));
+        let mut world = world();
+        assert_eq!(submit(&mut world, &output()).unwrap(), 121);
+        assert!(!can_submit(&world));
+        assert!(submit(&mut world, &output()).is_err());
+        world
+            .resource::<Targets>()
+            .completed_steps
+            .store(121, Ordering::Release);
+        assert!(can_submit(&world));
+        assert_eq!(submit(&mut world, &output()).unwrap(), 122);
+        world
+            .resource::<Targets>()
+            .ready
+            .store(false, Ordering::Release);
+        assert!(!can_submit(&world));
+    }
+
+    #[test]
+    fn dependent_snapshot_preserves_submitted_uniforms_and_history() {
+        let mut world = world();
+        assert!(submitted_frame(&world).is_err());
+        let mut output = output();
+        output.view_index = 1;
+        output.public[2] = [1., 2., 3., 4.];
+        output.frame[10] = [124., 2., 1. / 60., 0.];
+        submit(&mut world, &output).unwrap();
+        let snapshot = submitted_frame(&world).unwrap();
+        assert_eq!(snapshot.step, 121);
+        assert_eq!(snapshot.view, 1);
+        assert_eq!(snapshot.clock, Vec4::new(124., 2., 1. / 60., 0.));
+        assert_eq!(snapshot.global, [0; 720]);
+        assert_eq!(snapshot.clouds[2], Vec4::new(1., 2., 3., 4.));
+        world.resource_mut::<Pending>().0 = None;
+        assert!(submitted_frame(&world).is_err());
+        // Snapshot is owned: replacing temporal history cannot change dependent inputs.
+        assert_eq!(snapshot.clouds[2], Vec4::new(1., 2., 3., 4.));
+    }
+    #[test]
+    fn invalid_frame_preserves_pending_history() {
+        let mut world = world();
+        let mut invalid = output();
+        for variant in 0..4 {
+            match variant {
+                0 => invalid.view_index = 2,
+                1 => invalid.history_size[0] = 1,
+                2 => invalid.frame[0][0] = f32::NAN,
+                _ => invalid.weather_dispatch = true,
+            }
+            assert!(submit(&mut world, &invalid).is_err());
+            assert!(world.resource::<Pending>().0.is_none());
+            invalid = output();
+        }
+        assert_eq!(
+            world
+                .resource::<Targets>()
+                .completed_steps
+                .load(Ordering::Acquire),
+            120
+        );
+    }
+
+    #[test]
+    fn solar_submission_uses_completed_light_and_refuses_replaced_atmosphere() {
+        use bevy::render::{gpu_readback::ReadbackComplete, storage::ShaderBuffer};
+        let mut world = world();
+        let solar = *crate::source_sky::solar::Clock::new(default())
+            .unwrap()
+            .frame();
+        world.init_resource::<Assets<ShaderBuffer>>();
+        let irradiance = world
+            .resource_mut::<Assets<ShaderBuffer>>()
+            .add(ShaderBuffer::from(vec![Vec4::ZERO; 4]));
+        let mut params = [Vec4::ZERO; 4];
+        params[3] = solar.sun.as_vec3().extend(0.0);
+        let atmosphere = crate::source_atmosphere::Targets {
+            params,
+            images: vec![],
+            irradiance,
+            ready: Arc::new(AtomicBool::new(true)),
+        };
+        world.resource_mut::<StagedInput>().atmosphere = Some(super::super::SharedAtmosphere {
+            images: atmosphere.images.clone(),
+            params,
+            ready: atmosphere.ready.clone(),
+        });
+        world.insert_resource(atmosphere);
+        assert!(submit_solar(&mut world, &output(), solar).is_err());
+        assert!(world.resource::<Pending>().0.is_none());
+        let reader = crate::source_atmosphere::readback::request(&mut world, solar).unwrap();
+        world.trigger(ReadbackComplete {
+            entity: reader,
+            data: [
+                0.1_f32, 0.2, 0.3, 1.0, 0.8, 0.7, 0.6, 1.0, 0.2, 0.3, 0.4, 1.0,
+            ]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect(),
+        });
+        world.flush();
+        assert_eq!(submit_solar(&mut world, &output(), solar).unwrap(), 121);
+        let pending = world.resource::<Pending>().0.as_ref().unwrap().clone();
+        assert_eq!(pending.atmosphere.as_ref().unwrap().len(), 64);
+        assert_eq!(pending.global.len(), 720);
+        assert_eq!(
+            world
+                .resource::<Targets>()
+                .completed_steps
+                .load(Ordering::Acquire),
+            120
+        );
+        assert!(submit_solar(&mut world, &output(), solar).is_err());
+        assert!(Arc::ptr_eq(
+            &pending,
+            world.resource::<Pending>().0.as_ref().unwrap()
+        ));
+        world
+            .resource_mut::<Targets>()
+            .completed_steps
+            .store(121, Ordering::Release);
+        world
+            .resource_mut::<StagedInput>()
+            .atmosphere
+            .as_mut()
+            .unwrap()
+            .ready = Arc::new(AtomicBool::new(true));
+        assert!(submit_solar(&mut world, &output(), solar).is_err());
+        assert!(Arc::ptr_eq(
+            &pending,
+            world.resource::<Pending>().0.as_ref().unwrap()
+        ));
+    }
+}

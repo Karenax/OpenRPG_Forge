@@ -2,7 +2,7 @@
 use bevy::prelude::*;
 use bevy::render::view::screenshot::{Screenshot, save_to_disk};
 use forge_core::bytes_sha256;
-use forge_tidewater::tidewater_temporal as temporal;
+use forge_engine::source_temporal as temporal;
 use std::{
     path::PathBuf,
     time::{Duration, Instant},
@@ -49,14 +49,18 @@ pub fn install(app: &mut App) -> Result<(), String> {
         Family::TerrainLod,
         MaterialRole::Opaque,
     )?;
-    temporal::register_material::<super::PlantMaterial>(app, Family::Plant, MaterialRole::Opaque)?;
-    temporal::register_material::<super::village::VillageMaterial>(
+    temporal::register_material::<super::CapturedPlantMaterial>(
+        app,
+        Family::Plant,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::source_surface::SourceSurfaceMaterial>(
         app,
         Family::Village,
         MaterialRole::Opaque,
     )?;
     // Nature has the same acquired ABI; its actual installed source shader is derived.
-    temporal::register_material::<forge_tidewater::tidewater_debris::nature::NatureMaterial>(
+    temporal::register_material::<forge_engine::source_surface::nature::NatureMaterial>(
         app,
         Family::Village,
         MaterialRole::Opaque,
@@ -67,7 +71,7 @@ pub fn install(app: &mut App) -> Result<(), String> {
     temporal::register_material::<
         forge_tidewater::tidewater_debris::scanned_material::ScannedMaterial,
     >(app, Family::Scanned, MaterialRole::Opaque)?;
-    temporal::register_material::<forge_tidewater::tidewater_fish_props::material::FishMaterial>(
+    temporal::register_material::<forge_engine::source_fish::material::FishMaterial>(
         app,
         Family::Fish,
         MaterialRole::Opaque,
@@ -89,7 +93,7 @@ pub fn install(app: &mut App) -> Result<(), String> {
             MaterialRole::Opaque,
         )?;
     }
-    temporal::register_material::<super::breaker_lip::LipMaterial>(
+    temporal::register_material::<forge_engine::source_breaker_render::LipMaterial>(
         app,
         Family::BreakerLip,
         MaterialRole::Transparent,
@@ -100,12 +104,11 @@ pub fn install(app: &mut App) -> Result<(), String> {
         MaterialRole::Transparent,
     )?;
     temporal::phase::register_standard_opaque(app)?;
+    temporal::phase::register_source_model_opaque(app)?;
     temporal::phase::register_sky_material::<super::sky::SkyMaterial>(app)?;
     let source_resolve = std::env::var("FORGE_TIDEWATER_TEMPORAL_RESOLVE").as_deref() == Ok("1");
     if source_resolve {
-        if !app
-            .is_plugin_added::<forge_tidewater::tidewater_underwater::TidewaterUnderwaterPlugin>()
-        {
+        if !app.is_plugin_added::<forge_engine::source_underwater::SourceUnderwaterPlugin>() {
             // Static graphics previously installed grading only. Reuse the
             // playable camera's real medium, surface query, optics and caustics.
             // A missing pass is not a neutral contribution to the HDR chain.
@@ -203,14 +206,14 @@ pub fn install(app: &mut App) -> Result<(), String> {
         PostUpdate,
         select_camera
             .before(temporal::FrameSystems::Prepare)
-            .before(forge_tidewater::tidewater_underwater::WaterMediumUpdateSet),
+            .before(forge_engine::source_underwater::WaterMediumUpdateSet),
     )
     .add_systems(
         PostUpdate,
         update_selected_water_query
             .after(select_camera)
             .after(bevy::transform::TransformSystems::Propagate)
-            .before(forge_tidewater::tidewater_underwater::WaterMediumUpdateSet),
+            .before(forge_engine::source_underwater::WaterMediumUpdateSet),
     )
     .add_systems(
         PostUpdate,
@@ -231,7 +234,7 @@ pub fn install(app: &mut App) -> Result<(), String> {
 fn select_camera(world: &mut World) {
     let mut cameras = world.query_filtered::<(Entity, &Camera), (
         With<Camera3d>,
-        Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
+        Without<forge_engine::source_refraction::CaptureCamera>,
     )>();
     let mut active = cameras.iter(world).filter(|(_, camera)| camera.is_active);
     let Some((entity, _)) = active.next() else {
@@ -252,7 +255,7 @@ fn select_camera(world: &mut World) {
     if world.resource::<Proof>().source_resolve {
         world
             .entity_mut(entity)
-            .insert(forge_tidewater::tidewater_underwater::TidewaterUnderwaterCamera);
+            .insert(forge_engine::source_underwater::SourceUnderwaterCamera);
         let result = world
             .resource_mut::<temporal::frame::Frames>()
             .set_encoding_owner(temporal::frame::EncodingOwner::Resolve);
@@ -367,7 +370,7 @@ fn advance(world: &mut World) {
             if !proof.screenshot_requested {
                 // The source-final observer publishes only after 124 actual GPU
                 // completions. Do not exit this combined probe before its receipt.
-                if let Some(path) = std::env::var_os("FORGE_TIDEWATER_SOURCE_FINAL_TRACE") {
+                if let Some(path) = std::env::var_os("FORGE_SOURCE_FINAL_TRACE") {
                     let path = PathBuf::from(path);
                     if !path.is_file() {
                         return Ok(());
@@ -399,7 +402,7 @@ fn advance(world: &mut World) {
             // Keep the camera static until the optional exact final-frame HDR
             // readback is complete. No file or GPU ordinal is fabricated here.
             if proof.captures.is_empty()
-                && let Some(folder) = std::env::var_os("FORGE_TIDEWATER_FINAL_HDR_CAPTURE")
+                && let Some(folder) = std::env::var_os("FORGE_SOURCE_FINAL_HDR_CAPTURE")
             {
                 let path = PathBuf::from(folder).join("planes.json");
                 if !path.is_file() { return Ok(()) }
@@ -1023,7 +1026,7 @@ fn write_receipt(
         "hdr_encoding":world.get_resource::<temporal::hdr::HdrObservations>().map(|observations|format!("{:?}",observations.snapshots())),
         "derivation_errors":world.resource::<temporal::Derivations>().errors(),"observations":observations,
         "native_material_types":{
-            "breaker_lip":format!("{:?}",std::any::TypeId::of::<super::breaker_lip::LipMaterial>()),
+            "breaker_lip":format!("{:?}",std::any::TypeId::of::<forge_engine::source_breaker_render::LipMaterial>()),
             "spray":format!("{:?}",std::any::TypeId::of::<super::spray_sprites::SprayMaterial>()),
             "standard":format!("{:?}",std::any::TypeId::of::<StandardMaterial>()),
             "ocean":format!("{:?}",std::any::TypeId::of::<super::water_optics::WaterMaterial>()),

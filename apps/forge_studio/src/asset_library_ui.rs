@@ -249,11 +249,14 @@ fn LibraryPageView(close: Callback<()>) -> impl IntoView {
                                 if asset.triangles > 0 {format!("{} triangles source",asset.triangles)}
                                 else {"Triangles non mesurés".into()}
                             } else {format!("{} triangles",asset.triangles)};
-                            let status_label=if source_support {"Source conservée — non plaçable"}else if asset.metadata_ready {"Fiche complète"}else{"Fiche à compléter"};
+                            let material_review=asset.subtype=="unity-material-color-space-unresolved";
+                            let category_label=if material_review {"Modèle 3D".to_owned()} else {filter_label(&asset.subtype)};
+                            let status_label=if source_support && material_review {"Source conservée · non plaçable · matériau à vérifier"}else if source_support {"Source conservée — non plaçable"}else if material_review {"Modèle converti · matériau à vérifier"}else if asset.metadata_ready {"Fiche complète"}else{"Fiche à compléter"};
                             view! { <button class="asset-result-card" disabled=move ||busy.get()
                                 aria-pressed=move ||(selected.get()==active).to_string() on:click=move |_|selected.set(id.clone())>
                                 <Thumbnail id=image_id revision=revision available=asset.has_thumbnail/>
-                                <div class="asset-card-copy"><strong>{asset.name}</strong><small>{asset.subtype}</small>
+                                <div class="asset-card-copy"><strong title=asset.name.clone()>{asset.name.clone()}</strong><small>{category_label}</small>
+                                    <small class="asset-variant" title="Identité de cette variante">{asset.id}</small>
                                     <span>{dimensions_label}</span><span>{triangles_label}</span>
                                     <span class="asset-card-status">{status_label}</span></div>
                             </button> }
@@ -344,6 +347,9 @@ fn dimensions(d: [f64; 3]) -> String {
 fn filter_label(value: &str) -> String {
     match value {
         "props" => "Décors et objets".into(),
+        "dungeon-prop" => "Décor de donjon".into(),
+        "paper-debris" => "Papiers et débris".into(),
+        "unity-material-color-space-unresolved" => "Matériau à vérifier avant utilisation".into(),
         "equipment" => "Équipement".into(),
         "environment" => "Environnement".into(),
         "character" => "Personnage".into(),

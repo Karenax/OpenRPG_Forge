@@ -1,7 +1,7 @@
 //! Opt-in static comparison using the same verified environment package as Studio.
 use bevy::{prelude::*, render::RenderApp};
-use forge_tidewater::tidewater_scene_environment::PreparedEnvironment;
-use forge_tidewater_assets::tidewater_environment::EnvironmentPackage;
+use forge_assets::source_environment_package::EnvironmentPackage;
+use forge_engine::source_environment::scene::PreparedEnvironment;
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 pub(super) struct Prepared {
@@ -45,7 +45,7 @@ pub(super) fn load(
         }
         std::fs::read(path).map_err(|e| e.to_string())
     })?;
-    let environment = PreparedEnvironment::new(&package)?;
+    let environment = forge_engine::source_environment::package::prepare(&package)?;
     let camera = camera.ok_or("Acquired environment requires an explicit scene camera")?;
     let actual = &environment.cloud_continuation.input.camera;
     let rotation = Quat::from_array(camera.rotation).normalize();
@@ -94,18 +94,16 @@ impl Prepared {
     pub(super) fn install(
         self,
         app: &mut App,
-    ) -> Result<forge_tidewater::tidewater_clouds::Targets, Box<dyn Error>> {
+    ) -> Result<forge_engine::source_clouds::Targets, Box<dyn Error>> {
         let environment = self.environment;
-        let atmosphere =
-            forge_tidewater::tidewater_atmosphere::install(app, environment.atmosphere)?;
-        app.sub_app_mut(RenderApp).insert_resource(
-            forge_tidewater::tidewater_clouds::SharedAtmosphere {
+        let atmosphere = forge_engine::source_atmosphere::install(app, environment.atmosphere)?;
+        app.sub_app_mut(RenderApp)
+            .insert_resource(forge_engine::source_clouds::SharedAtmosphere {
                 images: atmosphere.images,
                 ready: atmosphere.ready,
                 params: atmosphere.params,
-            },
-        );
-        let targets = forge_tidewater::tidewater_clouds::install(app, environment.clouds, 10)?;
+            });
+        let targets = forge_engine::source_clouds::install(app, environment.clouds, 10)?;
         app.insert_resource(super::clouds::LiveSource(environment.cloud_continuation));
         app.insert_resource(self.receipt);
         Ok(targets)

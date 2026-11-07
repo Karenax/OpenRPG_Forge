@@ -1,19 +1,30 @@
 //! A common source wind pose for visible vegetation and its resident depth casters.
 use bevy::prelude::*;
+use forge_engine::ForgePlayerCamera;
+use forge_engine::PlayerSimulationReady;
+use forge_engine::source_shadows::casters::graph;
+use forge_engine::source_shadows::casters::graph::animation;
+use forge_engine::source_wind::vegetation as wind;
 use std::sync::atomic::Ordering;
-use {
-    forge_engine::{ForgePlayerCamera, PlayerSimulationReady},
-    forge_tidewater::tidewater_object_shadow::{
-        graph::{self, animation},
-        wind,
-    },
-};
 
-#[derive(Resource, Default)]
+#[derive(Resource)]
 struct Live {
     clock: wind::Clock,
     previous_time: Option<f64>,
     held: Option<animation::Motion>,
+}
+
+impl Default for Live {
+    fn default() -> Self {
+        Self {
+            // Preserve this probe's own historical state; it is distinct from
+            // the separately acquired 7 m/s scene reference.
+            clock: wind::Clock::from_acquired(2.0, 124, [0.0; 2], [1.0, 0.0], 6.0)
+                .expect("validated reference probe wind"),
+            previous_time: None,
+            held: None,
+        }
+    }
 }
 
 /// Used only by the bounded smoke test to separate motion from temporal dithering.
@@ -27,7 +38,7 @@ pub(super) struct QualificationHold(pub bool);
 /// A bounded GPU test steps shadow views individually while holding the wind.
 #[derive(Resource, Default, Clone, Copy)]
 pub(super) struct CascadeControl {
-    pub view: Option<forge_tidewater::sun_cascades::CascadeView>,
+    pub view: Option<forge_engine::sun_cascades::CascadeView>,
     pub motion: Option<animation::Motion>,
     pub advance: bool,
 }
@@ -88,7 +99,7 @@ pub(super) fn update(world: &mut World) {
     let position = camera.translation();
     let view = match control.view.map_or_else(
         || {
-            forge_tidewater::sun_cascades::CascadeView::from_camera_matrix(
+            forge_engine::sun_cascades::CascadeView::from_camera_matrix(
                 camera.to_matrix(),
                 projection.near,
                 projection.fov,
@@ -127,7 +138,7 @@ pub(super) fn update(world: &mut World) {
     }
     let mut motion = controlled_motion.or(held).unwrap_or(animation::Motion {
         main_camera: position.extend(0.0),
-        wind_time: Vec4::new(pose.dir[0], pose.dir[1], pose.speed, pose.time),
+        wind_time: pose.material_uniform(),
         gust_frame: Vec4::new(pose.offset[0], pose.offset[1], f32::from(frame), 0.0),
     });
     if controlled_motion.is_some() {
@@ -170,16 +181,16 @@ pub(super) fn update(world: &mut World) {
         }
     };
     world.resource_mut::<Live>().held = held;
-    if let Err(error) = forge_tidewater::tidewater_plants::motion::update(
-        world,
-        motion.wind_time,
-        motion.gust_frame,
-    ) {
+    if let Err(error) =
+        forge_engine::source_vegetation::motion::update(world, motion.wind_time, motion.gust_frame)
+    {
         error!(%error, "live visible wind update failed");
         world.write_message(bevy::app::AppExit::error());
         return;
     }
-    let count = world.resource::<Assets<super::PlantMaterial>>().len();
+    let count = world
+        .resource::<Assets<super::CapturedPlantMaterial>>()
+        .len();
     let mut receipt = world.resource_mut::<Receipt>();
     receipt.submitted += 1;
     receipt.sequence = sequence;

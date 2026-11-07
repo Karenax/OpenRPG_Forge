@@ -1,102 +1,58 @@
 //! Prepare verified fish instance templates and meshes without substituting a material.
-#[path = "tidewater_fish_props/clock.rs"]
-pub mod clock;
 #[path = "tidewater_fish_props/lod.rs"]
 pub mod lod;
+#[cfg(test)]
 #[path = "tidewater_fish_props/material.rs"]
-pub mod material;
-#[path = "tidewater_fish_props/pose.rs"]
-pub mod pose;
+mod material;
+#[cfg(test)]
+#[path = "tidewater_fish_props/pose_reference.rs"]
+mod pose_reference;
 #[path = "tidewater_fish_props/resident.rs"]
-pub mod resident;
+mod resident;
+#[cfg(test)]
 #[path = "tidewater_fish_props/shadow.rs"]
-pub mod shadow;
-#[path = "tidewater_fish_props/surface.rs"]
-pub mod surface;
+mod shadow;
 
-use bevy::{
-    asset::RenderAssetUsages,
-    mesh::{Indices, MeshVertexAttribute},
-    prelude::Mesh,
-    render::render_resource::{PrimitiveTopology, VertexFormat},
-};
-use forge_core::{AssetId, Transform, UnitQuaternion, Vec3};
-use forge_tidewater_assets::tidewater_fish_props::{self as fish_props, FishPropPackage};
-use serde::Deserialize;
-use std::collections::BTreeMap;
+#[cfg(test)]
+use forge_engine::source_fish::geometry::{FISH_DATA, REST_POSITION};
+use forge_engine::source_fish::prepare::{self, FishPropTemplate};
+#[cfg(test)]
+use forge_tidewater_assets::tidewater_fish_props as fish_props;
+use forge_tidewater_assets::tidewater_fish_props::FishPropPackage;
 
-pub const REST_POSITION: MeshVertexAttribute =
-    MeshVertexAttribute::new("FishRestPosition", 0x7457_0010, VertexFormat::Float32x3);
-pub const FISH_DATA: MeshVertexAttribute =
-    MeshVertexAttribute::new("FishData", 0x7457_0011, VertexFormat::Float32x4);
-
-#[derive(Deserialize)]
-struct Description {
-    prototypes: Vec<Prototype>,
-    instances: Vec<Instance>,
+#[cfg(test)]
+mod description_fixture {
+    use serde::Deserialize;
+    use std::collections::BTreeMap;
+    #[derive(Deserialize)]
+    pub(super) struct Description {
+        pub prototypes: Vec<Prototype>,
+        pub instances: Vec<Instance>,
+    }
+    #[derive(Deserialize)]
+    pub(super) struct Prototype {
+        pub key: String,
+        pub lods: Vec<Geometry>,
+    }
+    #[derive(Deserialize)]
+    pub(super) struct Geometry {
+        pub vertices: usize,
+        pub triangles: usize,
+        pub attributes: BTreeMap<String, Attribute>,
+    }
+    #[derive(Deserialize)]
+    pub(super) struct Attribute {
+        pub file: String,
+    }
+    #[derive(Deserialize)]
+    pub(super) struct Instance {
+        pub source_id: String,
+        pub prototype: String,
+        pub record_f32: [f32; 16],
+    }
 }
-
-#[derive(Deserialize)]
-struct Prototype {
-    key: String,
-    lods: Vec<Geometry>,
-}
-
-#[derive(Deserialize)]
-struct Geometry {
-    lod: usize,
-    vertices: usize,
-    triangles: usize,
-    attributes: BTreeMap<String, Attribute>,
-    indices: Attribute,
-}
-
-#[derive(Deserialize)]
-struct Attribute {
-    file: String,
-    component_type: String,
-}
-
-#[derive(Deserialize)]
-struct Instance {
-    source_id: String,
-    prototype: String,
-    record_f32: [f32; 16],
-}
-
-struct Model {
-    positions: Vec<[f32; 3]>,
-    normals: Vec<[f32; 3]>,
-    data: Vec<[f32; 4]>,
-    indices: Vec<u16>,
-}
-
-/// Retained procedural material inputs; a dedicated material must consume these.
-#[derive(Clone, Copy, Debug)]
-pub struct SurfaceParameters {
-    pub pattern_and_seed: f32,
-    pub source_length_m: f32,
-    /// Cloudy eye, wetness, dried skin and blood, in original source order.
-    pub flags: [f32; 4],
-}
-
-pub struct FishPropTemplate {
-    pub source_id: String,
-    pub prototype: String,
-    pub asset_id: AssetId,
-    pub transform: Transform,
-    pub surface: SurfaceParameters,
-    /// High, low and shadow-only source models, all locally posed.
-    pub lod_meshes: Vec<Mesh>,
-}
-
-/// Lightweight source identity for authoring; no mesh or GPU handle is persistent.
-#[derive(Clone, Debug)]
-pub struct FishPropsTemplate {
-    pub source_id: String,
-    pub asset_id: AssetId,
-    pub transform: Transform,
-}
+#[cfg(test)]
+use description_fixture::Description;
 
 /// Verified CPU meshes; no GPU handles, colliders or render entities are published here.
 pub struct PreparedFishProps {
@@ -105,263 +61,72 @@ pub struct PreparedFishProps {
 
 impl PreparedFishProps {
     #[must_use]
-    pub fn templates(&self) -> Vec<FishPropsTemplate> {
-        self.templates
-            .iter()
-            .map(|template| FishPropsTemplate {
-                source_id: template.source_id.clone(),
-                asset_id: template.asset_id,
-                transform: template.transform,
-            })
-            .collect()
+    pub fn templates(&self) -> Vec<prepare::FishPropsTemplate> {
+        prepare::summaries(&self.templates)
     }
 
-    /// Preserve the source inventory, rest-shading attributes and static poses.
+    /// Prepare the admitted village profile using its own declared identities.
     ///
     /// # Errors
-    /// Rejects missing attributes, invalid indices, transforms or source identities.
+    /// Rejects invalid profiles, identities, poses or source geometry.
     pub fn from_package(package: &FishPropPackage) -> Result<Self, String> {
-        Self::from_source(
-            package.description(),
-            |name| package.file(name),
-            Inventory::Village,
-        )
+        Ok(Self {
+            templates: prepare::profile(package)?,
+        })
     }
 
     /// Prepare the five displayed game fish, excluding the parked catch pool.
-    /// Preserves all three source LOD, original poses and material inputs.
     ///
     /// # Errors
-    /// Rejects invalid geometry, identities, skin tables or source transforms.
+    /// Rejects invalid profiles, identities, poses or source geometry.
     pub fn from_game_package(
         package: &forge_tidewater_assets::tidewater_game_fish::GameFishPackage,
     ) -> Result<Self, String> {
-        Self::from_source(
-            package.description(),
-            |name| package.file(name),
-            Inventory::Stand,
-        )
-    }
-
-    fn from_source<'a>(
-        description: &[u8],
-        file: impl Fn(&str) -> Option<&'a [u8]>,
-        inventory: Inventory,
-    ) -> Result<Self, String> {
-        let description: Description =
-            serde_json::from_slice(description).map_err(|error| error.to_string())?;
-        let (count, first, kind) = match inventory {
-            Inventory::Village => (78, 0, "fish-prop"),
-            Inventory::Stand => (23, 18, "game-fish"),
-        };
-        if description.prototypes.len() != 18 || description.instances.len() != count {
-            return Err("Fish source inventory differs".into());
-        }
-        let mut models = BTreeMap::new();
-        for prototype in description.prototypes {
-            if prototype.lods.len() != 3 {
-                return Err("Three source fish LOD required".into());
-            }
-            let lods = prototype
-                .lods
-                .iter()
-                .enumerate()
-                .map(|(lod, geometry)| {
-                    if geometry.lod != lod {
-                        return Err("Fish LOD order differs".into());
-                    }
-                    Model::read(&file, geometry)
-                })
-                .collect::<Result<Vec<_>, String>>()?;
-            if models.insert(prototype.key, lods).is_some() {
-                return Err("Repeated source fish prototype".into());
-            }
-        }
-        let skin = file("material/skin-table-f32.bin").ok_or("Fish skin table absent")?;
-        let skin = vectors::<4>(skin)?;
-        let templates = description
-            .instances
-            .into_iter()
-            .enumerate()
-            .skip(first)
-            .map(|(ordinal, instance)| {
-                let asset_id = match inventory {
-                    Inventory::Village => fish_props::asset_id(ordinal),
-                    Inventory::Stand => {
-                        forge_tidewater_assets::tidewater_game_fish::asset_id(ordinal)
-                    }
-                }
-                .ok_or("Fish ordinal out of range")?;
-                let expected =
-                    format!("tidewater:1438b1abfcaee3267092b75573014f4d9b4a983c:{kind}:{ordinal}");
-                if instance.source_id != expected {
-                    return Err("Fish source identity differs".into());
-                }
-                prepare_instance(asset_id, instance, &models, &skin)
-            })
-            .collect::<Result<Vec<_>, String>>()?;
-        Ok(Self { templates })
-    }
-}
-
-#[derive(Clone, Copy)]
-enum Inventory {
-    Village,
-    Stand,
-}
-
-fn prepare_instance(
-    asset_id: AssetId,
-    instance: Instance,
-    models: &BTreeMap<String, Vec<Model>>,
-    skin: &[[f32; 4]],
-) -> Result<FishPropTemplate, String> {
-    let record = instance.record_f32;
-    if record.iter().any(|value| !value.is_finite()) || record[3] <= 0.0 {
-        return Err("Invalid fish instance record".into());
-    }
-    let pattern = (0_u8..21)
-        .find(|&value| f32::from(value).to_bits() == record[8].floor().to_bits())
-        .ok_or("Fish skin pattern absent")?;
-    let hinge = skin
-        .get(usize::from(pattern) * 8 + 7)
-        .ok_or("Fish skin hinge absent")?;
-    let bending = pose::Bend {
-        curl: record[9],
-        sag: record[10],
-        jaw: record[11],
-        hinge: [hinge[2], hinge[3]],
-    };
-    let transform = Transform {
-        translation_m: Vec3::new(record[0], record[1], record[2]),
-        rotation: UnitQuaternion::new(record[4], record[5], record[6], record[7]),
-        scale: Vec3::new(record[3], record[3], record[3]),
-    };
-    if (record[4..8].iter().map(|value| value * value).sum::<f32>() - 1.0).abs() > 0.001 {
-        return Err("Fish source rotation is not unit length".into());
-    }
-    let source = models.get(&instance.prototype).ok_or("Fish model absent")?;
-    let lod_meshes = source
-        .iter()
-        .map(|model| model.mesh(bending))
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(FishPropTemplate {
-        source_id: instance.source_id,
-        prototype: instance.prototype,
-        asset_id,
-        transform,
-        surface: SurfaceParameters {
-            pattern_and_seed: record[8],
-            source_length_m: record[3],
-            flags: record[12..16].try_into().map_err(|_| "Fish flags absent")?,
-        },
-        lod_meshes,
-    })
-}
-
-impl Model {
-    fn read<'a>(
-        file: &impl Fn(&str) -> Option<&'a [u8]>,
-        geometry: &Geometry,
-    ) -> Result<Self, String> {
-        let attribute = |name: &str| -> Result<&[u8], String> {
-            let reference = geometry
-                .attributes
-                .get(name)
-                .ok_or("Fish attribute absent")?;
-            if reference.component_type != "Float32Array" {
-                return Err("Fish attribute type differs".into());
-            }
-            file(&format!("geometry/{}", reference.file))
-                .ok_or_else(|| "Fish attribute payload absent".into())
-        };
-        let positions = vectors::<3>(attribute("position")?)?;
-        let normals = vectors::<3>(attribute("normal")?)?;
-        let data = vectors::<4>(attribute("aData")?)?;
-        let bytes =
-            file(&format!("geometry/{}", geometry.indices.file)).ok_or("Fish indices absent")?;
-        if geometry.indices.component_type != "Uint16Array" || !bytes.len().is_multiple_of(2) {
-            return Err("Fish index component differs".into());
-        }
-        let indices: Vec<_> = bytes
-            .as_chunks::<2>()
-            .0
-            .iter()
-            .map(|value| u16::from_le_bytes(*value))
-            .collect();
-        if positions.len() != geometry.vertices
-            || normals.len() != positions.len()
-            || data.len() != positions.len()
-            || indices.is_empty()
-            || indices.len() != geometry.triangles * 3
-            || indices
-                .iter()
-                .any(|&index| usize::from(index) >= positions.len())
-        {
-            return Err("Fish geometry shape or indices differ".into());
-        }
         Ok(Self {
-            positions,
-            normals,
-            data,
-            indices,
+            templates: prepare::profile(package)?,
         })
     }
-
-    fn mesh(&self, bending: pose::Bend) -> Result<Mesh, String> {
-        let posed = self
-            .positions
-            .iter()
-            .zip(&self.normals)
-            .zip(&self.data)
-            .map(|((&position, &normal), &data)| pose::deform(position, normal, data, bending))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Mesh::new(
-            PrimitiveTopology::TriangleList,
-            RenderAssetUsages::default(),
-        )
-        .with_inserted_attribute(
-            Mesh::ATTRIBUTE_POSITION,
-            posed
-                .iter()
-                .map(|vertex| vertex.position)
-                .collect::<Vec<_>>(),
-        )
-        .with_inserted_attribute(
-            Mesh::ATTRIBUTE_NORMAL,
-            posed.iter().map(|vertex| vertex.normal).collect::<Vec<_>>(),
-        )
-        .with_inserted_attribute(REST_POSITION, self.positions.clone())
-        .with_inserted_attribute(FISH_DATA, self.data.clone())
-        .with_inserted_indices(Indices::U16(self.indices.clone())))
-    }
-}
-
-fn vectors<const N: usize>(bytes: &[u8]) -> Result<Vec<[f32; N]>, String> {
-    if bytes.is_empty() || !bytes.len().is_multiple_of(N * 4) {
-        return Err("Fish attribute width differs".into());
-    }
-    bytes
-        .as_chunks::<4>()
-        .0
-        .as_chunks::<N>()
-        .0
-        .iter()
-        .map(|words| {
-            let values: [f32; N] = std::array::from_fn(|i| f32::from_le_bytes(words[i]));
-            if values.iter().any(|value| !value.is_finite()) {
-                return Err("Non-finite fish attribute".into());
-            }
-            Ok(values)
-        })
-        .collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy::mesh::VertexAttributeValues;
+    use bevy::{mesh::VertexAttributeValues, prelude::Mesh};
     use std::path::Path;
+
+    fn assert_same_prepared(expected: &[FishPropTemplate], actual: &[FishPropTemplate]) {
+        assert_eq!(expected.len(), actual.len());
+        for (a, b) in expected.iter().zip(actual) {
+            assert_eq!(
+                (&a.source_id, a.asset_id, a.transform),
+                (&b.source_id, b.asset_id, b.transform)
+            );
+            assert_eq!(
+                a.surface.pattern_and_seed.to_bits(),
+                b.surface.pattern_and_seed.to_bits()
+            );
+            assert_eq!(
+                a.surface.source_length_m.to_bits(),
+                b.surface.source_length_m.to_bits()
+            );
+            assert_eq!(
+                a.surface.flags.map(f32::to_bits),
+                b.surface.flags.map(f32::to_bits)
+            );
+            assert_eq!(a.lod_meshes.len(), b.lod_meshes.len());
+            for (left, right) in a.lod_meshes.iter().zip(&b.lod_meshes) {
+                for attribute in [
+                    Mesh::ATTRIBUTE_POSITION,
+                    Mesh::ATTRIBUTE_NORMAL,
+                    REST_POSITION,
+                    FISH_DATA,
+                ] {
+                    assert_eq!(left.attribute(attribute), right.attribute(attribute));
+                }
+                assert_eq!(left.indices(), right.indices());
+            }
+        }
+    }
 
     #[test]
     #[ignore = "requires the captured GameFish source package"]
@@ -377,6 +142,16 @@ mod tests {
         )
         .unwrap();
         let prepared = PreparedFishProps::from_game_package(&package).unwrap();
+        let catalog = package.catalog().unwrap();
+        let profile = forge_assets::source_fish_payload::CatalogFishProfile::new(
+            &package,
+            "geometry/game-fish.json",
+            (18, 23),
+            &catalog,
+            forge_tidewater_assets::tidewater_game_fish::package_hash(),
+        )
+        .unwrap();
+        assert_same_prepared(&prepared.templates, &prepare::profile(&profile).unwrap());
         let description: Description = serde_json::from_slice(package.description()).unwrap();
         assert_eq!(prepared.templates.len(), 5);
         for (ordinal, template) in (18..23).zip(prepared.templates) {
@@ -426,6 +201,132 @@ mod tests {
                 }
             }
         }
+        stage_verified_game_fish_attachments(&package);
+    }
+
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Replay the real five-fish attachment lifecycle and propagated poses"
+    )]
+    fn stage_verified_game_fish_attachments(
+        package: &forge_tidewater_assets::tidewater_game_fish::GameFishPackage,
+    ) {
+        use bevy::{prelude::*, render::storage::ShaderBuffer};
+        use forge_engine::source_fish::{clock, material, resident};
+        use forge_engine::source_lighting::SceneLighting;
+        use forge_engine::source_shadows::ObjectShadowSettings;
+        use forge_engine::source_surface::LightingBindings;
+
+        #[derive(serde::Deserialize)]
+        struct Layout {
+            stand: Stand,
+            stand_y: f32,
+        }
+        #[derive(serde::Deserialize)]
+        struct Stand {
+            x: f32,
+            z: f32,
+            yaw: f32,
+        }
+        let layout: Layout = serde_json::from_slice(package.description()).unwrap();
+        let parent_pose =
+            bevy::prelude::Transform::from_xyz(layout.stand.x, layout.stand_y, layout.stand.z)
+                .with_rotation(Quat::from_rotation_y(layout.stand.yaw));
+        let inverse = GlobalTransform::from(parent_pose).affine().inverse();
+        let mut images = Assets::<Image>::default();
+        let lighting = LightingBindings {
+            scene_lighting: SceneLighting::new([0.0, 1.0, 0.0], [3.0; 3], [[0.4; 3]; 9]).unwrap(),
+            environment: Handle::default(),
+            hill_shadow: Handle::default(),
+            object_shadow: Handle::default(),
+            object_settings: ObjectShadowSettings::default(),
+            clouds: [Vec4::ZERO; 5],
+            cloud_shadow: None,
+            wind: Vec4::ZERO,
+            flags: Vec4::ZERO,
+            caustics: forge_engine::source_surface::underwater::CausticMaterialInputs::disabled(
+                &mut images,
+            ),
+            ground_bounce: None,
+            bounce_settings: Vec4::ZERO,
+        };
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, bevy::transform::TransformPlugin));
+        app.world_mut().init_resource::<Assets<Mesh>>();
+        app.world_mut().init_resource::<Assets<ShaderBuffer>>();
+        app.world_mut()
+            .init_resource::<Assets<material::FishMaterial>>();
+        let parent = app
+            .world_mut()
+            .spawn((parent_pose, GlobalTransform::default()))
+            .id();
+        let shared_clock = clock::create(app.world_mut()).unwrap();
+        let prepared = PreparedFishProps::from_game_package(package).unwrap();
+        let mut expected = Vec::new();
+        let mut attachments = Vec::new();
+        for template in prepared.templates {
+            let original = forge_engine::domain_transform_to_bevy(template.transform);
+            expected.push(original.to_matrix());
+            let pose = bevy::prelude::Transform::from_matrix(Mat4::from(
+                inverse * GlobalTransform::from(original).affine(),
+            ));
+            let meshes = template
+                .lod_meshes
+                .into_iter()
+                .map(|mesh| app.world_mut().resource_mut::<Assets<Mesh>>().add(mesh))
+                .collect();
+            let value =
+                material::prepare(template.surface, Handle::default(), &lighting, 0.0).unwrap();
+            let handle = app
+                .world_mut()
+                .resource_mut::<Assets<material::FishMaterial>>()
+                .add(value);
+            attachments.push(resident::Attachment {
+                meshes,
+                material: handle,
+                pose,
+            });
+        }
+        let mut resident = resident::stage_attachments(
+            app.world_mut(),
+            parent,
+            forge_core::EntityId::deterministic("game-fish-attachment-replay"),
+            &attachments,
+            &shared_clock,
+            lod::POLICY,
+        )
+        .unwrap();
+        app.update();
+        let actual = resident.shadow_inventory(app.world()).unwrap();
+        assert_eq!(actual.len(), 5);
+        for ((instance, _), expected) in actual.iter().zip(expected) {
+            assert!(instance.world_from_local.abs_diff_eq(expected, 1e-4));
+        }
+        resident
+            .update_view(
+                app.world_mut(),
+                parent_pose.translation,
+                |_, _| true,
+                1.25,
+                7,
+            )
+            .unwrap();
+        assert_eq!(resident.shadow_instances(app.world()).unwrap().len(), 5);
+        resident.clear(app.world_mut());
+        assert!(app.world().get_entity(parent).is_ok());
+        assert!(
+            app.world()
+                .resource::<Assets<ShaderBuffer>>()
+                .get(&shared_clock)
+                .is_some()
+        );
+        assert_eq!(app.world().resource::<Assets<Mesh>>().len(), 15);
+        assert_eq!(
+            app.world()
+                .resource::<Assets<material::FishMaterial>>()
+                .len(),
+            5
+        );
     }
 
     #[test]
@@ -440,6 +341,16 @@ mod tests {
         })
         .unwrap();
         let prepared = PreparedFishProps::from_package(&package).unwrap();
+        let catalog = package.catalog().unwrap();
+        let profile = forge_assets::source_fish_payload::CatalogFishProfile::new(
+            &package,
+            "geometry/fish-props.json",
+            (18, 78),
+            &catalog,
+            fish_props::package_hash(),
+        )
+        .unwrap();
+        assert_same_prepared(&prepared.templates, &prepare::profile(&profile).unwrap());
         assert_eq!(prepared.templates.len(), 78);
         let mut vertices = 0;
         for (ordinal, template) in prepared.templates.iter().enumerate() {

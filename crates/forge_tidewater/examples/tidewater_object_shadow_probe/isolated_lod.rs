@@ -23,7 +23,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         Some("acquired") => Some({
             let (bytes, frame) =
                 forge_tidewater_assets::tidewater_environment::animation_reference()?;
-            forge_tidewater::scene_wind::AcquiredFrame::from_json(&bytes, frame)?
+            forge_engine::source_wind::AcquiredFrame::from_json(&bytes, frame)?
         }),
         Some(_) => return Err("Unknown initial motion mode".into()),
     };
@@ -115,7 +115,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     plants.camera = (base + Vec3::X * distance).extend(0.0);
     if let Some(frame) = &acquired {
         plants.initial_motion = Some(
-            forge_tidewater::tidewater_object_shadow::graph::animation::Motion {
+            forge_engine::source_shadows::casters::graph::animation::Motion {
                 main_camera: plants.camera,
                 wind_time: bevy::math::DVec4::new(
                     frame.wind_direction[0],
@@ -174,7 +174,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         completed_frame: None,
     })
     .add_systems(Update, readback);
-    forge_tidewater::tidewater_object_shadow::graph::install(&mut app, input)?;
+    forge_engine::source_shadows::casters::graph::install(&mut app, input)?;
     if app.run() != AppExit::Success {
         return Err("Isolated plant depth readback failed".into());
     }

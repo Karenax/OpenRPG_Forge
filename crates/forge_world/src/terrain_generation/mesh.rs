@@ -1,9 +1,9 @@
-use super::sampling::{material_weights_for, sample_height_unchecked, sample_normal};
+use super::sampling::{grid_uv, surface_vertex};
 use super::{
     MATERIAL_ROLE_COUNT, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNK_INTERVALS,
-    TERRAIN_CHUNK_VERTICES_PER_AXIS, TERRAIN_CHUNKS_PER_AXIS, TERRAIN_GLOBAL_INTERVALS_PER_AXIS,
-    TERRAIN_GLOBAL_VERTICES_PER_AXIS, TERRAIN_HALF_EXTENT_M, TERRAIN_SAMPLE_SPACING_M,
-    TerrainChunkCoordinate, TerrainChunkId, TerrainGenerationError, TerrainGenerationPlan,
+    TERRAIN_CHUNK_VERTICES_PER_AXIS, TERRAIN_CHUNKS_PER_AXIS, TERRAIN_GLOBAL_VERTICES_PER_AXIS,
+    TERRAIN_HALF_EXTENT_M, TERRAIN_SAMPLE_SPACING_M, TerrainChunkCoordinate, TerrainChunkId,
+    TerrainGenerationError, TerrainGenerationPlan,
 };
 use forge_core::{CanonicalJsonError, ContentHash, canonical_json_sha256};
 use forge_project::TerrainMaterialLayerId;
@@ -220,23 +220,11 @@ impl GlobalTerrainGrid {
 
         for global_z in 0..TERRAIN_GLOBAL_VERTICES_PER_AXIS {
             for global_x in 0..TERRAIN_GLOBAL_VERTICES_PER_AXIS {
-                let x_m = world_coordinate(global_x);
-                let z_m = world_coordinate(global_z);
-                let height_m = sample_height_unchecked(&plan.document, x_m, z_m);
-                let normal = sample_normal(&plan.document, x_m, z_m);
-                positions_m.push([x_m, height_m, z_m]);
-                normals.push(normal);
-                uvs.push([
-                    f32::from(global_x) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
-                    f32::from(global_z) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
-                ]);
-                material_weights.push(material_weights_for(
-                    &plan.document,
-                    height_m,
-                    normal[1],
-                    global_x,
-                    global_z,
-                ));
+                let vertex = surface_vertex(&plan.document, global_x, global_z);
+                positions_m.push(vertex.position_m);
+                normals.push(vertex.shading_normal);
+                uvs.push(grid_uv(global_x, global_z));
+                material_weights.push(vertex.material_weights);
             }
         }
 

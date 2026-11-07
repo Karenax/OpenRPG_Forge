@@ -5,10 +5,28 @@ use crate::{
     terrain_brush_stroke::TerrainBrushStroke,
 };
 use forge_project::{
-    TERRAIN_DOCUMENT_SCHEMA_VERSION_V3, TerrainDocument, TerrainMaterialLayerId,
-    TerrainMaterialOverride, TerrainMaterialWeight, terrain_edit::TerrainEdit,
+    TERRAIN_DOCUMENT_SCHEMA_VERSION_V3, TERRAIN_DOCUMENT_SCHEMA_VERSION_V4, TerrainDocument,
+    TerrainMaterialLayerId, TerrainMaterialOverride, TerrainMaterialWeight,
+    terrain_edit::TerrainEdit,
 };
 use std::collections::BTreeMap;
+mod sampled;
+
+struct Grid {
+    origin: [f64; 2],
+    spacing: f64,
+}
+impl Grid {
+    #[allow(clippy::cast_possible_truncation)] // Same finite f32 positions as the validated terrain evaluator.
+    fn coordinate(&self, axis: usize, sample: u16) -> f32 {
+        (self.origin[axis] + f64::from(sample) * self.spacing) as f32
+    }
+}
+struct Dab {
+    centre: [f32; 2],
+    minimum: [u16; 2],
+    maximum: [u16; 2],
+}
 
 #[derive(Clone, Debug)]
 pub enum MaterialBrushOperation {
@@ -27,12 +45,13 @@ pub struct TerrainMaterialBrushStroke {
 
 impl TerrainMaterialBrushStroke {
     pub fn prepare(&self, source: &TerrainDocument) -> Result<TerrainEdit, String> {
-        if source.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION_V3 {
+        if !matches!(
+            source.schema_version,
+            TERRAIN_DOCUMENT_SCHEMA_VERSION_V3 | TERRAIN_DOCUMENT_SCHEMA_VERSION_V4
+        ) {
             return Err("Migrer explicitement le terrain vers v3 avant de peindre".into());
         }
-        if !self.strength.is_finite() || self.strength <= 0.0 || self.strength > 1.0 {
-            return Err("Intensité requise : (0, 1]".into());
-        }
+        self.validate_strength()?;
         let centres = TerrainBrushStroke {
             brush: TerrainBrush {
                 x_m: 0.0,
@@ -45,6 +64,49 @@ impl TerrainMaterialBrushStroke {
         }
         .centres()?;
         let plan = TerrainGenerationPlan::from_document(source).map_err(|e| e.to_string())?;
+        let dabs = centres
+            .into_iter()
+            .map(|centre| Dab {
+                centre,
+                minimum: [0; 2],
+                maximum: [256; 2],
+            })
+            .collect::<Vec<_>>();
+        self.prepare_dabs(
+            source,
+            &Grid {
+                origin: [-256.0; 2],
+                spacing: 2.0,
+            },
+            &dabs,
+            |_, _, wx, wz| {
+                Ok(plan
+                    .surface_at(wx, wz)
+                    .map_err(|e| e.to_string())?
+                    .material_weights
+                    .as_array()
+                    .map(f64::from))
+            },
+        )
+    }
+
+    fn validate_strength(&self) -> Result<(), String> {
+        if !self.strength.is_finite() || self.strength <= 0.0 || self.strength > 1.0 {
+            return Err("Intensité requise : (0, 1]".into());
+        }
+        Ok(())
+    }
+
+    fn prepare_dabs(
+        &self,
+        source: &TerrainDocument,
+        grid: &Grid,
+        dabs: &[Dab],
+        base_weights: impl Fn(u16, u16, f32, f32) -> Result<[f64; 3], String>,
+    ) -> Result<TerrainEdit, String> {
+        if source.material_layers.len() != 3 {
+            return Err("La peinture nécessite les trois couches de la palette du terrain.".into());
+        }
         let layer = match &self.operation {
             MaterialBrushOperation::Paint(id) => Some(
                 source
@@ -61,15 +123,15 @@ impl TerrainMaterialBrushStroke {
             .iter()
             .map(|s| ((s.sample_z, s.sample_x), s.clone()))
             .collect();
-        for [cx, cz] in centres {
-            // The generation plan enforces the current 512 m / 2 m grid contract.
-            for z in 0_u16..=256 {
-                let wz = f32::from(z) * 2.0 - 256.0;
+        for dab in dabs {
+            let [cx, cz] = dab.centre;
+            for z in dab.minimum[1]..=dab.maximum[1] {
+                let wz = grid.coordinate(1, z);
                 if (wz - cz).abs() >= self.radius_m {
                     continue;
                 }
-                for x in 0_u16..=256 {
-                    let wx = f32::from(x) * 2.0 - 256.0;
+                for x in dab.minimum[0]..=dab.maximum[0] {
+                    let wx = grid.coordinate(0, x);
                     let distance = (wx - cx).hypot(wz - cz);
                     if distance >= self.radius_m {
                         continue;
@@ -87,11 +149,7 @@ impl TerrainMaterialBrushStroke {
                                 .map_or(0.0, |w| f64::from(w.weight) / 65535.0)
                         })
                     } else {
-                        plan.surface_at(wx, wz)
-                            .map_err(|e| e.to_string())?
-                            .material_weights
-                            .as_array()
-                            .map(f64::from)
+                        base_weights(x, z, wx, wz)?
                     };
                     let amount = f64::from(self.strength * (1.0 - distance / self.radius_m));
                     for value in &mut weights {

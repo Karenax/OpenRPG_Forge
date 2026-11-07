@@ -7,7 +7,7 @@ use bevy::{
         storage::ShaderBuffer,
     },
 };
-use forge_tidewater::water_height_queries::{PACKET_BYTES, Queries, SampleBatch};
+use forge_engine::source_water_queries::{PACKET_BYTES, Queries, SampleBatch};
 use std::{
     path::PathBuf,
     sync::{

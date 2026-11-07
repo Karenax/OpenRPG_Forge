@@ -46,13 +46,13 @@ fn placement_transform(
 /// Use the same terrain placement and source positions as the visible stall.
 pub fn shadow_draw(
     probe: &Probe,
-) -> Result<Option<forge_tidewater::tidewater_object_shadow::OpaqueDraw>, Box<dyn Error>> {
+) -> Result<Option<forge_engine::source_shadows::casters::OpaqueDraw>, Box<dyn Error>> {
     let Some(prepared) = probe.fish_stand.as_ref() else {
         return Ok(None);
     };
     let pose = placement_transform(probe, prepared)?;
     Ok(Some(
-        forge_tidewater::tidewater_object_shadow::OpaqueDraw::from_mesh(
+        forge_engine::source_shadows::casters::OpaqueDraw::from_mesh(
             &prepared.mesh,
             pose.to_matrix(),
         )?,
@@ -381,7 +381,12 @@ fn start_joe_idle(
     };
     for child in children.iter_descendants(ready.entity) {
         if let Ok(mut player) = players.get_mut(child) {
-            player.play(idle.node).repeat().seek_to(1.0 / 30.0);
+            let animation = player.play(idle.node).repeat().seek_to(1.0 / 30.0);
+            // The static refraction triplet compares whole rendered images.
+            // Keep this fixture's actor visible, but hold its pose for all phases.
+            if std::env::var("FORGE_TIDEWATER_REFRACTION_PROOF").as_deref() == Ok("1") {
+                animation.pause();
+            }
             commands
                 .entity(child)
                 .insert(AnimationGraphHandle(idle.graph.clone()));

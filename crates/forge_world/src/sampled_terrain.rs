@@ -6,7 +6,7 @@ use thiserror::Error;
 mod plan;
 pub use plan::{SampledTerrainPlan, SampledTerrainPlanError};
 mod mesh;
-pub use mesh::SampledTerrainPatch;
+pub use mesh::{SampledTerrainPatch, SampledTerrainVertex};
 
 #[derive(Debug)]
 pub struct SampledTerrain {

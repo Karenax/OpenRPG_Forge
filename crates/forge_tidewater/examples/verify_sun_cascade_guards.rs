@@ -1,6 +1,6 @@
 //! Invalid inputs must not advance cascade scheduling or replace valid matrices.
 use bevy::math::{DMat4, DVec3};
-use forge_tidewater::sun_cascades::{CascadeConfig, CascadeView, SunCascades};
+use forge_engine::sun_cascades::{CascadeConfig, CascadeView, SunCascades};
 
 fn reject_configs() {
     let default = CascadeConfig::default();

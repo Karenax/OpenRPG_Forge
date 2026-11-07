@@ -114,6 +114,7 @@ fn policy() -> VisualValleyQualityProfileDocument {
 }
 
 #[test]
+#[cfg(feature = "physics-rapier")]
 fn effective_water_installation_preserves_sources_and_manual_previews() {
     let (mut app, camera) = app();
     app.update();
@@ -337,6 +338,7 @@ fn forward_reflection_quality_cycles_without_rebuilding_or_camera_ssr() {
 }
 
 #[test]
+#[cfg(feature = "physics-rapier")]
 fn forward_refraction_respects_manual_and_effective_fallback_without_source_mutation() {
     let (mut app, _) = app_with_forward_reflection(true);
     app.update();
@@ -411,6 +413,7 @@ fn forward_refraction_respects_manual_and_effective_fallback_without_source_muta
 }
 
 #[test]
+#[cfg(feature = "physics-rapier")]
 fn forward_ray_override_survives_tier_changes_without_touching_reflections_or_sources() {
     let (mut app, _) = app_with_forward_reflection(true);
     app.update();
@@ -855,6 +858,7 @@ fn reflection_disable_does_not_mutate_material_or_cameras_when_active_view_is_am
 }
 
 #[test]
+#[cfg(feature = "physics-rapier")]
 fn global_water_status_requires_material_evidence_not_only_the_camera_budget() {
     let (mut source, _) = app();
     source.update();

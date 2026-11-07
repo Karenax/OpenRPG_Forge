@@ -1,7 +1,7 @@
 use forge_project::VegetationDocument;
 use std::{error::Error, fs, path::PathBuf};
 use {
-    forge_tidewater_assets::tidewater_vegetation::pack,
+    forge_assets::source_vegetation_package::packing::pack,
     forge_world::imported_vegetation::ImportedPopulation,
 };
 fn main() -> Result<(), Box<dyn Error>> {
@@ -27,7 +27,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut bytes = Vec::new();
         let mut group = "";
         for entity in layer.instances() {
-            let packed = pack(&layer.prototype_key, &layer.parameter_names, entity)?;
+            let packed = pack(
+                &layer.prototype_key,
+                &layer.parameter_names,
+                entity.source.position_m,
+                entity.source.rotation_xyzw,
+                entity.source.scale,
+                &entity.source.parameters,
+            )?;
             group = packed.group;
             bytes.extend(entity.source.source_key.as_bytes());
             let start = bytes.len();

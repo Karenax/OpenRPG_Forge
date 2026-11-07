@@ -10,6 +10,7 @@ use bevy::{
         render_resource::{CachedPipelineState, PipelineCache},
         view::screenshot::{Screenshot, ScreenshotCaptured, save_to_disk},
     },
+    shader::ShaderCacheError,
     window::PrimaryWindow,
 };
 use serde::Serialize;
@@ -26,6 +27,24 @@ struct PipelineSnapshot {
     ready: usize,
     pending: usize,
     failed: usize,
+}
+
+impl PipelineSnapshot {
+    fn observe_state(&mut self, state: &CachedPipelineState) {
+        self.total += 1;
+        match state {
+            CachedPipelineState::Ok(_) => self.ready += 1,
+            // These are the two errors Bevy requeues while shader assets arrive.
+            // Keep them unready, without reporting a permanent compilation failure.
+            CachedPipelineState::Queued
+            | CachedPipelineState::Creating(_)
+            | CachedPipelineState::Err(
+                ShaderCacheError::ShaderNotLoaded(_)
+                | ShaderCacheError::ShaderImportNotYetAvailable,
+            ) => self.pending += 1,
+            CachedPipelineState::Err(_) => self.failed += 1,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, Resource, Serialize)]
@@ -56,7 +75,6 @@ pub fn issued_capture_frame(world: &World) -> Option<u32> {
 impl CaptureProgress {
     /// Shared startup gate for still captures and offline movement recordings.
     /// This observes known pipelines, not the correctness of the rendered pixels.
-    #[cfg(feature = "qualification")]
     pub(super) fn render_ready(&mut self, scene_ready: bool) -> bool {
         self.observe(scene_ready);
         !self.failed
@@ -122,7 +140,45 @@ impl CaptureProgress {
     }
 }
 
-pub(super) struct CaptureReadinessPlugin;
+/// Observe the render pipeline cache in the main world, including pipelined rendering.
+/// This plugin does not issue captures or assert correctness of rendered pixels.
+pub struct CaptureReadinessPlugin;
+
+/// Last observed pipeline preparation. Counts concern known pipelines only;
+/// callers must establish their own asset, scene, collision and exposure readiness.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct RenderReadiness {
+    pub observation: u64,
+    pub total: usize,
+    pub ready: usize,
+    pub pending: usize,
+    pub failed: usize,
+    pub stable_observations: u32,
+    pub ready_to_sample: bool,
+}
+
+/// Update readiness for an external diagnostic using the same gate as captures.
+/// Repeated main-world polls cannot fabricate fresh render observations.
+/// Pass `false` whenever the scene changes, then wait for fresh stable observations.
+/// Returns `None` when `CaptureReadinessPlugin` was not installed.
+pub fn observe_render_readiness(world: &mut World, scene_ready: bool) -> Option<RenderReadiness> {
+    #[cfg(feature = "physics-rapier")]
+    let scene_ready = scene_ready
+        && world
+            .get_resource::<crate::source_environment::host::Status>()
+            .is_none_or(|environment| environment.ready && environment.error.is_none());
+    let mut progress = world.get_resource_mut::<CaptureProgress>()?;
+    let ready_to_sample = progress.render_ready(scene_ready);
+    Some(RenderReadiness {
+        observation: progress.pipeline.observation,
+        total: progress.pipeline.total,
+        ready: progress.pipeline.ready,
+        pending: progress.pipeline.pending,
+        failed: progress.pipeline.failed,
+        stable_observations: progress.stable_observations,
+        ready_to_sample,
+    })
+}
 
 impl Plugin for CaptureReadinessPlugin {
     fn build(&self, app: &mut App) {
@@ -150,12 +206,7 @@ fn observe_pipeline_cache(mut main_world: ResMut<MainWorld>, pipelines: Res<Pipe
         ..default()
     };
     for pipeline in pipelines.pipelines() {
-        snapshot.total += 1;
-        match &pipeline.state {
-            CachedPipelineState::Ok(_) => snapshot.ready += 1,
-            CachedPipelineState::Queued | CachedPipelineState::Creating(_) => snapshot.pending += 1,
-            CachedPipelineState::Err(_) => snapshot.failed += 1,
-        }
+        snapshot.observe_state(&pipeline.state);
     }
     progress.pipeline = snapshot;
 }
@@ -175,7 +226,14 @@ pub(super) fn capture_at_requested_frame(
     #[cfg(feature = "qualification")] virtual_time: Res<Time<Virtual>>,
     #[cfg(feature = "qualification")] fixed_time: Res<Time<Fixed>>,
     kit: Option<Res<GovernedAssetKitRuntimeStats>>,
+    #[cfg(feature = "physics-rapier")] environment: Option<
+        Res<crate::source_environment::host::Status>,
+    >,
     #[cfg(feature = "physics-rapier")] warmup: Option<Res<crate::ProfileWarmup>>,
+    #[cfg(feature = "physics-rapier")] forest: Option<Res<crate::VegetationPrototypeRuntimeStatus>>,
+    #[cfg(feature = "physics-rapier")] static_hlod: Option<
+        Res<crate::static_hlod::StaticHlodStats>,
+    >,
     diagnostics: Res<DiagnosticsStore>,
     windows: Query<&Window, With<PrimaryWindow>>,
     mut exit: MessageWriter<AppExit>,
@@ -220,9 +278,18 @@ pub(super) fn capture_at_requested_frame(
     }
     #[cfg(feature = "physics-rapier")]
     let fixed_view_ready = fixed_view_ready
+        && environment
+            .as_deref()
+            .is_none_or(|environment| environment.ready && environment.error.is_none())
+        && forest.as_deref().is_none_or(|status| status.ready)
         && warmup
             .as_deref()
-            .is_none_or(crate::ProfileWarmup::permits_capture);
+            .is_none_or(crate::ProfileWarmup::permits_capture)
+        && static_hlod.as_deref().is_none_or(|stats| {
+            !stats.pending
+                && stats.last_error.is_none()
+                && stats.rendered_batches == stats.desired_batches
+        });
     let scene_ready = fixed_view_ready && windows.single().is_ok_and(|window|
         window.physical_width() > 0 && window.physical_height() > 0)
         && validate_governed_asset_kit_runtime_stats(kit.as_deref()).is_ok()
@@ -266,6 +333,123 @@ fn record_capture_callback(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn retryable_shader_loads_remain_pending_and_real_errors_still_refuse_capture() {
+        let mut pending = PipelineSnapshot::default();
+        for state in [
+            CachedPipelineState::Queued,
+            CachedPipelineState::Err(ShaderCacheError::ShaderImportNotYetAvailable),
+            CachedPipelineState::Err(ShaderCacheError::ShaderNotLoaded(AssetId::default())),
+        ] {
+            pending.observe_state(&state);
+        }
+        assert_eq!((pending.total, pending.pending, pending.failed), (3, 3, 0));
+        let mut progress = CaptureProgress {
+            pipeline: pending,
+            ..default()
+        };
+        assert!(!progress.render_ready(true));
+        assert!(!progress.can_capture(100));
+        let mut failed = PipelineSnapshot::default();
+        failed.observe_state(&CachedPipelineState::Err(
+            ShaderCacheError::CreateShaderModule("invalid WGSL".into()),
+        ));
+        assert_eq!((failed.total, failed.pending, failed.failed), (1, 0, 1));
+        progress.pipeline = failed;
+        assert!(!progress.render_ready(true));
+        assert!(!progress.can_capture(100));
+        for _ in 0..7 {
+            ready_sample(&mut progress, 3);
+            assert!(!progress.can_capture(100));
+        }
+        ready_sample(&mut progress, 3);
+        assert!(progress.can_capture(100));
+    }
+
+    #[test]
+    #[cfg(feature = "physics-rapier")]
+    fn an_explicit_environment_blocks_capture_until_ready_and_revokes_on_error() {
+        let mut world = World::new();
+        world.init_resource::<CaptureProgress>();
+        world.init_resource::<crate::source_environment::host::Status>();
+        for observation in 1..=12 {
+            world.resource_mut::<CaptureProgress>().pipeline = PipelineSnapshot {
+                observation,
+                total: 12,
+                ready: 12,
+                ..default()
+            };
+            assert!(
+                !observe_render_readiness(&mut world, true)
+                    .unwrap()
+                    .ready_to_sample
+            );
+        }
+        world
+            .resource_mut::<crate::source_environment::host::Status>()
+            .ready = true;
+        for observation in 13..=20 {
+            world.resource_mut::<CaptureProgress>().pipeline.observation = observation;
+            assert_eq!(
+                observe_render_readiness(&mut world, true)
+                    .unwrap()
+                    .ready_to_sample,
+                observation == 20
+            );
+        }
+        world
+            .resource_mut::<crate::source_environment::host::Status>()
+            .error = Some("revoked".into());
+        assert!(
+            !observe_render_readiness(&mut world, true)
+                .unwrap()
+                .ready_to_sample
+        );
+    }
+
+    #[test]
+    fn external_probe_requires_fresh_render_observations_and_resets_for_scene_changes() {
+        let mut world = World::new();
+        assert!(observe_render_readiness(&mut world, true).is_none());
+        world.init_resource::<CaptureProgress>();
+        for observation in 1..=8 {
+            world.resource_mut::<CaptureProgress>().pipeline = PipelineSnapshot {
+                observation,
+                total: 12,
+                ready: 12,
+                ..default()
+            };
+            let sample = observe_render_readiness(&mut world, true).unwrap();
+            assert_eq!(sample.ready_to_sample, observation == 8);
+            for _ in 0..20 {
+                assert_eq!(observe_render_readiness(&mut world, true).unwrap(), sample);
+            }
+        }
+        assert!(
+            !observe_render_readiness(&mut world, false)
+                .unwrap()
+                .ready_to_sample
+        );
+        assert!(
+            !observe_render_readiness(&mut world, true)
+                .unwrap()
+                .ready_to_sample
+        );
+        for observation in 9..=16 {
+            world.resource_mut::<CaptureProgress>().pipeline.observation = observation;
+            assert_eq!(
+                observe_render_readiness(&mut world, true)
+                    .unwrap()
+                    .ready_to_sample,
+                observation == 16
+            );
+        }
+        world.resource_mut::<CaptureProgress>().pipeline.failed = 1;
+        let failed = observe_render_readiness(&mut world, true).unwrap();
+        assert!(!failed.ready_to_sample);
+        assert_eq!(failed.failed, 1);
+    }
 
     fn ready_sample(progress: &mut CaptureProgress, total: usize) {
         progress.pipeline = PipelineSnapshot {

@@ -1,17 +1,93 @@
 #![deny(unsafe_code)]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
 use forge_studio_frontend::{StudioCommand, StudioResponse, decode_tauri_wire, encode_tauri_wire};
 use forge_world::embedded_gate0_proof_document;
 use std::sync::{Mutex, OnceLock};
 use tauri::Manager;
+mod native_assistant;
 mod native_atelier;
 mod native_game;
+mod native_mcp;
+mod native_module_resources;
 mod native_reconciliation;
 mod native_webview;
 
 static AUTHORING_HOST: OnceLock<
     Mutex<Result<forge_project::authoring::host::AuthoringHost, String>>,
 > = OnceLock::new();
+
+#[tauri::command]
+async fn search_assistant_assets(
+    request: String,
+    window: tauri::WebviewWindow,
+) -> Result<forge_studio_frontend::assistant_asset_protocol::AssetSearchPage, String> {
+    if window.label() != "main" || request.len() > 4096 {
+        return Err("Ouvrir la recherche de l’assistant dans la fenêtre principale ; requête limitée à 4 Kio.".into());
+    }
+    let query: forge_studio_frontend::assistant_asset_protocol::AssetQuery =
+        serde_json::from_str(&request).map_err(|error| error.to_string())?;
+    tauri::async_runtime::spawn_blocking(move || {
+        with_asset_library(|library| {
+            forge_studio_frontend::assistant_assets_native::search(library, &query)
+        })
+    })
+    .await
+    .map_err(|_| "Recherche interrompue ; relancer la recherche.".to_owned())?
+}
+
+#[tauri::command]
+async fn execute_mcp(
+    request: String,
+    window: tauri::WebviewWindow,
+) -> Result<forge_studio_frontend::mcp_protocol::McpView, String> {
+    use forge_studio_frontend::mcp_protocol::McpRequest;
+    if window.label() != "main" || request.len() > 32 * 1024 {
+        return Err(
+            "Confirmation MCP réservée à la fenêtre principale ; requête limitée à 32 Kio.".into(),
+        );
+    }
+    let request: McpRequest = serde_json::from_str(&request).map_err(|error| error.to_string())?;
+    if !matches!(request, McpRequest::Status | McpRequest::Revoke)
+        && native_game::native_game_running()?
+    {
+        return Err("Fermer le jeu avant de modifier le périmètre MCP.".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || native_mcp::execute(request))
+        .await
+        .map_err(|_| "Opération MCP interrompue ; actualiser son état.".to_owned())?
+}
+
+#[tauri::command]
+async fn execute_assistant(
+    request: String,
+    window: tauri::WebviewWindow,
+) -> Result<forge_studio_frontend::assistant_protocol::AssistantView, String> {
+    if window.label() != "main" {
+        return Err(
+            "Les confirmations de l'assistant appartiennent à la fenêtre principale.".into(),
+        );
+    }
+    if request.len() > 32 * 1024 {
+        return Err("Requête d'assistant trop volumineuse.".into());
+    }
+    let request: forge_studio_frontend::assistant_protocol::AssistantRequest =
+        serde_json::from_str(&request).map_err(|error| error.to_string())?;
+    if !matches!(
+        request,
+        forge_studio_frontend::assistant_protocol::AssistantRequest::Configuration
+            | forge_studio_frontend::assistant_protocol::AssistantRequest::Inspect { .. }
+            | forge_studio_frontend::assistant_protocol::AssistantRequest::Cancel { .. }
+    ) && native_game::native_game_running()?
+    {
+        return Err("Fermer le jeu séparé avant d'utiliser l'assistant.".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || native_assistant::execute(request))
+        .await
+        .map_err(|_| {
+            "Opération d'assistant interrompue ; relire le même job avant toute reprise.".to_owned()
+        })?
+}
 
 fn with_asset_imports<T>(
     operation: impl FnOnce(
@@ -192,21 +268,34 @@ fn execute_module_model_request(
         return Err("Version de requête de modèle du module invalide".into());
     }
     let (asset_id, sha256) = (*asset_id, *sha256);
-    if forge_studio_frontend::launch_configuration::authoring_root()?.is_some()
-        && let Some(file) = with_asset_imports(|store| store.lookup_model(asset_id, sha256))?
-    {
-        if file.kind != forge_assets::governed_import::GovernedAssetKind::Mesh {
-            return Err("Cet asset importé n’est pas un modèle 3D".into());
+    if let Some(root) = forge_studio_frontend::launch_configuration::authoring_root()? {
+        match with_asset_imports(|store| store.lookup_model(asset_id, sha256)) {
+            Ok(Some(file)) => {
+                if file.kind != forge_assets::governed_import::GovernedAssetKind::Mesh {
+                    return Err("Cet asset importé n’est pas un modèle 3D".into());
+                }
+                let reply = ModuleModelReply::Model(
+                    forge_studio_frontend::asset_library_protocol::ModuleModel {
+                        asset_id,
+                        sha256,
+                        catalog_sha256: file.catalog_sha256,
+                        collision: None,
+                        bytes: file.upload.bytes,
+                    },
+                );
+                return forge_studio_frontend::asset_library_model_wire::encode_module(reply);
+            }
+            unresolved => {
+                if let Some(model) =
+                    native_module_resources::read_historical_model(&root, asset_id, sha256)?
+                {
+                    return forge_studio_frontend::asset_library_model_wire::encode_module(
+                        ModuleModelReply::Model(model),
+                    );
+                }
+                let _ = unresolved?;
+            }
         }
-        let reply =
-            ModuleModelReply::Model(forge_studio_frontend::asset_library_protocol::ModuleModel {
-                asset_id,
-                sha256,
-                catalog_sha256: file.catalog_sha256,
-                collision: None,
-                bytes: file.upload.bytes,
-            });
-        return forge_studio_frontend::asset_library_model_wire::encode_module(reply);
     }
     let resolver = RESOLVER
         .get_or_init(ModuleAssetResolver::from_environment)
@@ -242,7 +331,35 @@ fn with_authoring_host<T>(
         })
 }
 
+mod native_game_export;
 mod native_module_export;
+
+#[tauri::command]
+async fn import_module_package(
+    request: tauri::ipc::Request<'_>,
+) -> Result<forge_project::authoring::workspace::WorkspaceHostState, String> {
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
+        return Err("Choisissez un fichier .orpmod dans le Studio.".into());
+    };
+    if bytes.is_empty()
+        || bytes.len() as u64 > forge_project::workspace::MAX_MODULE_ORIGIN_PACKAGE_BYTES
+    {
+        return Err("Choisissez un fichier .orpmod de 256 Mio maximum.".into());
+    }
+    let bytes = bytes.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let audit = studio_human_audit()?;
+        with_authoring_host(|host| {
+            host.import_native_module(|root, workspace| {
+                forge_studio_frontend::module_workspace_bootstrap::import_module_into_workspace(
+                    root, workspace, bytes, audit,
+                )
+            })
+        })
+    })
+    .await
+    .map_err(|error| format!("Import interrompu ({error})"))?
+}
 
 #[tauri::command]
 async fn export_module(
@@ -257,6 +374,21 @@ async fn export_module(
     })
     .await
     .map_err(|e| format!("Export interrompu : {e}"))?
+}
+
+#[tauri::command]
+async fn export_game(
+    request: String,
+) -> Result<forge_studio_frontend::game_export_protocol::GameExportResult, String> {
+    if request.len() > 64 * 1024 {
+        return Err("Requête d’export trop volumineuse".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let request = serde_json::from_str(&request).map_err(|error| error.to_string())?;
+        native_game_export::execute(&request)
+    })
+    .await
+    .map_err(|error| format!("Export interrompu : {error}"))?
 }
 
 fn validate_studio_zone(
@@ -292,6 +424,11 @@ fn execute_authoring(request: forge_project::authoring::AuthoringRequest) -> Stu
     match result {
         Ok(state) => StudioResponse::Authoring {
             state: Box::new(state),
+        },
+        Err(reason) if reason == "unsaved edits: save before closing" => StudioResponse::Rejected {
+            reason:
+                "Des retouches ne sont pas sauvegardées. Sauvegardez la carte avant de la fermer."
+                    .into(),
         },
         Err(reason) => StudioResponse::Rejected { reason },
     }
@@ -355,6 +492,30 @@ fn civil_from_days(days: i64) -> Result<(i64, u32, u32), String> {
 }
 
 #[tauri::command]
+async fn read_module_resources(
+    request: String,
+    window: tauri::WebviewWindow,
+) -> Result<tauri::ipc::Response, String> {
+    use forge_studio_frontend::module_resources_protocol::{Reply, Request};
+    if window.label() != "main" || request.len() > 8192 {
+        return Err("Lecture des ressources du module refusée".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let request: Request = decode_tauri_wire(&request)?;
+        let reply = native_module_resources::execute(request)?;
+        let bytes = match reply {
+            Reply::Resource { chunk } => chunk.into_wire()?,
+            description @ Reply::Description { .. } => {
+                encode_tauri_wire(&description)?.into_bytes()
+            }
+        };
+        Ok(tauri::ipc::Response::new(bytes))
+    })
+    .await
+    .map_err(|error| format!("Lecture des ressources du module interrompue : {error}"))?
+}
+
+#[tauri::command]
 async fn execute_studio_command(
     command: String,
     window: tauri::WebviewWindow,
@@ -393,6 +554,13 @@ async fn execute_studio_command(
 fn execute_studio_command_sync(command: StudioCommand) -> StudioResponse {
     let document = embedded_gate0_proof_document().expect("embedded Gate 0 JSON must remain valid");
     match command {
+        StudioCommand::ModuleResources { request } => native_module_resources::execute(*request)
+            .map_or_else(
+                |reason| StudioResponse::Rejected { reason },
+                |reply| StudioResponse::ModuleResources {
+                    reply: Box::new(reply),
+                },
+            ),
         StudioCommand::ReadVegetationSource {
             expected_head,
             block_index,
@@ -480,6 +648,9 @@ fn main() -> Result<(), String> {
     );
     tauri::Builder::default()
         .setup(move |app| {
+            native_module_export::initialize_resources(app.handle().clone())
+                .map_err(std::io::Error::other)?;
+            native_mcp::start_if_requested(app.handle().clone()).map_err(std::io::Error::other)?;
             if let Some(directory) = &data_directory {
                 for window in &windows {
                     tauri::WebviewWindowBuilder::from_config(app, window)?
@@ -523,9 +694,15 @@ fn main() -> Result<(), String> {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            search_assistant_assets,
+            execute_mcp,
+            execute_assistant,
             execute_studio_command,
+            read_module_resources,
             execute_asset_import,
+            import_module_package,
             export_module,
+            export_game,
             read_asset_library,
             read_asset_model,
             read_asset_physics,
@@ -777,38 +954,77 @@ mod tests {
         let capability: Value =
             serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
         let permissions = capability["permissions"].as_array().unwrap();
-        assert_eq!(permissions.len(), 11);
-        assert_eq!(permissions[0], "allow-execute-studio-command");
-        assert_eq!(permissions[1], "allow-execute-asset-import");
-        assert_eq!(permissions[2], "allow-export-module");
-        assert_eq!(permissions[3], "allow-read-asset-library");
-        assert_eq!(permissions[4], "allow-read-asset-model");
-        assert_eq!(permissions[5], "allow-read-asset-physics");
-        assert_eq!(permissions[6], "allow-launch-native-game");
-        assert_eq!(permissions[7], "allow-launch-exported-module");
-        assert_eq!(permissions[8], "allow-native-game-running");
-        assert_eq!(permissions[9], "allow-native-game-diagnostics");
-        assert_eq!(permissions[10], "core:window:deny-set-title");
-        let granted: Vec<_> = permissions
+        let identifiers: Vec<_> = permissions
             .iter()
-            .filter_map(Value::as_str)
-            .filter(|identifier| !identifier.contains(":deny-"))
+            .map(|value| value.as_str().unwrap())
             .collect();
         assert_eq!(
-            granted,
+            identifiers,
             [
+                "allow-search-assistant-assets",
+                "allow-execute-mcp",
+                "allow-execute-assistant",
                 "allow-execute-studio-command",
+                "allow-read-module-resources",
                 "allow-execute-asset-import",
+                "allow-import-module-package",
                 "allow-export-module",
+                "allow-export-game",
                 "allow-read-asset-library",
                 "allow-read-asset-model",
                 "allow-read-asset-physics",
+                "allow-read-asset-particles",
                 "allow-launch-native-game",
                 "allow-launch-exported-module",
                 "allow-native-game-running",
-                "allow-native-game-diagnostics"
+                "allow-native-game-diagnostics",
+                "core:window:deny-set-title"
             ]
         );
+    }
+
+    #[test]
+    fn generated_desktop_acl_is_local_and_bounded() {
+        use tauri::ipc::Origin;
+
+        let mut context: tauri::Context<tauri::Wry> = tauri::generate_context!();
+        let acl = context.runtime_authority_mut();
+        let local = Origin::Local;
+        let remote = Origin::Remote {
+            url: tauri::Url::parse("https://untrusted.invalid/").unwrap(),
+        };
+        let mut errors = Vec::new();
+        for command in [
+            "execute_studio_command",
+            "read_module_resources",
+            "import_module_package",
+            "export_module",
+            "export_game",
+            "read_asset_physics",
+            "read_asset_particles",
+        ] {
+            for label in ["main", "atelier"] {
+                if acl.resolve_access(command, label, label, &local).is_none() {
+                    errors.push(format!("{command}: local {label} refused"));
+                }
+                if acl.resolve_access(command, label, label, &remote).is_some() {
+                    errors.push(format!("{command}: remote {label} accepted"));
+                }
+            }
+            if acl
+                .resolve_access(command, "foreign", "foreign", &local)
+                .is_some()
+            {
+                errors.push(format!("{command}: foreign window accepted"));
+            }
+        }
+        if acl
+            .resolve_access("plugin:window|set_title", "main", "main", &local)
+            .is_some()
+        {
+            errors.push("core window title mutation accepted".to_owned());
+        }
+        assert!(errors.is_empty(), "Unexpected generated ACL: {errors:#?}");
     }
 
     #[test]

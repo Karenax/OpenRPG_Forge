@@ -1,7 +1,8 @@
 //! In-game presentation settings; engine input is released while either menu is open.
 use super::graphics;
 use bevy::prelude::*;
-use {forge_engine::PlayerInputFocus, forge_tidewater::tidewater_sky::solar};
+use forge_engine::PlayerInputFocus;
+use forge_engine::source_sky::solar;
 #[path = "display_preferences.rs"]
 mod config;
 #[path = "display_daylight.rs"]

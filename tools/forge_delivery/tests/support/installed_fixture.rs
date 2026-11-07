@@ -36,14 +36,27 @@ pub struct Fixture {
 
 impl Fixture {
     pub fn new() -> Self {
+        Self::build(false)
+    }
+
+    #[allow(
+        dead_code,
+        reason = "Only the dedicated module entry point test uses this fixture"
+    )]
+    pub fn with_module_runtime() -> Self {
+        Self::build(true)
+    }
+
+    fn build(module_runtime: bool) -> Self {
         let root = std::env::temp_dir().join(format!(
-            "forge-installed-modules-{}-{}",
+            "forge-installed-modules-{}-{}-{}",
             std::process::id(),
+            &bytes_sha256(module_path!().as_bytes()).to_string()[..12],
             NEXT.fetch_add(1, Ordering::Relaxed)
         ));
         fs::create_dir(&root).unwrap();
-        let install = root.join("Installation Élan");
-        let user = root.join("Données personnelles");
+        let install = root.join("Installation Ã‰lan");
+        let user = root.join("DonnÃ©es personnelles");
         let core = root.join("core");
         fs::create_dir(&core).unwrap();
         fs::write(
@@ -63,11 +76,24 @@ impl Fixture {
         };
         let mut applications =
             descriptor("applications", "Installed module test", Kind::Applications);
+        let mut apps = BTreeMap::from([("game".into(), recipe.clone()), ("editor".into(), recipe)]);
+        if module_runtime {
+            fs::write(core.join("module.bin"), b"Dedicated inert module runtime").unwrap();
+            apps.insert(
+                "module-game".into(),
+                Launch {
+                    executable: "module.bin".into(),
+                    args: vec![],
+                    env: BTreeMap::new(),
+                    clear_env_prefixes: vec![],
+                },
+            );
+        }
         applications.product = Some(Product {
             schema: "forge.delivery.product.v1".into(),
             id: "test-client".into(),
             title: "Unchanged client".into(),
-            apps: BTreeMap::from([("game".into(), recipe.clone()), ("editor".into(), recipe)]),
+            apps,
             required_packs: vec![],
             optional_packs: vec![],
             authoring_seed: None,
@@ -106,6 +132,10 @@ impl Fixture {
         install::package_root(&self.install, &state.active.packs[&module.to_string()]).unwrap()
     }
 
+    #[allow(
+        dead_code,
+        reason = "Used by delivery integration tests, not by every shared fixture consumer"
+    )]
     pub fn core_root(&self) -> PathBuf {
         let state = install::state(&self.install).unwrap();
         install::package_root(&self.install, &state.active.core).unwrap()
@@ -136,25 +166,19 @@ fn descriptor(id: &str, label: &str, kind: Kind) -> Descriptor {
     }
 }
 
-fn module(root: &Path, installation: &Path, key: &str) -> ModuleFixture {
-    let source = root.join(key);
-    fs::create_dir_all(source.join("assets")).unwrap();
-    fs::create_dir(source.join("zones")).unwrap();
-    let terrain = new_terrain(key, "start", key).unwrap();
-    let project_id = terrain.project_id;
-    let area = terrain.area_id;
-    let zone = ZoneEditSession::from_initial_terrain(terrain).unwrap();
-    let archive = zone.archive_bytes().unwrap();
-    let id = ModuleId::deterministic(key);
-    let asset = AssetId::deterministic(format!("{key}/mesh"));
+fn fixture_assets(key: &str, asset: AssetId) -> (Vec<u8>, Vec<u8>) {
     let mut gltf = br#"{"asset":{"version":"2.0"}}"#.to_vec();
     while !gltf.len().is_multiple_of(4) {
         gltf.push(b' ');
     }
     let mut mesh = b"glTF".to_vec();
     mesh.extend(2_u32.to_le_bytes());
-    mesh.extend(((20 + gltf.len()) as u32).to_le_bytes());
-    mesh.extend((gltf.len() as u32).to_le_bytes());
+    let gltf_len = u32::try_from(gltf.len()).expect("fixture GLB chunk length fits u32");
+    let total_len = gltf_len
+        .checked_add(20)
+        .expect("fixture GLB length fits u32");
+    mesh.extend(total_len.to_le_bytes());
+    mesh.extend(gltf_len.to_le_bytes());
     mesh.extend(b"JSON");
     mesh.extend(gltf);
     let catalog=serde_json::to_vec(&serde_json::json!({"schema":"forge.governed-import-catalog","schema_version":1,"assets":[{
@@ -162,14 +186,23 @@ fn module(root: &Path, installation: &Path, key: &str) -> ModuleFixture {
         "provenance":{"source":"Original fixture","author":"Forge tests","license":"CC0-1.0","evidence":"LICENSE.txt","acquired_on":"2026-10-15",
             "rights":{"local_use":true,"redistribution":"allowed","redistribution_evidence":"LICENSE.txt"}},
         "derived_from":null,"transformations":[],"authored_changes":false,"durable_source":null,"thumbnail":null}]})).unwrap();
+    (mesh, catalog)
+}
+
+fn write_fixture_files(
+    source: &Path,
+    archive: &[u8],
+    mesh: &[u8],
+    catalog: Vec<u8>,
+) -> Vec<ModuleFile> {
     let mut files = vec![];
     for (path, bytes, role) in [
         (
             "zones/start.json",
-            archive.clone(),
+            archive.to_vec(),
             ModuleFileRole::ZoneArchive,
         ),
-        ("assets/model.glb", mesh.clone(), ModuleFileRole::Asset),
+        ("assets/model.glb", mesh.to_vec(), ModuleFileRole::Asset),
         ("assets/catalog.json", catalog, ModuleFileRole::AssetCatalog),
         (
             "LICENSE.txt",
@@ -195,7 +228,32 @@ fn module(root: &Path, installation: &Path, key: &str) -> ModuleFixture {
             role,
         });
     }
+    files
+}
+
+fn module(root: &Path, installation: &Path, key: &str) -> ModuleFixture {
+    let source = root.join(key);
+    fs::create_dir_all(source.join("assets")).unwrap();
+    fs::create_dir(source.join("zones")).unwrap();
+    let terrain = new_terrain(key, "start", key).unwrap();
+    let project_id = terrain.project_id;
+    let area = terrain.area_id;
+    let zone = ZoneEditSession::from_initial_terrain(terrain).unwrap();
+    let archive = zone.archive_bytes().unwrap();
+    let id = ModuleId::deterministic(key);
+    let asset = AssetId::deterministic(format!("{key}/mesh"));
+    let (mesh, catalog) = fixture_assets(key, asset);
+    let files = write_fixture_files(&source, &archive, &mesh, catalog);
     let manifest = ModulePackageManifest {
+        terrain_surfaces: Vec::new(),
+        ocean_inputs: Vec::new(),
+        local_light_packages: Vec::new(),
+        historical_models: Vec::new(),
+        placement_companions: Vec::new(),
+        environments: Vec::new(),
+        objects: Vec::new(),
+        fish_profiles: Vec::new(),
+        vegetation: Vec::new(),
         creator: None,
         schema: MODULE_PACKAGE_SCHEMA.into(),
         version: MODULE_PACKAGE_VERSION,

@@ -16,6 +16,20 @@ use std::{
 };
 
 static NEXT: AtomicU64 = AtomicU64::new(0);
+#[path = "orpmod/imported.rs"]
+mod imported;
+#[path = "orpmod/ocean.rs"]
+mod ocean;
+#[path = "support/ocean_package.rs"]
+mod ocean_fixture;
+#[path = "orpmod/placement_companions.rs"]
+mod placement_companions;
+#[path = "orpmod/source_graph.rs"]
+mod source_graph;
+#[path = "orpmod/species.rs"]
+mod species;
+#[path = "support/water_package.rs"]
+mod water_fixture;
 
 struct Fixture {
     root: PathBuf,
@@ -112,6 +126,15 @@ impl Fixture {
             })
             .collect();
         let manifest = ModulePackageManifest {
+            terrain_surfaces: Vec::new(),
+            ocean_inputs: Vec::new(),
+            local_light_packages: Vec::new(),
+            historical_models: Vec::new(),
+            placement_companions: Vec::new(),
+            environments: Vec::new(),
+            objects: Vec::new(),
+            fish_profiles: Vec::new(),
+            vegetation: Vec::new(),
             creator: None,
             schema: MODULE_PACKAGE_SCHEMA.into(),
             version: MODULE_PACKAGE_VERSION,
@@ -279,7 +302,8 @@ fn catalog_identity_and_runtime_compatibility_are_checked_against_files() {
     f.save();
     assert!(orpmod::validate_directory(&f.source, false).is_err());
     let mut f = Fixture::new("compat");
-    f.manifest.compatibility.module_api_version += 1;
+    f.manifest.compatibility.module_api_version =
+        forge_project::module_package::MODULE_HISTORICAL_MODELS_API_VERSION + 1;
     f.save();
     assert!(orpmod::validate_directory(&f.source, false).is_err());
 }
@@ -325,11 +349,11 @@ fn install_core(f: &Fixture) -> PathBuf {
     });
     let applications = f.root.join("applications.forgepack");
     archive::pack(&source, descriptor, &applications).unwrap();
-    let root = f.root.join("Installation été");
+    let root = f.root.join("Installation Ã©tÃ©");
     let mut plan = install::prepare(&root, &[applications]).unwrap();
     plan.user_root = f
         .root
-        .join("Données personnelles")
+        .join("DonnÃ©es personnelles")
         .to_string_lossy()
         .into_owned();
     plan.command_id.clear();
@@ -343,7 +367,7 @@ fn semantically_invalid_module_cannot_change_active_installation_or_user_data() 
     let mut f = Fixture::new("activation");
     let root = install_core(&f);
     let before = fs::read(root.join("installation.json")).unwrap();
-    let save = f.root.join("Données personnelles/save.json");
+    let save = f.root.join("DonnÃ©es personnelles/save.json");
     fs::create_dir_all(save.parent().unwrap()).unwrap();
     fs::write(&save, b"player save").unwrap();
     f.manifest.assets[0].asset_id = AssetId::deterministic("missing-catalog-identity");
@@ -364,7 +388,7 @@ fn two_valid_modules_install_in_same_client_and_rollback_keeps_user_data() {
     let first = Fixture::new("installed-harbor");
     let second = Fixture::new("installed-mountain");
     let root = install_core(&first);
-    let save = first.root.join("Données personnelles/save.json");
+    let save = first.root.join("DonnÃ©es personnelles/save.json");
     fs::create_dir_all(save.parent().unwrap()).unwrap();
     fs::write(&save, b"player save").unwrap();
     for f in [&first, &second] {

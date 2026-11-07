@@ -89,31 +89,40 @@ pub(super) fn VariableControls(
             .and_then(|state| state.zone_head)
             .and_then(|head| head.corrections.gameplay.map(|document| *document))
     };
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let key = (fields.selected.get(), super::source_hash(state));
-        if previous.as_ref() == Some(&key) {
-            return key;
-        }
-        if let Some(variable) =
-            document()
-                .and_then(|document| document.narrative)
-                .and_then(|narrative| {
-                    id(&fields.selected.get())
-                        .ok()
-                        .and_then(|id| narrative.variable(id).cloned())
-                })
-        {
-            fields.name.set(variable.name);
-            let (kind, value) = match variable.initial {
-                NarrativeValue::Boolean(value) => ("boolean", value.to_string()),
-                NarrativeValue::Integer(value) => ("integer", value.to_string()),
-                NarrativeValue::Text(value) => ("text", value),
-            };
-            fields.kind.set(kind.into());
-            fields.value.set(value);
-        }
-        key
-    });
+    let draft_notice = super::draft::bind(
+        move || {
+            let selected = fields.selected.get();
+            let source = super::draft::records(state, &selected);
+            (selected, source)
+        },
+        vec![
+            super::draft::Field::new(fields.name),
+            super::draft::Field::new(fields.kind),
+            super::draft::Field::new(fields.value),
+        ],
+        move || {
+            if let Some(variable) =
+                document()
+                    .and_then(|document| document.narrative)
+                    .and_then(|narrative| {
+                        id(&fields.selected.get())
+                            .ok()
+                            .and_then(|id| narrative.variable(id).cloned())
+                    })
+            {
+                fields.name.set(variable.name);
+                let (kind, value) = match variable.initial {
+                    NarrativeValue::Boolean(value) => ("boolean", value.to_string()),
+                    NarrativeValue::Integer(value) => ("integer", value.to_string()),
+                    NarrativeValue::Text(value) => ("text", value),
+                };
+                fields.kind.set(kind.into());
+                fields.value.set(value);
+            }
+        },
+    );
+    let preview_send = draft_notice.submitter(send);
+
     let disabled = move || {
         busy.get()
             || state
@@ -123,7 +132,7 @@ pub(super) fn VariableControls(
     view! {
         <Show when=move ||document().is_some_and(|document|document.surface_visible(CreatorSurface::Dialogues))>
             <details class="creator-narrative-variables"><summary>"Variables du dialogue"</summary>
-                <fieldset disabled=disabled>
+                <fieldset disabled=disabled><super::draft::DraftNotice notice=draft_notice/>
                     <label>"Variable à retoucher"<select prop:value=move ||fields.selected.get() on:change=move |event|fields.selected.set(event_target_value(&event))>
                         <option value="">"Choisir une variable"</option>
                         {move ||document().and_then(|document|document.narrative).map(|narrative|narrative.variables.into_iter().map(|variable|view!{<option value=variable.id.to_string()>{variable.name}</option>}).collect_view())}
@@ -140,8 +149,8 @@ pub(super) fn VariableControls(
                         <label>"Valeur initiale"<select prop:value=move ||fields.value.get() on:change=move |event|fields.value.set(event_target_value(&event))><option value="false">"Faux"</option><option value="true">"Vrai"</option></select></label>
                     </Show>
                     <p>"Le type reste fixe pendant une partie. Modifier le type ou la valeur initiale exige une nouvelle partie. Les textes sont limités à 256 octets."</p>
-                    <button on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner la nouvelle variable"</button>
-                    <button on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la variable"</button>
+                    <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),true))>"Examiner la nouvelle variable"</button>
+                    <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la variable"</button>
                 </fieldset>
             </details>
         </Show>

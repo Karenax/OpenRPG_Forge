@@ -512,3 +512,45 @@ html[data-forge-zone-open="true"] .forge-workspace-welcome { display:none; }
 .authoring-tools .authoring-native-game-report > output { padding:0; white-space:pre-wrap; }
 .authoring-native-game-report > details { margin-top:8px; }
 .authoring-native-game-report pre { margin:8px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; font:11px/1.5 "Cascadia Mono",monospace; }
+.authoring-task-picker {display:flex;align-items:center;gap:6px;min-width:0;font-size:13px}
+.authoring-task-picker select {width:100%;min-width:0;max-width:230px}
+.camera-help {position:relative;z-index:20}
+.camera-help[open] {position:absolute;top:38px;left:10px;max-width:min(410px,calc(100% - 20px));padding:12px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px}
+.camera-help p {font-size:14px;line-height:1.5}
+.camera-help button {margin:3px;min-height:34px}
+.draft-conflict,.field-error {padding:8px;border:1px solid #9a5426;border-radius:4px;background:#fff3dc;color:#633314;line-height:1.5}
+.draft-conflict pre {white-space:pre-wrap;overflow-wrap:anywhere;max-height:18rem;overflow:auto}
+.authoring-shell :is(button,input,select,textarea,summary,a):focus-visible {outline:3px solid #775813;outline-offset:3px}
+.authoring-shell .asset-library-page :is(button,input,select,textarea,summary,a):focus-visible {outline-color:#edc47e}
+@media(max-height:760px) {
+  .authoring-tools .authoring-panel :is(label,p,summary,button,input,select,textarea),
+  .authoring-shell .atelier-transform-inspector :is(label,input,output),
+  .authoring-tools .authoring-panel .atelier-object-workspaces button {font-size:14px;line-height:1.4}
+  .authoring-tools .authoring-panel :is(button,input,select) {min-height:34px}
+  .authoring-panel-scroll {overflow:auto;overscroll-behavior:contain}
+  .authoring-scene-tree .forge-project-card {display:none}
+}
+.forge-map-loading[data-compact="true"] {inset:auto 8px 8px auto;max-width:320px;padding:12px;gap:8px;border:1px solid var(--line);border-radius:6px;max-height:60%;overflow:auto}
+.forge-map-loading p {max-width:36em;padding:0 16px;font-size:14px;text-align:center}
+.assistant-configuration-example {white-space:pre-wrap;overflow-wrap:anywhere;max-height:24rem;overflow:auto}
+.authoring-toolbar {display:flex;flex-wrap:wrap;align-content:center;gap:6px 10px;height:auto}
+.authoring-context {flex:0 1 170px;min-width:90px}
+.authoring-tools .authoring-command-bar {flex:1 1 580px;min-width:0;flex-wrap:wrap}
+.authoring-command-bar .gold-save-state {order:2;flex:1 0 100%;max-width:none;white-space:normal;font-size:13px}
+.authoring-native-game {flex:0 1 210px}
+.authoring-body {grid-template-rows:auto minmax(0,1fr)}
+.authoring-task-picker {margin:0 0 12px;flex-direction:column;align-items:stretch}
+@media(max-width:1200px) {
+  .authoring-toolbar {padding:6px 10px}
+  .authoring-context {flex-basis:120px}
+  .authoring-tools .authoring-command-bar button {font-size:13px;white-space:normal}
+  .authoring-native-game {flex-basis:170px}
+}
+@media(max-width:1000px) {
+  .authoring-shell {min-width:0;--left:150px;--right:285px}
+  .authoring-toolbar {align-items:flex-start}
+  .authoring-tools .authoring-command-bar {order:2;flex-basis:100%}
+  .authoring-shell .topbar {flex-wrap:wrap;height:auto}
+  .atelier-secondary-body {grid-template-columns:minmax(180px,30%) minmax(0,1fr);overflow:auto}
+  .atelier-secondary-inspector {grid-column:1/-1}
+}

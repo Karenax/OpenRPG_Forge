@@ -1,12 +1,10 @@
 //! Filesystem bootstrap only; updates reuse the shared engine cascade/stream APIs.
 use bevy::prelude::*;
-use forge_tidewater::{
-    sun_cascades::CascadeView,
-    tidewater_object_shadow::{
-        live::{Frame, Tracker},
-        terrain::authored::PreparedSource,
-    },
+use forge_engine::source_shadows::casters::{
+    live::{Frame, Tracker},
+    terrain::authored::PreparedSource,
 };
+use forge_engine::sun_cascades::CascadeView;
 use std::{collections::BTreeMap, error::Error, path::Path};
 
 #[derive(Resource)]
@@ -22,7 +20,7 @@ pub struct Selection {
     scope: &'static str,
     frame_index: u32,
     camera: [f32; 4],
-    groups: Vec<forge_tidewater::tidewater_plants::scene::shadow::SelectionObservation>,
+    groups: Vec<forge_engine::source_vegetation::scene::shadow::SelectionObservation>,
 }
 
 impl Sources {
@@ -46,7 +44,7 @@ impl Sources {
         }
         let mut frame = self.tracker.next(view, index)?;
         frame.terrain = Some(terrain);
-        frame.plants = plants;
+        frame.plants = plants.into();
         self.selection = Some(Selection {
             scope: "CPU caster streams supplied to live shadow frame; not GPU depth coverage",
             frame_index: index,

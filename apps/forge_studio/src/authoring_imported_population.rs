@@ -13,7 +13,7 @@ thread_local! {
     static HEAD: Cell<Option<ContentHash>> = const { Cell::new(None) };
     static DOCUMENT: RefCell<Option<Rc<ZoneAuthoringHead>>> = const { RefCell::new(None) };
     static LOADING: Cell<bool> = const { Cell::new(false) };
-    static POPULATION: RefCell<Option<Rc<ImportedPopulation>>> = const { RefCell::new(None) };
+    static POPULATION: RefCell<Option<std::sync::Arc<ImportedPopulation>>> = const { RefCell::new(None) };
     static EFFECTIVE: RefCell<Option<Rc<forge_project::TerrainDocument>>> = const { RefCell::new(None) };
 }
 fn current(epoch: u64) -> bool {
@@ -75,7 +75,7 @@ pub(crate) fn observe(state: &AuthoringState) -> bool {
         LOADING.with(|l| l.set(false));
         match result {
             Ok(value) => {
-                POPULATION.with(|p| p.replace(Some(Rc::new(value))));
+                POPULATION.with(|p| p.replace(Some(std::sync::Arc::new(value))));
                 loaded(&head);
             }
             Err(error) => {
@@ -114,7 +114,9 @@ pub(crate) fn frame_source() -> Option<(
     ))
 }
 
-pub(crate) fn current_population(expected: ContentHash) -> Result<Rc<ImportedPopulation>, String> {
+pub(crate) fn current_population(
+    expected: ContentHash,
+) -> Result<std::sync::Arc<ImportedPopulation>, String> {
     if HEAD.with(Cell::get) != Some(expected) {
         return Err("Population demandée pour une autre révision".into());
     }
@@ -141,7 +143,9 @@ pub(crate) fn ready_head_hash() -> Option<ContentHash> {
     })
 }
 
-pub(crate) fn population(head: &ZoneAuthoringHead) -> Result<Rc<ImportedPopulation>, String> {
+pub(crate) fn population(
+    head: &ZoneAuthoringHead,
+) -> Result<std::sync::Arc<ImportedPopulation>, String> {
     if HEAD.with(Cell::get) != Some(head.content_hash()?) {
         return Err("Population demandée pour une autre révision".into());
     }
@@ -164,6 +168,11 @@ fn loaded(head: &ZoneAuthoringHead) {
             "{} placements végétaux chargés et vérifiés.",
             population.instance_count()
         ));
+    }
+    if crate::authoring_module_resources::available()
+        && !crate::authoring_viewport::has_projection()
+    {
+        crate::authoring_viewport::retry_imported();
     }
 }
 

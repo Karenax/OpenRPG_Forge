@@ -104,6 +104,57 @@ impl SourceParticleFrame {
     }
 }
 
+/// Rebase the camera-relative clip matrix in an already validated source bank
+/// onto the renderer's actual projection. Other source ABI bytes are retained.
+#[cfg(feature = "physics-rapier")]
+pub(crate) fn raster_bank(
+    bank: &[u8; 1024],
+    relative_offset: usize,
+    unjittered_clip: Mat4,
+    raster_clip: Mat4,
+) -> Result<[u8; 1024], String> {
+    let end = relative_offset
+        .checked_add(64)
+        .filter(|end| *end <= bank.len())
+        .ok_or("Particle raster clip offset outside its bank")?;
+    if !unjittered_clip.is_finite()
+        || !raster_clip.is_finite()
+        || !unjittered_clip.determinant().is_finite()
+        || unjittered_clip.determinant() == 0.0
+        || !raster_clip.determinant().is_finite()
+        || raster_clip.determinant() == 0.0
+    {
+        return Err("Particle raster projection is singular or nonfinite".into());
+    }
+    let mut columns = [0.0_f32; 16];
+    for (value, bytes) in columns
+        .iter_mut()
+        .zip(bank[relative_offset..end].as_chunks::<4>().0.iter())
+    {
+        *value = f32::from_le_bytes(*bytes);
+    }
+    let source_clip = Mat4::from_cols_array(&columns);
+    if !source_clip.is_finite()
+        || !source_clip.determinant().is_finite()
+        || source_clip.determinant() == 0.0
+    {
+        return Err("Particle source clip is singular or nonfinite".into());
+    }
+    if raster_clip == unjittered_clip {
+        return Ok(*bank);
+    }
+    let raster = raster_clip * unjittered_clip.inverse() * source_clip;
+    if !raster.is_finite() || !raster.determinant().is_finite() || raster.determinant() == 0.0 {
+        return Err("Particle raster clip is singular or nonfinite".into());
+    }
+    let mut result = *bank;
+    for (index, value) in raster.to_cols_array().iter().enumerate() {
+        result[relative_offset + index * 4..relative_offset + index * 4 + 4]
+            .copy_from_slice(&value.to_le_bytes());
+    }
+    Ok(result)
+}
+
 #[allow(
     clippy::float_cmp,
     reason = "Exact affine row prevents projective inputs"
@@ -129,6 +180,68 @@ fn affine_inverse(matrix: Mat4) -> Result<Mat4, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(feature = "physics-rapier")]
+    #[test]
+    fn raster_bank_uses_the_actual_bevy_jitter_and_retains_other_source_bytes() {
+        use bevy::render::camera::TemporalJitter;
+
+        let layout = SourceParticleFrameLayout {
+            object_to_world_offset: 0,
+            world_to_object_offset: 64,
+            relative_world_to_clip_offset: 128,
+            camera_position_offset: 192,
+            evidence_sha256: forge_core::bytes_sha256(b"raster frame fixture"),
+        };
+        let object = Mat4::from_translation(Vec3::new(1.0, 2.0, -3.0));
+        let camera = Mat4::from_translation(Vec3::new(3.0, -2.0, 5.0));
+        for clip in [
+            Mat4::perspective_infinite_reverse_rh(1.0, 1.5, 0.1),
+            Mat4::orthographic_rh(-5.0, 5.0, -4.0, 4.0, 0.1, 100.0),
+        ] {
+            let source = SourceParticleFrame::from_current_scene(
+                Mat4::IDENTITY,
+                object,
+                Mat4::IDENTITY,
+                camera,
+                clip,
+            )
+            .unwrap();
+            let bank = source.apply_bank(&layout, &[0x5a; 1024]).unwrap();
+            assert_eq!(raster_bank(&bank, 128, clip, clip).unwrap(), bank);
+            let mut jittered = clip;
+            TemporalJitter {
+                offset: Vec2::new(0.25, -0.375),
+            }
+            .jitter_projection(&mut jittered, Vec2::new(960.0, 540.0));
+            let actual = raster_bank(&bank, 128, clip, jittered).unwrap();
+            let expected = SourceParticleFrame::from_current_scene(
+                Mat4::IDENTITY,
+                object,
+                Mat4::IDENTITY,
+                camera,
+                jittered,
+            )
+            .unwrap()
+            .apply_bank(&layout, &[0x5a; 1024])
+            .unwrap();
+            assert_eq!(&actual[..128], &bank[..128]);
+            assert_eq!(&actual[192..], &bank[192..]);
+            for (left, right) in actual[128..192]
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .zip(expected[128..192].as_chunks::<4>().0.iter())
+            {
+                let left = f32::from_le_bytes(*left);
+                let right = f32::from_le_bytes(*right);
+                assert!((left - right).abs() < 1.0e-5);
+            }
+            assert!(raster_bank(&bank, 1000, clip, jittered).is_err());
+            assert!(raster_bank(&bank, 128, Mat4::ZERO, jittered).is_err());
+        }
+    }
+
     #[test]
     fn camera_relative_source_frame_matches_current_target_clip_for_reflected_scaled_and_moved_objects()
      {

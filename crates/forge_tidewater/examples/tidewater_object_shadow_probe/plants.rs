@@ -2,9 +2,9 @@
 use super::canonical;
 use super::{checked_file, plant_shader};
 use bevy::prelude::Vec4;
-pub(super) use forge_tidewater::tidewater_object_shadow::plants::Input as Plants;
-use forge_tidewater::tidewater_object_shadow::plants::{Batch, Stream};
-use forge_tidewater::tidewater_plants::scene::shadow::SelectionObservation;
+pub(super) use forge_engine::source_shadows::casters::plants::Input as Plants;
+use forge_engine::source_shadows::casters::plants::{Batch, Stream};
+use forge_engine::source_vegetation::scene::shadow::SelectionObservation;
 use serde_json::Value;
 use std::{error::Error, path::Path};
 

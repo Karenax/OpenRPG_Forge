@@ -222,7 +222,7 @@ fn project(source: ForgeTransform) -> Transform {
 pub(super) fn update(
     cameras: Query<
         (&Camera, &GlobalTransform),
-        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
+        forge_engine::source_sky::preview::SceneCameraFilter,
     >,
     mut roots: Query<(&PlacementRoot, &mut Transform, &Visibility)>,
     mut gizmos: Gizmos,
@@ -320,7 +320,7 @@ pub(super) fn update(
 fn active_camera<'a>(
     cameras: &'a Query<
         (&Camera, &GlobalTransform),
-        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
+        forge_engine::source_sky::preview::SceneCameraFilter,
     >,
 ) -> Option<(&'a Camera, &'a GlobalTransform)> {
     let mut cameras = cameras.iter().filter(|(camera, _)| camera.is_active);
@@ -330,7 +330,7 @@ fn active_camera<'a>(
 fn display_selection(
     cameras: &Query<
         (&Camera, &GlobalTransform),
-        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
+        forge_engine::source_sky::preview::SceneCameraFilter,
     >,
     roots: &Query<(&PlacementRoot, &mut Transform, &Visibility)>,
 ) {

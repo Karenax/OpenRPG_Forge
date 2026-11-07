@@ -1,31 +1,12 @@
-//! Acquired scanned CPU LOD bands; frustum ownership stays with the live camera adapter.
-//! Source: Tidewater 1438b1ab `ScannedDebris::update` and `LODFade::bandFade`.
+//! Acquired distances for the shared three-level engine detail policy.
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Draw {
-    pub lod: u8,
-    pub fade: f32,
-    pub outgoing: bool,
-}
+pub use forge_engine::distance_lod::fixed_bands::Draw;
+use forge_engine::distance_lod::fixed_bands::Policy;
 
-impl Draw {
-    /// The acquired source casts scanned shadows only from the near LOD.
-    #[must_use]
-    pub const fn casts_shadow(self) -> bool {
-        self.lod == 0
-    }
-}
-
-fn band(distance: f64, start: f64, end: f64) -> f64 {
-    let t = (distance - start) / (end - start).max(1e-6);
-    if t <= 0.0 {
-        0.0
-    } else if t >= 1.0 {
-        1.0
-    } else {
-        t * t * (3.0 - 2.0 * t)
-    }
-}
+const POLICY: Policy = match Policy::new(22.0, 70.0, 260.0, 0.12, 6.0, Some(0)) {
+    Ok(policy) => policy,
+    Err(_) => panic!("Invalid acquired scanned LOD policy"),
+};
 
 /// Select source LOD buckets using source double-precision thresholds.
 ///
@@ -34,59 +15,12 @@ fn band(distance: f64, start: f64, end: f64) -> f64 {
 ///
 /// # Errors
 /// Rejects nonfinite or negative world distances and sphere radii.
-#[allow(
-    clippy::cast_possible_truncation,
-    reason = "Source emits fade through a Float32Array after double-precision selection."
-)]
 pub fn select(
     distance_m: f64,
     radius_m: f64,
     frustum_intersects: bool,
 ) -> Result<Vec<Draw>, String> {
-    if !distance_m.is_finite() || !radius_m.is_finite() || distance_m < 0.0 || radius_m < 0.0 {
-        return Err("Invalid scanned LOD distance or radius".into());
-    }
-    let mut draws = Vec::with_capacity(2);
-    if !frustum_intersects {
-        return Ok(draws);
-    }
-    let distance = distance_m - radius_m * 6.0;
-    let t01 = band(
-        distance,
-        22.0 * (1.0 - 0.12 / 2.0),
-        22.0 * (1.0 + 0.12 / 2.0),
-    );
-    let t12 = band(
-        distance,
-        70.0 * (1.0 - 0.12 / 2.0),
-        70.0 * (1.0 + 0.12 / 2.0),
-    );
-    let out = band(distance, 260.0 * (1.0 - 0.12), 260.0);
-    if out >= 1.0 {
-        return Ok(draws);
-    }
-    if t01 < 1.0 {
-        draws.push(Draw {
-            lod: 0,
-            fade: t01 as f32,
-            outgoing: true,
-        });
-    }
-    if t01 > 0.0 && t12 < 1.0 {
-        draws.push(Draw {
-            lod: 1,
-            fade: if t12 > 0.0 { t12 } else { t01 } as f32,
-            outgoing: t12 > 0.0,
-        });
-    }
-    if t12 > 0.0 {
-        draws.push(Draw {
-            lod: 2,
-            fade: (t12 * (1.0 - out)) as f32,
-            outgoing: false,
-        });
-    }
-    Ok(draws)
+    POLICY.select(distance_m, radius_m, frustum_intersects)
 }
 
 #[cfg(test)]

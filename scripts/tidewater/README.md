@@ -14,7 +14,7 @@ accept `--phase-probe` for a separate phase/hash/amplitude diagnostic and
 `--hash-probe` for losslessly byte-encoded binary32 arithmetic over 73,728
 integer wave numbers. These outputs are rejected as simulation evidence.
 `verify-shore-hash.py SOURCE NATIVE NEW_REPORT --require-exact-hash` validates
-the latter. `native-shore-hash.wgsl` preserves the source multiplication rounding;
+the latter. `crates/forge_engine/src/source_shore_hash.wgsl` preserves the source multiplication rounding;
 Frame.pad0 must be zero. This adaptation is shared with water-material fixture
 preparation, which records its hash and rejects nonzero padding.
 [Corrected results and limits](../../docs/evidence/tidewater/2026-09-24-shore-rounding.md).

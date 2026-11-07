@@ -4,6 +4,10 @@ use forge_assets::{
     asset_browser::{AssetBrowser, category_label},
 };
 use leptos::prelude::*;
+
+pub(crate) fn search_text(value: &str) -> String {
+    catalog::search_terms(value)
+}
 use wasm_bindgen::JsCast;
 
 mod catalog;
@@ -20,62 +24,16 @@ pub(crate) mod objects;
 mod placement_controls;
 pub(crate) mod placements;
 pub(crate) mod preview;
-#[allow(
-    dead_code,
-    reason = "Initial source host contexts await preview/placement routing"
-)]
-mod source_graph_bootstrap;
-#[allow(
-    dead_code,
-    reason = "Dynamic source frames await viewport pass activation"
-)]
-mod source_graph_context;
-#[allow(
-    dead_code,
-    reason = "Explicit frame updates await source-scene viewport activation"
-)]
-mod source_graph_frame;
-#[allow(
-    dead_code,
-    reason = "Shared source scene host awaits viewport pass activation"
-)]
-mod source_graph_host;
-#[allow(
-    dead_code,
-    reason = "Shared intake awaits qualified viewport attachment and resource routing"
-)]
-mod source_graph_intake;
-#[allow(
-    dead_code,
-    reason = "Source light transport is being qualified before viewport activation"
-)]
-mod source_graph_lights;
-mod source_graph_lod;
+mod scene_wind;
 mod source_graph_particles;
 mod source_graph_physics;
 mod source_graph_placement;
 mod source_graph_preview;
 #[allow(
     dead_code,
-    reason = "Source intake and pass routing are being qualified before viewport activation"
-)]
-mod source_graph_resources;
-mod source_graph_route;
-#[allow(
-    dead_code,
     reason = "Shared lifecycle installed before preview/placement routing"
 )]
 mod source_graph_runtime;
-#[allow(
-    dead_code,
-    reason = "Source intake and pass routing are being qualified before viewport activation"
-)]
-mod source_graph_scene;
-#[allow(
-    dead_code,
-    reason = "Native LOD driver remains to be qualified before reveal"
-)]
-mod source_graph_state;
 pub(crate) mod vault;
 pub(crate) mod verify;
 
@@ -251,6 +209,10 @@ pub(super) fn AssetBrowserControls(
                     .into_iter()
                     .take(4096)
                     .map(|entry| crate::atelier_protocol::CatalogItem {
+                        label: entry
+                            .label
+                            .trim_start_matches("vv-")
+                            .replace(['-', '_'], " "),
                         id: entry.id,
                         category: category_label(&entry.kind).to_owned(),
                     })
@@ -343,7 +305,7 @@ pub(super) fn AssetBrowserControls(
             </select></label>
             <button title="Relire le catalogue local" disabled=move || busy.get() on:click=move |_| load(())>"Actualiser"</button>
             </div>
-            <div hidden=move ||!map_objects.get()><map_shelf::MapShelf inspected=inspected query=query/></div>
+            <div hidden=move ||!map_objects.get()><map_shelf::MapShelf state=state inspected=inspected query=query/></div>
             <div hidden=move ||map_objects.get()>
             {move || matches.get().map(|result| match result {
                 Ok(assets) => view! { <div class="atelier-library-results">

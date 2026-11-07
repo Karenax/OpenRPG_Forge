@@ -21,8 +21,19 @@ use forge_project::PlayerControllerProfileDocument;
 use std::{error::Error, fmt};
 
 const CAMERA_COLLISION_MARGIN_M: f32 = 0.05;
+/// Mouse-look sensitivity used by the shared source playable camera.
+pub const SOURCE_CAMERA_LOOK_RADIANS_PER_UNIT: f32 = 0.0022;
 
 use crate::player_motion_extension::{PlayerMotionExtension, PlayerMotionPublication};
+
+/// Apply the source playable camera's look sensitivity and vertical limits.
+/// Other camera and movement settings remain controlled by the supplied profile.
+pub fn configure_source_camera_look(profile: &mut PlayerControllerProfileDocument) {
+    profile.camera.look_sensitivity_degrees_per_unit =
+        SOURCE_CAMERA_LOOK_RADIANS_PER_UNIT.to_degrees();
+    profile.camera.pitch_min_degrees = -1.5_f32.to_degrees();
+    profile.camera.pitch_max_degrees = 1.5_f32.to_degrees();
+}
 
 /// Public fixed-schedule boundaries used by deterministic probes and later Studio playtests.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, SystemSet)]
@@ -967,6 +978,7 @@ fn update_player_camera(
     rapier: ReadRapierContext,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
     extension: Option<Res<PlayerMotionExtension>>,
+    map_limits: Query<(), With<crate::cell_streaming::StreamedTerrainBoundary>>,
     mut player: Query<(&Transform, &mut Visibility), With<ForgePlayerCharacter>>,
     mut camera: Query<
         (&mut Transform, &mut Projection, &mut PlayerCameraRig),
@@ -1032,9 +1044,11 @@ fn update_player_camera(
                 (rapier.single(), player_entity, camera_shape.as_ball())
             {
                 snapshot.camera_query_succeeded = true;
+                let visible_occluder = |entity| !map_limits.contains(entity);
                 let filter = QueryFilter::default()
                     .exclude_sensors()
-                    .exclude_collider(player_entity);
+                    .exclude_collider(player_entity)
+                    .predicate(&visible_occluder);
                 if let Some((entity, hit)) = context.cast_shape(
                     desired_pose.pivot,
                     Quat::IDENTITY,
@@ -1796,6 +1810,57 @@ mod tests {
                 .copied(),
             Some(Visibility::Visible)
         );
+    }
+
+    #[test]
+    fn invisible_map_limit_blocks_player_without_closing_camera_or_ignoring_real_walls() {
+        let profile = test_profile();
+        let camera = profile.camera;
+        let half_height = capsule_half_height(&profile);
+        let mut app = test_app(profile, Vec3::new(0.0, half_height + 0.02, 0.0));
+        spawn_box(
+            &mut app,
+            Vec3::new(0.0, -0.1, 0.0),
+            Vec3::new(12.0, 0.1, 12.0),
+            Quat::IDENTITY,
+        );
+        app.world_mut().spawn((
+            crate::cell_streaming::StreamedTerrainBoundary,
+            Collider::halfspace(Vec3::NEG_Z).unwrap(),
+            Transform::from_xyz(0.0, 0.0, 1.0),
+        ));
+        start_and_settle(&mut app);
+        submit(
+            &mut app,
+            PlayerControlCommand {
+                move_axis: Vec2::NEG_Y,
+                ..default()
+            },
+        );
+        run_fixed(&mut app, 60);
+        submit(&mut app, PlayerControlCommand::default());
+        run_fixed(&mut app, 30);
+        let stopped = snapshot(&app);
+        assert!(stopped.player_position.z > 0.1 && stopped.player_position.z < 1.0);
+        assert!(stopped.camera_query_succeeded);
+        assert_eq!(stopped.camera_occluder, None);
+        assert!((stopped.camera_boom_distance_m - camera.third_person_distance_m).abs() < 0.001);
+        let wall = spawn_box(
+            &mut app,
+            Vec3::new(0.0, 1.65, 2.5),
+            Vec3::new(3.0, 2.0, 0.15),
+            Quat::IDENTITY,
+        );
+        run_fixed(&mut app, 4);
+        let closed = snapshot(&app);
+        assert_eq!(closed.camera_occluder, Some(wall));
+        assert!(closed.camera_boom_distance_m < camera.third_person_distance_m);
+        app.world_mut().despawn(wall);
+        run_fixed(&mut app, 180);
+        let restored = snapshot(&app);
+        assert_eq!(restored.camera_occluder, None);
+        assert!((restored.camera_boom_distance_m - camera.third_person_distance_m).abs() < 0.001);
+        assert!(restored.player_position.z < 1.0);
     }
 
     #[test]

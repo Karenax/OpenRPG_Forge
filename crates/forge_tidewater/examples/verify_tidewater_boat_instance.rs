@@ -8,22 +8,23 @@ use bevy::{
 use bevy_rapier3d::plugin::context::RapierContextColliders;
 use bevy_rapier3d::prelude::{Collider, NoUserData, RapierPhysicsPlugin, Sensor};
 use forge_core::{AssetId, EntityId};
+use forge_engine::ManualPlacementCollisionExpected;
+use forge_engine::source_hull_mask::HullVolume;
+use forge_engine::source_surface::mesh::DATA;
+use forge_engine::source_surface::mesh::TINT;
 use forge_project::zone_authoring::placements::ManualPlacement;
-use forge_tidewater_assets::tidewater_boat::{self as boat, BoatPackage};
+use forge_tidewater::tidewater_boat::BoatCollisionVolume;
+use forge_tidewater::tidewater_boat::BoatPart;
+use forge_tidewater::tidewater_boat::BoatProjectionOwner;
+use forge_tidewater::tidewater_boat::BoatSourceNode;
+use forge_tidewater::tidewater_boat::BoatWaterExclusion;
+use forge_tidewater::tidewater_boat::PreparedBoat;
+use forge_tidewater::tidewater_boat::ResidentBoat;
+use forge_tidewater_assets::tidewater_boat as boat;
+use forge_tidewater_assets::tidewater_boat::BoatPackage;
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},
-};
-use {
-    forge_engine::ManualPlacementCollisionExpected,
-    forge_tidewater::{
-        tidewater_boat::{
-            BoatCollisionVolume, BoatPart, BoatProjectionOwner, BoatSourceNode, BoatWaterExclusion,
-            PreparedBoat, ResidentBoat,
-        },
-        tidewater_hull_mask::HullVolume,
-        tidewater_mesh::{DATA, TINT},
-    },
 };
 
 fn check_source_records(
@@ -247,6 +248,7 @@ fn placement(package: &BoatPackage) -> Result<ManualPlacement, String> {
     Ok(ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic("boat-actual-instance-proof"),
         name: "Bateau éditable".into(),
         asset_id: boat::asset_id(),
@@ -696,7 +698,7 @@ struct RetirementWitness {
     original_root: Entity,
     hull: Entity,
     old_hull_global: Mat4,
-    geometry: std::sync::Arc<forge_tidewater::tidewater_hull_mask::Geometry>,
+    geometry: std::sync::Arc<forge_engine::source_hull_mask::Geometry>,
     unrelated: Entity,
     owned_wheel: Entity,
     adopted_mesh: Handle<Mesh>,

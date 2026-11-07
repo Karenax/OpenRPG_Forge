@@ -1,5 +1,5 @@
 use super::condition::{ConditionControls, ConditionFields};
-use super::{Edit, document, edit, id, identity, integer, source_hash};
+use super::{Edit, document, edit, id, identity, integer};
 use forge_core::EntityId;
 use forge_gameplay::{
     AbilityDefinition, AbilityEffect, AbilityTarget, Condition, QuestConsumption,
@@ -27,6 +27,24 @@ struct Fields {
 }
 
 impl Fields {
+    fn draft_fields(self) -> Vec<super::super::draft::Field> {
+        let mut fields = vec![
+            super::super::draft::Field::new(self.name),
+            super::super::draft::Field::new(self.target),
+            super::super::draft::Field::new(self.range),
+            super::super::draft::Field::new(self.stamina),
+            super::super::draft::Field::new(self.costs),
+            super::super::draft::Field::new(self.effects),
+            super::super::draft::Field::new(self.item),
+            super::super::draft::Field::new(self.quantity),
+            super::super::draft::Field::new(self.effect_kind),
+            super::super::draft::Field::new(self.points),
+            super::super::draft::Field::new(self.timed_effect),
+        ];
+        fields.extend(self.condition.draft_fields());
+        fields
+    }
+
     fn preview(self, state: Option<AuthoringState>, create: bool) -> Edit {
         edit(state, move |_, source| {
             let ability_id = identity(source, "ability", &self.selected.get_untracked(), create)?;
@@ -177,22 +195,30 @@ pub(super) fn AbilityControls(
         timed_effect: RwSignal::new(String::new()),
         error: RwSignal::new(None),
     };
-    Effect::new(move |previous: Option<super::super::FieldSource>| {
-        let key = (fields.selected.get(), source_hash(state));
-        if previous.as_ref() != Some(&key) {
+    let draft_notice_fields_selected = super::super::draft::bind(
+        move || {
+            let selected = fields.selected.get();
+            let source = super::super::draft::records(state, &selected);
+            (selected, source)
+        },
+        fields.draft_fields(),
+        move || {
             fields.load(
                 document(state)
                     .and_then(|source| source.simulation)
                     .and_then(|simulation| {
-                        id(&key.0)
+                        id(&fields.selected.get_untracked())
                             .ok()
                             .and_then(|ability| simulation.ability(ability).cloned())
                     }),
             );
-        }
-        key
-    });
+        },
+    );
+    let preview_send =
+        draft_notice_fields_selected.submitter_for(send, &[0, 1, 2, 3, 4, 5, 11, 12, 13, 14, 15]);
+
     view! {
+        <super::super::draft::DraftNotice notice=draft_notice_fields_selected/>
         <h4>"Capacités, cibles et coûts"</h4>
         <p>"Les coûts ne sont consommés que si tous les effets réussissent. Un soin ne ressuscite pas ; une capacité sans effet est refusée."</p>
         <label>"Capacité à retoucher"<select prop:value=move ||fields.selected.get() on:change=move |event|fields.selected.set(event_target_value(&event))>
@@ -209,8 +235,8 @@ pub(super) fn AbilityControls(
         <CostControls fields=fields state=state/>
         <EffectListControls fields=fields state=state/>
         <p role="alert">{move ||fields.error.get()}</p>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner une nouvelle capacité"</button>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la capacité"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),true))>"Examiner une nouvelle capacité"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la capacité"</button>
         <button on:click=move |_|send.run(fields.remove(state.get_untracked()))>"Examiner la suppression de la capacité inutilisée"</button>
         <AssignmentControls state=state send=send/>
     }
@@ -263,22 +289,38 @@ fn AssignmentControls(
 ) -> impl IntoView {
     let actor = RwSignal::new(String::new());
     let acquired = RwSignal::new(BTreeSet::<EntityId>::new());
-    Effect::new(move |previous: Option<super::super::FieldSource>| {
-        let key = (actor.get(), source_hash(state));
-        if previous.as_ref() != Some(&key) {
+    let draft_notice_actor = super::super::draft::bind(
+        move || {
+            let selected = actor.get();
+            let source = serde_json::to_value(
+                document(state)
+                    .and_then(|source| source.simulation)
+                    .and_then(|source| {
+                        id(&selected)
+                            .ok()
+                            .and_then(|actor| source.actor_abilities.get(&actor).cloned())
+                    }),
+            )
+            .unwrap_or_default();
+            (selected, source)
+        },
+        vec![super::super::draft::Field::new(acquired)],
+        move || {
             let current = document(state)
                 .and_then(|source| source.simulation)
                 .and_then(|simulation| {
-                    id(&key.0)
+                    id(&actor.get_untracked())
                         .ok()
                         .and_then(|actor| simulation.actor_abilities.get(&actor).cloned())
                 })
                 .unwrap_or_default();
             acquired.set(current.into_iter().collect());
-        }
-        key
-    });
+        },
+    );
+    let preview_send = draft_notice_actor.submitter(send);
+
     view! {
+        <super::super::draft::DraftNotice notice=draft_notice_actor/>
         <h4>"Capacités acquises par personnage"</h4>
         <label>"Personnage"<select prop:value=move ||actor.get() on:change=move |event|actor.set(event_target_value(&event))>
             <option value="">"Choisir un personnage"</option>
@@ -290,7 +332,7 @@ fn AssignmentControls(
                 if event_target_checked(&event){abilities.insert(ability_id);}else{abilities.remove(&ability_id);}
             })/>{ability.name}</label>}
         }).collect_view())}
-        <button on:click=move |_|send.run(edit(state.get_untracked(),move |_,source|{
+        <button on:click=move |_|preview_send.run(edit(state.get_untracked(),move |_,source|{
             let actor=id(&actor.get_untracked())?;
             if source.actor(actor).is_none(){return Err("Choisir un personnage courant.".into());}
             let mut simulation=source.simulation.clone().unwrap_or_default();

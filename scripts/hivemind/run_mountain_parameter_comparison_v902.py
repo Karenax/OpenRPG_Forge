@@ -1,0 +1,21 @@
+"""Use the existing owned Unity/UPM controller for exact settings comparisons."""
+from pathlib import Path
+
+recipe = Path(__file__).with_name('run_mountain_exact_capture_v875.py')
+code = recipe.read_text('utf-8')
+code = code.replace('mountain-exact-native-capture-v875','mountain-native-parameter-comparison-run-v902')
+code = code.replace('mountain-exact-source-capture-v873/PREPARED.v1.json','mountain-native-parameter-comparison-v901/PREPARED.v1.json')
+code = code.replace('exact_lod_source_capture_prepared_not_launched','native_original_settings_comparison_prepared_not_launched')
+code = code.replace("prepared['capture_cases'] == 141", "prepared['capture_cases'] == 188")
+code = code.replace("'SourceLibraryExactThumbnailBatchV873.cs'}", "'SourceLibraryExactThumbnailBatchV873.cs','MountainParameterComparisonV901.cs'}")
+code = code.replace("rglob('*.cs'))) == 3", "rglob('*.cs'))) == 4")
+code = code.replace("len(batch['cases']) == 141", "len(batch['cases']) == 188")
+code = code.replace('index*3:index*3+3', 'index*4:index*4+4')
+code = code.replace("if reports[1] is not None and reports[2] is not None:", "if reports[1] is not None and reports[2] is not None and reports[3] is not None:")
+code = code.replace("a,b = reports[1]['images'][view],reports[2]['images'][view]", "a,b = reports[1]['images'][view],reports[3]['images'][view]\n                    original = reports[2]['images'][view]")
+code = code.replace("prepared['cases'][index*3]['source_card_id']", "prepared['cases'][index*4]['source_card_id']")
+code = code.replace("raw_repeat_exact=a['raw_sha256']==b['raw_sha256']))", "raw_repeat_exact=a['raw_sha256']==b['raw_sha256'], raw_original_settings_equal=a['raw_sha256']==original['raw_sha256']))")
+code = code.replace('native_capture_finished_requires_migration_and_visual_review', 'native_parameter_comparison_finished_requires_scope_review')
+code = code.replace('capturing_exact_mountain_source_lods', 'comparing_original_and_migrated_mountain_settings')
+code = code.replace("original_sdk_pipeline_equivalence=False,actual_studio_gui_verified=False", "original_sdk_pipeline_equivalence=False,actual_studio_gui_verified=False,comparison_scope='Original serialized settings versus migrated settings under installed SDK; new fields use measured native shader defaults.'")
+exec(compile(code,str(recipe)+'#native-parameter-comparison', 'exec'),globals())

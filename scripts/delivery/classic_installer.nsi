@@ -8,6 +8,13 @@
 
 Unicode true
 
+!ifndef STUDIO_ONLY
+  !error "Select the STUDIO_ONLY profile"
+!endif
+!ifdef LEGACY_WITH_HUB
+  !error "Historical installer retired from the common checkout"
+!endif
+
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 !include "FileFunc.nsh"
@@ -22,33 +29,37 @@ Unicode true
 !ifndef VERSION
   !define VERSION "0.1.0-preview.20261010.1"
 !endif
+!ifndef STUDIO_PACKAGE
+  !error "STUDIO_PACKAGE must name the verified Studio package"
+!endif
+!ifndef STUDIO_DELIVERY_CLI
+  !error "STUDIO_DELIVERY_CLI must name the verified internal CLI"
+!endif
+!ifndef STUDIO_DELIVERY_INDEX
+  !error "STUDIO_DELIVERY_INDEX must name the verified delivery index"
+!endif
+!ifndef STUDIO_WEBVIEW2
+  !error "STUDIO_WEBVIEW2 must name the pinned offline prerequisite"
+!endif
+!define APPLICATION_PACKAGE "forge-studio.forgepack"
 
 ; The normal assembly recipe emits these stable names. They remain overrideable
 ; for a locally renamed payload without changing the installer logic.
-!ifndef APPLICATION_PACKAGE
-  !define APPLICATION_PACKAGE "forge-applications.forgepack"
-!endif
-!ifndef ASSETS_PACKAGE
-  !define ASSETS_PACKAGE "reference-assets.forgepack"
-!endif
-!ifndef MODULE_PACKAGE
-  !define MODULE_PACKAGE "reference-module.forgepack"
-!endif
 !ifndef WEBVIEW2_PACKAGE
   !define WEBVIEW2_PACKAGE "MicrosoftEdgeWebView2RuntimeInstallerX64.exe"
 !endif
 
-!define PRODUCT_NAME "OpenRPG Forge"
-!define PRODUCT_KEY "Software\OpenRPG Forge"
-!define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\OpenRPGForge"
+!define PRODUCT_NAME "OpenRPG Forge Studio"
+!define PRODUCT_KEY "Software\OpenRPG Forge Studio"
+!define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\OpenRPGForgeStudio"
+!define INTEGRATION_MARKER ".studio-classic-installer-integrated"
+!define OWNERSHIP_MARKER ".studio-classic-installer-owned"
+!define START_MENU_FOLDER "OpenRPG Forge Studio"
 !define WEBVIEW2_GUID "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
-!define INTEGRATION_MARKER ".classic-installer-integrated"
-!define OWNERSHIP_MARKER ".classic-installer-owned"
-!define START_MENU_FOLDER "OpenRPG Forge"
 
 Name "${PRODUCT_NAME}"
 OutFile "${OUTPUT_FILE}"
-InstallDir "$LOCALAPPDATA\OpenRPG Forge\Installation"
+  InstallDir "$LOCALAPPDATA\OpenRPG Forge\StudioInstallation"
 InstallDirRegKey HKCU "${PRODUCT_KEY}" "InstallRoot"
 RequestExecutionLevel user
 ; zlib keeps local rebuilds quick for the already packed native content. It is
@@ -66,11 +77,9 @@ BrandingText "OpenRPG Forge · livraison locale préparatoire"
 ; source pixel and its 1672×941 dimensions.
 !define MUI_BGCOLOR "F4EEDC"
 !define MUI_TEXTCOLOR "1B4A35"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "${__FILEDIR__}\installer-resources\aube-installer.bmp"
-!define MUI_WELCOMEFINISHPAGE_BITMAP_STRETCH "AspectFitHeight"
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "Installer OpenRPG Forge"
-!define MUI_WELCOMEPAGE_TEXT "Installez le launcher, le Studio, le jeu natif et les packages de contenu OpenRPG Forge.$\r$\n$\r$\nCette livraison hors ligne contient WebView2 si le composant n'est pas déjà installé."
+  !define MUI_WELCOMEPAGE_TITLE "Installer OpenRPG Forge Studio"
+  !define MUI_WELCOMEPAGE_TEXT "Installez le Studio et les composants nécessaires à la création et à l'export de jeux.$\r$\n$\r$\nVos projets restent dans votre espace utilisateur."
 !define MUI_FINISHPAGE_TITLE "OpenRPG Forge est installé"
 !define MUI_FINISHPAGE_TEXT "Les applications et les packages ont été vérifiés puis installés. Vos projets et sauvegardes restent dans votre espace utilisateur."
 !define MUI_FINISHPAGE_RUN
@@ -82,7 +91,6 @@ BrandingText "OpenRPG Forge · livraison locale préparatoire"
 !define MUI_UNFINISHPAGE_TEXT "La désinstallation des composants installés est terminée. Les données utilisateur ont été conservées."
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -98,16 +106,19 @@ Var Command
 Var CommandOutput
 Var CommandResult
 Var ErrorMessage
-Var PackageArguments
 Var PackageCount
 Var FindHandle
 Var FindName
 Var WebViewVersion
 Var SignaturePath
+Var LegacyInstallRoot
 
 Function .onInit
   SetShellVarContext current
   SetRegView 32
+  ; A separate, fixed root prevents a Studio-only uninstall from targeting
+  ; the historical launcher/Hub installation, including via /D=.
+  StrCpy $INSTDIR "$LOCALAPPDATA\OpenRPG Forge\StudioInstallation"
   ${IfNot} ${RunningX64}
     IfSilent +2
     MessageBox MB_ICONSTOP "OpenRPG Forge nécessite Windows 64 bits."
@@ -129,6 +140,12 @@ FunctionEnd
 Function un.onInit
   SetShellVarContext current
   SetRegView 32
+  GetFullPathName $0 "$LOCALAPPDATA\OpenRPG Forge\StudioInstallation"
+  GetFullPathName $1 "$INSTDIR"
+  ${If} $0 != $1
+    SetErrorLevel 1
+    Abort
+  ${EndIf}
   StrCpy $IntegrationEnabled "1"
 FunctionEnd
 
@@ -205,17 +222,24 @@ Function DetectWebView2
   StrCpy $WebViewVersion ""
   ; EdgeUpdate registers the Evergreen WebView2 runtime in both views. The
   ; 32-bit view is the WOW6432Node registration on this Windows installation.
+  ; EdgeUpdate can also register 0.0.0.0 for an absent runtime.
   SetRegView 32
   ReadRegStr $WebViewVersion HKLM "SOFTWARE\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_GUID}" "pv"
   ${If} $WebViewVersion == ""
+  ${OrIf} $WebViewVersion == "0.0.0.0"
     ReadRegStr $WebViewVersion HKCU "Software\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_GUID}" "pv"
   ${EndIf}
   SetRegView 64
   ${If} $WebViewVersion == ""
+  ${OrIf} $WebViewVersion == "0.0.0.0"
     ReadRegStr $WebViewVersion HKLM "SOFTWARE\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_GUID}" "pv"
   ${EndIf}
   ${If} $WebViewVersion == ""
+  ${OrIf} $WebViewVersion == "0.0.0.0"
     ReadRegStr $WebViewVersion HKCU "Software\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_GUID}" "pv"
+  ${EndIf}
+  ${If} $WebViewVersion == "0.0.0.0"
+    StrCpy $WebViewVersion ""
   ${EndIf}
   SetRegView 32
 FunctionEnd
@@ -234,14 +258,13 @@ Function VerifyWebView2Signature
     Call InstallerFailure
     Return
   ${EndIf}
-  StrCpy $Command `"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& { $$s=Get-AuthenticodeSignature -LiteralPath $$env:FORGE_WEBVIEW2_INSTALLER; if ($$s.Status -ne [System.Management.Automation.SignatureStatus]::Valid -or $$s.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { exit 1 } }"`
+  StrCpy $Command `"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& { $$env:PSModulePath=Join-Path $$env:WINDIR 'System32\WindowsPowerShell\v1.0\Modules'; $$s=Get-AuthenticodeSignature -LiteralPath $$env:FORGE_WEBVIEW2_INSTALLER; if ($$s.Status -ne [System.Management.Automation.SignatureStatus]::Valid -or $$s.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { exit 1 } }"`
   Push $Command
   Call RunCommand
   System::Call 'kernel32::SetEnvironmentVariableW(w "FORGE_WEBVIEW2_INSTALLER", w "")i.r0'
 FunctionEnd
 
 Function CollectPackages
-  StrCpy $PackageArguments ""
   StrCpy $PackageCount "0"
   FindFirst $FindHandle $FindName "$PLUGINSDIR\payload\*.forgepack"
   ${If} $FindName == ""
@@ -252,7 +275,6 @@ Function CollectPackages
     Call InstallerFailure
   ${EndIf}
   collect_packages_loop:
-    StrCpy $PackageArguments '$PackageArguments "$PLUGINSDIR\payload\$FindName"'
     IntOp $PackageCount $PackageCount + 1
     FindNext $FindHandle $FindName
     ${If} $FindName != ""
@@ -268,14 +290,6 @@ Function VerifyFixedPackages
   Push "Package applications absent : ${APPLICATION_PACKAGE}."
   Call InstallerFailure
   verify_fixed_assets:
-  IfFileExists "$PLUGINSDIR\payload\${ASSETS_PACKAGE}" verify_fixed_module
-  Push "Package assets absent : ${ASSETS_PACKAGE}."
-  Call InstallerFailure
-  verify_fixed_module:
-  IfFileExists "$PLUGINSDIR\payload\${MODULE_PACKAGE}" verify_fixed_done
-  Push "Package module absent : ${MODULE_PACKAGE}."
-  Call InstallerFailure
-  verify_fixed_done:
 FunctionEnd
 
 Function InstallWebView2IfMissing
@@ -311,18 +325,8 @@ Function CopyRootBootstrap
     Push "Impossible de créer le répertoire d'installation."
     Call InstallerFailure
   ${EndIf}
-  ClearErrors
-  CopyFiles /SILENT "$PLUGINSDIR\payload\Forge.exe" "$INSTDIR"
-  ${If} ${Errors}
-    Push "Impossible de copier Forge.exe vers la racine d'installation."
-    Call InstallerFailure
-  ${EndIf}
-  ClearErrors
-  CopyFiles /SILENT "$PLUGINSDIR\payload\Forge-ContentManager.exe" "$INSTDIR"
-  ${If} ${Errors}
-    Push "Impossible de copier le gestionnaire de contenu."
-    Call InstallerFailure
-  ${EndIf}
+  ; Replace the pending marker with the installer version before bootstrapping.
+  Call WriteOwnershipMarker
   ClearErrors
   CopyFiles /SILENT "$PLUGINSDIR\payload\forge-delivery.exe" "$INSTDIR"
   ${If} ${Errors}
@@ -335,6 +339,9 @@ Function CopyRootBootstrap
     Push "Impossible d'écrire le désinstalleur."
     Call InstallerFailure
   ${EndIf}
+FunctionEnd
+
+Function WriteOwnershipMarker
   ; This private marker is written even for /NOINTEGRATION. It proves that
   ; this bootstrap owns the root before the uninstaller calls the CLI.
   ClearErrors
@@ -374,7 +381,7 @@ Function RegisterIntegration
   WriteRegStr HKCU "${PRODUCT_KEY}" "InstallRoot" "$INSTDIR"
   !insertmacro CheckInstallerError "Impossible d'enregistrer le chemin d'installation."
   ClearErrors
-  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayName" "OpenRPG Forge"
+  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayName" "${PRODUCT_NAME}"
   !insertmacro CheckInstallerError "Impossible d'enregistrer le nom de l'application."
   ClearErrors
   WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayVersion" "${VERSION}"
@@ -386,7 +393,7 @@ Function RegisterIntegration
   WriteRegStr HKCU "${UNINSTALL_KEY}" "InstallLocation" "$INSTDIR"
   !insertmacro CheckInstallerError "Impossible d'enregistrer l'emplacement d'installation."
   ClearErrors
-  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayIcon" "$INSTDIR\Forge.exe"
+  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayIcon" "$INSTDIR\forge-delivery.exe"
   !insertmacro CheckInstallerError "Impossible d'enregistrer l'icône de l'application."
   ClearErrors
   WriteRegStr HKCU "${UNINSTALL_KEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
@@ -402,20 +409,11 @@ Function RegisterIntegration
   CreateDirectory "$SMPROGRAMS\${START_MENU_FOLDER}"
   !insertmacro CheckInstallerError "Impossible de créer le dossier du menu Démarrer."
   ClearErrors
-  CreateShortCut "$SMPROGRAMS\${START_MENU_FOLDER}\OpenRPG Forge.lnk" "$INSTDIR\Forge.exe" '--root "$INSTDIR"' "$INSTDIR\Forge.exe" 0 SW_SHOWNORMAL ""
-  !insertmacro CheckInstallerError "Impossible de créer le raccourci OpenRPG Forge."
-  ClearErrors
-  CreateShortCut "$SMPROGRAMS\${START_MENU_FOLDER}\Gérer les contenus Forge.lnk" "$INSTDIR\Forge-ContentManager.exe" '--root "$INSTDIR"' "$INSTDIR\Forge-ContentManager.exe" 0 SW_SHOWNORMAL ""
-  !insertmacro CheckInstallerError "Impossible de créer le raccourci du gestionnaire de contenu."
-  ClearErrors
-  CreateShortCut "$SMPROGRAMS\${START_MENU_FOLDER}\OpenRPG Forge Studio.lnk" "$INSTDIR\forge-delivery.exe" 'launch "$INSTDIR" editor' "$INSTDIR\Forge.exe" 0 SW_SHOWMINIMIZED ""
+  CreateShortCut "$SMPROGRAMS\${START_MENU_FOLDER}\OpenRPG Forge Studio.lnk" "$INSTDIR\forge-delivery.exe" 'launch "$INSTDIR" editor' "$INSTDIR\forge-delivery.exe" 0 SW_SHOWMINIMIZED ""
   !insertmacro CheckInstallerError "Impossible de créer le raccourci du Studio."
   ClearErrors
   CreateShortCut "$SMPROGRAMS\${START_MENU_FOLDER}\Désinstaller OpenRPG Forge.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0 SW_SHOWNORMAL ""
   !insertmacro CheckInstallerError "Impossible de créer le raccourci de désinstallation."
-  ClearErrors
-  CreateShortCut "$DESKTOP\OpenRPG Forge.lnk" "$INSTDIR\Forge.exe" '--root "$INSTDIR"' "$INSTDIR\Forge.exe" 0 SW_SHOWNORMAL ""
-  !insertmacro CheckInstallerError "Impossible de créer le raccourci du bureau."
 
   ClearErrors
   FileOpen $0 "$INSTDIR\${INTEGRATION_MARKER}" w
@@ -430,7 +428,7 @@ Function RegisterIntegration
   Call AppendLog
 FunctionEnd
 Function LaunchForge
-  Exec '"$INSTDIR\Forge.exe" --root "$INSTDIR"'
+  Exec '"$INSTDIR\forge-delivery.exe" launch "$INSTDIR" editor'
 FunctionEnd
 
 Section "OpenRPG Forge"
@@ -440,12 +438,17 @@ Section "OpenRPG Forge"
 
   SetOutPath "$PLUGINSDIR\payload"
   DetailPrint "Extraction des composants hors ligne..."
-  File "${PAYLOAD_DIR}\Forge.exe"
-  File "${PAYLOAD_DIR}\Forge-ContentManager.exe"
-  File "${PAYLOAD_DIR}\forge-delivery.exe"
-  File "${PAYLOAD_DIR}\delivery.json"
-  File "${PAYLOAD_DIR}\${WEBVIEW2_PACKAGE}"
-  File "${PAYLOAD_DIR}\*.forgepack"
+  File /oname=forge-delivery.exe "${STUDIO_DELIVERY_CLI}"
+  File /oname=${APPLICATION_PACKAGE} "${STUDIO_PACKAGE}"
+  ; Refuse foreign roots and recover an interruption after the first
+  ; activation only when the active Studio package matches this installer.
+  IfFileExists "$INSTDIR\${OWNERSHIP_MARKER}" studio_root_ready
+  StrCpy $Command '"$PLUGINSDIR\payload\forge-delivery.exe" check-studio-reinstall-root "$INSTDIR" "$PLUGINSDIR\payload\${APPLICATION_PACKAGE}"'
+  Push $Command
+  Call RunCommand
+  studio_root_ready:
+  File /oname=delivery.json "${STUDIO_DELIVERY_INDEX}"
+  File /oname=${WEBVIEW2_PACKAGE} "${STUDIO_WEBVIEW2}"
 
   DetailPrint "Vérification et installation de WebView2 si nécessaire..."
   Call InstallWebView2IfMissing
@@ -456,19 +459,36 @@ Section "OpenRPG Forge"
   ; plan-file is deliberately written to the temporary extraction directory;
   ; Apply remains the only operation allowed to publish the installation head.
   DetailPrint "Préparation de l'installation..."
-  StrCpy $Command '"$PLUGINSDIR\payload\forge-delivery.exe" plan-file "$INSTDIR" "$PLUGINSDIR\privateplan.json"$PackageArguments'
+  ReadRegStr $LegacyInstallRoot HKCU "Software\OpenRPG Forge" "InstallRoot"
+  ${If} $LegacyInstallRoot == ""
+    System::Call 'kernel32::SetEnvironmentVariableW(w "FORGE_STUDIO_LEGACY_INSTALL_ROOT", p 0)i.r1'
+  ${Else}
+    System::Call 'kernel32::SetEnvironmentVariableW(w "FORGE_STUDIO_LEGACY_INSTALL_ROOT", w "$LegacyInstallRoot")i.r1'
+    ${If} $1 = 0
+      Push "Impossible de préparer la lecture de l'installation Forge historique."
+      Call InstallerFailure
+    ${EndIf}
+  ${EndIf}
+  StrCpy $Command '"$PLUGINSDIR\payload\forge-delivery.exe" plan-studio-installer "$INSTDIR" "$PLUGINSDIR\privateplan.json" "$PLUGINSDIR\payload\${APPLICATION_PACKAGE}"'
   Push $Command
   Call RunCommand
+  System::Call 'kernel32::SetEnvironmentVariableW(w "FORGE_STUDIO_LEGACY_INSTALL_ROOT", p 0)i.r1'
   IfFileExists "$PLUGINSDIR\privateplan.json" apply_delivery_plan
   Push "Le CLI n'a pas écrit privateplan.json."
   Call InstallerFailure
   apply_delivery_plan:
   DetailPrint "Installation des applications et du contenu..."
-  StrCpy $Command '"$PLUGINSDIR\payload\forge-delivery.exe" apply "$PLUGINSDIR\privateplan.json"'
+  StrCpy $Command '"$PLUGINSDIR\payload\forge-delivery.exe" apply-studio-installer "$PLUGINSDIR\privateplan.json"'
   Push $Command
   Call RunCommand
 
-  DetailPrint "Installation du launcher et du désinstalleur..."
+  ${If} $LegacyInstallRoot != ""
+    DetailPrint "Récupération des modules de l’installation historique..."
+    StrCpy $Command '"$PLUGINSDIR\payload\forge-delivery.exe" recover-legacy-modules "$LegacyInstallRoot" "$INSTDIR"'
+    Push $Command
+    Call RunCommand
+  ${EndIf}
+  DetailPrint "Installation des composants et du désinstalleur..."
   Call CopyRootBootstrap
   Call RegisterIntegration
   Push "Installation terminée. Journal : $LogFile"
@@ -495,25 +515,20 @@ Section "Uninstall"
   Push "forge-delivery.exe est absent : réinstallez ou réparez OpenRPG Forge avant de désinstaller."
   Call un.InstallerFailure
   uninstall_owned_packages:
-  StrCpy $Command '"$INSTDIR\forge-delivery.exe" uninstall "$INSTDIR"'
+  StrCpy $Command '"$INSTDIR\forge-delivery.exe" uninstall-studio "$INSTDIR"'
   Push $Command
   Call un.RunCommand
   ; Only these files were installed directly by this NSIS wrapper. Package
   ; payload ownership remains with forge-delivery.exe and is never removed by
   ; a recursive NSIS delete.
-  Delete "$INSTDIR\Forge.exe"
-  Delete "$INSTDIR\Forge-ContentManager.exe"
   Delete "$INSTDIR\forge-delivery.exe"
   Delete "$INSTDIR\Uninstall.exe"
   Delete "$INSTDIR\${OWNERSHIP_MARKER}"
   Delete "$INSTDIR\${INTEGRATION_MARKER}"
   ReadRegStr $0 HKCU "${PRODUCT_KEY}" "InstallRoot"
   ${If} $0 == "$INSTDIR"
-    Delete "$SMPROGRAMS\${START_MENU_FOLDER}\OpenRPG Forge.lnk"
-    Delete "$SMPROGRAMS\${START_MENU_FOLDER}\Gérer les contenus Forge.lnk"
     Delete "$SMPROGRAMS\${START_MENU_FOLDER}\OpenRPG Forge Studio.lnk"
     Delete "$SMPROGRAMS\${START_MENU_FOLDER}\Désinstaller OpenRPG Forge.lnk"
-    Delete "$DESKTOP\OpenRPG Forge.lnk"
     RMDir "$SMPROGRAMS\${START_MENU_FOLDER}"
     DeleteRegValue HKCU "${PRODUCT_KEY}" "InstallRoot"
     DeleteRegKey /ifempty HKCU "${PRODUCT_KEY}"

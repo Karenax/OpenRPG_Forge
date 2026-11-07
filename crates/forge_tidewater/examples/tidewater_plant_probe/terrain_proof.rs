@@ -15,8 +15,8 @@ use bevy::{
 };
 use std::sync::{Arc, Mutex};
 use {
+    forge_engine::source_terrain::{lod::LodMaterial, scene::ResidentTerrain},
     forge_engine::{ForgePlayerCamera, PlayerInputFocus, PlayerSimulationReady},
-    forge_tidewater::tidewater_terrain::{lod::LodMaterial, scene::ResidentTerrain},
 };
 #[path = "context_proof.rs"]
 mod context_proof;
@@ -102,7 +102,7 @@ fn residency(
         .material
         .is_some_and(|id| materials.get(id.untyped()).is_some());
     let ocean_ready = sample.ocean_mesh.is_some_and(|id| meshes.get(id).is_some());
-    let buffer = buffers.get(forge_tidewater::tidewater_material::scene_buffer::HANDLE.id());
+    let buffer = buffers.get(forge_engine::source_lighting::scene_buffer::HANDLE.id());
     let entity = sample
         .entity
         .map(bevy::render::sync_world::MainEntity::from);

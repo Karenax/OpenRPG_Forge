@@ -1,18 +1,14 @@
 //! CPU projection of acquired Debris into Bevy meshes, before material staging.
 //! This adapter does not spawn an incomplete render or replace source materials with PBR.
-use crate::tidewater_mesh::VillageMeshBytes;
-use bevy::{
-    mesh::{Indices, MeshVertexAttribute},
-    prelude::Mesh,
-    render::render_resource::VertexFormat,
-};
+use bevy::prelude::Mesh;
 use forge_core::AssetId;
-use forge_tidewater_assets::tidewater_debris::{self as source_assets, DebrisPackage};
+use forge_engine::source_surface::mesh::SourceMeshBytes;
+use forge_tidewater_assets::tidewater_debris as source_assets;
+use forge_tidewater_assets::tidewater_debris::DebrisPackage;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
 pub mod collisions;
-pub mod nature;
 pub mod pebble_cells;
 pub mod pebble_material;
 pub mod pebble_mesh;
@@ -29,13 +25,6 @@ pub mod scanned_scene;
 pub mod scanned_shadow;
 pub mod scanned_shadow_runtime;
 pub mod scene;
-
-/// Original world rest coordinates, retained for the source fabric wind phase.
-pub const SOURCE_REST_POSITION: MeshVertexAttribute = MeshVertexAttribute::new(
-    "DebrisSourceRestPosition",
-    0x7457_0020,
-    VertexFormat::Float32x3,
-);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -167,7 +156,7 @@ impl PreparedDebris {
                 };
                 let indices = bytes(package, &part.indices)?;
                 let shadow = bytes(package, &part.shadow_indices)?;
-                let mut mesh = VillageMeshBytes {
+                let prepared = SourceMeshBytes {
                     positions: attribute("pos")?,
                     normals: attribute("nrm")?,
                     uv: attribute("uv")?,
@@ -175,52 +164,14 @@ impl PreparedDebris {
                     data: attribute("data")?,
                     indices,
                 }
-                .into_mesh()
+                .into_mesh_with_source_shadow(bytes(package, &part.reference_position)?, shadow)
                 .map_err(str::to_owned)?;
-                let rest = bytes(package, &part.reference_position)?;
-                if rest.len() != attribute("pos")?.len() {
-                    return Err("Debris rest coordinates differ".into());
-                }
-                let positions: Vec<[f32; 3]> = rest
-                    .as_chunks::<12>()
-                    .0
-                    .iter()
-                    .map(|chunk| {
-                        std::array::from_fn(|axis| {
-                            let offset = axis * 4;
-                            f32::from_le_bytes([
-                                chunk[offset],
-                                chunk[offset + 1],
-                                chunk[offset + 2],
-                                chunk[offset + 3],
-                            ])
-                        })
-                    })
-                    .collect();
-                if positions.iter().flatten().any(|v| !v.is_finite()) {
-                    return Err("Non-finite Debris source coordinates".into());
-                }
-                mesh.insert_attribute(SOURCE_REST_POSITION, positions);
-                let shadow_mesh = if shadow.is_empty() {
-                    None
-                } else {
-                    let shadow_indices = shadow
-                        .as_chunks::<4>()
-                        .0
-                        .iter()
-                        .map(|b| u32::from_le_bytes(*b))
-                        .collect();
-                    Some(
-                        mesh.clone()
-                            .with_inserted_indices(Indices::U32(shadow_indices)),
-                    )
-                };
                 triangles += indices.len() / 12;
                 shadow_triangles += shadow.len() / 12;
                 parts.push(PreparedDebrisPart {
                     surface: part.material,
-                    mesh,
-                    shadow_mesh,
+                    mesh: prepared.mesh,
+                    shadow_mesh: prepared.shadow_mesh,
                 });
             }
             objects.push(PreparedDebrisObject {
@@ -251,6 +202,37 @@ fn bytes<'a>(package: &'a DebrisPackage, reference: &Reference) -> Result<&'a [u
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::mesh::{Indices, MeshVertexAttribute, VertexAttributeValues};
+    use forge_engine::source_surface::mesh::{DATA, SOURCE_REST_POSITION, TINT};
+
+    fn assert_floats<const N: usize>(values: &[[f32; N]], bytes: &[u8]) {
+        assert_eq!(values.len() * N * 4, bytes.len());
+        for (value, original) in values.iter().flatten().zip(bytes.as_chunks::<4>().0.iter()) {
+            assert_eq!(value.to_bits(), u32::from_le_bytes(*original));
+        }
+    }
+
+    fn assert_attribute(mesh: &Mesh, attribute: MeshVertexAttribute, bytes: &[u8]) {
+        match mesh
+            .attribute(attribute)
+            .expect("Original source attribute missing")
+        {
+            VertexAttributeValues::Float32x2(values) => assert_floats(values, bytes),
+            VertexAttributeValues::Float32x3(values) => assert_floats(values, bytes),
+            VertexAttributeValues::Float32x4(values) => assert_floats(values, bytes),
+            _ => panic!("Original source attribute type differs"),
+        }
+    }
+
+    fn assert_indices(mesh: &Mesh, bytes: &[u8]) {
+        let Some(Indices::U32(indices)) = mesh.indices() else {
+            panic!("Original source index type differs");
+        };
+        assert_eq!(indices.len() * 4, bytes.len());
+        for (index, original) in indices.iter().zip(bytes.as_chunks::<4>().0.iter()) {
+            assert_eq!(*index, u32::from_le_bytes(*original));
+        }
+    }
 
     #[test]
     #[ignore = "Requires the real hash-pinned Debris frame acquisition"]
@@ -272,19 +254,50 @@ mod tests {
         let mut main = 0;
         let mut shadow = 0;
         let mut parts = 0;
-        for object in &prepared.objects {
+        let description: Description = serde_json::from_value(package.frames().clone()).unwrap();
+        assert_eq!(description.props.len(), prepared.objects.len());
+        for (object, original) in prepared.objects.iter().zip(&description.props) {
             assert_eq!(object.asset_id, AssetId::deterministic(&object.source_id));
-            for part in &object.parts {
+            assert_eq!(object.source_id, original.source_id);
+            assert_eq!(object.parts.len(), original.parts.len());
+            for (part, source) in object.parts.iter().zip(&original.parts) {
                 parts += 1;
+                assert_eq!(part.surface, source.material);
+                for (attribute, name) in [
+                    (Mesh::ATTRIBUTE_POSITION, "pos"),
+                    (Mesh::ATTRIBUTE_NORMAL, "nrm"),
+                    (Mesh::ATTRIBUTE_UV_0, "uv"),
+                    (TINT, "tint"),
+                    (DATA, "data"),
+                ] {
+                    let reference = source.attributes.get(name).unwrap();
+                    assert_attribute(&part.mesh, attribute, bytes(&package, reference).unwrap());
+                }
+                assert_attribute(
+                    &part.mesh,
+                    SOURCE_REST_POSITION,
+                    bytes(&package, &source.reference_position).unwrap(),
+                );
+                assert_indices(&part.mesh, bytes(&package, &source.indices).unwrap());
                 main += part.mesh.indices().unwrap().len() / 3;
-                assert!(part.mesh.attribute(SOURCE_REST_POSITION).is_some());
-                assert!(part.mesh.attribute(crate::tidewater_mesh::DATA).is_some());
+                let shadow_bytes = bytes(&package, &source.shadow_indices).unwrap();
+                assert_eq!(part.shadow_mesh.is_none(), shadow_bytes.is_empty());
                 if part.surface == DebrisSurface::Fabric {
                     assert!(part.shadow_mesh.is_none());
                 }
                 if let Some(mesh) = &part.shadow_mesh {
+                    assert_indices(mesh, shadow_bytes);
+                    for attribute in [
+                        Mesh::ATTRIBUTE_POSITION,
+                        Mesh::ATTRIBUTE_NORMAL,
+                        Mesh::ATTRIBUTE_UV_0,
+                        TINT,
+                        DATA,
+                        SOURCE_REST_POSITION,
+                    ] {
+                        assert_eq!(mesh.attribute(attribute), part.mesh.attribute(attribute));
+                    }
                     shadow += mesh.indices().unwrap().len() / 3;
-                    assert!(mesh.attribute(SOURCE_REST_POSITION).is_some());
                 }
             }
         }

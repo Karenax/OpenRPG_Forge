@@ -137,15 +137,7 @@ impl ModuleAssetResolver {
         }
         let path = self.safe_path(&entry.file)?;
         let bytes = read_limited(&path, MAX_MODEL_BYTES, MODEL_HEADER_HEADROOM)?;
-        if forge_core::bytes_sha256(&bytes) != sha256 {
-            return Err(reject(format!(
-                "SHA-256 différent du catalogue pour {asset_id}"
-            )));
-        }
-        validate_glb_header(&bytes).map_err(reject)?;
-        if entry.collision == Some(ModuleCollisionPolicy::StaticTriangleMeshes) {
-            validate_static_scene0(&bytes).map_err(reject)?;
-        }
+        validate_model(entry, &bytes)?;
         // Detect catalog replacement during acquisition, before publishing bytes.
         self.read_catalog()?;
         Ok(ModuleModel {
@@ -174,34 +166,207 @@ impl ModuleAssetResolver {
         if forge_core::bytes_sha256(&bytes) != self.catalog_sha256 {
             return Err(reject("SHA-256 du catalogue différent du pin installé"));
         }
-        let catalog: Catalog = serde_json::from_slice(&bytes).map_err(reject)?;
-        if catalog.schema_version != 1 || catalog.assets.len() > 4096 {
-            return Err(reject("Version ou budget du catalogue invalide"));
-        }
-        let mut ids = BTreeSet::new();
-        for entry in &catalog.assets {
-            if entry.id.as_uuid().is_nil()
-                || !ids.insert(entry.id)
-                || entry.license.trim().is_empty()
-            {
-                return Err(reject("Identité dupliquée/vide ou licence absente"));
-            }
-            safe_name(&entry.file).map_err(reject)?;
-            if !Path::new(&entry.file)
-                .extension()
-                .is_some_and(|ext| ext.eq_ignore_ascii_case("glb"))
-            {
-                return Err(reject("Un modèle du catalogue doit être un GLB"));
-            }
-            for shadow in [&entry.shadow_positions, &entry.shadow_indices]
-                .into_iter()
-                .flatten()
-            {
-                safe_name(shadow).map_err(reject)?;
-            }
-        }
-        Ok(catalog)
+        parse_catalog(&bytes)
     }
+}
+
+fn validate_model(entry: &Entry, bytes: &[u8]) -> Result<(), ModuleModelError> {
+    if forge_core::bytes_sha256(bytes) != entry.hash {
+        return Err(reject(format!(
+            "SHA-256 différent du catalogue pour {}",
+            entry.id
+        )));
+    }
+    validate_glb_header(bytes).map_err(reject)?;
+    if entry.collision == Some(ModuleCollisionPolicy::StaticTriangleMeshes) {
+        validate_static_scene0(bytes).map_err(reject)?;
+    }
+    Ok(())
+}
+
+fn parse_catalog(bytes: &[u8]) -> Result<Catalog, ModuleModelError> {
+    let catalog: Catalog = serde_json::from_slice(bytes).map_err(reject)?;
+    if catalog.schema_version != 1 || catalog.assets.len() > 4096 {
+        return Err(reject("Version ou budget du catalogue invalide"));
+    }
+    let mut ids = BTreeSet::new();
+    for entry in &catalog.assets {
+        if entry.id.as_uuid().is_nil() || !ids.insert(entry.id) || entry.license.trim().is_empty() {
+            return Err(reject("Identité dupliquée/vide ou licence absente"));
+        }
+        safe_name(&entry.file).map_err(reject)?;
+        if !Path::new(&entry.file)
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("glb"))
+        {
+            return Err(reject("Un modèle du catalogue doit être un GLB"));
+        }
+        for shadow in [&entry.shadow_positions, &entry.shadow_indices]
+            .into_iter()
+            .flatten()
+        {
+            safe_name(shadow).map_err(reject)?;
+        }
+    }
+    Ok(catalog)
+}
+
+pub fn reference_history_from_environment(
+    reference: ContentHash,
+) -> Result<Option<forge_delivery::legacy_reference::ReferenceHistory>, String> {
+    use forge_delivery::legacy_reference::ReferenceHistory;
+    match (
+        std::env::var_os("FORGE_MODULE_ASSET_HISTORY_ROOT"),
+        std::env::var_os("FORGE_MODULE_ASSET_HISTORY_MANIFEST_SHA256"),
+    ) {
+        (None, None) => Ok(None),
+        (Some(root), Some(pin)) => {
+            let pin = ContentHash::parse(pin.to_str().ok_or("Invalid model history manifest pin")?)
+                .map_err(|error| error.to_string())?;
+            ReferenceHistory::open(Path::new(&root), pin, reference).map(Some)
+        }
+        _ => Err("Configuration des anciens modèles de référence incomplète.".into()),
+    }
+}
+
+pub fn export_reference_historical_model(
+    reference: &forge_delivery::legacy_reference::ReferenceScene,
+    history: &forge_delivery::legacy_reference::ReferenceHistory,
+    asset_id: AssetId,
+    sha256: ContentHash,
+    limit: usize,
+) -> Result<Option<forge_delivery::module_builder::ExportHistoricalModel>, String> {
+    let raw = reference.read("static-assets.json", MAX_CATALOG_BYTES)?;
+    let catalog = parse_catalog(&raw).map_err(|error| error.to_string())?;
+    let Some(entry) = catalog.assets.iter().find(|entry| entry.id == asset_id) else {
+        return Ok(None);
+    };
+    let Some(bytes) = history.model(asset_id, sha256, limit.min(MAX_MODEL_BYTES))? else {
+        return Ok(None);
+    };
+    validate_glb_header(&bytes).map_err(str::to_owned)?;
+    let static_triangle_meshes =
+        entry.collision == Some(ModuleCollisionPolicy::StaticTriangleMeshes);
+    if static_triangle_meshes {
+        validate_static_scene0(&bytes).map_err(str::to_owned)?;
+    }
+    Ok(Some(
+        forge_delivery::module_builder::ExportHistoricalModel {
+            asset_id,
+            expected_sha256: sha256,
+            bytes,
+            license: history.notice().to_vec(),
+            static_triangle_meshes,
+        },
+    ))
+}
+
+/// Capture exact private models from the same admitted reference installation.
+pub fn export_reference_models(
+    reference: &forge_delivery::legacy_reference::ReferenceScene,
+    pins: &[(AssetId, ContentHash)],
+    captured_on: &str,
+    mut remaining: u64,
+) -> Result<crate::asset_import_native::AvailableExportSnapshot, String> {
+    use crate::asset_import_native::{AvailableExportSnapshot, ImportedExportSnapshot};
+    use forge_assets::governed_import::{
+        AssetProvenance, AssetRights, GOVERNED_IMPORT_SCHEMA, GOVERNED_IMPORT_VERSION,
+        GovernedAssetFile, GovernedAssetKind, GovernedImportAsset, GovernedImportCatalog,
+        RedistributionRights,
+    };
+    use forge_core::bytes_sha256;
+    use std::collections::BTreeMap;
+
+    let raw = reference.read("static-assets.json", MAX_CATALOG_BYTES)?;
+    let catalog = parse_catalog(&raw).map_err(|error| error.to_string())?;
+    let proof = serde_json::to_vec_pretty(&serde_json::json!({
+        "schema": "forge.private-reference-models.v1",
+        "reference_assets_manifest_sha256": reference.revision(),
+        "catalog_sha256": bytes_sha256(&raw),
+        "catalog_utf8": std::str::from_utf8(&raw).map_err(|error| error.to_string())?,
+        "captured_on": captured_on,
+        "rights": "private_local_only"
+    }))
+    .map_err(|error| error.to_string())?;
+    let evidence = format!("licenses/{}.txt", bytes_sha256(&proof));
+    let mut assets = Vec::new();
+    let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut unresolved = Vec::new();
+    for (id, pin) in pins {
+        let Some(entry) = catalog.assets.iter().find(|entry| entry.id == *id) else {
+            unresolved.push((*id, *pin));
+            continue;
+        };
+        if entry.hash != *pin {
+            return Err(format!(
+                "Empreinte sauvegardée différente du catalogue pour {id}"
+            ));
+        }
+        if entry.collision != Some(ModuleCollisionPolicy::StaticTriangleMeshes) {
+            return Err(format!(
+                "Le modèle de référence {id} nécessite son profil de collision d’origine."
+            ));
+        }
+        let path = format!("models/{pin}.glb");
+        let length = if let Some(bytes) = files.get(&path) {
+            bytes.len() as u64
+        } else {
+            let limit = remaining.min(MAX_MODEL_BYTES as u64) as usize;
+            let bytes = reference.read(&entry.file, limit)?;
+            validate_model(entry, &bytes).map_err(|error| error.to_string())?;
+            let length = bytes.len() as u64;
+            remaining -= length;
+            files.insert(path.clone(), bytes);
+            length
+        };
+        assets.push(GovernedImportAsset {
+            id: *id,
+            name: entry.file.clone(),
+            kind: GovernedAssetKind::Mesh,
+            payload: GovernedAssetFile {
+                path,
+                sha256: *pin,
+                bytes: length,
+            },
+            provenance: AssetProvenance {
+                source: format!(
+                    "Ressources de référence installées {}",
+                    reference.revision()
+                ),
+                author: "Auteur non renseigné par le catalogue installé".into(),
+                license: entry.license.clone(),
+                evidence: evidence.clone(),
+                acquired_on: captured_on.into(),
+                rights: AssetRights {
+                    local_use: true,
+                    redistribution: RedistributionRights::Forbidden,
+                    redistribution_evidence: None,
+                },
+            },
+            derived_from: None,
+            transformations: Vec::new(),
+            authored_changes: false,
+            durable_source: None,
+            thumbnail: None,
+        });
+    }
+    if !assets.is_empty() {
+        if proof.len() as u64 > remaining {
+            return Err("Budget des preuves de référence dépassé".into());
+        }
+        files.insert(evidence, proof);
+    }
+    Ok(AvailableExportSnapshot {
+        snapshot: ImportedExportSnapshot {
+            catalog: GovernedImportCatalog {
+                schema: GOVERNED_IMPORT_SCHEMA.into(),
+                schema_version: GOVERNED_IMPORT_VERSION,
+                assets,
+            },
+            files,
+        },
+        unresolved,
+    })
 }
 
 fn reject(reason: impl fmt::Display) -> ModuleModelError {

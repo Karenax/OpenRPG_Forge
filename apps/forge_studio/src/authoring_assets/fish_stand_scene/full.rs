@@ -1,25 +1,23 @@
 //! Complete material projection using the viewport's common resident resources.
 use super::{State, imported_buildings};
 use bevy::prelude::*;
-use forge_tidewater::{
-    tidewater_material::VillageMaterial,
-    tidewater_ocean_depth::{self, SceneDepth},
-    tidewater_stall::{
-        FishStandResident, contact_gpu,
-        full_material::{self, FullMaterial},
-    },
-};
+use forge_engine::source_scene_depth;
+use forge_engine::source_scene_depth::SceneDepth;
+use forge_engine::source_scene_depth::contact_gpu;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::stall_material::{self as full_material, FullMaterial};
+use forge_tidewater::tidewater_stall::FishStandResident;
 
 pub(super) fn install(app: &mut App) -> Result<(), String> {
-    tidewater_ocean_depth::register(app)?;
+    source_scene_depth::register(app)?;
     contact_gpu::register_deferred(app)?;
     app.add_systems(Last, refresh);
     Ok(())
 }
 
-fn inputs(world: &World, lighting: &VillageMaterial) -> Result<contact_gpu::Inputs, String> {
+fn inputs(world: &World, lighting: &SourceSurfaceMaterial) -> Result<contact_gpu::Inputs, String> {
     let time = world
-        .get_resource::<forge_tidewater::scene_wind::WindFrame>()
+        .get_resource::<forge_engine::source_wind::WindFrame>()
         .ok_or("Horloge commune du stand absente")?
         .material_uniform()
         .w;
@@ -28,7 +26,7 @@ fn inputs(world: &World, lighting: &VillageMaterial) -> Result<contact_gpu::Inpu
         0.0
     } else {
         world
-            .get_resource::<Assets<forge_tidewater::tidewater_sky::SkyMaterial>>()
+            .get_resource::<Assets<forge_engine::source_sky::SkyMaterial>>()
             .and_then(|materials| materials.iter().next())
             .ok_or("Ciel commun du stand absent")?
             .1
@@ -52,8 +50,8 @@ fn resize_depth(world: &mut World) -> Result<(), String> {
     let camera = {
         let mut cameras = world.query_filtered::<(Entity, &Camera), (
             With<Camera3d>,
-            Without<forge_tidewater::tidewater_sky::preview::PreviewCamera>,
-            Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
+            Without<forge_engine::scene_camera::OffscreenSceneCamera>,
+            Without<forge_engine::source_refraction::CaptureCamera>,
         )>();
         let mut active = cameras.iter(world).filter(|(_, camera)| camera.is_active);
         let camera = active.next().ok_or("Caméra principale du stand absente")?.0;
@@ -71,7 +69,7 @@ fn resize_depth(world: &mut World) -> Result<(), String> {
             component.depth_texture_usages = (existing | required).into();
         }
     }
-    tidewater_ocean_depth::resize(world, camera)?;
+    source_scene_depth::resize(world, camera)?;
     Ok(())
 }
 
@@ -86,18 +84,14 @@ pub(super) fn prepare(
     resize_depth(world)?;
     let generation = imported_buildings::published_generation();
     if *shader_generation != Some(generation) {
-        let package = imported_buildings::building_package().ok_or("Shader commun absent")?;
-        let source = std::str::from_utf8(
-            package
-                .file("village.wgsl")
-                .ok_or("Shader commun vérifié absent")?,
-        )
-        .map_err(|error| error.to_string())?;
-        full_material::stage_shader(world, source)?;
+        imported_buildings::with_lighting_shader(|source| {
+            full_material::stage_shader(world, source)
+        })?;
         *shader_generation = Some(generation);
     }
     let depth = world.resource::<SceneDepth>().0.clone();
-    let material = full_material::prepare_render_owned(resident, &lighting, depth, &inputs)?;
+    let textures = full_material::TextureArrays::from_named(&resident.textures)?;
+    let material = full_material::prepare_render_owned(&textures, &lighting, depth, &inputs)?;
     world.insert_resource(inputs);
     Ok(material)
 }

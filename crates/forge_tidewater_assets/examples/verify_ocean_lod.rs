@@ -1,5 +1,5 @@
 //! Compare camera-following ocean selection, patch topology and morph uniforms.
-use forge_tidewater_assets::cdlod::{CdlodConfig, CdlodRoot, CdlodView, select_nodes};
+use forge_world::terrain_lod::{CdlodConfig, CdlodRoot, CdlodView, select_nodes};
 use serde::Deserialize;
 use std::{collections::BTreeMap, error::Error, fs, path::PathBuf};
 #[derive(Deserialize)]

@@ -1,0 +1,20 @@
+"""Run six exact native controls per Mountain card using the owned controller."""
+from pathlib import Path
+
+recipe=Path(__file__).with_name('run_mountain_exact_capture_v875.py')
+code=recipe.read_text('utf-8')
+code=code.replace('mountain-exact-native-capture-v875','mountain-native-clone-control-run-v905')
+code=code.replace('mountain-exact-source-capture-v873/PREPARED.v1.json','mountain-native-parameter-comparison-v904/PREPARED.v1.json')
+code=code.replace('exact_lod_source_capture_prepared_not_launched','native_original_settings_comparison_prepared_not_launched')
+code=code.replace("prepared['capture_cases'] == 141","prepared['capture_cases'] == 282")
+code=code.replace("'SourceLibraryExactThumbnailBatchV873.cs'}", "'SourceLibraryExactThumbnailBatchV873.cs','MountainParameterComparisonV901.cs','MountainParameterComparisonV904.cs'}")
+code=code.replace("rglob('*.cs'))) == 3", "rglob('*.cs'))) == 5")
+code=code.replace("len(batch['cases']) == 141", "len(batch['cases']) == 282")
+code=code.replace('index*3:index*3+3','index*6:index*6+6')
+code=code.replace('if reports[1] is not None and reports[2] is not None:', 'if all(report is not None for report in reports):')
+code=code.replace("a,b = reports[1]['images'][view],reports[2]['images'][view]", "a,b = reports[1]['images'][view],reports[5]['images'][view]\n                    clone=reports[2]['images'][view]\n                    original=reports[3]['images'][view]\n                    original_repeat=reports[4]['images'][view]")
+code=code.replace("prepared['cases'][index*3]['source_card_id']", "prepared['cases'][index*6]['source_card_id']")
+code=code.replace("raw_repeat_exact=a['raw_sha256']==b['raw_sha256']))", "raw_repeat_exact=a['raw_sha256']==b['raw_sha256'], raw_clone_current_equal=a['raw_sha256']==clone['raw_sha256'], raw_original_settings_equal=clone['raw_sha256']==original['raw_sha256'], raw_original_repeat_exact=original['raw_sha256']==original_repeat['raw_sha256']))")
+code=code.replace('native_capture_finished_requires_migration_and_visual_review','native_clone_control_finished_requires_scope_review')
+code=code.replace('capturing_exact_mountain_source_lods','capturing_clone_current_and_original_repeat_controls')
+exec(compile(code,str(recipe)+'#six-native-clone-controls', 'exec'),globals())

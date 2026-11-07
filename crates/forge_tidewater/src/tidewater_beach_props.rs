@@ -4,17 +4,18 @@ use bevy_rapier3d::prelude::Collider;
 use forge_core::{
     AssetId, EntityId, Transform as ForgeTransform, UnitQuaternion, Vec3 as ForgeVec3,
 };
+use forge_engine::ManualPlacementCollision;
+use forge_engine::ManualPlacementCollisionExpected;
+use forge_engine::ManualPlacementCollisionNotRequired;
+use forge_engine::ManualPlacementPart;
+use forge_engine::ManualPlacementProjection;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::mesh::SourceMeshBytes;
 use forge_project::zone_authoring::placements::{MAX_MANUAL_PLACEMENTS, ManualPlacement};
-use forge_tidewater_assets::tidewater_beach_props::{self as beach_props, BeachPropPackage};
+use forge_tidewater_assets::tidewater_beach_props as beach_props;
+use forge_tidewater_assets::tidewater_beach_props::BeachPropPackage;
 use serde::Deserialize;
 use std::collections::BTreeMap;
-use {
-    crate::{tidewater_material::VillageMaterial, tidewater_mesh::VillageMeshBytes},
-    forge_engine::{
-        ManualPlacementCollision, ManualPlacementCollisionExpected,
-        ManualPlacementCollisionNotRequired, ManualPlacementPart, ManualPlacementProjection,
-    },
-};
 
 #[derive(Deserialize)]
 struct Description {
@@ -234,7 +235,7 @@ impl PreparedBeachProps {
                         .ok_or("BeachProps mesh attribute absent")
                         .and_then(&file)
                 };
-                let mesh = VillageMeshBytes {
+                let mesh = SourceMeshBytes {
                     positions: attr("pos")?,
                     normals: attr("nrm")?,
                     uv: attr("uv")?,
@@ -344,7 +345,7 @@ impl PreparedBeachProps {
     pub fn stage(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
     ) -> Result<ResidentBeachProps, String> {
         self.stage_instances(world, materials, None)
     }
@@ -356,7 +357,7 @@ impl PreparedBeachProps {
     pub fn stage_authored(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
         placements: &[ManualPlacement],
     ) -> Result<ResidentBeachProps, String> {
         self.stage_instances(world, materials, Some(placements))
@@ -369,7 +370,7 @@ impl PreparedBeachProps {
     fn stage_instances(
         self,
         world: &mut World,
-        materials: &BTreeMap<String, Handle<VillageMaterial>>,
+        materials: &BTreeMap<String, Handle<SourceSurfaceMaterial>>,
         placements: Option<&[ManualPlacement]>,
     ) -> Result<ResidentBeachProps, String> {
         let source_instances = placements.is_none();
@@ -673,7 +674,7 @@ mod tests {
         PreparedBeachProps::from_package(&package).unwrap()
     }
 
-    fn materials() -> BTreeMap<String, Handle<VillageMaterial>> {
+    fn materials() -> BTreeMap<String, Handle<SourceSurfaceMaterial>> {
         ["material-0", "material-1", "material-6"]
             .into_iter()
             .map(|name| (name.to_owned(), Handle::default()))
@@ -732,6 +733,7 @@ mod tests {
             .map(|(ordinal, template)| ManualPlacement {
                 particles: None,
                 physics: None,
+                local_lights: None,
                 id: EntityId::deterministic(format!("beach-common-{ordinal}")),
                 name: template.kind,
                 asset_id: template.asset_id,

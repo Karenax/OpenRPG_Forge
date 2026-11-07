@@ -64,6 +64,7 @@ pub fn prepare_tree_promotion(
         ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: placement_id,
             name,
             asset_id: asset.asset_id,

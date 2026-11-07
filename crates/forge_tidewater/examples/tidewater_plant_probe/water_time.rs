@@ -11,11 +11,11 @@ pub(super) struct WaterTime {
 pub(super) fn update(
     targets: Res<super::spray::Targets>,
     live: Option<Res<super::ocean::LiveClock>>,
-    underwater: Option<Res<forge_tidewater::tidewater_underwater::UnderwaterObservation>>,
+    underwater: Option<Res<forge_engine::source_underwater::UnderwaterObservation>>,
     mut clock: ResMut<WaterTime>,
     mut water: ResMut<Assets<super::water_optics::WaterMaterial>>,
     mut spray: ResMut<Assets<super::spray_sprites::SprayMaterial>>,
-    mut lips: Option<ResMut<Assets<super::breaker_lip::LipMaterial>>>,
+    mut lips: Option<ResMut<Assets<forge_engine::source_breaker_render::LipMaterial>>>,
 ) {
     let step = targets
         .completed_steps
@@ -31,23 +31,14 @@ pub(super) fn update(
     } else {
         (f64::from(step) / 60.0, 1.0 / 60.0)
     };
-    #[allow(clippy::cast_possible_truncation)]
-    let time = simulation_time as f32;
     let apply = |frame: &mut [UVec4; 45]| {
-        // Original Frame fields: frameIndex at byte 576, time at byte 580.
-        frame[36].x = step;
-        frame[36].y = time.to_bits();
-        frame[36].z = dt.to_bits();
+        forge_engine::source_water_frame::write_time(frame, step, simulation_time, dt);
         if let Some(underwater) = underwater.as_deref() {
-            // Frame.js: skyIrradiance.w is cameraUnderwater and
-            // horizonColor.w is cameraWaterHeight.
-            frame[39].w = (if underwater.camera_underwater() {
-                1.0_f32
-            } else {
-                0.0_f32
-            })
-            .to_bits();
-            frame[40].w = underwater.water_height_m.to_bits();
+            forge_engine::source_water_frame::write_immersion(
+                frame,
+                underwater.camera_underwater(),
+                underwater.water_height_m,
+            );
         }
     };
     for (_, material) in water.iter_mut() {

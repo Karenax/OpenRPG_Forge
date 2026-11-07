@@ -1,21 +1,18 @@
 //! Native adoption of the complete stall using existing scene resources.
-use super::{
-    Probe,
-    fish_stand::ResidentStall,
-    village::{SharedMaterials, VillageMaterial},
-};
+use super::Probe;
+use super::fish_stand::ResidentStall;
+use super::village::SharedMaterials;
 use bevy::{diagnostic::FrameCount, prelude::*};
-use forge_tidewater::{
-    tidewater_ocean_depth::{self, SceneDepth},
-    tidewater_stall::{
-        FishStandMaterial, contact_gpu,
-        full_material::{self, FullMaterial},
-    },
+use forge_engine::source_scene_depth::{self, SceneDepth, contact_gpu};
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_tidewater::tidewater_stall::{
+    FishStandMaterial,
+    full_material::{self, FullMaterial},
 };
 
 #[derive(Resource)]
 struct Live {
-    source: Handle<VillageMaterial>,
+    source: Handle<SourceSurfaceMaterial>,
     material: Handle<FullMaterial>,
 }
 
@@ -48,7 +45,7 @@ pub fn install(app: &mut App) -> Result<(), String> {
     } else {
         0.0
     };
-    tidewater_ocean_depth::register(app)?;
+    source_scene_depth::register(app)?;
     contact_gpu::register(
         app,
         contact_gpu::Inputs {
@@ -65,14 +62,14 @@ pub fn install(app: &mut App) -> Result<(), String> {
     Ok(())
 }
 
-fn shared(world: &World) -> Result<(Handle<VillageMaterial>, VillageMaterial), String> {
+fn shared(world: &World) -> Result<(Handle<SourceSurfaceMaterial>, SourceSurfaceMaterial), String> {
     let source = world
         .get_resource::<SharedMaterials>()
         .and_then(|shared| shared.0.first())
         .ok_or("Complete stall common village material absent")?
         .clone();
     let material = world
-        .get_resource::<Assets<VillageMaterial>>()
+        .get_resource::<Assets<SourceSurfaceMaterial>>()
         .and_then(|materials| materials.get(&source))
         .ok_or("Complete stall common village material unresolved")?
         .clone();
@@ -123,7 +120,7 @@ fn update(world: &mut World) {
     let target = live.material.clone();
     let result = (|| -> Result<(), String> {
         let lighting = world
-            .resource::<Assets<VillageMaterial>>()
+            .resource::<Assets<SourceSurfaceMaterial>>()
             .get(&source)
             .ok_or("Complete stall common material removed")?
             .clone();
@@ -143,15 +140,27 @@ fn update(world: &mut World) {
         next.lighting = lighting.scene_lighting.clone();
         next.time = time;
         next.night = sky.z;
-        next.frame_index = world.resource::<FrameCount>().0;
+        // The static refraction triplet compares whole frames. Keep the
+        // contact-shadow effect enabled but sample its stochastic ray at the
+        // same phase for each image; ordinary gameplay keeps the live index.
+        next.frame_index = if world.contains_resource::<super::refraction_proof::Proof>() {
+            0
+        } else {
+            world.resource::<FrameCount>().0
+        };
         next.validate()?;
         let main = {
             let mut cameras = world.query_filtered::<(Entity, &Camera), (
                 With<Camera3d>,
-                Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
+                Without<forge_engine::source_refraction::CaptureCamera>,
             )>();
             let mut active = cameras.iter(world).filter(|(_, camera)| camera.is_active);
-            let main = active.next().ok_or("Complete stall main camera absent")?.0;
+            // A camera can be temporarily inactive (for example during a
+            // render-history gap). There is no view to receive depth then;
+            // retain the last inputs and resume when a camera is active.
+            let Some((main, _)) = active.next() else {
+                return Ok(());
+            };
             if active.next().is_some() {
                 return Err("Complete stall main camera ambiguous".into());
             }
@@ -166,7 +175,7 @@ fn update(world: &mut World) {
                 camera.depth_texture_usages = (usages | required).into();
             }
         }
-        tidewater_ocean_depth::resize(world, main)?;
+        source_scene_depth::resize(world, main)?;
         let depth = world.resource::<SceneDepth>().0.clone();
         world
             .resource_mut::<Assets<FullMaterial>>()

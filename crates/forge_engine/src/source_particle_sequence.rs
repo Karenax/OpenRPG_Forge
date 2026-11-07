@@ -23,6 +23,65 @@ pub struct SourceParticleComputeSequence {
 }
 
 impl SourceParticleComputeSequence {
+    pub(super) fn pending_identities(&self) -> Option<Vec<super::RequestIdentity>> {
+        self.pending.as_ref().map(|requests| {
+            requests
+                .iter()
+                .map(|request| request.status.clone())
+                .collect()
+        })
+    }
+    pub(super) fn validate_pending(
+        &self,
+        queue: &SourceParticleComputeQueue,
+    ) -> Result<(), &'static str> {
+        match (&self.pending, queue.0.get(&self.slot)) {
+            (None, None) => Ok(()),
+            (Some(pending), Some(queued))
+                if pending.len() == queued.len()
+                    && pending.iter().zip(queued).all(|(left, right)| {
+                        std::sync::Arc::ptr_eq(&left.status, &right.status)
+                    }) =>
+            {
+                Ok(())
+            }
+            _ => Err("Particle producer queue ownership changed before scene admission"),
+        }
+    }
+
+    pub(super) fn bind_owner_pending(
+        &mut self,
+        queue: &mut SourceParticleComputeQueue,
+        identity: &std::sync::Arc<()>,
+    ) -> Result<(), &'static str> {
+        self.validate_pending(queue)?;
+        if let Some(pending) = &mut self.pending {
+            let queued = queue.0.get_mut(&self.slot).unwrap();
+            for (left, right) in pending.iter_mut().zip(queued) {
+                left.queue_owner = Some(identity.clone());
+                right.queue_owner = Some(identity.clone());
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(super) fn bind_scene_pending(
+        &mut self,
+        queue: &mut SourceParticleComputeQueue,
+        identity: &std::sync::Arc<()>,
+    ) -> Result<(), &'static str> {
+        self.bind_owner_pending(queue, identity)?;
+        if let Some(pending) = &mut self.pending {
+            let queued = queue.0.get_mut(&self.slot).unwrap();
+            for (left, right) in pending.iter_mut().zip(queued) {
+                left.scene_owner = Some(identity.clone());
+                right.scene_owner = Some(identity.clone());
+            }
+        }
+        Ok(())
+    }
+
     pub fn new(
         slot: u64,
         shader: Handle<Shader>,
@@ -205,6 +264,39 @@ mod tests {
             1,
         )
         .unwrap()
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    #[test]
+    fn scene_binding_marks_only_the_exact_pending_group() {
+        let mut sequence = sequence(buffers());
+        let mut queue = SourceParticleComputeQueue::default();
+        assert!(
+            sequence
+                .submit_ordered(&mut queue, vec![[1; 1024], [2; 1024]])
+                .unwrap()
+        );
+        let owner = std::sync::Arc::new(());
+        sequence.bind_scene_pending(&mut queue, &owner).unwrap();
+        assert!(queue.0[&7].iter().all(|request| {
+            request
+                .scene_owner
+                .as_ref()
+                .is_some_and(|current| std::sync::Arc::ptr_eq(current, &owner))
+        }));
+        let mut foreign = queue.0[&7][0].clone();
+        foreign.status = std::sync::Arc::new(std::sync::Mutex::new(
+            SourceParticleComputeStatus::WaitingForResources,
+        ));
+        foreign.scene_owner = None;
+        let foreign_status = foreign.status.clone();
+        queue.insert(7, foreign);
+        assert!(sequence.bind_scene_pending(&mut queue, &owner).is_err());
+        assert!(std::sync::Arc::ptr_eq(
+            &queue.0[&7][0].status,
+            &foreign_status
+        ));
+        assert!(queue.0[&7][0].scene_owner.is_none());
     }
 
     #[test]

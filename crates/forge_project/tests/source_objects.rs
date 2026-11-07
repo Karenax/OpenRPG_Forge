@@ -17,6 +17,7 @@ fn source() -> ManualPlacement {
     ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic("generic-source-object"),
         name: "Generic source object".into(),
         asset_id: AssetId::deterministic("generic-source-asset"),

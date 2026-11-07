@@ -5,16 +5,14 @@ use bevy::{
     prelude::*,
     render::view::screenshot::{Screenshot, ScreenshotCaptured, save_to_disk},
 };
+use forge_engine::{
+    ForgePlayerCamera,
+    source_underwater::{SourceUnderwaterControl, UnderwaterObservation},
+    source_underwater_lighting::{Control, Targets},
+};
 use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
-};
-use {
-    forge_engine::ForgePlayerCamera,
-    forge_tidewater::{
-        tidewater_underwater::{TidewaterUnderwaterControl, UnderwaterObservation},
-        tidewater_underwater_lighting::{Control, Targets},
-    },
 };
 
 pub(super) struct Proof {
@@ -25,7 +23,7 @@ pub(super) struct Proof {
     next: usize,
     waiting: bool,
     baseline: u64,
-    original_medium: TidewaterUnderwaterControl,
+    original_medium: SourceUnderwaterControl,
     original_lighting: Control,
 }
 
@@ -33,7 +31,7 @@ impl Proof {
     pub(super) fn start(
         signature: FreezeSignature,
         path: &std::path::Path,
-        medium: &mut TidewaterUnderwaterControl,
+        medium: &mut SourceUnderwaterControl,
         lighting: &mut Control,
         baseline: u64,
     ) -> Self {
@@ -56,7 +54,7 @@ impl Proof {
         proof
     }
 
-    pub(super) fn restore(&self, medium: &mut TidewaterUnderwaterControl, lighting: &mut Control) {
+    pub(super) fn restore(&self, medium: &mut SourceUnderwaterControl, lighting: &mut Control) {
         *medium = self.original_medium;
         *lighting = self.original_lighting;
     }
@@ -145,8 +143,8 @@ impl Proof {
                   underwater: Res<UnderwaterObservation>,
                   maps: Res<Targets>,
                   lighting: Res<Control>,
-                  terrain: Res<Assets<forge_tidewater::tidewater_terrain::lod::LodMaterial>>,
-                  village: Res<Assets<forge_tidewater::tidewater_material::VillageMaterial>>| {
+                  terrain: Res<Assets<forge_engine::source_terrain::lod::LodMaterial>>,
+                  village: Res<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>| {
                 let actual = synchronized_signature(Stage::Neutral, &camera, &live, &ocean,
                     &spray, &queries, &water, &underwater, &maps).ok().flatten();
                 let dimensions = [event.image.texture_descriptor.size.width,

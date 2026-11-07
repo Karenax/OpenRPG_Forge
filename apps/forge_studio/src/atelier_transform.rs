@@ -223,6 +223,7 @@ mod tests {
                 placements: Some(vec![ManualPlacement {
                     particles: None,
                     physics: None,
+                    local_lights: None,
                     id,
                     name: "Arche".into(),
                     asset_id: forge_core::AssetId::deterministic("arch"),
@@ -309,6 +310,7 @@ mod tests {
         let source = ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: forge_core::EntityId::deterministic("atelier-verified-source"),
             name: "Source vérifiée".into(),
             asset_id: forge_core::AssetId::deterministic("atelier-source-prototype"),

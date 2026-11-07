@@ -1,25 +1,25 @@
 //! Native display and village fish retain source surfaces, LODs and masked depth.
-use super::{
-    Probe,
-    fish_stand::ResidentStall,
-    village::{SharedMaterials, VillageMaterial},
-};
+use super::Probe;
+use super::fish_stand::ResidentStall;
+use super::village::SharedMaterials;
 use bevy::{
     camera::primitives::{Frustum, Sphere},
     diagnostic::FrameCount,
     prelude::*,
     render::storage::ShaderBuffer,
 };
-use forge_tidewater::tidewater_fish_props::{
-    PreparedFishProps, lod,
-    material::{self, FishMaterial},
+use forge_engine::source_fish::material::{self as fish_material, FishMaterial};
+use forge_engine::source_fish::{
+    resident::{self, Attachment, ResidentFishProps, SceneInstance},
     shadow,
     surface::SpecularMode,
 };
-use forge_tidewater_assets::{
-    tidewater_fish_props::{self, FishPropPackage},
-    tidewater_game_fish::{self, GameFishPackage},
-};
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_tidewater::tidewater_fish_props::{PreparedFishProps, lod};
+use forge_tidewater_assets::tidewater_fish_props;
+use forge_tidewater_assets::tidewater_fish_props::FishPropPackage;
+use forge_tidewater_assets::tidewater_game_fish;
+use forge_tidewater_assets::tidewater_game_fish::GameFishPackage;
 use std::{fs, path::Path, sync::Arc};
 
 pub struct Inputs {
@@ -96,7 +96,7 @@ pub fn load() -> Result<Option<Arc<Inputs>>, String> {
         if template.lod_meshes.len() != 3 {
             return Err("Native fish require three source LODs".into());
         }
-        shadow::MaskedMesh::from_mesh(&template.lod_meshes[2])?;
+        shadow::masked_mesh(&template.lod_meshes[2])?;
     }
     let village = PreparedFishProps::from_package(&surface)?;
     if village.templates.len() != 78 {
@@ -106,9 +106,9 @@ pub fn load() -> Result<Option<Arc<Inputs>>, String> {
         if template.lod_meshes.len() != 3 {
             return Err("Native village fish require three source LODs".into());
         }
-        shadow::MaskedMesh::from_mesh(&template.lod_meshes[2])?;
+        shadow::masked_mesh(&template.lod_meshes[2])?;
     }
-    material::skin_buffer(&surface)?;
+    fish_material::skin_buffer(&surface)?;
     shadow::shader_source(&surface)?;
     Ok(Some(Arc::new(Inputs {
         game,
@@ -164,22 +164,12 @@ fn identities_match(ids: &[String], kind: &str, ordinals: std::ops::Range<usize>
             id == &format!("tidewater:1438b1abfcaee3267092b75573014f4d9b4a983c:{kind}:{ordinal}")
         })
 }
-#[derive(Component)]
-struct FishRoot;
-
-struct Instance {
-    root: Entity,
-    parts: [Entity; 2],
-    materials: [Handle<FishMaterial>; 2],
-}
 #[derive(Resource)]
 struct Live {
-    instances: Vec<Instance>,
-    meshes: Arc<Vec<shadow::MaskedMesh>>,
+    resident: ResidentFishProps,
+    count: usize,
+    meshes: Arc<Vec<forge_engine::source_shadows::casters::masked::MaskedMesh>>,
     shader: Arc<String>,
-    clock: Handle<ShaderBuffer>,
-    bounds: Option<Sphere>,
-    dormant: bool,
 }
 
 pub fn install(app: &mut App, lighting_source: &str) -> Result<(), String> {
@@ -193,7 +183,7 @@ pub fn install(app: &mut App, lighting_source: &str) -> Result<(), String> {
         return Ok(());
     };
     app.add_plugins(bevy::pbr::MaterialPlugin::<FishMaterial>::default());
-    material::stage_shader(
+    fish_material::stage_shader(
         app.world_mut(),
         &inputs.surface,
         lighting_source,
@@ -215,13 +205,13 @@ pub fn install(app: &mut App, lighting_source: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn lighting(world: &World) -> Result<VillageMaterial, String> {
+fn lighting(world: &World) -> Result<SourceSurfaceMaterial, String> {
     let handle = world
         .get_resource::<SharedMaterials>()
         .and_then(|shared| shared.0.first())
         .ok_or("Native fish common material absent")?;
     world
-        .resource::<Assets<VillageMaterial>>()
+        .resource::<Assets<SourceSurfaceMaterial>>()
         .get(handle)
         .cloned()
         .ok_or_else(|| "Native fish common material unresolved".to_owned())
@@ -252,7 +242,7 @@ fn stage(world: &mut World) {
             .map(|fish| fish.source_id.clone())
             .collect();
         let inverse = GlobalTransform::from(inputs.source_root).affine().inverse();
-        let skin_buffer = material::skin_buffer(&inputs.surface)?;
+        let skin_buffer = fish_material::skin_buffer(&inputs.surface)?;
         let shader = Arc::new(shadow::shader_source(&inputs.surface)?);
         // Validate every material and shadow mesh before publishing any fish entity.
         let mut plans = Vec::new();
@@ -263,7 +253,8 @@ fn stage(world: &mut World) {
             .map(|fish| (fish, Some(parent)))
             .chain(village.templates.into_iter().map(|fish| (fish, None)));
         for (template, parent) in templates {
-            let value = material::prepare_scene(template.surface, Handle::default(), &common, 0.0)?;
+            let value =
+                fish_material::prepare_scene(template.surface, Handle::default(), &common, 0.0)?;
             let world_pose = forge_engine::domain_transform_to_bevy(template.transform);
             let pose = if parent.is_some() {
                 Transform::from_matrix(Mat4::from(
@@ -272,58 +263,59 @@ fn stage(world: &mut World) {
             } else {
                 world_pose
             };
-            depth_meshes.push(shadow::MaskedMesh::from_mesh(&template.lod_meshes[2])?);
+            depth_meshes.push(shadow::masked_mesh(&template.lod_meshes[2])?);
             plans.push((template.source_id, template.lod_meshes, value, pose, parent));
         }
         let skin = world
             .resource_mut::<Assets<ShaderBuffer>>()
             .add(skin_buffer);
-        let clock = forge_tidewater::tidewater_fish_props::clock::create(world)?;
+        let clock = forge_engine::source_fish::clock::create(world)?;
         let masked_shadow_meshes = depth_meshes.len();
         let mut instances = Vec::new();
+        let mut base_materials = Vec::new();
+        let mut owned_meshes = Vec::new();
         for (name, meshes, mut value, pose, parent) in plans {
             value.skin = skin.clone();
             value.clock = clock.clone();
-            let root = world
-                .spawn((FishRoot, Name::new(name), pose, Visibility::Inherited))
-                .id();
-            if let Some(parent) = parent {
-                world.entity_mut(root).insert(ChildOf(parent));
-            }
-            let handles: [Handle<FishMaterial>; 2] = std::array::from_fn(|_| {
-                world
-                    .resource_mut::<Assets<FishMaterial>>()
-                    .add(value.clone())
-            });
-            let mut parts = Vec::new();
-            for (index, mesh) in meshes.into_iter().take(2).enumerate() {
-                let mesh = world.resource_mut::<Assets<Mesh>>().add(mesh);
-                parts.push(
-                    world
-                        .spawn((
-                            Mesh3d(mesh),
-                            MeshMaterial3d(handles[index].clone()),
-                            Transform::IDENTITY,
-                            Visibility::Hidden,
-                            ChildOf(root),
-                        ))
-                        .id(),
-                );
-            }
-            instances.push(Instance {
-                root,
-                parts: [parts[0], parts[1]],
-                materials: handles,
+            let material = world.resource_mut::<Assets<FishMaterial>>().add(value);
+            base_materials.push(material.clone());
+            let meshes: Vec<_> = meshes
+                .into_iter()
+                .map(|mesh| world.resource_mut::<Assets<Mesh>>().add(mesh))
+                .collect();
+            owned_meshes.extend(meshes.iter().cloned());
+            instances.push(SceneInstance {
+                attachment: Attachment {
+                    meshes,
+                    material,
+                    pose,
+                },
+                parent,
+                placement: None,
+                name: Some(name),
             });
         }
         let visual_lod_slots = instances.len() * 2;
+        let count = instances.len();
+        let staged = resident::stage_instances(world, &instances, &clock, lod::POLICY);
+        for handle in base_materials {
+            world
+                .resource_mut::<Assets<FishMaterial>>()
+                .remove(handle.id());
+        }
+        if staged.is_err() {
+            for handle in owned_meshes {
+                world.resource_mut::<Assets<Mesh>>().remove(handle.id());
+            }
+            let mut buffers = world.resource_mut::<Assets<ShaderBuffer>>();
+            buffers.remove(skin.id());
+            buffers.remove(clock.id());
+        }
         world.insert_resource(Live {
-            instances,
+            resident: staged?,
+            count,
             meshes: Arc::new(depth_meshes),
             shader,
-            clock,
-            bounds: None,
-            dormant: false,
         });
         let mut receipt = world.resource_mut::<Receipt>();
         receipt.staged = true;
@@ -351,72 +343,21 @@ fn update(world: &mut World) {
         let cameras: Vec<_> = world
             .query_filtered::<(&Camera, &GlobalTransform, &Frustum), (
                 With<Camera3d>,
-                Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
+                Without<forge_engine::source_refraction::CaptureCamera>,
             )>()
             .iter(world)
             .filter(|(camera, _, _)| camera.is_active)
             .map(|(_, pose, frustum)| (pose.translation(), *frustum))
             .collect();
-        if cameras.len() != 1 {
-            return Err("Native fish main camera absent or ambiguous".into());
-        }
-        let (camera, frustum) = cameras[0];
-        if live.bounds.is_none()
-            || world
-                .query_filtered::<Entity, (With<FishRoot>, Changed<GlobalTransform>)>()
-                .iter(world)
-                .next()
-                .is_some()
-        {
-            let mut min = Vec3::splat(f32::INFINITY);
-            let mut max = Vec3::splat(f32::NEG_INFINITY);
-            for instance in &live.instances {
-                let global = world
-                    .get::<GlobalTransform>(instance.root)
-                    .ok_or("Native fish pose absent")?;
-                let (scale, _, center) = global.to_scale_rotation_translation();
-                let radius = scale.abs().max_element() * 0.8;
-                min = min.min(center - Vec3::splat(radius));
-                max = max.max(center + Vec3::splat(radius));
-            }
-            let center = (min + max) * 0.5;
-            live.bounds = Some(Sphere {
-                center: center.into(),
-                radius: center.distance(max),
-            });
-        }
-        let bounds = live.bounds.as_ref().ok_or("Native fish bounds absent")?;
-        let contributes = lod::group_may_contribute(
-            camera.distance(bounds.center.into()),
-            bounds.radius,
-            frustum.intersects_sphere(bounds, true),
-        );
-        if !contributes {
-            if !live.dormant {
-                for instance in &live.instances {
-                    for &part in &instance.parts {
-                        if world.get::<Visibility>(part) != Some(&Visibility::Hidden) {
-                            world.entity_mut(part).insert(Visibility::Hidden);
-                        }
-                    }
-                }
-                // Retain the resident shadow inventory, and retire every caster
-                // once. An inactive clock must not restart or freeze other fish.
-                if let Some(mut frame) = world.get_resource_mut::<shadow::Frame>() {
-                    for pose in &mut frame.poses {
-                        pose.enabled = false;
-                    }
-                }
-                live.dormant = true;
-            }
-            let mut receipt = world.resource_mut::<Receipt>();
-            receipt.group_active = false;
-            receipt.prepared_instances = 0;
-            receipt.dormant_frames = receipt.dormant_frames.saturating_add(1);
+        if cameras.is_empty() {
+            // No view consumes fish during a temporary inactive-camera gap.
+            // Keep the resident data and resume with the live clock afterward.
             return Ok(());
         }
-        live.dormant = false;
-
+        if cameras.len() > 1 {
+            return Err("Native fish main camera ambiguous".into());
+        }
+        let (camera, frustum) = cameras[0];
         let time = world
             .get_resource::<super::walk_wind::Receipt>()
             .filter(|receipt| receipt.submitted > 0)
@@ -425,85 +366,54 @@ fn update(world: &mut World) {
             return Err("Native fish source clock invalid".into());
         }
         let frame_index = world.resource::<FrameCount>().0;
-        let mut plans = Vec::new();
-        let mut poses = Vec::new();
-        for instance in &live.instances {
-            let global = world
-                .get::<GlobalTransform>(instance.root)
-                .ok_or("Native fish pose absent")?;
-            let (scale, _, center) = global.to_scale_rotation_translation();
-            let length = scale.abs().max_element();
-            let selection = lod::select(
-                (center.as_dvec3() - camera.as_dvec3()).length(),
-                f64::from(length),
+        let was_dormant = live.resident.is_dormant();
+        live.resident.update_view(
+            world,
+            camera,
+            |center, radius| {
                 frustum.intersects_sphere(
                     &Sphere {
                         center: center.into(),
-                        radius: length * 0.8,
+                        radius,
                     },
                     true,
-                ),
-            )?;
-            poses.push(shadow::gpu::Pose {
-                model: global.to_matrix(),
-                enabled: selection.shadow,
-            });
-            for index in 0..2 {
-                let draw = selection.draws.iter().find(|draw| draw.lod == index);
-                if draw.is_none() {
-                    plans.push((
-                        instance.parts[index],
-                        instance.materials[index].clone(),
-                        None,
-                        false,
-                    ));
-                    continue;
-                }
-                let mut value = world
-                    .resource::<Assets<FishMaterial>>()
-                    .get(&instance.materials[index])
-                    .cloned()
-                    .ok_or("Native fish LOD material removed")?;
-                value.update_scene_receivers(&common)?;
-                if let Some(draw) = draw {
-                    value.settings.lod =
-                        Vec4::new(draw.fade, f32::from(u8::from(draw.outgoing)), 0.0, 0.0);
-                }
-                plans.push((
-                    instance.parts[index],
-                    instance.materials[index].clone(),
-                    Some(value),
-                    draw.is_some(),
-                ));
-            }
-        }
-        for (entity, handle, value, visible) in plans {
-            let visibility = if visible {
-                Visibility::Inherited
-            } else {
-                Visibility::Hidden
-            };
-            if world.get::<Visibility>(entity) != Some(&visibility) {
-                world.entity_mut(entity).insert(visibility);
-            }
-            let Some(value) = value else {
-                continue;
-            };
-            let mut materials = world.resource_mut::<Assets<FishMaterial>>();
-            if materials.get(&handle) != Some(&value) {
-                *materials
-                    .get_mut(&handle)
-                    .ok_or("Native fish LOD material removed")? = value;
-            }
-        }
-        forge_tidewater::tidewater_fish_props::clock::update(
-            world,
-            &live.clock,
+                )
+            },
             time,
             frame_index,
         )?;
+        if live.resident.is_dormant() {
+            if !was_dormant {
+                // Retain the resident shadow inventory, and retire every caster
+                // once. An inactive clock must not restart or freeze other fish.
+                if let Some(mut frame) =
+                    world.get_resource_mut::<forge_engine::source_shadows::casters::masked::Frame>()
+                {
+                    for pose in &mut frame.poses {
+                        pose.enabled = false;
+                    }
+                }
+            }
+            let mut receipt = world.resource_mut::<Receipt>();
+            receipt.group_active = false;
+            receipt.prepared_instances = 0;
+            receipt.dormant_frames = receipt.dormant_frames.saturating_add(1);
+            return Ok(());
+        }
+        live.resident.update_scene_receivers(world, &common)?;
+        let poses = live
+            .resident
+            .shadow_inventory(world)?
+            .into_iter()
+            .map(
+                |(shadow, enabled)| forge_engine::source_shadows::casters::masked::gpu::Pose {
+                    model: shadow.world_from_local,
+                    enabled,
+                },
+            )
+            .collect();
         if common.object_settings.enabled >= 0.5 {
-            world.insert_resource(shadow::Frame {
+            world.insert_resource(forge_engine::source_shadows::casters::masked::Frame {
                 target: common.object_shadow,
                 shader: live.shader.clone(),
                 meshes: live.meshes.clone(),
@@ -511,11 +421,11 @@ fn update(world: &mut World) {
                 time,
             });
         } else {
-            world.remove_resource::<shadow::Frame>();
+            world.remove_resource::<forge_engine::source_shadows::casters::masked::Frame>();
         }
         let mut receipt = world.resource_mut::<Receipt>();
         receipt.group_active = true;
-        receipt.prepared_instances = live.instances.len();
+        receipt.prepared_instances = live.count;
         receipt.prepared_frames = receipt.prepared_frames.saturating_add(1);
         if common.object_settings.enabled >= 0.5 {
             receipt.shadow_frames_published = receipt.shadow_frames_published.saturating_add(1);

@@ -127,6 +127,7 @@ fn fixture() -> (ZoneEditSession, Vec<u8>) {
         }
     }
     vegetation.imported_source = Some(ImportedVegetationSource {
+        grass: None,
         schema: "forge.imported-vegetation".into(),
         version: 1,
         blocks: vec![ImportedVegetationBlock {

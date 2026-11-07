@@ -115,6 +115,9 @@ pub(super) fn is_current(ticket: u64) -> bool {
 }
 
 pub(crate) fn register(app: &mut App) {
+    if !app.is_plugin_added::<forge_engine::model_nodes::ModelNodeIdentityPlugin>() {
+        app.add_plugins(forge_engine::model_nodes::ModelNodeIdentityPlugin);
+    }
     super::map_shelf::install(app);
     crate::authoring_species::register(app);
     let root = ROOT.with(Clone::clone);
@@ -131,14 +134,20 @@ pub(crate) fn register(app: &mut App) {
             .after(VisibilitySystems::CalculateBounds),
     );
     super::source_graph_runtime::register(app);
+    super::scene_wind::register(app);
+    super::source_graph_physics::register(app);
+    super::source_graph_preview::register(app);
+    super::placements::register(app);
+}
+
+// Asset sources must be registered before DefaultPlugins, but the particle
+// plugin needs the render sub-app to install its extraction and compute systems.
+pub(crate) fn register_rendering(app: &mut App) {
     if !app
         .is_plugin_added::<forge_engine::source_particle_compute::SourceParticleProjectionPlugin>()
     {
         app.add_plugins(forge_engine::source_particle_compute::SourceParticleProjectionPlugin);
     }
-    super::source_graph_physics::register(app);
-    super::source_graph_preview::register(app);
-    super::placements::register(app);
 }
 
 pub(super) fn insert(path: &str, bytes: Vec<u8>) {
@@ -194,7 +203,7 @@ fn update(
         state.clear(&mut commands);
         if let PreviewRequest::Show(id, bytes, layout, physics, particles) = request {
             let particles = particles.map(|payload| *payload);
-            match super::source_graph_route::read(&bytes) {
+            match forge_engine::source_graph_route::read(&bytes) {
                 Ok(Some(_)) => {
                     super::source_graph_preview::submit(id, bytes, physics, particles);
                     return;

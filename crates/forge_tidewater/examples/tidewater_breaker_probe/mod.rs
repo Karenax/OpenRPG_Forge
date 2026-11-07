@@ -166,10 +166,7 @@ fn load(root: &Path, native_ocean: bool) -> Result<Input, Box<dyn Error>> {
     if original.matches(hash).count() != 1 {
         return Err("shore hash source changed".into());
     }
-    let adapted = original.replace(
-        hash,
-        include_str!("../../../../scripts/tidewater/native-shore-hash.wgsl"),
-    );
+    let adapted = original.replace(hash, forge_engine::source_shore_sim::SHORE_HASH_SOURCE);
     files.insert("kernel.wgsl".into(), adapted.into_bytes());
     Ok(Input {
         files,

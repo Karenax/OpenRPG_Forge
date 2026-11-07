@@ -38,7 +38,7 @@ mod source_shadow_routing;
 pub use source_shadow_routing::{
     SourceGraphShadowRoute, SourceGraphShadowRouteStatus, SourceGraphShadowRoutingPlugin,
     install_source_graph_shadow_route, set_source_graph_shadow_enabled,
-    uninstall_source_graph_shadow_route,
+    source_graph_shadow_proxy_owned_by, uninstall_source_graph_shadow_route,
 };
 #[path = "source_graph_png.rs"]
 mod source_png;
@@ -228,9 +228,14 @@ pub struct SourceGraphExtension {
     pub source: SourceGraphUniforms,
     /// GPU state remains owned by its producer; no per-particle CPU projection.
     #[storage(130, read_only)]
+    #[dependency]
     source_state: Handle<bevy::render::storage::ShaderBuffer>,
     #[reflect(ignore)]
     source_state_admitted: bool,
+    /// A transient camera-bound producer; never serialized or sent as shader data.
+    #[cfg(feature = "physics-rapier")]
+    #[reflect(ignore)]
+    particle_frame_owner: Option<crate::source_particle_compute::draw::ParticleFrameOwner>,
     /// Additional declaration-ordered values for programs with runtime properties.
     #[uniform(120)]
     pub scalars: SourceGraphScalarUniforms,
@@ -239,51 +244,65 @@ pub struct SourceGraphExtension {
     pub diffuse_probe: SourceGraphDiffuseProbeUniforms,
     /// Only the validated shared-table constructor can supply this binding.
     #[texture(122, sample_type = "float", filterable = false)]
+    #[dependency]
     preintegrated_brdf: Option<Handle<Image>>,
     /// Canonical 256-code sRGB texture decoded by the current renderer.
     #[texture(128, sample_type = "float", filterable = false)]
+    #[dependency]
     native_srgb_thresholds: Option<Handle<Image>>,
     #[reflect(ignore)]
     native_srgb_binding: Option<source_srgb_runtime::NativeSrgbBinding>,
     #[reflect(ignore)]
     native_srgb_validated: bool,
     #[texture(127)]
+    #[dependency]
     deferred_srgb_lookup: Option<Handle<Image>>,
     #[texture(123, dimension = "cube_array")]
     #[sampler(124)]
+    #[dependency]
     sky_cube: Option<Handle<Image>>,
     /// Admission metadata stays opaque; the sampled handle is reflected above.
     #[reflect(ignore)]
     sky_cube_binding: Option<SourceGraphSkyCubeBinding>,
     #[texture(101)]
     #[sampler(102)]
+    #[dependency]
     pub texture_0: Option<Handle<Image>>,
     #[texture(103)]
     #[sampler(104)]
+    #[dependency]
     pub texture_1: Option<Handle<Image>>,
     #[texture(105)]
     #[sampler(106)]
+    #[dependency]
     pub texture_2: Option<Handle<Image>>,
     #[texture(107)]
     #[sampler(108)]
+    #[dependency]
     pub texture_3: Option<Handle<Image>>,
     #[texture(109)]
     #[sampler(110)]
+    #[dependency]
     pub texture_4: Option<Handle<Image>>,
     #[texture(111)]
     #[sampler(112)]
+    #[dependency]
     pub texture_5: Option<Handle<Image>>,
     #[texture(113)]
     #[sampler(114)]
+    #[dependency]
     pub texture_6: Option<Handle<Image>>,
     #[texture(115)]
     #[sampler(116)]
+    #[dependency]
     pub texture_7: Option<Handle<Image>>,
     #[texture(117)]
     #[sampler(118)]
+    #[dependency]
     pub texture_8: Option<Handle<Image>>,
     #[texture(125)]
     #[sampler(126)]
+    #[dependency]
     pub texture_9: Option<Handle<Image>>,
 }
 impl From<&SourceGraphExtension> for SourceGraphKey {
@@ -451,6 +470,8 @@ impl SourceGraphExtension {
             source,
             source_state: source_state_buffer::unused_source_state_handle(),
             source_state_admitted: false,
+            #[cfg(feature = "physics-rapier")]
+            particle_frame_owner: None,
             texture_0: textures.next().unwrap(),
             texture_1: textures.next().unwrap(),
             texture_2: textures.next().unwrap(),
@@ -1241,5 +1262,56 @@ mod source_cull_tests {
         assert_eq!(source_graph_cull_face(2, true).unwrap(), Some(Face::Front));
         assert!(source_graph_cull_face(3, false).is_err());
         assert!(source_graph_cull_face(255, true).is_err());
+    }
+}
+
+#[cfg(test)]
+mod source_dependency_tests {
+    use super::*;
+    use bevy::asset::VisitAssetDependencies;
+    use std::collections::HashSet;
+
+    #[test]
+    fn source_graph_inventory_visits_every_bound_image_and_the_state_buffer() {
+        let (world, _, handle) = crate::source_particle_host::tests::setup(false);
+        let mut material = world
+            .resource::<Assets<SourceGraphMaterial>>()
+            .get(&handle)
+            .unwrap()
+            .clone();
+        let mut images = Assets::<Image>::default();
+        let textures: Vec<_> = (0..14).map(|_| images.add(Image::default())).collect();
+        material.extension.preintegrated_brdf = Some(textures[0].clone());
+        material.extension.native_srgb_thresholds = Some(textures[1].clone());
+        material.extension.deferred_srgb_lookup = Some(textures[2].clone());
+        material.extension.sky_cube = Some(textures[3].clone());
+        material.extension.texture_0 = Some(textures[4].clone());
+        material.extension.texture_1 = Some(textures[5].clone());
+        material.extension.texture_2 = Some(textures[6].clone());
+        material.extension.texture_3 = Some(textures[7].clone());
+        material.extension.texture_4 = Some(textures[8].clone());
+        material.extension.texture_5 = Some(textures[9].clone());
+        material.extension.texture_6 = Some(textures[10].clone());
+        material.extension.texture_7 = Some(textures[11].clone());
+        material.extension.texture_8 = Some(textures[12].clone());
+        material.extension.texture_9 = Some(textures[13].clone());
+
+        let mut bevy_found = Vec::new();
+        material.visit_dependencies(&mut |id| bevy_found.push(id));
+        assert!(
+            bevy_found.is_empty(),
+            "exercise Bevy's composite visitor limitation"
+        );
+        let mut found = HashSet::new();
+        crate::render_inventory::visit_material_dependencies(&material, &mut |id| {
+            found.insert(id);
+        });
+        assert_eq!(found.len(), 15);
+        assert!(
+            textures
+                .iter()
+                .all(|image| found.contains(&image.id().untyped()))
+        );
+        assert!(found.contains(&material.extension.source_state.id().untyped()));
     }
 }

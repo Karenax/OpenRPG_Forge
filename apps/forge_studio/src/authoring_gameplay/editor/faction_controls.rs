@@ -1,5 +1,5 @@
 //! Faction authoring uses the same atomic preview and history as other RPG data.
-use super::{Edit, edit, id, source_hash};
+use super::{Edit, edit, id};
 use forge_core::{EntityId, canonical_json_sha256};
 use forge_gameplay::{
     CreatorSurface, FactionDefinition, FactionRelation, FactionsDefinition, GameplayDocument,
@@ -141,7 +141,7 @@ pub(super) fn FactionControls(
                 <GroupControls state=state send=send/>
                 <MembershipControls state=state send=send/>
                 <RelationControls state=state send=send/>
-                <p>"Changer les appartenances, relations initiales ou règles de perception peut rendre une sauvegarde incompatible. Renommer une faction conserve sa signification. Examiner le diff, puis appliquer et sauvegarder par les commandes habituelles."</p>
+                <p>"Changer les appartenances, relations initiales ou règles de perception peut rendre une sauvegarde incompatible. Renommer une faction conserve sa signification. Examiner les modifications proposées, puis appliquer et sauvegarder par les commandes habituelles."</p>
             </fieldset></details>
         </Show>
     }
@@ -156,30 +156,45 @@ fn GroupControls(state: RwSignal<Option<AuthoringState>>, send: Callback<Edit>) 
         penalty: RwSignal::new("-10".into()),
         protects: RwSignal::new(BTreeSet::new()),
     };
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let key = (fields.selected.get(), source_hash(state));
-        if previous.as_ref() == Some(&key) {
-            return key;
-        }
-        let current = document(state)
-            .and_then(|document| document.factions)
-            .and_then(|factions| id(&key.0).ok().and_then(|id| factions.faction(id).cloned()));
-        if let Some(current) = current {
-            fields.name.set(current.name);
-            fields.range.set(current.perception_range_m.to_string());
-            fields.penalty.set(current.assault_delta.to_string());
-            fields
-                .protects
-                .set(current.protects_factions.into_iter().collect());
-        } else {
-            fields.name.set("Nouvelle faction".into());
-            fields.range.set("15".into());
-            fields.penalty.set("-10".into());
-            fields.protects.set(BTreeSet::new());
-        }
-        key
-    });
+    let draft_notice_fields_selected = super::draft::bind(
+        move || {
+            let selected = fields.selected.get();
+            let source = super::draft::records(state, &selected);
+            (selected, source)
+        },
+        vec![
+            super::draft::Field::new(fields.name),
+            super::draft::Field::new(fields.range),
+            super::draft::Field::new(fields.penalty),
+            super::draft::Field::new(fields.protects),
+        ],
+        move || {
+            let current = document(state)
+                .and_then(|document| document.factions)
+                .and_then(|factions| {
+                    id(&fields.selected.get_untracked())
+                        .ok()
+                        .and_then(|id| factions.faction(id).cloned())
+                });
+            if let Some(current) = current {
+                fields.name.set(current.name);
+                fields.range.set(current.perception_range_m.to_string());
+                fields.penalty.set(current.assault_delta.to_string());
+                fields
+                    .protects
+                    .set(current.protects_factions.into_iter().collect());
+            } else {
+                fields.name.set("Nouvelle faction".into());
+                fields.range.set("15".into());
+                fields.penalty.set("-10".into());
+                fields.protects.set(BTreeSet::new());
+            }
+        },
+    );
+    let preview_send = draft_notice_fields_selected.submitter(send);
+
     view! {
+        <super::draft::DraftNotice notice=draft_notice_fields_selected/>
         <label>"Faction à retoucher"<select prop:value=move ||fields.selected.get() on:change=move |event|fields.selected.set(event_target_value(&event))>
             <option value="">"Préparer une nouvelle faction"</option>
             {move ||document(state).and_then(|document|document.factions).map(|definitions|definitions.factions.into_iter().map(|group|view!{<option value=group.id.to_string()>{group.name}</option>}).collect_view())}
@@ -194,8 +209,8 @@ fn GroupControls(state: RwSignal<Option<AuthoringState>>, send: Callback<Edit>) 
                 if event_target_checked(&event) {groups.insert(id);} else {groups.remove(&id);}
             })/>{group.name}</label>}
         }).collect_view())}
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner une nouvelle faction"</button>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la faction"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),true))>"Examiner une nouvelle faction"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la faction"</button>
         <button on:click=move |_|send.run(fields.remove(state.get_untracked()))>"Examiner la suppression de la faction inutilisée"</button>
     }
 }
@@ -207,21 +222,36 @@ fn MembershipControls(
 ) -> impl IntoView {
     let actor = RwSignal::new(String::new());
     let group = RwSignal::new(String::new());
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let key = (actor.get(), source_hash(state));
-        if previous.as_ref() != Some(&key) {
+    let draft_notice_actor = super::draft::bind(
+        move || {
+            let selected = actor.get();
+            let source =
+                serde_json::to_value(document(state).and_then(|source| source.factions).and_then(
+                    |source| {
+                        id(&selected)
+                            .ok()
+                            .and_then(|actor| source.memberships.get(&actor).copied())
+                    },
+                ))
+                .unwrap_or_default();
+            (selected, source)
+        },
+        vec![super::draft::Field::new(group)],
+        move || {
             let current = document(state)
                 .and_then(|document| document.factions)
                 .and_then(|factions| {
-                    id(&key.0)
+                    id(&actor.get_untracked())
                         .ok()
                         .and_then(|actor| factions.memberships.get(&actor).copied())
                 });
             group.set(current.map_or_else(String::new, |group| group.to_string()));
-        }
-        key
-    });
+        },
+    );
+    let preview_send = draft_notice_actor.submitter(send);
+
     view! {
+        <super::draft::DraftNotice notice=draft_notice_actor/>
         <h4>"Appartenances"</h4>
         <label>"Personnage"<select prop:value=move ||actor.get() on:change=move |event|actor.set(event_target_value(&event))>
             <option value="">"Choisir un personnage"</option>{move ||document(state).map(|document|document.actors.into_iter().map(|actor|view!{<option value=actor.id.to_string()>{actor.name}</option>}).collect_view())}
@@ -229,7 +259,7 @@ fn MembershipControls(
         <label>"Groupe du personnage"<select prop:value=move ||group.get() on:change=move |event|group.set(event_target_value(&event))>
             <option value="">"Sans faction"</option>{move ||document(state).and_then(|document|document.factions).map(|definitions|definitions.factions.into_iter().map(|group|view!{<option value=group.id.to_string()>{group.name}</option>}).collect_view())}
         </select></label>
-        <button on:click=move |_|send.run(edit(state.get_untracked(),move |_,source| {
+        <button on:click=move |_|preview_send.run(edit(state.get_untracked(),move |_,source| {
             let actor=id(&actor.get_untracked())?;
             if source.actor(actor).is_none() {return Err("Choisir un personnage courant".into());}
             let mut factions=source.factions.clone().ok_or("Créer d’abord une faction")?;
@@ -249,25 +279,30 @@ fn RelationControls(
     let from = RwSignal::new(String::new());
     let to = RwSignal::new(String::new());
     let value = RwSignal::new("0".to_owned());
-    Effect::new(
-        move |previous: Option<(String, String, Option<forge_core::ContentHash>)>| {
-            let key = (from.get(), to.get(), source_hash(state));
-            if previous.as_ref() != Some(&key) {
-                let relation = document(state)
-                    .and_then(|document| document.factions)
-                    .and_then(|factions| {
-                        let (from, to) = (id(&key.0).ok()?, id(&key.1).ok()?);
-                        factions
-                            .relations
-                            .iter()
-                            .find(|relation| relation.from == from && relation.to == to)
-                            .map(|relation| relation.value)
-                    });
-                value.set(relation.unwrap_or(0).to_string());
-            }
-            key
+    let relation = move || {
+        document(state)
+            .and_then(|document| document.factions)
+            .and_then(|factions| {
+                let (from, to) = (id(&from.get()).ok()?, id(&to.get()).ok()?);
+                factions
+                    .relations
+                    .iter()
+                    .find(|relation| relation.from == from && relation.to == to)
+                    .map(|relation| relation.value)
+            })
+    };
+    let relation_notice = super::draft::bind(
+        move || {
+            (
+                format!("{}|{}", from.get(), to.get()),
+                serde_json::to_value(relation()).unwrap_or_default(),
+            )
         },
+        vec![super::draft::Field::new(value)],
+        move || value.set(relation().unwrap_or(0).to_string()),
     );
+    let preview_send = relation_notice.submitter(send);
+
     let preview = move |remove: bool| {
         edit(state.get_untracked(), move |_, source| {
             let (from, to) = (id(&from.get_untracked())?, id(&to.get_untracked())?);
@@ -294,6 +329,7 @@ fn RelationControls(
         })
     };
     view! {
+        <super::draft::DraftNotice notice=relation_notice/>
         <h4>"Relations initiales"</h4><p>"La relation est orientée : l’opinion du premier groupe envers le second. Une paire absente vaut zéro ; les conséquences vécues restent personnelles."</p>
         <label>"Groupe observateur"<select prop:value=move ||from.get() on:change=move |event|from.set(event_target_value(&event))>
             <option value="">"Choisir une faction"</option>{move ||document(state).and_then(|document|document.factions).map(|definitions|definitions.factions.into_iter().map(|group|view!{<option value=group.id.to_string()>{group.name}</option>}).collect_view())}
@@ -302,7 +338,7 @@ fn RelationControls(
             <option value="">"Choisir une faction"</option>{move ||document(state).and_then(|document|document.factions).map(|definitions|definitions.factions.into_iter().map(|group|view!{<option value=group.id.to_string()>{group.name}</option>}).collect_view())}
         </select></label>
         <label>"Relation initiale (points)"<input type="number" min=forge_gameplay::MIN_RELATION.to_string() max=forge_gameplay::MAX_RELATION.to_string() step="1" prop:value=move ||value.get() on:input=move |event|value.set(event_target_value(&event))/></label>
-        <button on:click=move |_|send.run(preview(false))>"Examiner la relation initiale"</button>
+        <button on:click=move |_|preview_send.run(preview(false))>"Examiner la relation initiale"</button>
         <button on:click=move |_|send.run(preview(true))>"Examiner le retour à la relation neutre"</button>
         <ul>{move ||document(state).map(|document|document.factions.as_ref().map(|definitions|definitions.relations.iter().map(|relation|view!{<li>{format!("{} → {} : {} points",group_name(&document,relation.from),group_name(&document,relation.to),relation.value)}</li>}).collect_view()))}</ul>
     }

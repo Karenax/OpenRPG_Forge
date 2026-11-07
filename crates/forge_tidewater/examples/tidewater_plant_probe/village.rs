@@ -11,13 +11,12 @@ use bevy::{
 use serde::Deserialize;
 use std::{collections::BTreeMap, error::Error};
 
-use forge_tidewater::tidewater_assets::{
-    MaterialParameters as MaterialData, materials as building_materials,
-};
-pub use forge_tidewater::tidewater_material::VillageMaterial;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::package::MaterialParameters as MaterialData;
+use forge_tidewater::tidewater_assets::materials as building_materials;
 #[derive(Resource)]
-pub struct SharedMaterials(pub Vec<Handle<VillageMaterial>>);
-use forge_tidewater::tidewater_mesh::VillageMeshBytes;
+pub struct SharedMaterials(pub Vec<Handle<SourceSurfaceMaterial>>);
+use forge_engine::source_surface::mesh::SourceMeshBytes;
 #[derive(Deserialize)]
 struct Description {
     schema: String,
@@ -49,7 +48,7 @@ struct TextureData {
     mips: u32,
 }
 pub struct Village {
-    lighting: forge_tidewater::tidewater_material::SceneLighting,
+    lighting: forge_engine::source_lighting::SceneLighting,
     ground_bounce: Option<(Image, Vec4)>,
     description: Description,
     meshes: BTreeMap<String, Mesh>,
@@ -57,7 +56,7 @@ pub struct Village {
 }
 
 impl Village {
-    pub fn lighting(&self) -> &forge_tidewater::tidewater_material::SceneLighting {
+    pub fn lighting(&self) -> &forge_engine::source_lighting::SceneLighting {
         &self.lighting
     }
 }
@@ -144,7 +143,7 @@ pub fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Option<Village>, Box<dy
         };
         meshes.insert(
             name.clone(),
-            VillageMeshBytes {
+            SourceMeshBytes {
                 positions: attr("position")?,
                 normals: attr("normal")?,
                 uv: attr("uv")?,
@@ -182,11 +181,11 @@ pub fn setup(
     probe: Res<Probe>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut images: ResMut<Assets<Image>>,
-    mut materials: ResMut<Assets<VillageMaterial>>,
+    mut materials: ResMut<Assets<SourceSurfaceMaterial>>,
     environment: Res<super::ProbeEnvironment>,
     hill: Res<super::hill_shadow::Images>,
     object: Res<super::object_shadow::Target>,
-    caustics: Option<Res<forge_tidewater::tidewater_caustics::CausticMaterialInputs>>,
+    caustics: Option<Res<forge_engine::source_surface::underwater::CausticMaterialInputs>>,
 ) {
     let Some(v) = &probe.village else {
         return;
@@ -206,13 +205,13 @@ pub fn setup(
         .map(|(k, v)| (k, meshes.add(v.clone())))
         .collect();
     let mut caustics = caustics.as_deref().cloned().unwrap_or_else(|| {
-        forge_tidewater::tidewater_caustics::CausticMaterialInputs::disabled(&mut images)
+        forge_engine::source_surface::underwater::CausticMaterialInputs::disabled(&mut images)
     });
     if std::env::var_os("FORGE_TIDEWATER_VILLAGE_UNDERWATER_OFF").is_some() {
         // Negative is an explicit diagnostic opt-out, preserved by live controls.
         caustics.params.water_scattering.w = -1.0;
     }
-    let lighting = building_materials::LightingBindings {
+    let lighting = forge_engine::source_surface::LightingBindings {
         scene_lighting: v.lighting.clone(),
         environment: environment.0.clone(),
         hill_shadow: hill.output.clone(),
@@ -273,7 +272,7 @@ pub fn setup(
 
 fn load_ground_bounce(
     files: &BTreeMap<String, Vec<u8>>,
-    lighting: &forge_tidewater::tidewater_material::SceneLighting,
+    lighting: &forge_engine::source_lighting::SceneLighting,
 ) -> Result<Option<(Image, Vec4)>, Box<dyn Error>> {
     #[derive(Deserialize)]
     struct Description {
@@ -338,7 +337,7 @@ fn load_ground_bounce(
 
 fn load_lighting(
     files: &BTreeMap<String, Vec<u8>>,
-) -> Result<forge_tidewater::tidewater_material::SceneLighting, Box<dyn Error>> {
+) -> Result<forge_engine::source_lighting::SceneLighting, Box<dyn Error>> {
     #[derive(Deserialize)]
     struct SourceLighting {
         sun_direction: [f32; 3],
@@ -352,7 +351,7 @@ fn load_lighting(
         Vec::as_slice,
     );
     let source: SourceLighting = serde_json::from_slice(bytes)?;
-    Ok(forge_tidewater::tidewater_material::SceneLighting::new(
+    Ok(forge_engine::source_lighting::SceneLighting::new(
         source.sun_direction,
         source.sun_color,
         source.environment_sh,

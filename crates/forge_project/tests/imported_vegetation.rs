@@ -66,6 +66,7 @@ fn version_and_layer_coverage_are_explicit() {
     let mut imported = block(&row(1), 1);
     imported.layer_id = document.layers[0].id.to_string();
     document.imported_source = Some(ImportedVegetationSource {
+        grass: None,
         schema: "forge.imported-vegetation".into(),
         version: 1,
         blocks: vec![imported],
@@ -82,6 +83,38 @@ fn version_and_layer_coverage_are_explicit() {
     document.imported_source.as_mut().unwrap().blocks[0].layer_id = "unknown".into();
     assert!(document.validate().is_err());
     document.imported_source = None;
+    assert!(document.validate().is_err());
+}
+
+#[test]
+fn grass_field_is_an_explicit_versioned_profile_reference() {
+    let mut document = VegetationDocument::from_json(LEGACY).unwrap();
+    document.layers.truncate(1);
+    let mut imported = block(&row(1), 1);
+    imported.layer_id = document.layers[0].id.to_string();
+    document.schema_version = 2;
+    document.extent_m = extent();
+    document.imported_source = Some(ImportedVegetationSource {
+        schema: "forge.imported-vegetation".into(),
+        version: 1,
+        blocks: vec![imported],
+        grass: None,
+    });
+    document.validate().unwrap();
+    let before = document.content_hash().unwrap();
+    let json = serde_json::to_value(&document).unwrap();
+    assert!(json["imported_source"].get("grass").is_none());
+    let source = document.imported_source.as_mut().unwrap();
+    source.grass = Some(forge_project::imported_vegetation::ImportedGrassField {
+        profile_manifest_sha256: bytes_sha256(b"governed grass profile index"),
+    });
+    assert!(document.validate().is_err());
+    document.imported_source.as_mut().unwrap().version = 2;
+    document.validate().unwrap();
+    assert_ne!(before, document.content_hash().unwrap());
+    let restored = VegetationDocument::from_json(&document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(restored, document);
+    document.imported_source.as_mut().unwrap().grass = None;
     assert!(document.validate().is_err());
 }
 

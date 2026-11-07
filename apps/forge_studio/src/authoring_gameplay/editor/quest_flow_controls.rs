@@ -201,51 +201,77 @@ pub(super) fn QuestFlowControls(
             .and_then(|state| state.zone_head)
             .and_then(|head| head.corrections.gameplay.map(|document| *document))
     };
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let key = (fields.quest.get(), super::source_hash(state));
-        if previous.as_ref() == Some(&key) {
-            return key;
-        }
-        if let Some(flow) = document().and_then(|document| {
-            id(&fields.quest.get())
-                .ok()
-                .and_then(|quest| initial_flow(&document, quest))
-        }) {
-            fields.legacy_solution.set(
-                flow.solutions
-                    .first()
-                    .map_or_else(String::new, |solution| solution.id.to_string()),
-            );
-            fields.solutions.set(flow.solutions);
-            fields
-                .prerequisites
-                .set(flow.prerequisites.into_iter().collect());
-            fields.available.set(flow.journal_available);
-            fields.active.set(flow.journal_active);
-            fields.completed.set(flow.journal_completed);
-            fields.failed.set(flow.journal_failed);
-            if let Some(Condition::Variable {
-                variable,
-                value,
-                comparison,
-            }) = flow.failure_condition
-            {
-                fields.failure_variable.set(variable.to_string());
+    let draft_notice = super::draft::bind(
+        move || {
+            let quest = fields.quest.get();
+            let current = document().and_then(|document| {
+                id(&quest)
+                    .ok()
+                    .and_then(|quest| initial_flow(&document, quest))
+            });
+            (quest, serde_json::to_value(current).unwrap_or_default())
+        },
+        vec![
+            super::draft::Field::new(fields.solutions),
+            super::draft::Field::new(fields.prerequisites),
+            super::draft::Field::new(fields.available),
+            super::draft::Field::new(fields.active),
+            super::draft::Field::new(fields.completed),
+            super::draft::Field::new(fields.failed),
+            super::draft::Field::new(fields.failure_variable),
+            super::draft::Field::new(fields.failure_value),
+            super::draft::Field::new(fields.failure_comparison),
+            super::draft::Field::new(fields.name),
+            super::draft::Field::new(fields.variable),
+            super::draft::Field::new(fields.value),
+            super::draft::Field::new(fields.comparison),
+            super::draft::Field::new(fields.item),
+            super::draft::Field::new(fields.quantity),
+            super::draft::Field::new(fields.legacy_solution),
+        ],
+        move || {
+            if let Some(flow) = document().and_then(|document| {
+                id(&fields.quest.get())
+                    .ok()
+                    .and_then(|quest| initial_flow(&document, quest))
+            }) {
+                fields.legacy_solution.set(
+                    flow.solutions
+                        .first()
+                        .map_or_else(String::new, |solution| solution.id.to_string()),
+                );
+                fields.solutions.set(flow.solutions);
                 fields
-                    .failure_comparison
-                    .set(super::variable_value_field::comparison_key(comparison).into());
-                fields.failure_value.set(match value {
-                    forge_gameplay::NarrativeValue::Boolean(value) => value.to_string(),
-                    forge_gameplay::NarrativeValue::Integer(value) => value.to_string(),
-                    forge_gameplay::NarrativeValue::Text(value) => value,
-                });
-            } else {
-                fields.failure_variable.set(String::new());
-                fields.failure_comparison.set("equal".into());
+                    .prerequisites
+                    .set(flow.prerequisites.into_iter().collect());
+                fields.available.set(flow.journal_available);
+                fields.active.set(flow.journal_active);
+                fields.completed.set(flow.journal_completed);
+                fields.failed.set(flow.journal_failed);
+                if let Some(Condition::Variable {
+                    variable,
+                    value,
+                    comparison,
+                }) = flow.failure_condition
+                {
+                    fields.failure_variable.set(variable.to_string());
+                    fields
+                        .failure_comparison
+                        .set(super::variable_value_field::comparison_key(comparison).into());
+                    fields.failure_value.set(match value {
+                        forge_gameplay::NarrativeValue::Boolean(value) => value.to_string(),
+                        forge_gameplay::NarrativeValue::Integer(value) => value.to_string(),
+                        forge_gameplay::NarrativeValue::Text(value) => value,
+                    });
+                } else {
+                    fields.failure_variable.set(String::new());
+                    fields.failure_comparison.set("equal".into());
+                }
             }
-        }
-        key
-    });
+        },
+    );
+    let preview_send = draft_notice.submitter_for(send, &[0, 1, 2, 3, 4, 5, 6, 7, 8]);
+
     let disabled = move || {
         busy.get()
             || state
@@ -254,8 +280,9 @@ pub(super) fn QuestFlowControls(
     };
     view! {
         <Show when=move ||document().is_some_and(|document|document.surface_visible(CreatorSurface::Quests))>
-            <details class="creator-quest-flow"><summary>"Solutions et journal de quête"</summary><fieldset disabled=disabled>
+            <details class="creator-quest-flow"><summary>"Solutions et journal de quête"</summary><fieldset disabled=disabled><super::draft::DraftNotice notice=draft_notice/>
                 <label>"Quête"<select prop:value=move ||fields.quest.get() on:change=move |event|fields.quest.set(event_target_value(&event))><option value="">"Choisir une quête"</option>{move ||document().map(|document|document.quests.into_iter().map(|quest|view!{<option value=quest.id.to_string()>{quest.name}</option>}).collect_view())}</select></label>
+                <super::quest_definition_controls::QuestDefinitionControls state=state busy=busy selected=fields.quest send=send/>
                 <p>"Les solutions partagent la récompense définie sur la quête. Une seule solution peut être validée pendant une partie."</p>
                 <ul>{move ||fields.solutions.get().into_iter().map(|solution| {
                     let key=solution.id;
@@ -275,7 +302,7 @@ pub(super) fn QuestFlowControls(
                     <super::variable_value_field::ComparisonField value=fields.comparison label="Comparaison de la solution"/>
                     <super::variable_value_field::VariableValueField state=state selected=fields.variable value=fields.value label="Valeur attendue"/>
                 </Show>
-                <label>"Item consommé"<select prop:value=move ||fields.item.get() on:change=move |event|fields.item.set(event_target_value(&event))><option value="">"Aucun item consommé"</option>{move ||document().map(|document|document.items.into_iter().map(|item|view!{<option value=item.id.to_string()>{item.name}</option>}).collect_view())}</select></label>
+                <label>"Objet d’inventaire consommé"<select prop:value=move ||fields.item.get() on:change=move |event|fields.item.set(event_target_value(&event))><option value="">"Aucun objet d’inventaire consommé"</option>{move ||document().map(|document|document.items.into_iter().map(|item|view!{<option value=item.id.to_string()>{item.name}</option>}).collect_view())}</select></label>
                 <label>"Quantité consommée"<input type="number" min="1" prop:value=move ||fields.quantity.get() on:input=move |event|fields.quantity.set(event_target_value(&event))/></label>
                 <button on:click=move |_| {
                     let result=document().ok_or("Ouvrir un document RPG".to_owned()).and_then(|document|fields.prepare_solution(&document));
@@ -300,7 +327,7 @@ pub(super) fn QuestFlowControls(
                     <super::variable_value_field::VariableValueField state=state selected=fields.failure_variable value=fields.failure_value label="Valeur permettant l’échec"/>
                 </Show>
                 <p>"L’échec s’applique uniquement par un choix de dialogue portant cet effet, si sa condition est satisfaite. Il est terminal et n’attribue aucune récompense."</p>
-                <button on:click=move |_|send.run(fields.preview(state.get_untracked()))>"Examiner le flux et le journal"</button>
+                <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked()))>"Examiner le flux et le journal"</button>
             </fieldset></details>
         </Show>
     }

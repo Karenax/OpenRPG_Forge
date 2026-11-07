@@ -1,9 +1,8 @@
 //! CPU projection and visibility evidence; neither draw completion nor pixel parity.
 use bevy::prelude::*;
-use forge_tidewater::{
-    tidewater_beach_props::ResidentBeachProps, tidewater_material::VillageMaterial,
-    tidewater_village_props::ResidentVillageProps,
-};
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_tidewater::tidewater_beach_props::ResidentBeachProps;
+use forge_tidewater::tidewater_village_props::ResidentVillageProps;
 use serde_json::{Value, json};
 
 pub(super) fn observe(world: &World) -> Value {
@@ -39,10 +38,10 @@ fn family(
 
 fn part_observation(world: &World, entity: Entity) -> Value {
     let material = world
-        .get::<MeshMaterial3d<VillageMaterial>>(entity)
+        .get::<MeshMaterial3d<SourceSurfaceMaterial>>(entity)
         .and_then(|handle| {
             world
-                .get_resource::<Assets<VillageMaterial>>()?
+                .get_resource::<Assets<SourceSurfaceMaterial>>()?
                 .get(&handle.0)
         });
     json!({

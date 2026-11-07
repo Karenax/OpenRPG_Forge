@@ -22,7 +22,7 @@ ACQUISITIONS = (
      '0fced24e084d51123235d3b2ec240369f09f7ee13b729bdc020a302e60d1b0d8', 500),
 )
 DEBRIS_TESTS = (
-    ('forge_engine', 'tidewater_debris::nature::tests::acquired_program_accepts_shared_receivers_without_duplicate_sun_shadow'),
+    ('forge_engine', 'source_surface::nature::tests::acquired_program_accepts_shared_receivers_without_duplicate_sun_shadow'),
     ('forge_engine', 'tidewater_debris::pebble_material::tests::acquired_program_accepts_shared_receivers_without_duplicate_sun_shadow'),
     ('forge_engine', 'tidewater_debris::pebble_mesh::tests::acquired_patch_preserves_graphics_resources'),
     ('forge_engine', 'tidewater_debris::scanned_draws::tests::edited_duplicates_keep_variation_and_transition_records_separate'),

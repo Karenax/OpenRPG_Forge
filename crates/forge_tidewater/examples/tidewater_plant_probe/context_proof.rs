@@ -1,6 +1,6 @@
 //! Opt-in native suspend/resume witness, separate from the terrain verdict.
 use bevy::prelude::*;
-use forge_tidewater::tidewater_refraction::{Activity, CaptureConsumer, Observation, Targets};
+use forge_engine::source_refraction_capture::{Activity, Observation, Targets};
 
 #[derive(Resource, Default)]
 struct Proof {
@@ -126,3 +126,5 @@ fn observe(world: &mut World) {
     )
     .expect("context proof output");
 }
+
+use forge_engine::source_surface::capture::CaptureConsumer;

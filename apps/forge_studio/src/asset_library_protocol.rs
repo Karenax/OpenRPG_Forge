@@ -255,12 +255,20 @@ pub struct LibraryModel {
 /// A separate domain prevents collisions with assets in the distributed kit.
 #[must_use]
 pub fn vault_asset_id(id: &str) -> forge_core::AssetId {
-    forge_core::AssetId::deterministic(format!("asset-vault/v1:{id}"))
+    forge_assets::governed_import::vault_asset_id(id)
 }
 
 #[cfg(test)]
 mod module_collision_tests {
     use super::ModuleCollisionPolicy;
+
+    #[test]
+    fn vault_identity_keeps_the_existing_namespace() {
+        let id = "demo.arbre-eclaire";
+        let existing = super::vault_asset_id(id);
+        assert_eq!(existing, forge_assets::governed_import::vault_asset_id(id));
+        assert_eq!(existing.to_string(), "65c7370e-c994-55ff-b7fc-f9b64ce3a714");
+    }
 
     #[test]
     fn static_primitives_must_be_meshes_owned_by_the_expected_placement() {

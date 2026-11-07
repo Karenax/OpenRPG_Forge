@@ -4,9 +4,10 @@ use bevy_rapier3d::prelude::{Collider, NoUserData, RapierPhysicsPlugin, RigidBod
 use forge_project::TerrainDocument;
 use forge_world::{
     TERRAIN_CHUNK_COUNT, TERRAIN_CHUNK_INTERVALS, TERRAIN_CHUNK_VERTICES_PER_AXIS,
-    TERRAIN_SAMPLE_SPACING_M, TerrainChunkCoordinate, TerrainChunkId, TerrainChunkMesh,
-    TerrainColliderTriangleOrder, TerrainColliderVertexOrder, TerrainGenerationError,
-    TerrainGenerationPlan,
+    TERRAIN_HALF_EXTENT_M, TERRAIN_SAMPLE_SPACING_M, TerrainChunkCoordinate, TerrainChunkId,
+    TerrainChunkMesh, TerrainColliderTriangleOrder, TerrainColliderVertexOrder,
+    TerrainGenerationError, TerrainGenerationPlan,
+    cell_streaming::{CellDetail, ProceduralCellMesh},
 };
 use std::{error::Error, fmt};
 
@@ -140,16 +141,29 @@ fn prepare_chunk_heightfield(
     chunk: &TerrainChunkMesh,
 ) -> Result<PreparedTerrainHeightfield, TerrainPhysicsAdapterError> {
     validate_chunk_contract(chunk)?;
-
-    let heights_column_major = row_major_heights_to_rapier_column_major(
+    prepare_validated_heightfield(
+        chunk.id,
+        chunk.coordinate,
+        chunk.minimum_xz_m,
+        chunk.maximum_xz_m,
         &chunk.collider.vertices_m,
-        TERRAIN_HEIGHTFIELD_AXIS,
     )
-    .map_err(|reason| invalid_chunk(chunk, reason))?;
+}
+
+fn prepare_validated_heightfield(
+    id: TerrainChunkId,
+    coordinate: TerrainChunkCoordinate,
+    minimum_xz_m: [f32; 2],
+    maximum_xz_m: [f32; 2],
+    vertices_m: &[[f32; 3]],
+) -> Result<PreparedTerrainHeightfield, TerrainPhysicsAdapterError> {
+    let heights_column_major =
+        row_major_heights_to_rapier_column_major(vertices_m, TERRAIN_HEIGHTFIELD_AXIS)
+            .map_err(|reason| invalid_coordinate(coordinate, reason))?;
     let center = Vec3::new(
-        f32::midpoint(chunk.minimum_xz_m[0], chunk.maximum_xz_m[0]),
+        f32::midpoint(minimum_xz_m[0], maximum_xz_m[0]),
         0.0,
-        f32::midpoint(chunk.minimum_xz_m[1], chunk.maximum_xz_m[1]),
+        f32::midpoint(minimum_xz_m[1], maximum_xz_m[1]),
     );
     let scale = Vec3::new(
         TERRAIN_HEIGHTFIELD_HORIZONTAL_SCALE_M,
@@ -157,23 +171,64 @@ fn prepare_chunk_heightfield(
         TERRAIN_HEIGHTFIELD_HORIZONTAL_SCALE_M,
     );
     if !center.is_finite() || !scale.is_finite() || scale.cmple(Vec3::ZERO).any() {
-        return Err(invalid_chunk(
-            chunk,
+        return Err(invalid_coordinate(
+            coordinate,
             "heightfield transform or scale is invalid",
         ));
     }
 
     Ok(PreparedTerrainHeightfield {
-        marker: TerrainHeightfieldCollider {
-            id: chunk.id,
-            coordinate: chunk.coordinate,
-        },
+        marker: TerrainHeightfieldCollider { id, coordinate },
         heights_column_major,
         rows: TERRAIN_HEIGHTFIELD_AXIS,
         columns: TERRAIN_HEIGHTFIELD_AXIS,
         scale,
         center,
     })
+}
+
+/// Validates the same full-resolution grid and winding before creating a streamed heightfield.
+pub(crate) fn build_procedural_heightfield(
+    cell: &ProceduralCellMesh,
+) -> Result<(Collider, Vec3, TerrainHeightfieldCollider), TerrainPhysicsAdapterError> {
+    let coordinate = TerrainChunkCoordinate {
+        x: cell.acknowledgement.key.x,
+        z: cell.acknowledgement.key.z,
+    };
+    if cell.acknowledgement.detail != CellDetail::Full || !coordinate.is_in_bounds() {
+        return Err(invalid_coordinate(
+            coordinate,
+            "heightfield requires a full in-bounds cell",
+        ));
+    }
+    let minimum = [coordinate.x, coordinate.z].map(|axis| {
+        -TERRAIN_HALF_EXTENT_M
+            + f32::from(axis * TERRAIN_CHUNK_INTERVALS) * TERRAIN_SAMPLE_SPACING_M
+    });
+    let maximum = minimum.map(|value| value + TERRAIN_HEIGHTFIELD_HORIZONTAL_SCALE_M);
+    let (triangles, remainder) = cell.indices.as_chunks::<3>();
+    if !remainder.is_empty() {
+        return Err(invalid_coordinate(
+            coordinate,
+            "collider indices are not triangles",
+        ));
+    }
+    validate_heightfield_grid(coordinate, minimum, maximum, &cell.positions_m, triangles)?;
+    validate_rapier_triangles(coordinate, triangles)?;
+    let prepared = prepare_validated_heightfield(
+        cell.source_chunk_id,
+        coordinate,
+        minimum,
+        maximum,
+        &cell.positions_m,
+    )?;
+    let collider = Collider::heightfield(
+        prepared.heights_column_major,
+        prepared.rows,
+        prepared.columns,
+        prepared.scale,
+    );
+    Ok((collider, prepared.center, prepared.marker))
 }
 
 /// Builds the Rapier shape for one already generated Forge chunk.
@@ -228,45 +283,79 @@ fn validate_chunk_contract(chunk: &TerrainChunkMesh) -> Result<(), TerrainPhysic
             "collider vertices diverge from the generated terrain mesh",
         ));
     }
-    if chunk.collider.triangles.len() != TERRAIN_HEIGHTFIELD_TRIANGLE_COUNT {
-        return Err(invalid_chunk(
-            chunk,
+    validate_heightfield_grid(
+        chunk.coordinate,
+        chunk.minimum_xz_m,
+        chunk.maximum_xz_m,
+        &chunk.collider.vertices_m,
+        &chunk.collider.triangles,
+    )?;
+    validate_rapier_split_compatibility(chunk)
+}
+
+fn validate_heightfield_grid(
+    coordinate: TerrainChunkCoordinate,
+    minimum_xz_m: [f32; 2],
+    maximum_xz_m: [f32; 2],
+    vertices: &[[f32; 3]],
+    triangles: &[[u32; 3]],
+) -> Result<(), TerrainPhysicsAdapterError> {
+    if vertices.len() != TERRAIN_HEIGHTFIELD_SAMPLE_COUNT {
+        return Err(invalid_coordinate(
+            coordinate,
+            "collider vertex count is not 33 by 33",
+        ));
+    }
+    if vertices.iter().flatten().any(|value| !value.is_finite()) {
+        return Err(invalid_coordinate(
+            coordinate,
+            "collider contains a non-finite vertex",
+        ));
+    }
+    if triangles.len() != TERRAIN_HEIGHTFIELD_TRIANGLE_COUNT {
+        return Err(invalid_coordinate(
+            coordinate,
             "collider triangle count is not 32 by 32 by two",
         ));
     }
-    if chunk
-        .minimum_xz_m
+    if minimum_xz_m
         .iter()
-        .chain(chunk.maximum_xz_m.iter())
+        .chain(maximum_xz_m.iter())
         .any(|value| !value.is_finite())
     {
-        return Err(invalid_chunk(chunk, "chunk bounds are non-finite"));
+        return Err(invalid_coordinate(
+            coordinate,
+            "chunk bounds are non-finite",
+        ));
     }
-    let width_m = chunk.maximum_xz_m[0] - chunk.minimum_xz_m[0];
-    let depth_m = chunk.maximum_xz_m[1] - chunk.minimum_xz_m[1];
+    let width_m = maximum_xz_m[0] - minimum_xz_m[0];
+    let depth_m = maximum_xz_m[1] - minimum_xz_m[1];
     if width_m.to_bits() != TERRAIN_HEIGHTFIELD_HORIZONTAL_SCALE_M.to_bits()
         || depth_m.to_bits() != TERRAIN_HEIGHTFIELD_HORIZONTAL_SCALE_M.to_bits()
     {
-        return Err(invalid_chunk(chunk, "chunk bounds are not 64 by 64 metres"));
+        return Err(invalid_coordinate(
+            coordinate,
+            "chunk bounds are not 64 by 64 metres",
+        ));
     }
 
     for z in 0..TERRAIN_HEIGHTFIELD_AXIS {
         for x in 0..TERRAIN_HEIGHTFIELD_AXIS {
-            let vertex = chunk.collider.vertices_m[row_major_index(x, z, TERRAIN_HEIGHTFIELD_AXIS)];
-            let expected_x = chunk.minimum_xz_m[0] + grid_offset_m(x);
-            let expected_z = chunk.minimum_xz_m[1] + grid_offset_m(z);
+            let vertex = vertices[row_major_index(x, z, TERRAIN_HEIGHTFIELD_AXIS)];
+            let expected_x = minimum_xz_m[0] + grid_offset_m(x);
+            let expected_z = minimum_xz_m[1] + grid_offset_m(z);
             if vertex[0].to_bits() != expected_x.to_bits()
                 || vertex[2].to_bits() != expected_z.to_bits()
             {
-                return Err(invalid_chunk(
-                    chunk,
+                return Err(invalid_coordinate(
+                    coordinate,
                     "collider vertices do not follow the expected local grid",
                 ));
             }
         }
     }
 
-    validate_rapier_split_compatibility(chunk)
+    Ok(())
 }
 
 #[must_use]
@@ -278,18 +367,25 @@ fn grid_offset_m(index: usize) -> f32 {
 fn validate_rapier_split_compatibility(
     chunk: &TerrainChunkMesh,
 ) -> Result<(), TerrainPhysicsAdapterError> {
+    validate_rapier_triangles(chunk.coordinate, &chunk.collider.triangles)
+}
+
+fn validate_rapier_triangles(
+    coordinate: TerrainChunkCoordinate,
+    triangles: &[[u32; 3]],
+) -> Result<(), TerrainPhysicsAdapterError> {
     let cell_axis = TERRAIN_HEIGHTFIELD_AXIS - 1;
     for z in 0..cell_axis {
         for x in 0..cell_axis {
             let cell_index = z * cell_axis + x;
-            let actual_first = chunk.collider.triangles[cell_index * 2];
-            let actual_second = chunk.collider.triangles[cell_index * 2 + 1];
+            let actual_first = triangles[cell_index * 2];
+            let actual_second = triangles[cell_index * 2 + 1];
             let (rapier_first, rapier_second) = rapier_default_split_in_forge_indices(x, z);
             if !same_oriented_triangle(actual_first, rapier_first)
                 || !same_oriented_triangle(actual_second, rapier_second)
             {
-                return Err(invalid_chunk(
-                    chunk,
+                return Err(invalid_coordinate(
+                    coordinate,
                     "mesh triangles do not match Rapier's default heightfield split",
                 ));
             }
@@ -354,10 +450,14 @@ const fn same_oriented_triangle(actual: [u32; 3], expected: [u32; 3]) -> bool {
 }
 
 fn invalid_chunk(chunk: &TerrainChunkMesh, reason: &'static str) -> TerrainPhysicsAdapterError {
-    TerrainPhysicsAdapterError::InvalidChunkPayload {
-        coordinate: chunk.coordinate,
-        reason,
-    }
+    invalid_coordinate(chunk.coordinate, reason)
+}
+
+fn invalid_coordinate(
+    coordinate: TerrainChunkCoordinate,
+    reason: &'static str,
+) -> TerrainPhysicsAdapterError {
+    TerrainPhysicsAdapterError::InvalidChunkPayload { coordinate, reason }
 }
 
 fn spawn_terrain_heightfields(

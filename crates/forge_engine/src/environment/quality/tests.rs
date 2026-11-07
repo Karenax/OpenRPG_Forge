@@ -3,6 +3,7 @@ use crate::environment::VisualValleyEnvironmentPlugin;
 use crate::visual_valley::VisualValleySun;
 
 #[test]
+#[cfg(feature = "physics-rapier")]
 fn effective_environment_installation_retains_authored_fog_and_source() {
     let terrain = forge_world::embedded_visual_valley_terrain_document().unwrap();
     let policy = VisualValleyQualityProfileDocument::from_json(include_str!(

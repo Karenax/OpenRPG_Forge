@@ -14,6 +14,7 @@ thread_local! {
     static PLAYING: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
     static PLAYTEST: std::cell::Cell<Option<forge_project::authoring::playtest::PlaytestIdentity>> = const { std::cell::Cell::new(None) };
     static DOCUMENT: RefCell<Option<TerrainDocument>> = const { RefCell::new(None) };
+    static SAMPLED_READY: std::cell::Cell<bool> = const { std::cell::Cell::new(true) };
 }
 
 pub(crate) fn imported_document() -> Option<TerrainDocument> {
@@ -27,8 +28,13 @@ pub(crate) fn imported_document() -> Option<TerrainDocument> {
 
 pub(super) fn can_preview_asset() -> bool {
     can_project_sources()
+        && SAMPLED_READY.with(std::cell::Cell::get)
         && !PLAYING.with(std::cell::Cell::get)
         && !super::authoring_native_game::paused()
+}
+
+pub(crate) fn sampled_ready(ready: bool) {
+    SAMPLED_READY.with(|value| value.set(ready));
 }
 
 /// Source reconstruction must remain available while playtest waits for its caches.
@@ -54,6 +60,9 @@ pub(super) fn has_projection() -> bool {
 }
 
 pub(crate) fn report(message: String) {
+    if INVALIDATED.with(|slot| *slot.borrow()) {
+        super::authoring_loading::finish();
+    }
     STATUS.with(|slot| {
         if let Some(status) = *slot.borrow() {
             status.set(message);
@@ -91,20 +100,20 @@ pub fn AuthoringWorkspace() -> impl IntoView {
                 </div>
                 <super::atelier_ui::WindowControls link=atelier/>
                 <details class="forge-technical-menu"><summary>"Aide & diagnostics"</summary>
-                    <div><p>"Ces pages rechargent l’atelier. Terminez vos aperçus avant de naviguer."</p>
+                    <div><p>"Ces pages rechargent l’atelier. Examinez vos brouillons, appliquez puis sauvegardez avant de naviguer ; les champs locaux ne seront pas conservés."</p>
                     <a href="?authoring=1">"Recharger la projection"</a>
                     <a href="?scene=gate0">"Scènes de preuve"</a></div>
                 </details>
             </header>
             <div class="authoring-body">
-                <aside class="authoring-tools" aria-label="Outils de zone"
+                <aside class="authoring-tools" aria-label="Outils de carte"
                     inert=super::authoring_native_game::paused>
                     <super::authoring_controls::AuthoringControls/>
                 </aside>
                 <section class="authoring-view" aria-label="Terrain édité">
                     <super::authoring_camera::CameraControls/>
-                    <super::authoring_render_metrics::ViewportMetrics/>
                     <details class="gold-view-settings"><summary>"Affichage et diagnostics"</summary>
+                    <super::authoring_render_metrics::ViewportMetrics/>
                     <super::authoring_lighting::LightingControls/>
                     <details class="authoring-viewport-info"><summary>"État technique de l’eau"</summary>
                         <super::authoring_scene::WaterStatus/>
@@ -119,7 +128,7 @@ pub fn AuthoringWorkspace() -> impl IntoView {
                     <super::authoring_compass::CompassHud/>
                     <super::authoring_compass::AxisHud/>
                     <super::authoring_assets::placements::gizmo::HandlesHud/>
-                <canvas id="forge-authoring-canvas" tabindex="0"
+                <canvas id="forge-authoring-canvas" tabindex="0" aria-label="Vue 3D de la carte" aria-describedby="forge-camera-help"
                     on:mousemove=move |event| {
                         super::authoring_assets::placements::gizmo::pointer(&event, super::authoring_assets::placements::gizmo::Phase::Move);
                         super::authoring_camera::motion(&event);
@@ -143,25 +152,40 @@ pub fn AuthoringWorkspace() -> impl IntoView {
                         super::authoring_brush_pointer::observe(&event, true);
                         super::authoring_input::capture();
                     }
-                    on:keydown=move |event| {
-                        if !event.ctrl_key() && !event.alt_key() && !event.meta_key() && super::authoring_paths::drawing_key(&event.key()) {
-                            event.prevent_default();
-                            event.stop_propagation();
-                            return;
-                        }
-                        super::input_capture::observe_key(&event.code());
-                        if event.key() == "Escape" { cancel_tools(); }
-                        if let Some(document) = web_sys::window().and_then(|window| window.document())
-                            && document.pointer_lock_element().is_some()
-                        {
-                            if event.key() == "Escape" { document.exit_pointer_lock(); }
-                            if event.code() == "Space" { event.prevent_default(); }
-                        }
-                    }></canvas>
+                    on:keydown=move |event| canvas_key(&event)></canvas>
                     </div>
                 </section>
             </div>
         </main>
+    }
+}
+
+fn canvas_key(event: &web_sys::KeyboardEvent) {
+    if super::authoring_camera::key(event) {
+        return;
+    }
+    if !event.ctrl_key()
+        && !event.alt_key()
+        && !event.meta_key()
+        && super::authoring_paths::drawing_key(&event.key())
+    {
+        event.prevent_default();
+        event.stop_propagation();
+        return;
+    }
+    super::input_capture::observe_key(&event.code());
+    if event.key() == "Escape" {
+        cancel_tools();
+    }
+    if let Some(document) = web_sys::window().and_then(|window| window.document())
+        && document.pointer_lock_element().is_some()
+    {
+        if event.key() == "Escape" {
+            document.exit_pointer_lock();
+        }
+        if event.code() == "Space" {
+            event.prevent_default();
+        }
     }
 }
 
@@ -232,19 +256,28 @@ pub(super) fn observe(
     }
     if document.sampled_source.is_some() {
         super::authoring_loading::begin("Préparation du terrain, des modèles et des textures…");
-        match crate::authoring_assets::imported_buildings::ensure_for_projection(
+        let resources = match crate::authoring_assets::imported_buildings::ensure_for_projection(
             document,
             playtest.is_some(),
         ) {
-            Ok(true) => {}
-            Ok(false) => return,
+            Ok(crate::authoring_assets::imported_buildings::ProjectionResources::Loading) => return,
+            Ok(resources) => resources,
             Err(error) => {
                 super::authoring_loading::finish();
                 report(error);
                 return;
             }
-        }
-        if let Err(error) = crate::authoring_imported_terrain::launch(document.clone(), playtest) {
+        };
+        let result = match resources {
+            crate::authoring_assets::imported_buildings::ProjectionResources::Canonical => {
+                crate::authoring_sampled_viewport::launch(document)
+            }
+            crate::authoring_assets::imported_buildings::ProjectionResources::Library => {
+                crate::authoring_imported_terrain::launch(document.clone(), playtest)
+            }
+            crate::authoring_assets::imported_buildings::ProjectionResources::Loading => return,
+        };
+        if let Err(error) = result {
             super::authoring_loading::finish();
             report(error);
             return;
@@ -253,6 +286,7 @@ pub(super) fn observe(
         return;
     }
     if let Err(error) = forge_world::TerrainGenerationPlan::from_document(document) {
+        super::authoring_loading::finish();
         report(format!("Terrain non projetable : {error}"));
         return;
     }
@@ -267,9 +301,7 @@ pub(super) fn observe(
         }
     };
     SOURCE.with(|slot| slot.replace(Some(hash)));
-    report(format!(
-        "Construction de la projection de {hash} ; pas encore une preuve GPU."
-    ));
+    report("Préparation de l’affichage de la carte…".into());
     launch_viewport(plugin, document.clone(), playtest);
 }
 
@@ -351,6 +383,7 @@ fn launch_viewport(
         .add_systems(Last, super::authoring_input::publish)
         .add_systems(Update, super::authoring_preview::draw)
         .add_systems(Update, super::authoring_camera::navigate);
+        super::authoring_assets::preview::register_rendering(&mut app);
         if playtest.is_none() {
             super::authoring_render::install(&mut app);
         }
@@ -359,7 +392,10 @@ fn launch_viewport(
             report(format!("Initialisation végétation refusée : {error}"));
             return;
         }
-        if let Err(error) = super::authoring_assets::imported_environment::install(&mut app) {
+        if let Err(error) = super::authoring_assets::imported_environment::install(
+            &mut app,
+            &forge_engine::source_wind::AcquiredFrame::neutral(),
+        ) {
             INVALIDATED.with(|slot| slot.replace(true));
             report(format!("Initialisation environnement refusée : {error}"));
             return;
@@ -451,10 +487,7 @@ fn project_edits(
         super::authoring_loading::finish();
         *initial_reported = true;
         // Runtime state exists; this does not claim a presented GPU frame.
-        report(format!(
-            "Terrain chargé côté moteur : {}. Présentation GPU à vérifier.",
-            state.cache().source_document_hash
-        ));
+        report("Terrain chargé · préparation de l’affichage.".into());
     }
     if let Some(sequence) = *awaiting {
         if outcome.sequence() != Some(sequence) {
@@ -468,10 +501,7 @@ fn project_edits(
             ));
             return;
         } else if outcome.report().is_some() {
-            report(format!(
-                "Projection CPU/Rapier acquittée : {}. Présentation GPU à vérifier.",
-                state.cache().source_document_hash
-            ));
+            report("Retouche chargée dans la vue · préparation de l’affichage.".into());
         } else {
             return;
         }

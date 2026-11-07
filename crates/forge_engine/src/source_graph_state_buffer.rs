@@ -93,11 +93,44 @@ impl SourceGraphExtension {
     pub fn set_source_state_buffer(&mut self, binding: &SourceGraphStateBufferBinding) {
         self.source_state = binding.handle.clone();
         self.source_state_admitted = true;
+        #[cfg(feature = "physics-rapier")]
+        {
+            self.particle_frame_owner = None;
+        }
     }
 
     pub fn clear_source_state_buffer(&mut self) {
         self.source_state = unused_source_state_handle();
         self.source_state_admitted = false;
+        #[cfg(feature = "physics-rapier")]
+        {
+            self.particle_frame_owner = None;
+        }
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(crate) fn particle_frame_owner(
+        &self,
+    ) -> Option<&crate::source_particle_compute::draw::ParticleFrameOwner> {
+        self.particle_frame_owner.as_ref()
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(crate) fn particle_frame_binding_valid(&self) -> bool {
+        self.particle_frame_owner.as_ref().is_some_and(|owner| {
+            self.source_state_admitted && self.source_state.id() == owner.output
+        })
+    }
+
+    #[cfg(feature = "physics-rapier")]
+    pub(crate) fn set_particle_frame_buffer(
+        &mut self,
+        binding: &SourceGraphStateBufferBinding,
+        owner: crate::source_particle_compute::draw::ParticleFrameOwner,
+    ) {
+        self.source_state = binding.handle.clone();
+        self.source_state_admitted = true;
+        self.particle_frame_owner = Some(owner);
     }
 
     pub fn validate_source_state_buffer(

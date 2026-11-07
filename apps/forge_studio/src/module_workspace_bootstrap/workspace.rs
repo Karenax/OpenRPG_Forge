@@ -1,26 +1,15 @@
-use forge_core::{CommandId, bytes_sha256, document_store::DocumentStore};
 use forge_delivery::module_runtime::LoadedModuleZone;
-use forge_project::workspace::{
-    ModuleOriginPin,
-    file_session::FileWorkspaceSession,
-    session::{WorkspaceAction, WorkspaceRequest},
+use forge_project::{
+    audit::AuditStamp,
+    workspace::{ModuleOriginPin, file_session::FileWorkspaceSession},
 };
-use std::{fs, path::Path};
+use std::path::Path;
 
 pub(super) fn seed(
     root: &Path,
     loaded: &LoadedModuleZone,
     pin: ModuleOriginPin,
 ) -> Result<(), String> {
-    let archives = read_archives(loaded)?;
-    for (area, archive) in &archives {
-        let directory = root.join(area.to_string());
-        fs::create_dir(&directory).map_err(|error| error.to_string())?;
-        let store = DocumentStore::open(&directory).map_err(|error| error.to_string())?;
-        store
-            .save(None, archive)
-            .map_err(|error| error.to_string())?;
-    }
     let mut workspace = if root
         .join("workspace-v1")
         .try_exists()
@@ -30,69 +19,16 @@ pub(super) fn seed(
     } else {
         FileWorkspaceSession::create(root)?
     };
-    let mut actions = Vec::new();
-    if !workspace
-        .session()
-        .head()
-        .projects
-        .iter()
-        .any(|project| project.id == loaded.manifest.project_id)
-    {
-        actions.push((
-            "project",
-            WorkspaceAction::CreateProject {
-                id: loaded.manifest.project_id,
-                name: loaded.manifest.name.clone(),
-            },
-        ));
-    }
-    actions.push((
-        "module",
-        WorkspaceAction::ImportModule {
-            project_id: loaded.manifest.project_id,
-            id: loaded.manifest.module_id,
-            name: loaded.manifest.name.clone(),
-            origin: pin,
-        },
-    ));
-    for (label, action) in actions {
-        workspace.execute(&WorkspaceRequest {
-            command_id: CommandId::deterministic(format!(
-                "module-bootstrap/{}/{label}",
-                pin.package_sha256
-            )),
-            base_revision: workspace.session().head().revision,
-            base_hash: workspace
-                .session()
-                .head()
-                .content_hash()
-                .map_err(|error| error.to_string())?,
-            action,
-        })?;
-    }
-    for (area, archive) in &archives {
-        let review = workspace.review_adoption(
-            *area,
-            loaded.manifest.project_id,
-            loaded.manifest.module_id,
-            bytes_sha256(archive),
-        )?;
-        workspace.adopt(&review.request)?;
-    }
-    if let Some(definition) = &loaded.manifest.creator {
-        let review = workspace.preview_module_creator(
-            definition.clone(),
-            CommandId::deterministic(format!("module-bootstrap/{}/creator", pin.package_sha256)),
-        )?;
-        if !review.changed_areas.is_empty() {
-            return Err("Admitted areas differ from their common Creator definition".into());
-        }
-        workspace.apply_module_creator(&review)?;
-    }
-    workspace.save()?;
-    Ok(())
+    let read_payload = |path: &str, limit| loaded.read_payload(path, limit);
+    let prepared = workspace.prepare_module_import(
+        &loaded.manifest,
+        pin,
+        AuditStamp::legacy(),
+        read_payload,
+    )?;
+    workspace.apply_module_import(prepared, read_payload)?;
+    workspace.save()
 }
-
 pub(super) fn verify(
     root: &Path,
     loaded: &LoadedModuleZone,

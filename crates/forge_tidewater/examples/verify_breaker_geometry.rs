@@ -1,5 +1,6 @@
 //! Compare native derived beach geometry against the pinned independent export.
-use forge_tidewater::breaker_geometry::{beach_stations, lip_topology};
+use forge_engine::source_breaker_geometry::lip_topology;
+use forge_tidewater::breaker_geometry::beach_stations;
 use std::{error::Error, fs, path::PathBuf};
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Coordinates checked inside 2048².

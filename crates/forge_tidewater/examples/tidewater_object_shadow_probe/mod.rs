@@ -27,7 +27,7 @@ use bevy::{
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_tidewater::sun_cascades::{CascadeConfig, CascadeView, SunCascades};
+use forge_engine::sun_cascades::{CascadeConfig, CascadeView, SunCascades};
 use serde_json::Value;
 use std::{
     error::Error,
@@ -38,9 +38,9 @@ use std::{
     time::Duration,
 };
 
-pub use forge_tidewater::tidewater_material::ObjectShadowSettings as Settings;
-pub use forge_tidewater::tidewater_object_shadow::graph::Target;
-use forge_tidewater::tidewater_object_shadow::{OpaqueDraw as Draw, graph::Input};
+pub use forge_engine::source_shadows::ObjectShadowSettings as Settings;
+pub use forge_engine::source_shadows::casters::graph::Target;
+use forge_engine::source_shadows::casters::{OpaqueDraw as Draw, graph::Input};
 #[derive(Resource)]
 struct Output {
     path: PathBuf,
@@ -284,11 +284,11 @@ pub struct AdditionalOpaqueDraws(pub Vec<Draw>);
 fn install_input(app: &mut App, mut input: Input) -> Target {
     if let (Some(frame), Some(plants)) = (
         app.world()
-            .get_resource::<forge_tidewater::scene_wind::AcquiredFrame>(),
+            .get_resource::<forge_engine::source_wind::AcquiredFrame>(),
         input.plants.as_mut(),
     ) {
         plants.initial_motion = Some(
-            forge_tidewater::tidewater_object_shadow::graph::animation::Motion {
+            forge_engine::source_shadows::casters::graph::animation::Motion {
                 main_camera: plants.camera,
                 wind_time: frame
                     .wind_frame()
@@ -309,7 +309,7 @@ fn install_input(app: &mut App, mut input: Input) -> Target {
     {
         input.draws.extend(extra.0);
     }
-    forge_tidewater::tidewater_object_shadow::graph::install(app, input)
+    forge_engine::source_shadows::casters::graph::install(app, input)
         .expect("validated scene inputs and initialized rendering")
 }
 

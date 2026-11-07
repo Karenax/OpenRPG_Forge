@@ -1,24 +1,10 @@
 //! Exact local source primitives; registration and character behaviour remain runtime checks.
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::Collider;
-use forge_tidewater_assets::tidewater_debris::collisions::{LocalShape, Owner};
+use forge_tidewater_assets::tidewater_debris::collisions::LocalShape;
+use forge_tidewater_assets::tidewater_debris::collisions::Owner;
 
-/// Retained source semantics. The character controller must consume walkability separately.
-#[derive(Component, Clone, Debug)]
-pub struct SourceCollision {
-    pub source_index: usize,
-    pub source_shape: String,
-    pub tag: String,
-    pub solid: bool,
-    pub walkable: Option<bool>,
-}
-
-#[derive(Clone)]
-pub struct PreparedPrimitive {
-    pub transform: Transform,
-    pub collider: Collider,
-    pub source: SourceCollision,
-}
+pub use forge_engine::source_surface::objects::props::{PreparedPrimitive, SourceCollision};
 
 /// Prepare without allocating ECS entities. Yaw is baked into the convex box to preserve
 /// its volume when the author applies a nonuniform placement scale.

@@ -28,16 +28,19 @@ pub(super) fn ViewportMetrics() -> impl IntoView {
 pub(super) struct MaterialActivity {
     standard: bevy::ecs::message::MessageCursor<AssetEvent<StandardMaterial>>,
     village: bevy::ecs::message::MessageCursor<
-        AssetEvent<forge_tidewater::tidewater_material::VillageMaterial>,
+        AssetEvent<forge_engine::source_surface::SourceSurfaceMaterial>,
     >,
     plants: bevy::ecs::message::MessageCursor<
-        AssetEvent<forge_tidewater::tidewater_plants::PlantMaterial>,
+        AssetEvent<forge_engine::source_vegetation::captured::CapturedPlantMaterial>,
+    >,
+    world_plants: bevy::ecs::message::MessageCursor<
+        AssetEvent<forge_engine::source_vegetation::world::WorldPlantMaterial>,
     >,
     terrain: bevy::ecs::message::MessageCursor<
-        AssetEvent<forge_tidewater::tidewater_terrain::lod::LodMaterial>,
+        AssetEvent<forge_engine::source_terrain::lod::LodMaterial>,
     >,
     fish: bevy::ecs::message::MessageCursor<
-        AssetEvent<forge_tidewater::tidewater_fish_props::material::FishMaterial>,
+        AssetEvent<forge_engine::source_fish::material::FishMaterial>,
     >,
     buffers: bevy::ecs::message::MessageCursor<AssetEvent<ShaderBuffer>>,
     changed: [usize; 6],
@@ -67,7 +70,7 @@ pub(super) fn observe_materials(world: &mut World, mut activity: Local<MaterialA
     let changed = [
         changes(world, &mut activity.standard),
         changes(world, &mut activity.village),
-        changes(world, &mut activity.plants),
+        changes(world, &mut activity.plants) + changes(world, &mut activity.world_plants),
         changes(world, &mut activity.terrain),
         changes(world, &mut activity.fish),
         changes(world, &mut activity.buffers),
@@ -84,23 +87,23 @@ pub(super) fn observe_materials(world: &mut World, mut activity: Local<MaterialA
             .get_resource::<Assets<StandardMaterial>>()
             .map_or(0, Assets::len),
         world
-            .get_resource::<Assets<forge_tidewater::tidewater_material::VillageMaterial>>()
+            .get_resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
             .map_or(0, Assets::len),
         world
-            .get_resource::<Assets<forge_tidewater::tidewater_plants::PlantMaterial>>()
+            .get_resource::<Assets<forge_engine::source_vegetation::captured::CapturedPlantMaterial>>()
+            .map_or(0, Assets::len) + world.get_resource::<Assets<forge_engine::source_vegetation::world::WorldPlantMaterial>>().map_or(0,Assets::len),
+        world
+            .get_resource::<Assets<forge_engine::source_terrain::lod::LodMaterial>>()
             .map_or(0, Assets::len),
         world
-            .get_resource::<Assets<forge_tidewater::tidewater_terrain::lod::LodMaterial>>()
-            .map_or(0, Assets::len),
-        world
-            .get_resource::<Assets<forge_tidewater::tidewater_fish_props::material::FishMaterial>>()
+            .get_resource::<Assets<forge_engine::source_fish::material::FishMaterial>>()
             .map_or(0, Assets::len),
     ];
     let prepared = world
         .resource::<crate::authoring_render::frame_pressure::FramePressure>()
         .material_counts();
     let text = format!(
-        "Matériaux GPU/CPU Standard {}/{} · Village {}/{} · Plantes {}/{} · Terrain {}/{} · Poissons {}/{} · ajouts/modifications sur 2 s {:?} (buffers en dernier)",
+        "Matériaux GPU/CPU Standard {}/{} · Surfaces {}/{} · Plantes {}/{} · Terrain {}/{} · Poissons {}/{} · ajouts/modifications sur 2 s {:?} (buffers en dernier)",
         prepared[0],
         totals[0],
         prepared[1],
@@ -164,8 +167,13 @@ pub(super) fn observe(
         })
         .sum();
     let (pending, peak) = pressure.observation();
+    let lighting = if crate::authoring_module_viewport::uses_environment() {
+        "environnement du module"
+    } else {
+        "éclairage fixe"
+    };
     let text = format!(
-        "Vue 3D · {:.1} mises à jour/s · {} textures ({:.0} Mio de données) · {} buffers ({:.0} Mio) · {} maillages ({:.0} Mio) · file GPU {pending} (maximum {peak}) · éclairage fixe",
+        "Vue 3D · {:.1} mises à jour/s · {} textures ({:.0} Mio de données) · {} buffers ({:.0} Mio) · {} maillages ({:.0} Mio) · file GPU {pending} (maximum {peak}) · {lighting}",
         f64::from(*frames) / *elapsed,
         images.len(),
         image_bytes as f64 / 1_048_576.0,

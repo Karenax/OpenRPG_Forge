@@ -7,13 +7,41 @@ use super::{
 };
 use crate::authoring_assets::catalog::Entry;
 
+fn standalone_fish(profile: &crate::module_resources_acquisition::ModuleFishProfile) -> bool {
+    profile
+        .profile()
+        .and_then(|view| forge_engine::source_fish::host::scene::profile_policy(&view))
+        .is_ok()
+}
+
+fn append_module_fish(add: &mut impl FnMut(String, forge_core::AssetId, forge_core::ContentHash)) {
+    if !crate::authoring_module_resources::owns_source() {
+        return;
+    }
+    for profile in crate::authoring_module_resources::fish_catalog_profiles()
+        .into_iter()
+        .filter(|profile| standalone_fish(profile))
+    {
+        for asset in &profile.catalog.assets {
+            add(asset.logical_name.clone(), asset.id, asset.content_hash);
+        }
+    }
+}
+
 pub(in crate::authoring_assets) fn entries() -> Vec<Entry> {
     let mut entries = Vec::new();
+    let provenance = if crate::authoring_module_resources::owns_source() {
+        "Ressources vérifiées du module ; licences conservées dans le paquet."
+    } else {
+        "Ressources Tidewater vérifiées, source 1438b1ab ; licences conservées dans le paquet importé."
+    };
     let mut add = |label: String, asset_id, hash| {
         entries.push(Entry {
-            id: format!("verified-package/{asset_id}"), label, kind: "architecture".into(),
+            id: format!("verified-package/{asset_id}"),
+            label,
+            kind: "architecture".into(),
             reference: (asset_id, hash),
-            provenance: "Ressources Tidewater vérifiées, source 1438b1ab ; licences conservées dans le paquet importé.".into(),
+            provenance: provenance.into(),
         });
     };
     if let Some(package) = building_package() {
@@ -82,6 +110,7 @@ pub(in crate::authoring_assets) fn entries() -> Vec<Entry> {
             );
         }
     }
+    append_module_fish(&mut add);
     for template in debris_templates() {
         entries.push(Entry {
             id: format!("verified-package/{}", template.asset_id),

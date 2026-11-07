@@ -15,6 +15,7 @@ pub(crate) fn ModuleExportControls(
     let license = RwSignal::new(String::new());
     let publish = RwSignal::new(false);
     let exporting = RwSignal::new(false);
+    let launched = RwSignal::new(false);
     let status = RwSignal::new(String::new());
     let last = RwSignal::new(None::<ModuleExportResult>);
     let disabled = move || {
@@ -46,6 +47,7 @@ pub(crate) fn ModuleExportControls(
                 })();
                 let request = match request {Ok(r)=>r,Err(e)=>{status.set(e);return;}};
                 exporting.set(true);
+                launched.set(false);
                 last.set(None);
                 status.set("Vérification de la carte, des médias et des droits…".into());
                 wasm_bindgen_futures::spawn_local(async move {
@@ -65,6 +67,7 @@ pub(crate) fn ModuleExportControls(
                 on:click=move |_| {
                     let Some(receipt) = last.get_untracked() else {return;};
                     crate::authoring_native_game::exported_game_starting();
+                    launched.set(false);
                     exporting.set(true);
                     status.set("Préparation du module exporté pour le jeu…".into());
                     wasm_bindgen_futures::spawn_local(async move {
@@ -73,12 +76,15 @@ pub(crate) fn ModuleExportControls(
                         let _ = exporting.try_set(false);
                         let message = result.map_or_else(|error|error,|()| {
                             crate::authoring_native_game::exported_game_opened();
+                            let _ = launched.try_set(true);
                             "Le module est ouvert dans le jeu séparé. Fermer le jeu pour reprendre l’édition.".into()
                         });
                         let _ = status.try_set(message);
                     });
                 }>"Jouer cet export"</button>
-            <output aria-live="polite">{move||status.get()}</output>
+            <output aria-live="polite">{move||if launched.get() && !crate::authoring_native_game::paused() {
+                crate::authoring_native_game::closed_game_status()
+            } else {status.get()}}</output>
         </details>
     }
 }

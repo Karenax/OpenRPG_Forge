@@ -19,6 +19,7 @@ required-features = ["desktop"]
 [features]
 default = ["desktop"]
 desktop = ["dep:tauri"]
+scene-host-tests = ["dep:forge_engine"]
 web = [
     "dep:bevy",
     "dep:console_error_panic_hook",
@@ -47,7 +48,9 @@ serde_json.workspace = true
 sha2.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+reqwest = { version = "=0.13.4", default-features = false, features = ["blocking", "json", "native-tls"] }
 forge_delivery = { path = "../../tools/forge_delivery" }
+forge_engine = { workspace = true, features = ["physics-rapier"], optional = true }
 tauri = { version = "=2.11.5", optional = true , features = [] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

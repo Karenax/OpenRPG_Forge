@@ -36,6 +36,7 @@ fn session() -> ZoneEditSession {
     vegetation.layers.truncate(1);
     vegetation.layers[0].material_filter = None;
     vegetation.imported_source = Some(ImportedVegetationSource {
+        grass: None,
         schema: "forge.imported-vegetation".into(),
         version: 1,
         blocks: vec![ImportedVegetationBlock {
@@ -64,6 +65,7 @@ fn object(label: &str, asset_id: AssetId, marker: u8) -> ManualPlacement {
     ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic(format!("accepted-planning:{label}")),
         name: label.into(),
         asset_id,

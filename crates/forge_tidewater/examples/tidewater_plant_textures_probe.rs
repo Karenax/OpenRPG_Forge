@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
     render::render_resource::TextureFormat,
 };
-use forge_tidewater::tidewater_plants::textures::{self, Layout, PreparedTextures};
+use forge_engine::source_vegetation::textures::{self, Layout, PreparedTextures};
 use forge_tidewater_assets::tidewater_plants::PlantPackage;
 use std::{error::Error, fs, io::Read, path::PathBuf};
 fn main() -> Result<(), Box<dyn Error>> {

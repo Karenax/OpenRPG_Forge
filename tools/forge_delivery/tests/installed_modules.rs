@@ -38,6 +38,75 @@ fn installed_modules_are_distinct_and_the_legacy_reference_is_not_relabelled() {
 }
 
 #[test]
+fn recover_legacy_modules_preserves_active_and_rollback_content_after_uninstall() {
+    let fixture = Fixture::new();
+    let rollback = install::prepare_rollback(&fixture.install).unwrap();
+    let state = install::apply(&rollback).unwrap();
+    assert!(!state.active.packs.contains_key(&fixture.second.id.to_string()));
+    let head = fs::read(fixture.install.join("installation.json")).unwrap();
+    fs::create_dir_all(&fixture.user).unwrap();
+    let saved = fixture.user.join("legacy-save-marker");
+    fs::write(&saved, b"untouched author data").unwrap();
+    let run = || {
+        Command::new(env!("CARGO_BIN_EXE_forge_delivery"))
+            .arg("recover-legacy-modules")
+            .arg(&fixture.install)
+            .output()
+            .unwrap()
+    };
+    let recovered = run();
+    assert!(
+        recovered.status.success(),
+        "{}",
+        String::from_utf8_lossy(&recovered.stderr)
+    );
+    let reports: Vec<serde_json::Value> = serde_json::from_slice(&recovered.stdout).unwrap();
+    assert_eq!(reports.len(), 3);
+    assert_eq!(run().stdout, recovered.stdout);
+    assert_eq!(
+        fs::read(fixture.install.join("installation.json")).unwrap(),
+        head
+    );
+    let legacy = reports
+        .iter()
+        .find(|report| report["pack_id"] == "reference-module")
+        .unwrap();
+    assert!(legacy["package"].as_str().unwrap().ends_with(".forgepack"));
+    let rollback_id = fixture.second.id.to_string();
+    let report = reports
+        .iter()
+        .find(|report| report["pack_id"] == rollback_id)
+        .unwrap();
+    let package = std::path::Path::new(report["package"].as_str().unwrap());
+    let mut corrupt = fs::read(package).unwrap();
+    let exact = corrupt.clone();
+    *corrupt.last_mut().unwrap() ^= 1;
+    fs::write(package, &corrupt).unwrap();
+    assert!(!run().status.success());
+    assert_eq!(fs::read(package).unwrap(), corrupt);
+    fs::write(package, exact).unwrap();
+
+    install::uninstall(&fixture.install).unwrap();
+    for module in [&fixture.first, &fixture.second] {
+        let id = module.id.to_string();
+        let report = reports.iter().find(|report| report["pack_id"] == id).unwrap();
+        let path = std::path::Path::new(report["package"].as_str().unwrap());
+        assert_eq!(path.extension().unwrap(), "orpmod");
+        assert_eq!(
+            forge_delivery::file_hash(path).unwrap(),
+            report["archive_sha256"].as_str().unwrap()
+        );
+        let admitted = forge_delivery::orpmod::inspect(path, false).unwrap();
+        assert_eq!(admitted.zones[0].archive_sha256, bytes_sha256(&module.archive));
+        assert_eq!(
+            admitted.provenance.rights,
+            forge_project::module_package::ModuleRights::PrivateLocalOnly
+        );
+    }
+    assert_eq!(fs::read(saved).unwrap(), b"untouched author data");
+}
+
+#[test]
 fn launch_plans_use_the_same_verified_binary_with_zone_and_transport_pins() {
     let fixture = Fixture::new();
     let mut executable = None;
@@ -86,6 +155,26 @@ fn launch_plans_use_the_same_verified_binary_with_zone_and_transport_pins() {
             executable = Some(plan.executable);
         }
     }
+}
+
+#[test]
+fn installed_modules_prefer_the_dedicated_runtime_and_refuse_its_corruption() {
+    let fixture = Fixture::with_module_runtime();
+    let selection = ModuleSelection {
+        module_id: fixture.first.id,
+        area_id: fixture.first.area,
+    };
+    let module_binary = fixture.core_root().join("module.bin");
+    let plan = installed_modules::plan(&fixture.install, selection).unwrap();
+    assert_eq!(plan.executable, module_binary);
+    assert_eq!(
+        plan.executable_sha256,
+        bytes_sha256(&fs::read(&module_binary).unwrap())
+    );
+    assert_eq!(plan.arguments[0], "--module");
+    fs::write(&module_binary, b"tampered module runtime").unwrap();
+    // A broken dedicated runtime is an error, not a reason to fall back to the demo.
+    assert!(installed_modules::plan(&fixture.install, selection).is_err());
 }
 
 #[test]

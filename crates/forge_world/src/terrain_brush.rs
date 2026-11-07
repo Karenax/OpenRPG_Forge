@@ -4,6 +4,8 @@ use forge_project::{TerrainDocument, TerrainHeightDelta, terrain_edit::TerrainEd
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+mod sampled;
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum BrushOperation {
@@ -39,7 +41,7 @@ pub struct TerrainBrush {
 }
 
 impl TerrainBrush {
-    fn validate(self) -> Result<(), String> {
+    fn validate(self, minimum: [f64; 2], maximum: [f64; 2]) -> Result<(), String> {
         if !self.x_m.is_finite()
             || !self.z_m.is_finite()
             || !self.radius_m.is_finite()
@@ -47,8 +49,12 @@ impl TerrainBrush {
             || !self.strength.is_finite()
             || !(0.0..=1.0).contains(&self.strength)
             || self.strength == 0.0
-            || self.x_m.abs() > 256.0
-            || self.z_m.abs() > 256.0
+            || [self.x_m, self.z_m]
+                .iter()
+                .enumerate()
+                .any(|(axis, &value)| {
+                    f64::from(value) < minimum[axis] || f64::from(value) > maximum[axis]
+                })
         {
             return Err(
                 "Brush requires a terrain position, radius 2–128 m and strength (0, 1]".into(),
@@ -79,7 +85,7 @@ impl TerrainBrush {
     }
 
     pub fn prepare(self, document: &TerrainDocument) -> Result<TerrainEdit, String> {
-        self.validate()?;
+        self.validate([-256.0; 2], [256.0; 2])?;
         let plan = TerrainGenerationPlan::from_document(document).map_err(|e| e.to_string())?;
         let noise = noise_plan(self.operation, document)?;
         let mut samples: BTreeMap<_, _> = document

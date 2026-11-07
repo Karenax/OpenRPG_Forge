@@ -1,10 +1,7 @@
 //! Original grass data and geometry, adapted to the shared resident renderer.
-use super::{PlantMaterial, Probe, ProbeMode, canopy::Record, vegetation_scene};
+use super::{CapturedPlantMaterial, Probe, ProbeMode, vegetation_scene};
 use bevy::{
     asset::RenderAssetUsages,
-    camera::visibility::NoFrustumCulling,
-    light::NotShadowCaster,
-    mesh::MeshTag,
     prelude::*,
     render::{
         render_resource::{Extent3d, TextureDimension, TextureFormat},
@@ -39,7 +36,7 @@ struct Level {
 }
 pub(super) struct Grass {
     description: Description,
-    grid: forge_tidewater::tidewater_plants::grass::Grid,
+    grid: forge_engine::source_vegetation::grass::Grid,
     mask: Vec<u8>,
     meshes: Vec<Mesh>,
 }
@@ -77,7 +74,7 @@ pub(super) fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Option<Grass>, B
         .collect::<Result<Vec<_>, _>>()?;
     Ok(Some(Grass {
         description: d,
-        grid: forge_tidewater::tidewater_plants::grass::Grid::new(
+        grid: forge_engine::source_vegetation::grass::Grid::new(
             flags,
             min_y.into_iter().map(|v| v[0]).collect(),
             max_y.into_iter().map(|v| v[0]).collect(),
@@ -126,19 +123,11 @@ pub(super) fn textures(
     )
 }
 
-fn select(g: &Grass, view: forge_tidewater_assets::cdlod::CdlodView) -> [Vec<[f32; 4]>; 3] {
+fn select(g: &Grass, view: forge_world::terrain_lod::CdlodView) -> [Vec<[f32; 4]>; 3] {
     g.grid.select(view).expect("validated grass view")
 }
 
-#[allow(clippy::too_many_arguments, clippy::cast_possible_truncation)]
-pub(super) fn spawn(
-    commands: &mut Commands,
-    probe: &Probe,
-    base: &PlantMaterial,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<PlantMaterial>,
-    buffers: &mut Assets<ShaderBuffer>,
-) {
+pub(super) fn spawn(commands: &mut Commands, probe: &Probe, base: &CapturedPlantMaterial) {
     let Some(grass) = &probe.grass else {
         return;
     };
@@ -150,48 +139,9 @@ pub(super) fn spawn(
         grass,
         super::terrain_lod::source_view(&transform, &projection),
     );
-    if matches!(
-        probe.plant_projection,
-        super::PlantProjection::Walk
-            | super::PlantProjection::WalkSmoke
-            | super::PlantProjection::WalkLongSmoke
-    ) {
-        for (level, cells) in selected.iter().enumerate() {
-            assert_eq!(*cells, grass.description.levels[level].oracle_cells);
-        }
-        let base = base.clone();
-        let readback = matches!(
-            probe.plant_projection,
-            super::PlantProjection::WalkSmoke | super::PlantProjection::WalkLongSmoke
-        );
-        commands.queue(move |world: &mut World| {
-            let grass = world
-                .resource_mut::<Probe>()
-                .grass
-                .take()
-                .expect("validated grass");
-            let meshes: [Mesh; 3] = grass.meshes.try_into().expect("three grass levels");
-            let resident =
-                forge_tidewater::tidewater_plants::grass::Resident::stage(world, &base, meshes)
-                    .expect("grass assets");
-            if readback {
-                let mut buffers = world.resource_mut::<Assets<ShaderBuffer>>();
-                for handle in resident.buffers() {
-                    // Configure readback before the first render extraction.
-                    buffers
-                        .get_mut(&handle)
-                        .expect("grass buffer")
-                        .buffer_description
-                        .usage |= wgpu::BufferUsages::COPY_SRC;
-                }
-            }
-            world.insert_resource(super::walk_grass::Live::new(grass.grid, resident));
-        });
-        return;
-    }
-    for (level, cells) in selected.into_iter().enumerate() {
+    for (level, cells) in selected.iter().enumerate() {
         assert_eq!(
-            cells, grass.description.levels[level].oracle_cells,
+            *cells, grass.description.levels[level].oracle_cells,
             "native grass cells differ from original oracle"
         );
         info!(
@@ -199,39 +149,52 @@ pub(super) fn spawn(
             cells = cells.len(),
             "Native grass selection equals source"
         );
-        if cells.is_empty() {
-            continue;
-        }
-        let mut mat = base.clone();
-        mat.kind = 3;
-        mat.instances = buffers.add(ShaderBuffer::from(
-            cells
-                .iter()
-                .map(|v| Record {
-                    i_pos: Vec4::from_array(*v),
-                    i_dat: Vec4::ZERO,
-                })
-                .collect::<Vec<_>>(),
-        ));
-        let material = materials.add(mat);
-        let mesh = meshes.add(grass.meshes[level].clone());
-        for index in 0..cells.len() {
-            commands.spawn((
-                Mesh3d(mesh.clone()),
-                MeshMaterial3d(material.clone()),
-                MeshTag(index as u32),
-                Transform::IDENTITY,
-                NoFrustumCulling,
-                NotShadowCaster,
-                if matches!(
-                    probe.mode,
-                    ProbeMode::Surface | ProbeMode::SceneLighting | ProbeMode::GrassCoverage
-                ) {
-                    Visibility::Visible
-                } else {
-                    Visibility::Hidden
-                },
-            ));
-        }
     }
+    let walking = matches!(
+        probe.plant_projection,
+        super::PlantProjection::Walk
+            | super::PlantProjection::WalkSmoke
+            | super::PlantProjection::WalkLongSmoke
+    );
+    let readback = matches!(
+        probe.plant_projection,
+        super::PlantProjection::WalkSmoke | super::PlantProjection::WalkLongSmoke
+    );
+    let visibility = if matches!(
+        probe.mode,
+        ProbeMode::Surface | ProbeMode::SceneLighting | ProbeMode::GrassCoverage
+    ) {
+        Visibility::Visible
+    } else {
+        Visibility::Hidden
+    };
+    let base = base.clone();
+    commands.queue(move |world: &mut World| {
+        let grass = world
+            .resource_mut::<Probe>()
+            .grass
+            .take()
+            .expect("validated grass");
+        let meshes: [Mesh; 3] = grass.meshes.try_into().expect("three grass levels");
+        let mut resident =
+            forge_engine::source_vegetation::grass::Resident::stage(world, &base, meshes)
+                .expect("grass assets");
+        if readback {
+            let mut buffers = world.resource_mut::<Assets<ShaderBuffer>>();
+            for handle in resident.buffers() {
+                buffers
+                    .get_mut(&handle)
+                    .expect("grass buffer")
+                    .buffer_description
+                    .usage |= wgpu::BufferUsages::COPY_SRC;
+            }
+        }
+        if walking {
+            world.insert_resource(super::walk_grass::Live::new(grass.grid, resident));
+        } else {
+            resident
+                .update(world, &selected, visibility)
+                .expect("grass oracle publication");
+        }
+    });
 }

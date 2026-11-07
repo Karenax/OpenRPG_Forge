@@ -75,7 +75,7 @@ pub(super) fn CloseDialog(
             <p class="gold-save-state">{move || if preview.get().is_some() { "Un aperçu attend votre validation." } else if state.get().is_some_and(|s| s.dirty) { "La carte contient des modifications non enregistrées." } else if state.get().is_none() { "L’état des retouches n’est pas disponible dans cette session." } else { "Les retouches appliquées sont enregistrées." }}</p>
             <output role="alert">{move || error.get()}</output>
             <div class="gold-dialog-actions">
-                <button autofocus on:click=move |_| { if let Some(dialog) = dialog.get() { dialog.close(); } }>"Continuer à mapper"</button>
+                <button autofocus on:click=move |_| { if let Some(dialog) = dialog.get() { dialog.close(); } }>"Continuer l’édition"</button>
                 <button disabled=move || busy.get() on:click=move |_| close(false)>"Quitter sans enregistrer"</button>
                 <button class="authoring-primary" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| s.document.is_none() || s.playtest_hash.is_some()) on:click=move |_| close(true)>"Enregistrer et quitter"</button>
             </div>

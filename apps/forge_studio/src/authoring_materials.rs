@@ -1,5 +1,8 @@
 //! Presentation only; material edits use the shared terrain command and preview path.
-use forge_project::{authoring::AuthoringState, terrain_edit::TerrainEdit};
+use forge_project::{
+    TERRAIN_DOCUMENT_SCHEMA_VERSION_V3, TERRAIN_DOCUMENT_SCHEMA_VERSION_V4,
+    authoring::AuthoringState, terrain_edit::TerrainEdit,
+};
 use forge_world::terrain_material_brush::{MaterialBrushOperation, TerrainMaterialBrushStroke};
 use leptos::prelude::*;
 
@@ -22,7 +25,10 @@ pub(super) fn MaterialControls(
                 .get_untracked()
                 .and_then(|s| s.document)
                 .ok_or("Ouvrir une zone")?;
-            if document.schema_version != 3 {
+            if !matches!(
+                document.schema_version,
+                TERRAIN_DOCUMENT_SCHEMA_VERSION_V3 | TERRAIN_DOCUMENT_SCHEMA_VERSION_V4
+            ) {
                 return Err(
                     "Prévisualiser puis appliquer la migration v3 avant de peindre".to_owned(),
                 );
@@ -77,13 +83,22 @@ pub(super) fn MaterialControls(
                     if current.content_hash().map_err(|e| e.to_string())? != hash {
                         return Err("Trait périmé : la zone a changé".into());
                     }
-                    TerrainMaterialBrushStroke {
+                    let stroke = TerrainMaterialBrushStroke {
                         radius_m,
                         strength,
                         points: points?,
                         operation: operation.clone(),
+                    };
+                    if document.sampled_source.is_some() {
+                        let bytes = super::authoring_raster::source_bytes(&document)?;
+                        let plan = forge_world::sampled_terrain::SampledTerrainPlan::from_document(
+                            &document, &bytes,
+                        )
+                        .map_err(|error| error.to_string())?;
+                        stroke.prepare_sampled(&plan)
+                    } else {
+                        stroke.prepare(&document)
                     }
-                    .prepare(&document)
                 })();
                 on_preview.run(result);
             }),
@@ -94,7 +109,7 @@ pub(super) fn MaterialControls(
         <fieldset on:input=move |_| super::authoring_brush_pointer::settings_changed()
             on:change=move |_| super::authoring_brush_pointer::settings_changed()>
             <legend>"Peinture des matériaux · aperçu avant application"</legend>
-            <Show when=move || state.get().and_then(|s| s.document).is_some_and(|d| d.schema_version != 3)>
+            <Show when=move || state.get().and_then(|s| s.document).is_some_and(|d| d.schema_version < TERRAIN_DOCUMENT_SCHEMA_VERSION_V3)>
             <button on:click=move |_| on_preview.run(Ok(TerrainEdit::SetSchemaVersion { version: 3 }))>"Prévisualiser la migration v3"</button>
             <p>"La migration est explicite et annulable. Utiliser Appliquer la retouche prévisualisée pour la confirmer."</p>
             </Show>

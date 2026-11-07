@@ -19,7 +19,13 @@ use forge_project::{VEGETATION_CHUNK_SIZE_M, VegetationKind, VegetationPresentat
 use forge_world::VegetationInstanceId;
 use std::collections::HashMap;
 
-mod bounds;
+pub(crate) mod bounds;
+mod gpu;
+pub use gpu::{
+    VegetationPrototypeGpuEvidence, VegetationPrototypeGpuReadinessPlugin,
+    VegetationPrototypeRuntimeStatus, governed_forest_gpu_ready,
+    runtime_status as governed_forest_runtime_status,
+};
 
 #[derive(Resource)]
 pub struct VegetationPrototypeForestPreview;
@@ -70,6 +76,7 @@ pub(crate) fn quality_ready(world: &World) -> bool {
 
 #[derive(Resource, Default)]
 struct PreviewState {
+    generation: u64,
     source: Option<std::sync::Arc<forge_world::GeneratedVegetation>>,
     profile: Option<VegetationPresentationProfile>,
     prototypes: Option<VegetationPrototypeWindCache>,
@@ -145,6 +152,9 @@ fn project_inner(world: &mut World) {
     let prepared = cache_failure
         .map_or_else(|| prepare(world, &source, profile), Err)
         .and_then(|(draws, batches)| {
+            if state.generation == u64::MAX {
+                return Err("Vegetation projection generation exhausted".into());
+            }
             let temporal = prepare_temporal(world, &draws, profile)?;
             Ok((draws, batches, temporal))
         });
@@ -158,7 +168,7 @@ fn project_inner(world: &mut World) {
                 .map(|(entity, _)| entity)
                 .collect();
             for entity in &old_trees {
-                world.entity_mut(*entity).remove::<Mesh3d>();
+                crate::mesh_visibility::remove_mesh3d(world.entity_mut(*entity));
             }
             replace_batches(world, batches);
             let count = draws.len();
@@ -225,6 +235,7 @@ fn project_inner(world: &mut World) {
             if let Err(error) = super::far_batches::project(world) {
                 fail_preview(world, &mut state, error);
             } else {
+                state.generation += 1;
                 state.failed = false;
                 world
                     .resource_mut::<super::VegetationProjectionStats>()
@@ -319,7 +330,7 @@ fn replace_batches(world: &mut World, batches: Vec<HlodReplacement>) {
                 .insert((Mesh3d(handle), derived.aabb));
         } else {
             // Retain owned quality bindings, but stop drawing an empty batch.
-            world.entity_mut(entity).remove::<Mesh3d>();
+            crate::mesh_visibility::remove_mesh3d(world.entity_mut(entity));
         }
         world
             .get_mut::<VegetationChunkBatchMarker>(entity)
@@ -465,7 +476,7 @@ mod tests {
         }
     }
 
-    fn preview_app() -> App {
+    pub(super) fn preview_app() -> App {
         preview_app_with_collisions(true)
     }
 

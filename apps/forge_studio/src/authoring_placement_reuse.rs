@@ -52,6 +52,7 @@ mod tests {
         use forge_project::zone_authoring::placements::PhysicsPackageReference;
         let source = ManualPlacement {
             particles: None,
+            local_lights: None,
             id: EntityId::deterministic("physical-reuse-object"),
             name: "Collision conservée".into(),
             asset_id: AssetId::deterministic("physical-reuse-asset"),
@@ -139,6 +140,7 @@ mod tests {
         let source = ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: EntityId::deterministic("reuse-object"),
             name: "Objet".into(),
             asset_id: AssetId::deterministic("reuse-asset"),

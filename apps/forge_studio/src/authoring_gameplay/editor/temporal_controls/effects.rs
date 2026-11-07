@@ -1,4 +1,4 @@
-use super::{Edit, document, edit, id, identity, integer, source_hash};
+use super::{Edit, document, edit, id, identity, integer};
 use forge_core::EntityId;
 use forge_gameplay::{AbilityEffect, EffectStacking, TimedEffectDefinition};
 use forge_project::authoring::AuthoringState;
@@ -17,6 +17,18 @@ struct Fields {
 }
 
 impl Fields {
+    fn draft_fields(self) -> Vec<super::super::draft::Field> {
+        let fields = vec![
+            super::super::draft::Field::new(self.name),
+            super::super::draft::Field::new(self.duration),
+            super::super::draft::Field::new(self.protection),
+            super::super::draft::Field::new(self.stacking),
+            super::super::draft::Field::new(self.maximum),
+            super::super::draft::Field::new(self.exclusions),
+        ];
+        fields
+    }
+
     fn preview(self, state: Option<AuthoringState>, create: bool) -> Edit {
         edit(state, move |_, source| {
             let effect_id = identity(
@@ -132,22 +144,29 @@ pub(super) fn EffectControls(
         maximum: RwSignal::new("2".into()),
         exclusions: RwSignal::new(BTreeSet::new()),
     };
-    Effect::new(move |previous: Option<super::super::FieldSource>| {
-        let key = (fields.selected.get(), source_hash(state));
-        if previous.as_ref() != Some(&key) {
+    let draft_notice_fields_selected = super::super::draft::bind(
+        move || {
+            let selected = fields.selected.get();
+            let source = super::super::draft::records(state, &selected);
+            (selected, source)
+        },
+        fields.draft_fields(),
+        move || {
             fields.load(
                 document(state)
                     .and_then(|source| source.simulation)
                     .and_then(|simulation| {
-                        id(&key.0)
+                        id(&fields.selected.get_untracked())
                             .ok()
                             .and_then(|effect| simulation.effect(effect).cloned())
                     }),
             );
-        }
-        key
-    });
+        },
+    );
+    let preview_send = draft_notice_fields_selected.submitter(send);
+
     view! {
+        <super::super::draft::DraftNotice notice=draft_notice_fields_selected/>
         <p>"Une protection temporaire ajoute ses points contre les attaques directes pendant sa durée de simulation. Son expiration, son remplacement et son annulation gardent la cause de la capacité."</p>
         <label>"Effet à retoucher"<select prop:value=move ||fields.selected.get() on:change=move |event|fields.selected.set(event_target_value(&event))>
             <option value="">"Préparer un nouvel effet"</option>
@@ -167,8 +186,8 @@ pub(super) fn EffectControls(
                 if event_target_checked(&event) { exclusions.insert(effect_id); } else { exclusions.remove(&effect_id); }
             })/>{entry.name}</label>}
         }).collect_view())}
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner un nouvel effet"</button>
-        <button on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de l’effet"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),true))>"Examiner un nouvel effet"</button>
+        <button on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de l’effet"</button>
         <button on:click=move |_|send.run(fields.remove(state.get_untracked()))>"Examiner la suppression de l’effet inutilisé"</button>
     }
 }

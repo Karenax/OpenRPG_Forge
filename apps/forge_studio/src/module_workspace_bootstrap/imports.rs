@@ -3,25 +3,27 @@ use crate::{
     asset_import_protocol::{ImportCandidate, ImportSource, ImportSourceKind, ImportUpload},
 };
 use forge_assets::governed_import::{
-    DurableAssetSource, GovernedAssetFile, GovernedAssetKind, GovernedImportAsset,
-    GovernedImportCatalog,
+    DurableAssetSource, GovernedAssetFile, GovernedImportAsset, GovernedImportCatalog,
 };
 use forge_core::{AssetId, CommandId, ContentHash};
-use forge_delivery::module_runtime::LoadedModuleZone;
+use forge_delivery::orpmod::OriginDocuments;
 use std::{collections::BTreeSet, path::Path};
 
 pub(super) fn import_catalog(
     root: &Path,
-    loaded: &LoadedModuleZone,
-) -> Result<ContentHash, String> {
-    let bytes = loaded.read_payload(&loaded.manifest.asset_catalog_path, 16 * 1024 * 1024)?;
+    origin: &OriginDocuments,
+    package_sha256: ContentHash,
+) -> Result<Option<ContentHash>, String> {
+    let bytes = origin.read_payload(&origin.module.asset_catalog_path, 16 * 1024 * 1024)?;
     let catalog: GovernedImportCatalog =
         serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
-    catalog
-        .validate_for_local_use()
-        .map_err(|error| error.to_string())?;
+    forge_delivery::orpmod::validate_module_catalog(&catalog, false)?;
     let store = AssetImportStore::new(&root.join("asset-imports"))?;
+    if catalog.assets.is_empty() {
+        return Ok(store.state()?.catalog_sha256);
+    }
     let mut imported = BTreeSet::<AssetId>::new();
+    let mut ordered = Vec::with_capacity(catalog.assets.len());
     while imported.len() < catalog.assets.len() {
         let before = imported.len();
         for asset in &catalog.assets {
@@ -32,69 +34,26 @@ pub(super) fn import_catalog(
             {
                 continue;
             }
-            let state = store.state()?;
-            let previous = state
-                .catalog
-                .as_ref()
-                .and_then(|catalog| catalog.assets.iter().find(|entry| entry.id == asset.id));
-            let mut candidate = candidate(loaded, asset, state.revision)?;
-            candidate.expected_asset_sha256 = previous.map(|entry| entry.payload.sha256);
-            let plan = store
-                .prepare(&candidate)
-                .map_err(|error| format!("Import asset {}: {error}", asset.id))?;
-            if let Some(previous) = previous {
-                if plan.asset != *previous {
-                    return Err(format!(
-                        "Shared asset {} has conflicting metadata or revision; existing modules were not overwritten",
-                        asset.id
-                    ));
-                }
-            } else {
-                store.apply(plan.command_id, plan.plan_sha256)?;
-            }
+            ordered.push(asset);
             imported.insert(asset.id);
         }
         if imported.len() == before {
             return Err("No parent-first traversal of the admitted asset lineage".into());
         }
     }
-    // Snapshot checks the exact returned payload/source/thumbnail/licence buffers.
-    let snapshot = store.export_snapshot(&[], false)?;
-    for asset in &catalog.assets {
-        let actual = snapshot
-            .catalog
-            .assets
-            .iter()
-            .find(|actual| actual.id == asset.id)
-            .ok_or("Imported asset identity missing after import")?;
-        if actual.payload.sha256 != asset.payload.sha256
-            || actual.derived_from != asset.derived_from
-            || actual.provenance.rights.local_use != asset.provenance.rights.local_use
-            || actual.provenance.rights.redistribution != asset.provenance.rights.redistribution
-        {
-            return Err(format!(
-                "Imported identity, payload, lineage or rights differ: {}",
-                asset.id
-            ));
-        }
-        if asset.kind == GovernedAssetKind::Mesh
-            && store
-                .lookup_model(asset.id, asset.payload.sha256)?
-                .is_none()
-        {
-            return Err("Imported model cannot be resolved by its exact identity and pin".into());
-        }
-    }
-    store
-        .state()?
-        .catalog_sha256
-        .ok_or("Imported catalogue head is absent".into())
+    let command = CommandId::deterministic(format!("module-assets/{package_sha256}"));
+    store.merge_package_assets(
+        command,
+        ordered
+            .into_iter()
+            .map(|asset| candidate(origin, asset, command)),
+    )
 }
 
 fn candidate(
-    loaded: &LoadedModuleZone,
+    origin: &OriginDocuments,
     asset: &GovernedImportAsset,
-    revision: u64,
+    command_id: CommandId,
 ) -> Result<ImportCandidate, String> {
     let source = asset
         .durable_source
@@ -106,41 +65,40 @@ fn candidate(
             };
             Ok::<_, String>(ImportSource {
                 kind,
-                upload: upload(loaded, file)?,
+                upload: upload(origin, file)?,
             })
         })
         .transpose()?;
     Ok(ImportCandidate {
-        command_id: CommandId::deterministic(format!(
-            "module-bootstrap/{}/{}/{}",
-            loaded.manifest.module_id, asset.id, asset.payload.sha256
-        )),
-        expected_revision: revision,
+        command_id,
+        // The package is additive under the collection lock. There is no
+        // separately reviewed replacement or per-asset compare-and-swap.
+        expected_revision: 0,
         asset_id: asset.id,
         expected_asset_sha256: None,
         derived_from: asset.derived_from,
         name: asset.name.clone(),
         kind: asset.kind,
         provenance: asset.provenance.clone(),
-        license_text: license_text(loaded, asset)?,
-        payload: upload(loaded, &asset.payload)?,
+        license_text: license_text(origin, asset)?,
+        payload: upload(origin, &asset.payload)?,
         authored_changes: asset.authored_changes,
         source,
         thumbnail: asset
             .thumbnail
             .as_ref()
-            .map(|file| upload(loaded, file))
+            .map(|file| upload(origin, file))
             .transpose()?,
     })
 }
 
-fn upload(loaded: &LoadedModuleZone, file: &GovernedAssetFile) -> Result<ImportUpload, String> {
+fn upload(origin: &OriginDocuments, file: &GovernedAssetFile) -> Result<ImportUpload, String> {
     let extension = file
         .path
         .rsplit_once('.')
         .map(|(_, extension)| extension)
         .ok_or("Source file extension absent")?;
-    let bytes = loaded.read_payload(&file.path, 256 * 1024 * 1024)?;
+    let bytes = origin.read_payload(&file.path, 256 * 1024 * 1024)?;
     Ok(ImportUpload {
         name: format!("original.{extension}"),
         byte_length: file.bytes,
@@ -148,7 +106,7 @@ fn upload(loaded: &LoadedModuleZone, file: &GovernedAssetFile) -> Result<ImportU
     })
 }
 
-fn license_text(loaded: &LoadedModuleZone, asset: &GovernedImportAsset) -> Result<String, String> {
+fn license_text(origin: &OriginDocuments, asset: &GovernedImportAsset) -> Result<String, String> {
     let mut paths = vec![asset.provenance.evidence.as_str()];
     if let Some(path) = asset.provenance.rights.redistribution_evidence.as_deref()
         && !paths.contains(&path)
@@ -157,7 +115,7 @@ fn license_text(loaded: &LoadedModuleZone, asset: &GovernedImportAsset) -> Resul
     }
     let mut text = String::new();
     for path in paths {
-        let bytes = loaded.read_payload(path, 65536)?;
+        let bytes = origin.read_payload(path, 65536)?;
         let evidence = String::from_utf8(bytes)
             .map_err(|_| format!("Import profile requires UTF-8 licence evidence: {path}"))?;
         if !text.is_empty() {

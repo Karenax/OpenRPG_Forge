@@ -16,6 +16,16 @@ pub(super) struct ConditionFields {
 }
 
 impl ConditionFields {
+    pub(super) fn draft_fields(self) -> Vec<super::super::draft::Field> {
+        vec![
+            super::super::draft::Field::new(self.mode),
+            super::super::draft::Field::new(self.variable),
+            super::super::draft::Field::new(self.comparison),
+            super::super::draft::Field::new(self.value),
+            super::super::draft::Field::new(self.original),
+        ]
+    }
+
     pub(super) fn new() -> Self {
         Self {
             mode: RwSignal::new("always".into()),

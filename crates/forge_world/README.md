@@ -1,5 +1,48 @@
 # forge_world
 
+`terrain_lod` owns the existing continuous distance selector, patch topology,
+fixed/following roots and bounded traversal, with no renderer or map dependency.
+`terrain_lod_bounds` prepares its conservative min/max pyramid from an admitted
+sampled terrain. Source, Studio and terrain/ocean/shadow consumers call these
+shared functions directly. Selection and topology are preserved; this transfer
+does not replace the raster cell renderer or qualify terrain visual parity.
+
+`imported_vegetation::streaming` selects existing ground-projected imported
+plants over the admitted terrain partition. It preserves every visible authored
+record, source parameter, copy and collision source. Whole-plant envelopes keep
+detail wherever a crown/deformation touches a full cell; coarse/distant groups
+reuse terrain keys. Stale heads, sources, layouts, budgets, missing prototype
+bounds and invalid poses refuse the entire plan. This borrowed CPU selection
+does not install a renderer, decode a prototype or acknowledge physics/GPU work.
+
+`cell_streaming` (Gate 7) plans a bounded neighbourhood of derived cells, with
+generation/source/session pins and exact acknowledgements before replacing
+residency. Cell and staging byte limits refuse atomically. `SampledCellSource`
+consumes the existing immutable `SampledTerrainPlan`, generates only requested
+32-interval cells, and reuses the terrain LOD topology that preserves every
+perimeter sample. Full/coarse neighbours therefore share exact seam positions
+and normals. The raster stays resident once; mesh byte counts exclude its size,
+GPU memory and Rapier's internal allocations. These are domain guarantees,
+not GPU, gameplay or general HLOD qualification. See ADR-0036 and Gate 7 evidence.
+
+`terrain_hlod` derives a balanced quadtree covering every remaining base cell,
+without overlapping fine view/simulation cells. Rectangular grids and isolated
+protected cells are supported. A level-L tile aggregates 4^L base cells using
+the existing simplified topology. Coarser edges split triangles at the finer
+neighbour's exact canonical samples, without skirts or T-junctions. Preparation
+refuses more than 1,024 distant tiles. `SampledTerrainPlan::sample_vertex`
+shares the global height/normal evaluator with fine patches. This terrain-only
+hierarchy changes no authored document, save, physics or vegetation contract.
+
+`mesh_hlod` reduces derived triangle meshes with an explicit metric error and
+component-wise attribute tolerances. Exact domains never merge. Representatives
+remain source vertices; edge-link and orientation checks preserve surviving
+faces and a nonempty surface per connected component. Work, adjacency and input
+quotas fail explicitly, with no source mutation or promised reduction ratio.
+This domain API is geometry preparation; `forge_engine::static_hlod` consumes it
+for a derived runtime selector. Neither CPU tests nor that integration alone
+qualify GPU rendering or native performance. See the static mesh complement of ADR-0036.
+
 `VegetationGenerationPlan::from_documents_with_paths` adds validated, derived
 path clearances before spacing acceptance, without consuming the 32 authored
 exclusions or rewriting masks. Paths retain their separate 64-item quota and

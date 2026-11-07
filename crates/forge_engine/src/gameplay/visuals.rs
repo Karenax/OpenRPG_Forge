@@ -134,7 +134,9 @@ pub(super) fn attach(
     for (id, visual) in &plan.entries {
         let body = targets[id];
         // Keep identity, material, collider and physical pose on the authoritative body.
-        commands.entity(body).remove::<Mesh3d>();
+        commands
+            .entity(body)
+            .queue(crate::mesh_visibility::remove_mesh3d);
         commands.spawn((
             Name::new(format!("Governed gameplay visual · {id}")),
             WorldAssetRoot(visual.scene.clone()),
@@ -204,12 +206,17 @@ mod tests {
         };
         let mut app = App::new();
         app.add_plugins(MinimalPlugins);
+        let mut classes = bevy::camera::visibility::VisibilityClass::default();
+        classes.push(std::any::TypeId::of::<Mesh3d>());
+        classes.push(std::any::TypeId::of::<Mesh2d>());
         let body = app
             .world_mut()
             .spawn((
                 DomainEntityId(id),
                 GameplayBody::default(),
                 Mesh3d(Handle::default()),
+                MeshMaterial3d::<StandardMaterial>(Handle::default()),
+                classes,
                 Collider::cuboid(0.4, 0.5, 0.6),
                 Transform::from_xyz(2.0, 3.0, 4.0),
             ))
@@ -244,6 +251,14 @@ mod tests {
             Vec3::new(2.0, 3.0, 4.0)
         );
         assert!(entity.get::<Mesh3d>().is_none());
+        assert!(entity.get::<MeshMaterial3d<StandardMaterial>>().is_some());
+        assert_eq!(
+            entity
+                .get::<bevy::camera::visibility::VisibilityClass>()
+                .unwrap()
+                .as_slice(),
+            &[std::any::TypeId::of::<Mesh2d>()]
+        );
         let mut query = app.world_mut().query::<(
             &GovernedGameplayVisual,
             &ChildOf,
@@ -262,6 +277,12 @@ mod tests {
         let (mut app, body, _, _) = fixture(false);
         app.update();
         assert!(app.world().entity(body).get::<Mesh3d>().is_some());
+        assert!(
+            app.world()
+                .get::<bevy::camera::visibility::VisibilityClass>(body)
+                .unwrap()
+                .contains(&std::any::TypeId::of::<Mesh3d>())
+        );
     }
 
     #[test]

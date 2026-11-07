@@ -69,3 +69,23 @@ Garder distincts build, tests installer, essais visuels, critères RPG Gate 3 et
 Le jeu natif existant est une promenade Tidewater ; sa présence dans le package ne qualifie
 pas l'aventure RPG jouée dans Studio. ADR-0006 a expiré pour la préparation de distribution :
 les contrôles distants requis sur le candidat exact restent obligatoires avant qualification.
+
+
+## Addendum du 2 novembre 2026 — parcours par jeu (Gate 7)
+
+La décision historique ci-dessus reste le contexte de l'installable existant. La
+cible produit est désormais : **Éditeur Forge → export autonome avec launcher propre
+au jeu → jeu**. Le projet auteur demeure la source de vérité ; l'identité, les
+contenus admis, la présentation et le point d'entrée livrés en sont des dérivations
+validées. Aube et Tidewater restent des références, jamais des dépendances imposées
+à un autre jeu. `forge_delivery` et le CLI conservent leur rôle de services communs.
+
+Les fonctions d'auteur du Hub doivent être reprises par le Studio ; les opérations
+joueur conservées rejoignent le launcher du jeu et les services de livraison. Le Hub
+actuel et les installations restent en place tant que les parcours transférés et la
+migration sans perte n'ont pas été prouvés. Préserver projets, sauvegardes, licences,
+état de livraison et préférences ; qualifier Windows et Linux, y compris deux jeux
+indépendants et l'installation sur OS propre. La portée, les consommateurs et les
+preuves à rejouer sont inventoriés dans la campagne centrale Gate 7 :
+`editor-launcher-d1-inventory-001.md`. Cet addendum ne vaut ni transfert effectif,
+ni nouvelle preuve de fonctionnement, ni clôture de Gate 7.

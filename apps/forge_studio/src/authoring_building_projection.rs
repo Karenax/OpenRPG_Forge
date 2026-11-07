@@ -4,8 +4,8 @@ use crate::authoring_projection_diagnostics::{
 };
 use bevy::{ecs as bevy_ecs, prelude::*};
 use forge_core::ContentHash;
+use forge_engine::authoring_buildings::BuildingProjection;
 use forge_project::{authoring::AuthoringState, zone_authoring::ZoneAuthoringHead};
-use forge_tidewater::authoring_buildings::BuildingProjection;
 use leptos::prelude::*;
 use std::{cell::RefCell, collections::BTreeMap};
 
@@ -108,7 +108,7 @@ fn material_ready(world: &World, projection: &Projection, count: usize) -> bool 
     if count == 0 {
         return true;
     }
-    if !crate::authoring_assets::imported_buildings::has_environment() {
+    if !uses_imported_material(world) {
         return projection.batch.uses_standard_material();
     }
     crate::authoring_assets::imported_scene::resident_lighting_material(world)
@@ -123,7 +123,7 @@ pub(crate) fn sync_material(world: &mut World) {
     if projection.batch.part_count() == 0 {
         return;
     }
-    let expected = crate::authoring_assets::imported_buildings::has_environment();
+    let expected = uses_imported_material(world);
     let lighting = if expected {
         crate::authoring_assets::imported_scene::resident_lighting_material(world)
     } else {
@@ -185,7 +185,7 @@ fn update_preview(world: &mut World) {
 
 fn update(world: &mut World) {
     // Restore the ordinary material even when source/viewport checks return early.
-    if !crate::authoring_assets::imported_buildings::has_environment() {
+    if !uses_imported_material(world) {
         sync_material(world);
     }
     let hash = PENDING.with(|slot| slot.borrow().as_ref().map(|(hash, _)| *hash));
@@ -216,7 +216,12 @@ fn update(world: &mut World) {
     sync_material(world);
 }
 
-fn part_key(identity: forge_tidewater::authoring_buildings::BuildingPartIdentity) -> String {
+fn uses_imported_material(world: &World) -> bool {
+    !world.contains_resource::<crate::authoring_sampled_viewport::CanonicalRasterViewport>()
+        && crate::authoring_assets::imported_buildings::has_environment()
+}
+
+fn part_key(identity: forge_engine::authoring_buildings::BuildingPartIdentity) -> String {
     format!("{}/{}", identity.building, identity.part)
 }
 

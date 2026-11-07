@@ -1,5 +1,5 @@
 //! Read-only metadata-governed particle resource transport.
-use super::{Library, LibraryRequest, LibraryResponse, read_limited, required};
+use super::{Library, LibraryRequest, LibraryResponse, required};
 use crate::asset_library_protocol::{LibraryParticleRequest, LibrarySavedParticleRequest};
 use forge_assets::source_particle_package::{MAX_PACKAGE_BYTES, SourceParticlePackage};
 use forge_core::ContentHash;
@@ -9,6 +9,38 @@ impl Library {
         &mut self,
         request: &LibrarySavedParticleRequest,
     ) -> Result<Vec<u8>, String> {
+        self.read_saved_particle_with(request, false, |_, _, _| Ok(()))
+            .map(|(wire, ())| wire)
+    }
+
+    /// Capture exact logical bytes and the selected private provenance together.
+    pub fn export_saved_particle_package(
+        &mut self,
+        request: &LibrarySavedParticleRequest,
+        captured_on: &str,
+    ) -> Result<(Vec<u8>, Vec<u8>), String> {
+        self.read_saved_particle_with(request, true, |asset, model, revision| {
+            if model.asset_id != request.asset_id || model.sha256 != request.carrier_sha256 {
+                return Err("Identité du modèle d’effet différente du pin sauvegardé".into());
+            }
+            super::module_export::companion_evidence(
+                asset,
+                model,
+                revision,
+                captured_on,
+                forge_project::module_package::ModulePlacementCompanionKind::Particles,
+                request.manifest_sha256,
+                request.package_sha256,
+            )
+        })
+    }
+
+    fn read_saved_particle_with<T>(
+        &mut self,
+        request: &LibrarySavedParticleRequest,
+        require_unique: bool,
+        capture: impl FnOnce(&super::StoredAsset, &super::LibraryModel, &str) -> Result<T, String>,
+    ) -> Result<(Vec<u8>, T), String> {
         if request.schema_version != 1 {
             return Err("Version de référence d’effet invalide".into());
         }
@@ -46,7 +78,14 @@ impl Library {
                     .and_then(|s| ContentHash::parse(s).ok())
                     == Some(request.carrier_sha256)
             };
-            let asset = if matches(current) {
+            let asset = if require_unique {
+                self.unique_saved_companion_asset(
+                    snapshot,
+                    current,
+                    request.carrier_sha256,
+                    matches,
+                )?
+            } else if matches(current) {
                 current.clone()
             } else {
                 self.read_historical_asset_matching(
@@ -58,7 +97,8 @@ impl Library {
             };
             let declaration = &asset.profile["source_particle_package"];
             let path = self.safe_from(&self.root, required(declaration, "path")?)?;
-            let wire = read_limited(
+            let wire = forge_delivery::vault_storage::read_file(
+                &self.root,
                 &path,
                 u64::try_from(MAX_PACKAGE_BYTES).map_err(|_| "Budget d’effet invalide")?,
             )?;
@@ -70,7 +110,8 @@ impl Library {
             )?;
             let model = self.read_model(&asset)?;
             package.resolve_for_carrier(&model.bytes)?;
-            Ok(wire)
+            let evidence = capture(&asset, &model, &snapshot.revision)?;
+            Ok((wire, evidence))
         })();
         let snapshot = self.snapshot.as_ref().ok_or("Snapshot d’effet absent")?;
         if let Err(error) = self.verify_registry_pins(
@@ -118,7 +159,8 @@ impl Library {
             return Err("Porteur d’effet différent du modèle".into());
         }
         let path = self.safe_from(&self.root, required(declaration, "path")?)?;
-        let wire = read_limited(
+        let wire = forge_delivery::vault_storage::read_file(
+            &self.root,
             &path,
             u64::try_from(MAX_PACKAGE_BYTES).map_err(|_| "Budget d’effet invalide")?,
         )?;

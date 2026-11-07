@@ -8,6 +8,7 @@ use forge_project::{
 };
 fn object() -> ManualPlacement {
     ManualPlacement {
+        local_lights: None,
         id: EntityId::deterministic("particle-placement"),
         name: "Effet retouché".into(),
         asset_id: AssetId::deterministic("particle-asset"),
@@ -131,6 +132,8 @@ fn replacement_requires_all_pins_and_preserves_retouches() {
     let mut target = original.particles.clone().unwrap();
     target.package_sha256 = ContentHash::from_bytes([8; 32]);
     let edit = |expected_particles| PlacementEdit::ReplacePinnedAsset {
+        expected_local_lights: None,
+        local_lights: None,
         ids: vec![original.id],
         expected_asset_id: original.asset_id,
         expected_asset_hash: original.asset_hash,

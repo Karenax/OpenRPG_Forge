@@ -9,7 +9,8 @@ use bevy::{
         view::screenshot::{Screenshot, ScreenshotCaptured, save_to_disk},
     },
 };
-use forge_tidewater::tidewater_refraction as capture;
+use forge_engine::source_refraction::CaptureCamera;
+use forge_engine::source_refraction_capture as capture;
 use serde_json::{Value, json};
 use std::{path::PathBuf, sync::atomic::Ordering, time::Instant};
 
@@ -380,7 +381,7 @@ fn sources_ready(world: &World) -> bool {
             .ready
             .load(Ordering::Acquire)
         && world
-            .get_resource::<forge_tidewater::tidewater_underwater_lighting::Targets>()
+            .get_resource::<forge_engine::source_underwater_lighting::Targets>()
             .is_some_and(|maps| {
                 maps.observation.lock().is_ok_and(|stamp| {
                     stamp.step > 0 && stamp.resolution == 512 && stamp.layers == 2
@@ -419,9 +420,24 @@ fn optical_frames(world: &World, enabled: bool) -> Result<Vec<Vec<[u32; 4]>>, St
         .collect()
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "One observation binds camera, material and capture evidence"
+)]
 fn snapshot(world: &mut World) -> Result<Value, String> {
-    let cameras = world.query_filtered::<(Entity, &Camera, &GlobalTransform), (With<Camera3d>, Without<capture::CaptureCamera>)>()
-        .iter(world).filter(|(_, c, _)| c.is_active).map(|(e,c,p)| (e,c.clip_from_view().to_cols_array().map(f32::to_bits),p.to_matrix().to_cols_array().map(f32::to_bits),c.physical_viewport_size())).collect::<Vec<_>>();
+    let cameras = world
+        .query_filtered::<(Entity, &Camera, &GlobalTransform), (With<Camera3d>, Without<CaptureCamera>)>()
+        .iter(world)
+        .filter(|(_, c, _)| c.is_active)
+        .map(|(e, c, p)| {
+            (
+                e,
+                c.clip_from_view().to_cols_array().map(f32::to_bits),
+                p.to_matrix().to_cols_array().map(f32::to_bits),
+                c.physical_viewport_size(),
+            )
+        })
+        .collect::<Vec<_>>();
     let [(camera, projection, pose, size)] = cameras.as_slice() else {
         return Err("Static proof requires one active main camera".into());
     };
@@ -429,7 +445,7 @@ fn snapshot(world: &mut World) -> Result<Value, String> {
         return Err("Main viewport is not 1920x1080".into());
     }
     let derived = world
-        .query_filtered::<(&Camera, &GlobalTransform), With<capture::CaptureCamera>>()
+        .query_filtered::<(&Camera, &GlobalTransform), With<CaptureCamera>>()
         .iter(world)
         .map(|(c, p)| {
             (
@@ -446,9 +462,11 @@ fn snapshot(world: &mut World) -> Result<Value, String> {
         || derived_pose != pose
         || *derived_size != Some(UVec2::new(960, 540))
     {
-        return Err(
-            "Actual derived camera projection/pose/target differs from main contract".into(),
-        );
+        return Err(format!(
+            "Actual derived camera differs from main contract: projection_equal={}, pose_equal={}, target={derived_size:?}",
+            derived_projection == projection,
+            derived_pose == pose,
+        ));
     }
     if world
         .get::<bevy::post_process::auto_exposure::AutoExposure>(*camera)
@@ -460,7 +478,7 @@ fn snapshot(world: &mut World) -> Result<Value, String> {
             .get::<bevy::post_process::motion_blur::MotionBlur>(*camera)
             .is_some()
         || world
-            .get::<forge_tidewater::film_grain::FilmGrain>(*camera)
+            .get::<forge_engine::film_grain::FilmGrain>(*camera)
             .is_some_and(|g| g.intensity.x != 0.0)
     {
         return Err("Static exact triplet needs isolated profile without exposure adaptation/TAA/motion blur/grain".into());
@@ -486,7 +504,7 @@ fn snapshot(world: &mut World) -> Result<Value, String> {
         return Err("Native optical material absent".into());
     }
     let targets = world.resource::<capture::Targets>();
-    let maps = world.resource::<forge_tidewater::tidewater_underwater_lighting::Targets>();
+    let maps = world.resource::<forge_engine::source_underwater_lighting::Targets>();
     let gpu = *maps
         .observation
         .lock()
@@ -661,7 +679,7 @@ mod tests {
         prelude::*,
         render::{gpu_readback::Readback, view::screenshot::Screenshot},
     };
-    use forge_tidewater::tidewater_refraction as capture;
+    use forge_engine::source_refraction_capture as capture;
     use serde_json::json;
     use std::{
         path::PathBuf,

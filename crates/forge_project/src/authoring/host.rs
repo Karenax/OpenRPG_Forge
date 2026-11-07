@@ -3,6 +3,7 @@ use super::{AuthoringRequest, AuthoringState};
 use crate::{audit::AuditStamp, terrain_edit::file_session::FileTerrainSession};
 use std::path::{Path, PathBuf};
 
+mod assistant;
 mod catalog;
 mod compaction;
 mod creator;
@@ -485,6 +486,7 @@ impl AuthoringHost {
         recovery: Option<super::RecoveryReview>,
     ) -> Result<AuthoringState, String> {
         Ok(AuthoringState {
+            module_origin: self.observed_module_origin(),
             module_creator_context: self.module_creator_context()?,
             module_creator_review: None,
             module_creator_affected: Vec::new(),

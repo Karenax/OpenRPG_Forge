@@ -23,6 +23,16 @@ pub enum WorkspaceAction {
         name: String,
         origin: super::ModuleOriginPin,
     },
+    ImportModulePackage {
+        project_id: ProjectId,
+        new_project_name: Option<String>,
+        module: super::ModuleEntry,
+    },
+    ConfigureGame {
+        project_id: ProjectId,
+        before: Option<Box<super::launcher::GameConfiguration>>,
+        after: Option<Box<super::launcher::GameConfiguration>>,
+    },
     AttachZone {
         project_id: ProjectId,
         module_id: ModuleId,
@@ -161,6 +171,22 @@ impl WorkspaceSession {
             } => self
                 .head
                 .with_imported_module(*project_id, *id, name.clone(), *origin)?,
+            WorkspaceAction::ImportModulePackage {
+                project_id,
+                new_project_name,
+                module,
+            } => self
+                .head
+                .with_module_package(*project_id, new_project_name.as_deref(), module)?,
+            WorkspaceAction::ConfigureGame {
+                project_id,
+                before,
+                after,
+            } => self.head.with_game_configuration(
+                *project_id,
+                before.as_deref(),
+                after.as_deref().cloned(),
+            )?,
             WorkspaceAction::AttachZone {
                 project_id,
                 module_id,

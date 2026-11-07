@@ -42,7 +42,7 @@ pub(super) async fn load(
     }
     // Fail before publishing if renderer decoding or the shared source ABI differs.
     let geometry = PreparedDebris::from_package(&input.geometry)?;
-    forge_tidewater::tidewater_debris::nature::shader_source(&input.nature_program)?;
+    forge_engine::source_surface::nature::shader_source(&input.nature_program)?;
     let assets = geometry
         .objects
         .iter()

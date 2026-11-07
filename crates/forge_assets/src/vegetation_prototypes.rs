@@ -44,6 +44,62 @@ impl VegetationPrototypeBinding {
     }
 }
 
+/// Resolve author-supplied pinned selections without a renderer or project dependency.
+/// File readers must separately verify the catalog bytes and every referenced GLB.
+pub fn resolve_pinned_vegetation_catalogs(
+    sources: &[VegetationPrototypeCatalog],
+    target: ContentHash,
+    tree_layer_ids: &[&str],
+    selections: &[(ContentHash, VegetationPrototypeSelection)],
+    kit: &GovernedAssetKitBuildReport,
+) -> Result<VegetationPrototypeCatalog, VegetationPrototypeError> {
+    if sources.len() > 64
+        || sources.iter().any(|source| source.bindings.len() > 64)
+        || selections.is_empty()
+        || selections.len() > 64
+    {
+        return Err(VegetationPrototypeError::LayerCoverage);
+    }
+    let mut indexed = std::collections::BTreeMap::new();
+    for source in sources {
+        let hash = canonical_json_sha256(source)
+            .map_err(|error| VegetationPrototypeError::CatalogHash(error.to_string()))?;
+        if indexed.insert(hash, source).is_some() {
+            return Err(VegetationPrototypeError::CatalogHash(
+                "duplicate source catalog".into(),
+            ));
+        }
+    }
+    let mut bindings = Vec::with_capacity(selections.len());
+    for (hash, selection) in selections {
+        let source = indexed.get(hash).ok_or_else(|| {
+            VegetationPrototypeError::CatalogHash(format!("missing pinned source catalog {hash}"))
+        })?;
+        bindings.extend(
+            source
+                .prepare_pinned_selection(
+                    *hash,
+                    target,
+                    &[selection.target_layer_id.as_str()],
+                    std::slice::from_ref(selection),
+                    kit,
+                )?
+                .bindings,
+        );
+    }
+    bindings.sort_by(|a, b| (&a.layer_id, &a.asset_id).cmp(&(&b.layer_id, &b.asset_id)));
+    let catalog = VegetationPrototypeCatalog {
+        schema: "forge.vegetation-prototype-catalog".into(),
+        schema_version: 2,
+        vegetation_sha256: target,
+        asset_kit_id: kit.asset_kit_id.clone(),
+        asset_kit_revision: kit.asset_kit_revision,
+        bindings,
+    };
+    catalog.validate_against(target, tree_layer_ids, kit)?;
+    Ok(catalog)
+}
+
 impl VegetationPrototypeCatalog {
     /// Resolve a saved reference to this exact catalog, including its normalization metadata.
     /// Hashing the source vegetation alone would not detect an altered pivot or target height.
@@ -328,6 +384,84 @@ mod tests {
                 .prepare_pinned_selection(pinned, target, &["authored-trees"], &selection, &kit)
                 .unwrap(),
             resolved
+        );
+    }
+
+    #[test]
+    fn multiple_pinned_catalogs_resolve_without_project_or_renderer_dependencies() {
+        let (first, kit) = fixture();
+        let mut second = first.clone();
+        second.bindings[0].layer_id = "understory".into();
+        second.bindings[0].target_height_m = 3.0;
+        let sources = [first, second];
+        let selections = [
+            (
+                canonical_json_sha256(&sources[1]).unwrap(),
+                VegetationPrototypeSelection {
+                    source_layer_id: "understory".into(),
+                    asset_id: "test-tree".into(),
+                    target_layer_id: "trees_b".into(),
+                },
+            ),
+            (
+                canonical_json_sha256(&sources[0]).unwrap(),
+                VegetationPrototypeSelection {
+                    source_layer_id: "canopy".into(),
+                    asset_id: "test-tree".into(),
+                    target_layer_id: "trees_a".into(),
+                },
+            ),
+        ];
+        let target = ContentHash::from_bytes([9; 32]);
+        let resolved = resolve_pinned_vegetation_catalogs(
+            &sources,
+            target,
+            &["trees_a", "trees_b"],
+            &selections,
+            &kit,
+        )
+        .unwrap();
+        assert_eq!(resolved.bindings[0].layer_id, "trees_a");
+        assert_eq!(
+            resolved.bindings[1].target_height_m.to_bits(),
+            3.0_f32.to_bits()
+        );
+        assert_eq!(
+            resolve_pinned_vegetation_catalogs(
+                &[sources[1].clone(), sources[0].clone()],
+                target,
+                &["trees_a", "trees_b"],
+                &selections,
+                &kit
+            )
+            .unwrap(),
+            resolved
+        );
+        let mut altered = sources.clone();
+        altered[1].bindings[0].source_pivot_m[1] = 1.0;
+        assert!(
+            resolve_pinned_vegetation_catalogs(
+                &altered,
+                target,
+                &["trees_a", "trees_b"],
+                &selections,
+                &kit
+            )
+            .is_err()
+        );
+        assert!(
+            resolve_pinned_vegetation_catalogs(
+                &sources[..1],
+                target,
+                &["trees_a", "trees_b"],
+                &selections,
+                &kit
+            )
+            .is_err()
+        );
+        assert!(
+            resolve_pinned_vegetation_catalogs(&sources, target, &["trees_a"], &selections, &kit)
+                .is_err()
         );
     }
 

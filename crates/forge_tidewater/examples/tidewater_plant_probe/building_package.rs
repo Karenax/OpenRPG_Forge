@@ -1,6 +1,6 @@
 //! Replace building payloads with the explicitly pinned portable package.
+use forge_assets::source_surface_package::SurfacePackage;
 use forge_core::{ContentHash, bytes_sha256};
-use forge_tidewater_assets::tidewater_package::BuildingPackage;
 use serde_json::{Value, json};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -20,7 +20,7 @@ pub fn load(
     fs::File::open(root.join("package.json"))?
         .take(2 * 1024 * 1024 + 1)
         .read_to_end(&mut manifest)?;
-    let package = BuildingPackage::load(&manifest, hash, |name, limit| {
+    let package = SurfacePackage::load(&manifest, hash, |name, limit| {
         let path = root.join(name).canonicalize().map_err(|e| e.to_string())?;
         if path.parent() != Some(root.as_path()) {
             return Err("Escaping building package".into());
@@ -37,11 +37,11 @@ pub fn load(
 }
 
 fn replace(
-    package: &BuildingPackage,
+    package: &SurfacePackage,
     files: &mut BTreeMap<String, Vec<u8>>,
 ) -> Result<(), Box<dyn Error>> {
     // Validate the complete GPU-facing library even before uploading resources.
-    let _ = forge_tidewater::tidewater_assets::PreparedLibrary::load(package)?;
+    let _ = forge_engine::source_surface::package::PreparedLibrary::load(package)?;
     let mut scene: Value = serde_json::from_slice(
         files
             .get("village.json")
@@ -131,7 +131,7 @@ fn replace(
 }
 
 fn payload(
-    package: &BuildingPackage,
+    package: &SurfacePackage,
     files: &mut BTreeMap<String, Vec<u8>>,
     reference: &Value,
 ) -> Result<String, Box<dyn Error>> {
@@ -147,7 +147,7 @@ fn payload(
 }
 
 fn package_nodes(
-    package: &BuildingPackage,
+    package: &SurfacePackage,
     files: &mut BTreeMap<String, Vec<u8>>,
     descriptor: &Value,
     key: &str,

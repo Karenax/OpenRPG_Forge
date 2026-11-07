@@ -92,10 +92,10 @@ fn submitted(
 ) {
     let kinds = [
         std::any::TypeId::of::<StandardMaterial>(),
-        std::any::TypeId::of::<forge_tidewater::tidewater_material::VillageMaterial>(),
-        std::any::TypeId::of::<forge_tidewater::tidewater_plants::PlantMaterial>(),
-        std::any::TypeId::of::<forge_tidewater::tidewater_terrain::lod::LodMaterial>(),
-        std::any::TypeId::of::<forge_tidewater::tidewater_fish_props::material::FishMaterial>(),
+        std::any::TypeId::of::<forge_engine::source_surface::SourceSurfaceMaterial>(),
+        std::any::TypeId::of::<forge_engine::source_vegetation::captured::CapturedPlantMaterial>(),
+        std::any::TypeId::of::<forge_engine::source_terrain::lod::LodMaterial>(),
+        std::any::TypeId::of::<forge_engine::source_fish::material::FishMaterial>(),
     ];
     for (index, kind) in kinds.iter().enumerate() {
         self::store_count(
@@ -103,7 +103,14 @@ fn submitted(
             index,
             materials
                 .iter()
-                .filter(|(id, _)| id.type_id() == *kind)
+                .filter(|(id, _)| {
+                    id.type_id() == *kind
+                        || (index == 2
+                            && id.type_id()
+                                == std::any::TypeId::of::<
+                                    forge_engine::source_vegetation::world::WorldPlantMaterial,
+                                >())
+                })
                 .count(),
         );
     }

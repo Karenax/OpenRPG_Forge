@@ -266,6 +266,11 @@ fn pending_bounds(shape: &Collider, global: GlobalTransform) -> Result<(Vec3, Ve
 fn excluded(world: &World, entity: Entity) -> bool {
     world.get::<DangerMotionActor>(entity).is_some()
         || world.get::<ForgePlayerCharacter>(entity).is_some()
+        // Owned vertical map limits have no walkable surface. The actual finite
+        // terrain triangles bound navigation; the physics guard verifies planes.
+        || world
+            .get::<crate::cell_streaming::StreamedTerrainBoundary>(entity)
+            .is_some()
 }
 
 // Moving dynamic bodies are avoidance/KCC obstacles, not per-tick raster inputs.

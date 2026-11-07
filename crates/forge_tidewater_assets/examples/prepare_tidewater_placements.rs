@@ -74,6 +74,7 @@ fn build_placements(
         placements.push(ManualPlacement {
             particles: None,
             physics: None,
+            local_lights: None,
             id: EntityId::deterministic(format!(
                 "{}:{}:{}",
                 base.terrain.project_id, base.terrain.area_id, b.source_id

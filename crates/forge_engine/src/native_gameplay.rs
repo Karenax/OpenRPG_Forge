@@ -5,17 +5,19 @@
 use crate::gameplay::{GameplayPlugin, GameplayRuntime, GameplaySet};
 use bevy::prelude::*;
 use forge_core::{CommandId, ContentHash};
-use forge_gameplay::{GameAction, GameRequest, GameplayDocument};
+use forge_gameplay::{GameAction, GameRequest, GameplayDocument, native_storage::StartIntent};
 use forge_project::{
     authoring::playtest::PlaytestSnapshot, zone_authoring::session::ZoneEditSession,
 };
 use std::path::Path;
 
+mod graphics;
 mod observations;
 mod presentation;
 mod qualification;
 mod report;
 mod storage;
+pub use graphics::{NativeGraphicsCommand, NativeGraphicsStatus};
 #[cfg(test)]
 mod tests;
 
@@ -38,6 +40,20 @@ pub enum NativeGameplayUiSet {
     Input,
 }
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq, SystemSet)]
+pub struct NativeGameplayReadinessSet;
+
+/// The host's final per-frame projection observation for a bounded replay.
+/// A replay may exit only after the current frame is actually observed ready.
+#[derive(Resource, Clone, Copy, Debug, Default)]
+pub struct NativeScenarioProjection {
+    pub frame: u32,
+    pub ready: bool,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, SystemSet)]
+pub struct NativeScenarioEvidenceSet;
+
 #[derive(Resource, Default)]
 struct CommandResult {
     sequence: u64,
@@ -58,6 +74,10 @@ impl NativeGameplayUi {
     #[must_use]
     pub const fn is_open(&self) -> bool {
         self.open
+    }
+    #[must_use]
+    pub const fn is_recovering(&self) -> bool {
+        self.recovery.is_some()
     }
     pub fn close(&mut self) {
         if self.recovery.is_none() {
@@ -82,22 +102,38 @@ impl PreparedNativeGameplay {
         save_root: &Path,
         observation_path: Option<&Path>,
     ) -> Result<Option<Self>, String> {
+        Self::from_archive_with_intent(archive, save_root, observation_path, StartIntent::Legacy)
+    }
+
+    /// Prepare a standalone launch while enforcing its explicit start intent.
+    pub fn from_archive_with_intent(
+        archive: &[u8],
+        save_root: &Path,
+        observation_path: Option<&Path>,
+        intent: StartIntent,
+    ) -> Result<Option<Self>, String> {
         let zone = ZoneEditSession::from_archive_bytes(archive)?;
         let source = zone.head().content_hash()?;
         let snapshot = PlaytestSnapshot::from_zone(zone.head(), source)?;
         let Some(document) = snapshot.gameplay().cloned() else {
-            return Ok(None);
+            return if matches!(intent, StartIntent::Resume(_)) {
+                Err("Cette carte ne contient plus de partie à reprendre.".into())
+            } else {
+                Ok(None)
+            };
         };
-        Self::from_document(
+        Self::from_document_with_intent(
             document,
             source,
             forge_core::bytes_sha256(archive),
             save_root,
             observation_path,
+            intent,
         )
         .map(Some)
     }
 
+    #[cfg(test)]
     fn from_document(
         document: GameplayDocument,
         source: ContentHash,
@@ -105,10 +141,28 @@ impl PreparedNativeGameplay {
         save_root: &Path,
         observation_path: Option<&Path>,
     ) -> Result<Self, String> {
+        Self::from_document_with_intent(
+            document,
+            source,
+            archive_hash,
+            save_root,
+            observation_path,
+            StartIntent::Legacy,
+        )
+    }
+
+    fn from_document_with_intent(
+        document: GameplayDocument,
+        source: ContentHash,
+        archive_hash: ContentHash,
+        save_root: &Path,
+        observation_path: Option<&Path>,
+        intent: StartIntent,
+    ) -> Result<Self, String> {
         document.validate().map_err(|e| e.to_string())?;
         let functional = document.functional_hash().map_err(|e| e.to_string())?;
         let mut storage = storage::GameStorage::open(save_root, &document)?;
-        let (save, compatible) = storage.requested_resume(&document)?;
+        let (save, compatible) = storage.requested_resume_with_intent(&document, intent)?;
         let (runtime, resumed, recovery) =
             match GameplayRuntime::new(document.clone(), source, save.as_deref(), compatible) {
                 Ok(runtime) => (runtime, save.is_some(), None),
@@ -184,6 +238,7 @@ impl PreparedNativeGameplay {
             .add_systems(
                 FixedUpdate,
                 readiness
+                    .in_set(NativeGameplayReadinessSet)
                     .before(crate::PlayerControllerSet::Drive)
                     .before(GameplaySet::Drive),
             )
@@ -192,8 +247,12 @@ impl PreparedNativeGameplay {
                 process_commands.after(crate::navigation::NavigationSet::Refresh),
             );
         if let Some(observations) = self.observations {
-            app.insert_resource(observations)
-                .add_systems(FixedUpdate, observations::record.after(process_commands));
+            app.insert_resource(observations).add_systems(
+                FixedUpdate,
+                observations::record
+                    .after(process_commands)
+                    .after(crate::PlayerControllerSet::Camera),
+            );
         }
         install_exit_observers(app, self.report);
         qualification::install(app)?;
@@ -224,6 +283,18 @@ fn install_exit_observers(app: &mut App, report: Option<report::ReportSink>) {
         app.insert_resource(report)
             .add_systems(NativeGameplayExitReports, report::exit);
     }
+}
+
+// Bevy chooses an error if any producer requests one during the same update.
+// A single process exit must therefore produce one consistent terminal record.
+fn exit_outcome(exits: &mut MessageReader<bevy::app::AppExit>) -> Option<bool> {
+    let mut seen = false;
+    let mut success = true;
+    for exit in exits.read() {
+        seen = true;
+        success &= exit.is_success();
+    }
+    seen.then_some(success)
 }
 
 /// Player/terrain readiness is supplied by the same walk adapter, never by the HUD.

@@ -18,23 +18,31 @@ pub(super) fn ItemControls(
             .and_then(|h| h.corrections.gameplay.map(|d| *d))
     };
     let selected = RwSignal::new(String::new());
-    let name = RwSignal::new("Nouvel item".to_owned());
+    let name = RwSignal::new("Nouvel objet d’inventaire".to_owned());
     let stack = RwSignal::new("10".to_owned());
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let current = (selected.get(), super::source_hash(state));
-        if previous.as_ref() == Some(&current) {
-            return current;
-        }
-        if let Some(item) = document().and_then(|d| {
-            id(&selected.get())
-                .ok()
-                .and_then(|key| d.item(key).cloned())
-        }) {
-            name.set(item.name);
-            stack.set(item.max_stack.to_string());
-        }
-        current
-    });
+    let draft_notice = super::draft::bind(
+        move || {
+            let selected = selected.get();
+            let source = super::draft::records(state, &selected);
+            (selected, source)
+        },
+        vec![
+            super::draft::Field::new(name),
+            super::draft::Field::new(stack),
+        ],
+        move || {
+            if let Some(item) = document().and_then(|d| {
+                id(&selected.get())
+                    .ok()
+                    .and_then(|key| d.item(key).cloned())
+            }) {
+                name.set(item.name);
+                stack.set(item.max_stack.to_string());
+            }
+        },
+    );
+    let definition_send = draft_notice.submitter(send);
+
     let max_stack =
         move || {
             stack.get_untracked().trim().parse::<u32>().map_err(|_| {
@@ -49,32 +57,32 @@ pub(super) fn ItemControls(
     };
     view! {
         <Show when=move ||document().is_some_and(|d|d.surface_visible(CreatorSurface::Objects) || d.surface_visible(CreatorSurface::Containers))>
-            <details class="creator-item-catalog"><summary>"Catalogue des items"</summary>
-                <fieldset disabled=disabled>
-                    <p>"Les ramassages, quêtes, clés et conteneurs utilisent ce catalogue commun. Créer un item ne place pas de ramassage dans la scène."</p>
-                    <label>"Item à retoucher"<select prop:value=move ||selected.get() on:change=move |e|selected.set(event_target_value(&e))>
-                        <option value="">"Choisir un item"</option>
+            <details class="creator-item-catalog"><summary>"Objets d’inventaire"</summary>
+                <fieldset disabled=disabled><super::draft::DraftNotice notice=draft_notice/>
+                    <p>"Les ramassages, quêtes, clés et conteneurs utilisent ce catalogue commun. Créer un objet d’inventaire ne place pas de ramassage dans la scène."</p>
+                    <label>"Objet d’inventaire à retoucher"<select prop:value=move ||selected.get() on:change=move |e|selected.set(event_target_value(&e))>
+                        <option value="">"Choisir un objet d’inventaire"</option>
                         {move ||document().map(|d|d.items.into_iter().map(|item|view!{<option value=item.id.to_string()>{item.name}</option>}).collect_view())}
                     </select></label>
-                    <label>"Nom de l’item"<input prop:value=move ||name.get() on:input=move |e|name.set(event_target_value(&e))/></label>
+                    <label>"Nom de l’objet d’inventaire"<input prop:value=move ||name.get() on:input=move |e|name.set(event_target_value(&e))/></label>
                     <label>"Limite d’une pile (unités)"<input type="number" min="1" max=MAX_INVENTORY_UNITS.to_string() step="1" prop:value=move ||stack.get() on:input=move |e|stack.set(event_target_value(&e))/></label>
-                    <button on:click=move |_|send.run(edit(state.get_untracked(),move |_,source| {
+                    <button on:click=move |_|definition_send.run(edit(state.get_untracked(),move |_,source| {
                         let hash = canonical_json_sha256(source).map_err(|e|e.to_string())?;
                         let item = ItemDefinition {id:EntityId::deterministic(format!("catalog-item/{}/{hash}",source.area_id)),name:name.get_untracked(),max_stack:max_stack()?};
                         *source = source.with_item_definition(item).map_err(|e|e.to_string())?;
                         Ok(())
-                    }))>"Examiner un nouvel item"</button>
-                    <button on:click=move |_|send.run(edit(state.get_untracked(),move |_,source| {
+                    }))>"Examiner un nouvel objet d’inventaire"</button>
+                    <button on:click=move |_|definition_send.run(edit(state.get_untracked(),move |_,source| {
                         let item = ItemDefinition {id:id(&selected.get_untracked())?,name:name.get_untracked(),max_stack:max_stack()?};
-                        if source.item(item.id).is_none() { return Err("Choisir un item courant".into()); }
+                        if source.item(item.id).is_none() { return Err("Choisir un objet d’inventaire courant".into()); }
                         *source = source.with_item_definition(item).map_err(|e|e.to_string())?;
                         Ok(())
-                    }))>"Examiner la retouche de l’item"</button>
-                    <p>"Une pile initiale devenue trop grande ou une référence encore utilisée fait refuser la modification. Les changements passent par l’aperçu et l’historique. Changer la limite ou supprimer un item peut rendre une sauvegarde incompatible."</p>
+                    }))>"Examiner la retouche de l’objet d’inventaire"</button>
+                    <p>"Une pile initiale devenue trop grande ou une référence encore utilisée fait refuser la modification. Les changements passent par l’aperçu et l’historique. Changer la limite ou supprimer un objet d’inventaire peut rendre une sauvegarde incompatible."</p>
                     <button on:click=move |_|send.run(edit(state.get_untracked(),move |_,source| {
                         *source = source.without_item_definition(id(&selected.get_untracked())?).map_err(|e|e.to_string())?;
                         Ok(())
-                    }))>"Examiner la suppression de l’item inutilisé"</button>
+                    }))>"Examiner la suppression de l’objet d’inventaire inutilisé"</button>
                 </fieldset>
             </details>
         </Show>

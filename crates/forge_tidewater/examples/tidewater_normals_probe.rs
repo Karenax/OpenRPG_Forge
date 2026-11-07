@@ -1,7 +1,7 @@
 //! CPU normal/AO rebake preserves source channels and rejects malformed targets.
 use bevy::prelude::*;
+use forge_engine::source_terrain::normals::{self, Shared};
 use forge_project::{TerrainDocument, TerrainHeightDelta};
-use forge_tidewater::tidewater_terrain::normals::{self, Shared};
 use forge_world::sampled_terrain::SampledTerrainPlan;
 use std::{
     error::Error,

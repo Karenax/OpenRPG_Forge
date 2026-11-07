@@ -1,5 +1,27 @@
 # forge_runtime
 
+## Native module runtime
+
+The shared `module_game` library is used by both the standalone `forge-module`
+binary and the Tidewater reference probe. The standalone normal build does not
+depend on the Tidewater crate and does not enable qualification-only controls:
+
+```powershell
+& ../scripts/Invoke-ForgeCargo.ps1 -Campaign gate7-monde-distribution `
+  -LogName forge-module-build -CargoArguments @(
+    'build', '--locked', '-p', 'forge_runtime', '--no-default-features',
+    '--features', 'module-game', '--bin', 'forge-module', '-j', '4'
+  )
+```
+
+An installed module is started with `--module <package> --zone <area-id>
+--cache <directory> --save-root <directory>`. Cache and save paths must be
+absolute; saves and captures must also be outside the installed module. Optional
+source and transport pins preserve the same admission checks as the reference
+entry. The normal runtime still
+rejects declared ocean inputs until the shared water path is qualified; the
+candidate has not yet replaced the existing delivered game executable.
+
 `--quality high --prewarm-quality` explicitly prepares Low/Medium/High/Ultra for
 the current scene and weather, then restores the initial quality (and adaptation
 if requested), reapplying that global profile rather than individual preview overrides.

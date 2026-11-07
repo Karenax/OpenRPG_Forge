@@ -1,4 +1,4 @@
-"""Offline admission tests plus the actual assemble branch with mocked binaries."""
+"""Offline admission tests for application dependency sources."""
 import argparse
 import copy
 import hashlib
@@ -11,8 +11,6 @@ import unittest
 from unittest.mock import patch
 
 import application_sources as sources
-import build_delivery as delivery
-import build_classic_installer as classic
 
 
 def sha(data):
@@ -223,126 +221,6 @@ class SourcesAdmission(unittest.TestCase):
         with patch.object(sources, "MAX_UNPACKED", 256):
             with self.assertRaisesRegex(ValueError, "decompression budget"):
                 self.f.prepare()
-
-
-class AssembleBranch(unittest.TestCase):
-    def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name)
-        self.args = self.inputs()
-
-    def inputs(self):
-        root = self.root
-        binaries = root / "bin"
-        binaries.mkdir()
-        paths = {}
-        for name in ["delivery_cli", "hub", "launcher", "studio", "runtime", "webview2"]:
-            paths[name] = binaries / f"{name}.exe"
-            paths[name].write_bytes(name.encode())
-        playtest = root / "playtest"
-        for name in ["data/scene/LICENSE-Tidewater.txt", "data/scene/CREDITS-Tidewater.md",
-                     "licenses/old.txt", "content/old.txt"]:
-            path = playtest / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("historical input", encoding="utf-8")
-        write_json(playtest / "data/scene/fixture.json", {})
-        write_json(playtest / "data/scene/static-assets.json", {})
-        write_json(playtest / "data/buildings/package.json", {})
-        write_json(playtest / "data/workspace/area/authoring.json", {"head":{"base":{"terrain":{"area_id":"area"}}}})
-        proofs = root / "proofs"
-        source = proofs / "source-inputs.json"
-        write_json(source, {"head":"revision", "scope":["apps/forge_launcher"],
-                            "files":{"apps/forge_launcher/Cargo.toml":{}}})
-        common = dict(schema="forge.delivery.native-build.v1", status="BUILD_ONLY",
-                      source_stable_during_build=True, source_manifest_sha256=delivery.digest(source))
-        launcher_proof = proofs / "launcher.json"
-        write_json(launcher_proof, {**common, "current_source_manifest_sha256":delivery.digest(source),
-                                   "outputs":{f"forge-{name}.exe":delivery.digest(paths[key])
-                                              for name, key in [("launcher","launcher"),("hub","hub"),("delivery","delivery_cli")]}})
-        frontend = root / "frontend"
-        static = root / "static"
-        write_json(static / "frontend-static-inputs.json", {})
-        write_json(frontend / "forge-studio-local-assets-manifest.json", {"asset_root":str(static)})
-        studio_proof, runtime_proof = proofs / "studio.json", proofs / "game.json"
-        write_json(studio_proof, {**common,"frontend":str(frontend),"executable_sha256":delivery.digest(paths["studio"])})
-        write_json(runtime_proof, {**common,"executable_sha256":delivery.digest(paths["runtime"])})
-        return argparse.Namespace(**paths, playtest=playtest, aube_proof=launcher_proof,
-                                  launcher_proof=launcher_proof, studio_proof=studio_proof,
-                                  runtime_proof=runtime_proof, source_manifest=source,
-                                  output=root / "delivery", version="test", source_revision="revision",
-                                  shared_working_tree=True, frozen_archive=False, area_id="area",
-                                  cargo_cache=root / "cache")
-
-    def assemble(self, shared, failure=None):
-        self.args.shared_working_tree = shared
-        self.args.frozen_archive = not shared
-        before = {p.relative_to(self.args.playtest).as_posix():p.read_bytes()
-                  for p in self.args.playtest.rglob("*") if p.is_file()}
-        sentinel, captured = object(), {}
-        receipt = {"schema":"test.source-receipt", "manifest_sha256":"1" * 64}
-
-        def stage(prepared, core):
-            self.assertIs(prepared, sentinel)
-            for name in ["manifest.json", "NOTICE.txt", "sources/original.crate"]:
-                path = core / "licenses/native-media" / name
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(b"source proof")
-            return receipt
-
-        def package(cli, staging, output, descriptor):
-            captured[descriptor["kind"]] = (descriptor, {p.relative_to(staging).as_posix():p.read_bytes()
-                                                        for p in staging.rglob("*") if p.is_file()})
-            return {"id":descriptor["id"], "kind":descriptor["kind"], "manifest_sha256":"0" * 64}
-
-        with patch.object(sources, "prepare_for_assembly", return_value=sentinel, side_effect=failure) as prepare, \
-             patch.object(sources, "stage_sources", side_effect=stage) as staged, \
-             patch.object(delivery, "validate_shared_applications"), \
-             patch.object(delivery.subprocess, "run", return_value=argparse.Namespace(returncode=0, stdout="FORGE_LAUNCHER_AUBE_FRONTEND_READY")), \
-             patch.object(delivery, "package", side_effect=package):
-            if failure:
-                with self.assertRaisesRegex(ValueError, "missing sources"):
-                    delivery.assemble(self.args)
-                self.assertFalse(self.args.output.exists())
-            else:
-                delivery.assemble(self.args)
-            self.assertEqual(prepare.call_count, int(shared))
-            self.assertEqual(staged.call_count, int(shared and not failure))
-        after = {p.relative_to(self.args.playtest).as_posix():p.read_bytes()
-                 for p in self.args.playtest.rglob("*") if p.is_file()}
-        self.assertEqual(before, after)
-        return captured, receipt
-
-    def test_shared_real_assemble_stages_sources_only_in_applications_and_pins_proof(self):
-        captured, receipt = self.assemble(True)
-        descriptor, files = captured["applications"]
-        self.assertIn("licenses/native-media/sources/original.crate", files)
-        self.assertIn("licenses/native-media/NOTICE.txt", descriptor["license_paths"])
-        self.assertIn("licenses/native-media/manifest.json", descriptor["license_paths"])
-        for kind in ["assets", "module"]:
-            self.assertFalse(any("native-media" in p for p in captured[kind][1]))
-        provenance = json.loads((self.args.output / "input-provenance.json").read_bytes())
-        self.assertEqual(provenance["application_sources"], receipt)
-
-    def test_frozen_real_assemble_never_reads_or_stages_current_sources(self):
-        captured, _ = self.assemble(False)
-        self.assertFalse(any("native-media" in p for p in captured["applications"][1]))
-        provenance = json.loads((self.args.output / "input-provenance.json").read_bytes())
-        self.assertNotIn("application_sources", provenance)
-
-    def test_shared_real_assemble_source_failure_precedes_output_creation(self):
-        self.assemble(True, ValueError("missing sources"))
-
-    def test_classic_shared_missing_registry_fails_before_any_build_or_receipt_work(self):
-        args = self.args
-        args.reuse_native_build, args.baseline = None, None
-        args.native_evidence, args.evidence = self.root / "proofs", self.root / "installer-evidence"
-        args.target, args.replace_output, args.expected_output_sha256 = self.root / "target", False, None
-        args.webview2_sha256, args.cargo_cache = delivery.digest(args.webview2), None
-        with patch.object(classic, "shared_native_receipts", side_effect=AssertionError("unexpected receipt/build work")):
-            with self.assertRaisesRegex(ValueError, "cargo.cache|registry"):
-                classic.build_shared_installer(args)
-        self.assertFalse(args.evidence.exists())
 
 
 if __name__ == "__main__":

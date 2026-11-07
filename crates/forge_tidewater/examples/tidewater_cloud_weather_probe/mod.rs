@@ -27,11 +27,12 @@ mod shadow;
 #[path = "trace.rs"]
 mod trace;
 
-use forge_tidewater::tidewater_clouds::{Input, install as install_input};
-pub use forge_tidewater::tidewater_clouds::{SharedAtmosphere, Targets};
+use forge_engine::source_clouds::Input;
+use forge_engine::source_clouds::install as install_input;
+pub use forge_engine::source_clouds::{SharedAtmosphere, Targets};
 #[derive(Resource)]
 #[allow(dead_code)]
-pub struct LiveSource(pub forge_tidewater::tidewater_clouds::acquisition_controller::Continuation);
+pub struct LiveSource(pub forge_engine::source_clouds::Continuation);
 #[derive(Resource)]
 struct Output {
     root: PathBuf,
@@ -92,13 +93,13 @@ pub fn install(
         .flat_map(f32::to_le_bytes)
         .collect();
     let generated = controller::generate(&meta)?;
-    if view_params != forge_tidewater::cloud_controller::bytes(&generated[119].public) {
+    if view_params != forge_engine::cloud_controller::bytes(&generated[119].public) {
         return Err("cloud sampling camera parameters mismatch".into());
     }
     if params != checked(root, &meta, "cloud-step120-atmosphere.bin")? {
         return Err("scene/cloud atmosphere mismatch".into());
     }
-    let settings = forge_tidewater::cloud_controller::bytes(&generated[0].settings);
+    let settings = forge_engine::cloud_controller::bytes(&generated[0].settings);
     if settings.len() != 208 {
         return Err("cloud settings size".into());
     }
@@ -114,7 +115,7 @@ pub fn install(
     app.sub_app_mut(RenderApp).insert_resource(atmosphere);
     let targets = install_input(app, input, 10)?;
     app.insert_resource(LiveSource(
-        forge_tidewater::tidewater_clouds::acquisition_controller::continuation(&meta)?,
+        forge_engine::source_clouds::acquisition::continuation(&meta)?,
     ));
     Ok(targets)
 }
@@ -161,7 +162,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         return Err("invalid cloud source".into());
     }
     let settings = if native_controller {
-        forge_tidewater::cloud_controller::bytes(&controller::generate(&meta)?[0].settings)
+        forge_engine::cloud_controller::bytes(&controller::generate(&meta)?[0].settings)
     } else {
         checked(root, &meta, "cloud-step001-settings.bin")?
     };
@@ -374,8 +375,7 @@ fn run_package(
     reload: bool,
     preview: bool,
 ) -> Result<(), Box<dyn Error>> {
-    use forge_tidewater::tidewater_scene_environment::PreparedEnvironment;
-    use forge_tidewater_assets::tidewater_environment::EnvironmentPackage;
+    use forge_assets::source_environment_package::EnvironmentPackage;
     use std::io::Read;
     if output.exists() {
         return Err("output exists".into());
@@ -398,7 +398,7 @@ fn run_package(
             .map_err(|e| e.to_string())?;
         Ok(bytes)
     })?;
-    let prepared = PreparedEnvironment::new(&package)?;
+    let prepared = forge_engine::source_environment::package::prepare(&package)?;
     let bootstrap_frames = u32::try_from(package.bootstrap_frames())?;
     assert_eq!(
         prepared.environment.data.as_deref(),
@@ -420,22 +420,24 @@ fn run_package(
     )
     .add_plugins(ScheduleRunnerPlugin::run_loop(Duration::from_millis(16)));
     if preview {
-        forge_tidewater::tidewater_sky::preview::install(&mut app);
-        forge_tidewater::tidewater_atmosphere::register(&mut app)?;
-        forge_tidewater::tidewater_clouds::register(&mut app)?;
+        forge_engine::source_sky::preview::install(&mut app);
+        forge_engine::source_atmosphere::register(&mut app)?;
+        forge_engine::source_clouds::register(&mut app)?;
         let resident = prepared.stage(app.world_mut())?;
         app.insert_resource(resident);
     } else if reload {
-        forge_tidewater::tidewater_atmosphere::register(&mut app)?;
-        forge_tidewater::tidewater_clouds::register(&mut app)?;
+        forge_engine::source_atmosphere::register(&mut app)?;
+        forge_engine::source_clouds::register(&mut app)?;
         app.insert_resource(PendingEnvironments(
-            vec![PreparedEnvironment::new(&package)?, prepared],
+            vec![
+                forge_engine::source_environment::package::prepare(&package)?,
+                prepared,
+            ],
             bootstrap_frames,
         ));
         app.add_systems(Update, stage_environments.before(readback));
     } else {
-        let atmosphere =
-            forge_tidewater::tidewater_atmosphere::install(&mut app, prepared.atmosphere)?;
+        let atmosphere = forge_engine::source_atmosphere::install(&mut app, prepared.atmosphere)?;
         app.sub_app_mut(RenderApp)
             .insert_resource(SharedAtmosphere {
                 images: atmosphere.images,
@@ -502,7 +504,7 @@ fn run_package(
 
 #[derive(Resource)]
 struct PendingEnvironments(
-    Vec<forge_tidewater::tidewater_scene_environment::PreparedEnvironment>,
+    Vec<forge_engine::source_environment::scene::PreparedEnvironment>,
     u32,
 );
 
@@ -527,7 +529,7 @@ fn stage_environments(world: &mut World) {
         settings: vec![0; 207],
         shadow: None,
     };
-    assert!(forge_tidewater::tidewater_clouds::stage(world, invalid, 2, None).is_err());
+    assert!(forge_engine::source_clouds::stage(world, invalid, 2, None).is_err());
     assert_eq!(images, world.resource::<Assets<Image>>().len());
     assert_eq!(
         previous.as_ref().map(|t| &t.images),
@@ -560,7 +562,7 @@ struct PreviewMode;
 #[derive(Resource)]
 struct PreviewRequested;
 fn preview_output(world: &mut World) {
-    use forge_tidewater::tidewater_sky::preview;
+    use forge_engine::source_sky::preview;
     if world.resource::<FrameCount>().0 > 600 {
         world.write_message(AppExit::error());
         return;

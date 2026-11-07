@@ -329,16 +329,25 @@ pub(super) fn DialogueControls(
             .into_iter()
             .find(|entry| entry.id == choice)
     };
-    Effect::new(
-        move |previous: Option<(String, String, Option<forge_core::ContentHash>)>| {
-            let key = (
-                fields.dialogue.get(),
-                fields.node.get(),
-                super::source_hash(state),
-            );
-            if previous.as_ref() == Some(&key) {
-                return key;
-            }
+    let node_notice = super::draft::bind(
+        move || {
+            let key = format!("{}|{}", fields.dialogue.get(), fields.node.get());
+            (
+                key,
+                serde_json::to_value(
+                    graph()
+                        .and_then(|dialogue| {
+                            id(&fields.node.get()).ok().and_then(|id| {
+                                dialogue.nodes.into_iter().find(|node| node.id == id)
+                            })
+                        })
+                        .map(|node| node.text),
+                )
+                .unwrap_or_default(),
+            )
+        },
+        vec![super::draft::Field::new(fields.reply)],
+        move || {
             if let Some(node) = graph().and_then(|dialogue| {
                 id(&fields.node.get())
                     .ok()
@@ -346,20 +355,49 @@ pub(super) fn DialogueControls(
             }) {
                 fields.reply.set(node.text);
             }
-            key
         },
     );
-    Effect::new(
-        move |previous: Option<(String, String, String, Option<forge_core::ContentHash>)>| {
-            let key = (
+    let choice_notice = super::draft::bind(
+        move || {
+            let key = format!(
+                "{}|{}|{}",
                 fields.dialogue.get(),
                 fields.node.get(),
-                fields.choice.get(),
-                super::source_hash(state),
+                fields.choice.get()
             );
-            if previous.as_ref() == Some(&key) {
-                return key;
-            }
+            (
+                key,
+                serde_json::to_value(
+                    graph()
+                        .and_then(|dialogue| {
+                            id(&fields.node.get()).ok().and_then(|id| {
+                                dialogue.nodes.into_iter().find(|node| node.id == id)
+                            })
+                        })
+                        .and_then(|node| {
+                            id(&fields.choice.get()).ok().and_then(|id| {
+                                node.choices.into_iter().find(|choice| choice.id == id)
+                            })
+                        }),
+                )
+                .unwrap_or_default(),
+            )
+        },
+        vec![
+            super::draft::Field::new(fields.text),
+            super::draft::Field::new(fields.next),
+            super::draft::Field::new(fields.condition),
+            super::draft::Field::new(fields.reference),
+            super::draft::Field::new(fields.subject),
+            super::draft::Field::new(fields.comparison),
+            super::draft::Field::new(fields.value),
+            super::draft::Field::new(fields.effect),
+            super::draft::Field::new(fields.effect_mode),
+            super::draft::Field::new(fields.effect_reference),
+            super::draft::Field::new(fields.effect_value),
+            super::draft::Field::new(fields.solution),
+        ],
+        move || {
             if let Some(choice) = graph()
                 .and_then(|dialogue| {
                     id(&fields.node.get())
@@ -386,9 +424,11 @@ pub(super) fn DialogueControls(
                 fields.condition.set("always".into());
                 fields.effect.set("none".into());
             }
-            key
         },
     );
+    let node_send = node_notice.submitter(send);
+    let graph_send = choice_notice.submitter(node_send);
+
     let disabled = move || {
         busy.get()
             || state
@@ -397,7 +437,7 @@ pub(super) fn DialogueControls(
     };
     view! {
         <Show when=move ||document().is_some_and(|document|document.surface_visible(CreatorSurface::Dialogues))>
-            <details class="creator-dialogue-graph"><summary>"Graphe des dialogues"</summary><fieldset disabled=disabled>
+            <details class="creator-dialogue-graph"><summary>"Graphe des dialogues"</summary><fieldset disabled=disabled><super::draft::DraftNotice notice=node_notice/><super::draft::DraftNotice notice=choice_notice/>
                 <label>"Dialogue"<select prop:value=move ||fields.dialogue.get() on:change=move |event|{fields.dialogue.set(event_target_value(&event));fields.node.set(String::new());fields.choice.set(String::new());}>
                     <option value="">"Choisir un dialogue"</option>{move ||document().map(|document|document.dialogues.into_iter().map(|dialogue| {
                         let name=document.actors.iter().find(|actor|actor.dialogue==Some(dialogue.id)).map_or_else(||dialogue.id.to_string(),|actor|actor.name.clone());
@@ -419,15 +459,15 @@ pub(super) fn DialogueControls(
                     }>{text}</button></li>}).collect_view()}</ul></li>}
                 }).collect_view()})}</ol>
                 <label>"Réplique"<textarea prop:value=move ||fields.reply.get() on:input=move |event|fields.reply.set(event_target_value(&event))/></label>
-                <button on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner un nouveau nœud"</button>
-                <button on:click=move |_|send.run(fields.command(state.get_untracked(),GraphCommand::RetouchNode))>"Examiner la réplique seule"</button>
+                <button on:click=move |_|node_send.run(fields.preview(state.get_untracked(),true))>"Examiner un nouveau nœud"</button>
+                <button on:click=move |_|node_send.run(fields.command(state.get_untracked(),GraphCommand::RetouchNode))>"Examiner la réplique seule"</button>
                 <button on:click=move |_|send.run(fields.command(state.get_untracked(),GraphCommand::SetStart))>"Examiner ce nœud comme début"</button>
                 <button on:click=move |_|send.run(fields.command(state.get_untracked(),GraphCommand::RemoveNode))>"Examiner la suppression du nœud"</button>
                 <label>"Choix à remplacer"<select prop:value=move ||fields.choice.get() on:change=move |event|fields.choice.set(event_target_value(&event))>
                     <option value="">"Créer un nouveau choix"</option>{move ||graph().and_then(|dialogue|id(&fields.node.get()).ok().and_then(|id|dialogue.nodes.into_iter().find(|node|node.id==id))).map(|node|node.choices.into_iter().map(|choice|view!{<option value=choice.id.to_string()>{choice.text}</option>}).collect_view())}
                 </select></label>
                 <button on:click=move |_|send.run(fields.command(state.get_untracked(),GraphCommand::RemoveChoice))>"Examiner la suppression du choix"</button>
-                <p>"La retouche conserve l’identité du choix. Garder la condition et les effets existants permet de retoucher son texte et ses liens sans les réécrire. Examiner le diff avant application."</p>
+                <p>"La retouche conserve l’identité du choix. Garder la condition et les effets existants permet de retoucher son texte et ses liens sans les réécrire. Examiner les modifications proposées avant application."</p>
                 {move ||document().zip(selected_choice()).map(|(document,choice)| {
                     let condition=super::variable_value_field::condition_label(&document,&choice.condition);
                     let effects=choice.effects.iter().map(|effect|super::variable_value_field::effect_label(&document,effect)).collect::<Vec<_>>();
@@ -442,7 +482,7 @@ pub(super) fn DialogueControls(
                     else if mode=="has_item" {fields.value.set("1".into());}
                     fields.condition.set(mode);
                 }>
-                    <option value="keep">"Garder la condition existante"</option><option value="always">"Toujours"</option><option value="variable">"Variable"</option><option value="relation">"Opinion locale d’un personnage"</option><option value="quest_available">"Quête disponible"</option><option value="quest_active">"Quête active"</option><option value="quest_completed">"Quête terminée"</option><option value="quest_failed">"Quête échouée"</option><option value="has_item">"Item possédé"</option><option value="actor_defeated">"Personnage vaincu"</option><option value="object_destroyed">"Objet détruit"</option>
+                    <option value="keep">"Garder la condition existante"</option><option value="always">"Toujours"</option><option value="variable">"Variable"</option><option value="relation">"Opinion locale d’un personnage"</option><option value="quest_available">"Quête disponible"</option><option value="quest_active">"Quête active"</option><option value="quest_completed">"Quête terminée"</option><option value="quest_failed">"Quête échouée"</option><option value="has_item">"Objet d’inventaire possédé"</option><option value="actor_defeated">"Personnage vaincu"</option><option value="object_destroyed">"Objet détruit"</option>
                 </select></label>
                 <Show when=move ||!matches!(fields.condition.get().as_str(),"always"|"keep")>
                 <label>{move ||if fields.condition.get()=="relation" {"Personnage observateur"} else {"Référence de la condition"}}<select prop:value=move ||fields.reference.get() on:change=move |event|fields.reference.set(event_target_value(&event))>
@@ -476,7 +516,7 @@ pub(super) fn DialogueControls(
                 <Show when=move ||fields.effect.get()=="solution">
                     <label>"Solution"<select prop:value=move ||fields.solution.get() on:change=move |event|fields.solution.set(event_target_value(&event))><option value="">"Choisir une solution"</option>{move ||document().and_then(|document|id(&fields.effect_reference.get()).ok().and_then(|id|document.quest_flow(id).cloned())).map(|flow|flow.solutions.into_iter().map(|solution|view!{<option value=solution.id.to_string()>{solution.name}</option>}).collect_view())}</select></label>
                 </Show>
-                <button on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner le nœud et le choix"</button>
+                <button on:click=move |_|graph_send.run(fields.preview(state.get_untracked(),false))>"Examiner le nœud et le choix"</button>
             </fieldset></details>
         </Show>
     }

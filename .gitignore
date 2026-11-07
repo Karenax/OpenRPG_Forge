@@ -20,6 +20,9 @@ target/
 *.wasm.map
 
 # Local generated outputs, disposable checkouts and authoring test sessions.
+/.delivery-evidence/
+/.ua/
+/-
 /output/
 /tmp/
 /worktree/

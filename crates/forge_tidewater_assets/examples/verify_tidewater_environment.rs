@@ -1,6 +1,6 @@
 //! Reopen an explicitly pinned package without upstream or rendering fixtures.
+use forge_assets::source_environment_package::EnvironmentPackage;
 use forge_core::ContentHash;
-use forge_tidewater_assets::tidewater_environment::EnvironmentPackage;
 use std::{error::Error, fs, io::Read, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {

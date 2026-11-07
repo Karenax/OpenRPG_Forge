@@ -2,7 +2,7 @@
 //! library revision, never from an untrusted envelope alone.
 use forge_core::{ContentHash, bytes_sha256};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 const MAGIC: &[u8; 8] = b"ORPP\x01\0\0\0";
 const MAX_HEADER: usize = 1024 * 1024;
@@ -15,6 +15,12 @@ pub struct SourcePhysicsPackage {
     pub manifest: Vec<u8>,
     pub candidates: BTreeMap<String, Vec<u8>>,
 }
+
+/// Transient carrier and its completely resolved source-physics observations.
+pub type ResolvedSourcePhysics<'a> = (
+    crate::source_graph_glb::SourceGraphGlb<'a>,
+    Vec<crate::source_physics_transport::PhysicsTransportComponent>,
+);
 
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -42,6 +48,38 @@ fn relative(path: &str) -> bool {
 }
 
 impl SourcePhysicsPackage {
+    /// Resolve a complete package against its exact source carrier. Extra
+    /// candidate buffers are refused rather than hidden from a consumer.
+    pub fn resolve_for_carrier<'a>(
+        &self,
+        carrier: &'a [u8],
+        budget: crate::source_graph_glb::SourceGraphGlbReadBudget,
+    ) -> Result<ResolvedSourcePhysics<'a>, String> {
+        if bytes_sha256(carrier) != self.carrier_sha256 {
+            return Err("Physics package carrier differs".into());
+        }
+        let glb = crate::source_graph_glb::read_source_graph_glb_with_budget(carrier, budget)?
+            .ok_or("Source physics carrier declaration absent")?;
+        let mut used = BTreeSet::new();
+        let components = crate::source_physics_transport::read_source_physics_transport(
+            &self.manifest,
+            self.manifest_sha256,
+            self.carrier_sha256,
+            &glb,
+            |path| {
+                used.insert(path.to_owned());
+                self.candidates
+                    .get(path)
+                    .cloned()
+                    .ok_or("Physics package candidate absent".into())
+            },
+        )?;
+        if used.len() != self.candidates.len() {
+            return Err("Physics package candidate without declared owner".into());
+        }
+        Ok((glb, components))
+    }
+
     /// Verify the complete caller-held package pin as well as its inner pins.
     /// Identical carrier/manifest pins do not identify candidate buffers alone.
     pub fn decode_pinned(
@@ -106,7 +144,7 @@ impl SourcePhysicsPackage {
     }
 
     /// Verify caller-held model and manifest pins before returning any payload.
-    /// Semantic source/component validation belongs to `source_physics_transport`.
+    /// Resolve semantic source/component bindings with `resolve_for_carrier`.
     pub fn decode(
         wire: &[u8],
         carrier: ContentHash,

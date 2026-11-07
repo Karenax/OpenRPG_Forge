@@ -20,6 +20,7 @@ fn reconciliation_preserves_manual_tree_across_regeneration_and_archives() {
     let placement = ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: origin.placement_id,
         name: "Retouche verrouillée".into(),
         asset_id: AssetId::deterministic("tree"),

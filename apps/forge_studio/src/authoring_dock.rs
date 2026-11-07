@@ -75,6 +75,12 @@ impl PanelLayout {
     pub(super) fn current(self) -> PanelPlacement {
         self.placements.get()[self.active.get().index()].for_surface(surface().1)
     }
+    pub(super) fn reveal(self) {
+        let index = self.active.get_untracked().index();
+        if self.placements.get_untracked()[index].collapsed {
+            self.edit(|panel| panel.collapsed = false);
+        }
+    }
     fn bottom_available(self) -> bool {
         // Resize updates placements, making this condition reactive as well.
         self.placements.track();

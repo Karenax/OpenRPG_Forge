@@ -1,13 +1,15 @@
 use super::{
     DangerMotionActor, DangerMotionState, GameplayBody, GameplayRuntime, danger_motion, engine,
 };
-use crate::DomainEntityId;
+use crate::{DomainEntityId, physics::ReservedBodyMotion};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{
     ActiveEvents, Ccd, Collider, ColliderDisabled, ColliderMassProperties, ExternalImpulse,
     RapierColliderHandle, RigidBody, Sleeping, Velocity,
 };
-use forge_gameplay::{ActorRole, GameplayEvent, ObjectDefinition, ObjectKind, ObjectState};
+use forge_gameplay::{
+    ActorRole, GameplayDocument, GameplayEvent, ObjectDefinition, ObjectKind, ObjectState,
+};
 
 #[derive(Resource, Default)]
 pub struct GameplayProjectionStatus {
@@ -101,6 +103,8 @@ pub(super) fn spawn(
             commands
                 .entity(entity)
                 .insert((Visibility::Hidden, ColliderDisabled));
+        } else if body_kind(&document, object, current) == RigidBody::Dynamic {
+            commands.entity(entity).insert(ReservedBodyMotion);
         }
         runtime.entities.insert(object.id, entity);
     }
@@ -120,7 +124,15 @@ fn object_color(kind: &ObjectKind, burning: bool) -> Color {
     }
 }
 
-fn body_kind(object: &ObjectDefinition, state: &ObjectState, supported: bool) -> RigidBody {
+fn body_kind(
+    document: &GameplayDocument,
+    object: &ObjectDefinition,
+    state: &ObjectState,
+) -> RigidBody {
+    let supported = document
+        .objects
+        .iter()
+        .any(|parent| parent.physics.supports.contains(&object.id));
     if object.physics.mass_kg > 0.0
         && (state.released || (!supported && (object.physics.pushable || object.physics.throwable)))
     {
@@ -145,9 +157,11 @@ pub(super) fn synchronize(
             Entity,
             &DomainEntityId,
             &mut Visibility,
-            &MeshMaterial3d<StandardMaterial>,
+            Option<&MeshMaterial3d<StandardMaterial>>,
+            Option<&crate::source_lighting::surfaces::host::Origin>,
             Option<&RapierColliderHandle>,
             &mut RigidBody,
+            Has<ReservedBodyMotion>,
         ),
         With<GameplayBody>,
     >,
@@ -159,7 +173,13 @@ pub(super) fn synchronize(
     }
     let mut expected = 0;
     let mut ready = 0;
-    for (entity, id, mut visibility, material, backend, mut body) in &mut bodies {
+    for (entity, id, mut visibility, material, origin, backend, mut body, reserved) in &mut bodies {
+        let Some(material) = material
+            .map(|material| &material.0)
+            .or_else(|| origin.and_then(crate::source_lighting::surfaces::host::Origin::standard))
+        else {
+            continue;
+        };
         let unavailable = runtime.session.state().objects.get(&id.0).map_or_else(
             || {
                 runtime
@@ -184,21 +204,22 @@ pub(super) fn synchronize(
             ready += usize::from(backend.is_some());
         }
         if let Some(current) = runtime.session.state().objects.get(&id.0) {
-            let color = runtime
-                .session
-                .document()
+            let document = runtime.session.document();
+            let color = document
                 .object(id.0)
                 .map(|definition| object_color(&definition.kind, current.burning));
-            refresh_object_surface(&mut materials, &material.0, color, current.burning);
-            if let Some(definition) = runtime.session.document().object(id.0) {
-                let supported = runtime
-                    .session
-                    .document()
-                    .objects
-                    .iter()
-                    .any(|parent| parent.physics.supports.contains(&id.0));
+            refresh_object_surface(&mut materials, material, color, current.burning);
+            if let Some(definition) = document.object(id.0) {
+                let active = body_kind(document, definition, current);
+                // A temporary hold must not discard the ground needed to resume.
+                let needs_ground = !unavailable && active == RigidBody::Dynamic;
+                if needs_ground && !reserved {
+                    commands.entity(entity).insert(ReservedBodyMotion);
+                } else if !needs_ground && reserved {
+                    commands.entity(entity).remove::<ReservedBodyMotion>();
+                }
                 let desired = if runtime.enabled {
-                    body_kind(definition, current, supported)
+                    active
                 } else {
                     RigidBody::Fixed
                 };

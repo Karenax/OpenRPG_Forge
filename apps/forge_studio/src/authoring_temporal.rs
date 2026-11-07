@@ -12,7 +12,9 @@ use bevy::{
         view::Msaa,
     },
 };
-use forge_tidewater::{tidewater_refraction::taa_mirror, tidewater_temporal as temporal};
+use {
+    forge_engine::source_refraction_capture::taa_mirror, forge_engine::source_temporal as temporal,
+};
 
 #[derive(Resource)]
 struct Session {
@@ -66,38 +68,44 @@ pub(super) fn install(app: &mut App, optics: bool) {
 fn register_source(app: &mut App) -> Result<(), String> {
     use temporal::{phase::MaterialRole, shaders::Family};
     temporal::render_owned::register(app)?;
-    temporal::register_material::<forge_tidewater::tidewater_terrain::lod::LodMaterial>(
+    temporal::register_material::<forge_engine::source_terrain::lod::LodMaterial>(
         app,
         Family::TerrainLod,
         MaterialRole::Opaque,
     )?;
-    temporal::register_material::<forge_tidewater::tidewater_plants::PlantMaterial>(
+    temporal::register_material::<forge_engine::source_vegetation::captured::CapturedPlantMaterial>(
         app,
         Family::Plant,
         MaterialRole::Opaque,
     )?;
-    temporal::register_material::<forge_tidewater::tidewater_material::VillageMaterial>(
+    temporal::register_material::<forge_engine::source_vegetation::world::WorldPlantMaterial>(
+        app,
+        Family::WorldPlant,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::source_surface::SourceSurfaceMaterial>(
         app,
         Family::Village,
         MaterialRole::Opaque,
     )?;
-    temporal::register_material::<forge_tidewater::tidewater_ocean_optics::OpticalMaterial>(
+    temporal::register_material::<forge_engine::source_water_optics::OpticalMaterial>(
         app,
         Family::Ocean,
         MaterialRole::Water,
     )?;
-    temporal::register_material::<forge_tidewater::tidewater_stall::FishStandMaterial>(
+    temporal::register_material::<forge_engine::source_surface::stall_material::BasicMaterial>(
         app,
         Family::FishStand,
         MaterialRole::Opaque,
     )?;
-    temporal::register_material::<forge_tidewater::tidewater_stall::full_material::FullMaterial>(
+    temporal::register_material::<forge_engine::source_surface::stall_material::FullMaterial>(
         app,
         Family::FullStall,
         MaterialRole::Opaque,
     )?;
-    temporal::phase::register_sky_material::<forge_tidewater::tidewater_sky::SkyMaterial>(app)?;
+    temporal::phase::register_sky_material::<forge_engine::source_sky::SkyMaterial>(app)?;
     temporal::phase::register_standard_opaque(app)?;
+    temporal::phase::register_source_model_opaque(app)?;
     Ok(())
 }
 
@@ -244,7 +252,7 @@ fn enable_source(world: &mut World, session: &Session, camera: Entity) -> Result
         );
     }
     if world
-        .get::<forge_tidewater::tidewater_underwater::TidewaterUnderwaterCamera>(camera)
+        .get::<forge_engine::source_underwater::SourceUnderwaterCamera>(camera)
         .is_none()
     {
         return Err("la passe sous-marine de cette caméra est absente".into());
@@ -323,10 +331,8 @@ mod tests {
         render::camera::{MipBias, TemporalJitter},
     };
     use {
-        forge_engine::ForgePlayerCamera,
-        forge_tidewater::{
-            tidewater_temporal as temporal, tidewater_underwater::TidewaterUnderwaterCamera,
-        },
+        forge_engine::ForgePlayerCamera, forge_engine::source_temporal as temporal,
+        forge_engine::source_underwater::SourceUnderwaterCamera,
     };
 
     fn session(optics: bool, hull_adapter_installed: bool) -> Session {
@@ -352,7 +358,7 @@ mod tests {
             entity.insert(Hdr);
         }
         if underwater {
-            entity.insert(TidewaterUnderwaterCamera);
+            entity.insert(SourceUnderwaterCamera);
         }
         entity.insert(if no_hulls {
             temporal::render::HullRequirement::NoHullsInScene
@@ -381,7 +387,7 @@ mod tests {
         assert!(world.get::<TemporalAntiAliasing>(camera).is_some());
         assert!(
             world
-                .get::<forge_tidewater::tidewater_refraction::taa_mirror::Request>(camera)
+                .get::<forge_engine::source_refraction_capture::taa_mirror::Request>(camera)
                 .is_none()
         );
         assert!(session.owned_taa.is_none());
@@ -435,7 +441,7 @@ mod tests {
         assert!(world.get::<TemporalJitter>(camera).is_none());
         assert!(
             world
-                .get::<forge_tidewater::tidewater_refraction::taa_mirror::Request>(camera)
+                .get::<forge_engine::source_refraction_capture::taa_mirror::Request>(camera)
                 .is_none()
         );
         assert!(world.get::<DepthPrepass>(camera).is_some());
@@ -465,7 +471,7 @@ mod tests {
         assert!(world.get::<TemporalJitter>(camera).is_none());
         assert!(
             world
-                .get::<forge_tidewater::tidewater_refraction::taa_mirror::Request>(camera)
+                .get::<forge_engine::source_refraction_capture::taa_mirror::Request>(camera)
                 .is_none()
         );
         assert!(world.get::<DepthPrepass>(camera).is_none());
@@ -634,7 +640,7 @@ mod tests {
         assert!(world.get::<TemporalJitter>(camera).is_none());
         assert!(
             world
-                .get::<forge_tidewater::tidewater_refraction::taa_mirror::Request>(camera)
+                .get::<forge_engine::source_refraction_capture::taa_mirror::Request>(camera)
                 .is_none()
         );
         assert!(world.get::<OwnedTemporalPrepasses>(camera).is_none());

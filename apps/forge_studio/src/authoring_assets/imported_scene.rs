@@ -9,20 +9,24 @@ use bevy::{
     render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 use bevy::{ecs as bevy_ecs, prelude::*};
+use forge_engine::source_environment::scene::ResidentEnvironment;
+use forge_engine::source_surface::SourceSurfaceMaterial;
+use forge_engine::source_surface::geometry::ResidentMeshes;
+use forge_engine::source_surface::objects::PreparedScene;
+use forge_engine::source_surface::objects::ResidentScene;
+use forge_engine::source_surface::package::ResidentLibrary;
+use forge_engine::source_surface::package::material::prepare_with_lighting;
 use forge_project::zone_authoring::placements::ManualPlacement;
-use forge_tidewater::{
-    tidewater_assets::{
-        ResidentLibrary, ResidentMeshes, materials,
-        scene::{PreparedScene, ResidentScene},
-    },
-    tidewater_beach_props::{PreparedBeachProps, ResidentBeachProps},
-    tidewater_boardwalk::{PreparedBoardwalk, ResidentBoardwalk},
-    tidewater_material::VillageMaterial,
-    tidewater_pier::{PreparedPier, ResidentPier},
-    tidewater_plaza::{PreparedPlaza, ResidentPlaza},
-    tidewater_scene_environment::ResidentEnvironment,
-    tidewater_village_props::{PreparedVillageProps, ResidentVillageProps},
-};
+use forge_tidewater::tidewater_beach_props::PreparedBeachProps;
+use forge_tidewater::tidewater_beach_props::ResidentBeachProps;
+use forge_tidewater::tidewater_boardwalk::PreparedBoardwalk;
+use forge_tidewater::tidewater_boardwalk::ResidentBoardwalk;
+use forge_tidewater::tidewater_pier::PreparedPier;
+use forge_tidewater::tidewater_pier::ResidentPier;
+use forge_tidewater::tidewater_plaza::PreparedPlaza;
+use forge_tidewater::tidewater_plaza::ResidentPlaza;
+use forge_tidewater::tidewater_village_props::PreparedVillageProps;
+use forge_tidewater::tidewater_village_props::ResidentVillageProps;
 use std::{cell::RefCell, collections::BTreeMap, sync::atomic::Ordering};
 
 type Receipt = (
@@ -54,11 +58,12 @@ pub(super) fn focus(id: forge_core::EntityId) -> bool {
     imported
 }
 thread_local! { static READY: RefCell<Result<Option<Receipt>,String>> = const { RefCell::new(Ok(Some((0,Vec::new(),Vec::new(),Vec::new(),Vec::new(),Vec::new(),Vec::new())))) }; }
+thread_local! { static INSTALLED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) }; }
 #[derive(Resource, Default)]
 struct State {
-    lighting: Option<materials::LightingBindings>,
+    lighting: Option<forge_engine::source_surface::LightingBindings>,
     key: Option<LightingKey>,
-    materials: BTreeMap<String, Handle<VillageMaterial>>,
+    materials: BTreeMap<String, Handle<SourceSurfaceMaterial>>,
     sources: Option<Vec<ManualPlacement>>,
     boardwalk_sources: Option<Vec<ManualPlacement>>,
     pier_sources: Option<Vec<ManualPlacement>>,
@@ -70,6 +75,26 @@ struct State {
 }
 
 pub(super) fn ready() -> Result<bool, String> {
+    if crate::authoring_module_viewport::installed() {
+        return crate::authoring_module_viewport::ready();
+    }
+    if !INSTALLED.with(std::cell::Cell::get) {
+        return if placements::desired_imports().is_empty()
+            && placements::desired_boardwalks().is_empty()
+            && placements::desired_piers().is_empty()
+            && placements::desired_plaza_props().is_empty()
+            && placements::desired_village_props().is_empty()
+            && placements::desired_beach_props().is_empty()
+            && placements::desired_debris().is_empty()
+        {
+            Ok(true)
+        } else {
+            Err(
+                "L’affichage des objets de cette bibliothèque n’est pas encore disponible sur ce relief."
+                    .into(),
+            )
+        };
+    }
     if !debris::ready(
         imported_buildings::published_generation(),
         &placements::desired_debris(),
@@ -105,14 +130,15 @@ pub(super) fn ready() -> Result<bool, String> {
             && *beach_props_sources == beach_props),
     })
 }
-pub(super) fn install(app: &mut App) {
-    if let Err(error) = wind::install(app) {
+pub(super) fn install(app: &mut App, acquired: &forge_engine::source_wind::AcquiredFrame) {
+    INSTALLED.with(|slot| slot.set(true));
+    if let Err(error) = wind::install(app, acquired) {
         READY.with(|slot| *slot.borrow_mut() = Err(error));
     }
     motion::install(app);
     local_lights::install(app);
     debris::install(app);
-    app.add_plugins(MaterialPlugin::<VillageMaterial>::default())
+    app.add_plugins(MaterialPlugin::<SourceSurfaceMaterial>::default())
         .init_resource::<State>()
         .add_systems(
             PostUpdate,
@@ -121,6 +147,12 @@ pub(super) fn install(app: &mut App) {
 }
 pub(crate) fn update(world: &mut World) {
     imported_buildings::stage_local_lights(world);
+    if !imported_buildings::object_resources_ready(world) {
+        READY.with(|slot| {
+            let _ = slot.replace(Ok(None));
+        });
+        return;
+    }
     if !crate::authoring_viewport::can_project_sources() {
         let _ = READY.with(|slot| slot.replace(Ok(None)));
         return;
@@ -156,7 +188,7 @@ pub(crate) fn update(world: &mut World) {
         if state.sources.as_ref()!=Some(&desired) || state.boardwalk_sources.as_ref()!=Some(&boardwalks)
             || state.pier_sources.as_ref()!=Some(&piers) || state.plaza_sources.as_ref()!=Some(&plaza) || state.village_props_sources.as_ref()!=Some(&village_props) || state.beach_props_sources.as_ref()!=Some(&beach_props) { state.failed=false; }
         let Some(environment)=world.get_resource::<ResidentEnvironment>() else { return; };
-        let Some(hill)=world.get_resource::<forge_tidewater::tidewater_hill_shadow::Images>() else { return; };
+        let Some(hill)=world.get_resource::<forge_engine::source_shadows::heightfield::Images>() else { return; };
         let Some(shadows)=world.get_resource::<crate::authoring_imported_shadows::Receiver>() else { return; };
         let key=(generation,environment.environment.id(),hill.output.id(),shadows.0.image.id());
         if state.key!=Some(key) { state.failed=false; }
@@ -210,7 +242,7 @@ pub(crate) fn update(world: &mut World) {
     crate::authoring_building_projection::sync_material(world);
 }
 
-fn focus_current(world: &World) {
+pub(crate) fn focus_current(world: &World) {
     if ready() != Ok(true) {
         return;
     }
@@ -237,7 +269,7 @@ fn focus_current(world: &World) {
         .get_resource::<ResidentBeachProps>()
         .and_then(|resident| resident.authored_parts(world, id));
     let debris_parts = world
-        .get_resource::<forge_tidewater::tidewater_debris::scene::ResidentScene>()
+        .get_resource::<forge_engine::source_surface::objects::props::ResidentScene>()
         .and_then(|resident| {
             resident
                 .instances
@@ -305,17 +337,12 @@ fn clear(world: &mut World) {
 
 fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> Result<(), String> {
     let package = imported_buildings::building_package().ok_or("Bibliothèque absente")?;
-    let shader = std::str::from_utf8(
-        package
-            .file("village.wgsl")
-            .ok_or("Shader bâtiment absent")?,
-    )
-    .map_err(|e| e.to_string())?;
+    let shader = forge_engine::source_surface::package::shader_source(&package)?;
     let caustics = world
-        .get_resource::<forge_tidewater::tidewater_caustics::CausticMaterialInputs>()
+        .get_resource::<forge_engine::source_surface::underwater::CausticMaterialInputs>()
         .cloned()
         .unwrap_or_else(|| {
-            forge_tidewater::tidewater_caustics::CausticMaterialInputs::disabled(
+            forge_engine::source_surface::underwater::CausticMaterialInputs::disabled(
                 &mut world.resource_mut::<Assets<Image>>(),
             )
         });
@@ -336,11 +363,11 @@ fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> 
         bounce_settings.w,
     );
     let environment = world.resource::<ResidentEnvironment>();
-    let hill = world.resource::<forge_tidewater::tidewater_hill_shadow::Images>();
+    let hill = world.resource::<forge_engine::source_shadows::heightfield::Images>();
     let shadow = &world
         .resource::<crate::authoring_imported_shadows::Receiver>()
         .0;
-    let lighting = materials::LightingBindings {
+    let lighting = forge_engine::source_surface::LightingBindings {
         scene_lighting: environment.scene_lighting.clone(),
         environment: environment.environment.clone(),
         hill_shadow: hill.output.clone(),
@@ -361,16 +388,16 @@ fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> 
         .materials
         .iter()
         .map(|(name, params)| {
-            materials::prepare(params, &library.textures, &lighting).map(|mut material| {
+            prepare_with_lighting(params, &library.textures, &lighting).map(|mut material| {
                 material.shared_scene_lighting = true;
                 (name.clone(), material)
             })
         })
         .collect::<Result<Vec<_>, _>>()?;
     if state.key.is_none_or(|previous| previous.0 != key.0) {
-        forge_tidewater::tidewater_material::stage_shader(world, shader)?;
+        forge_engine::source_surface::receivers::stage_shader(world, shader)?;
     }
-    let mut assets = world.resource_mut::<Assets<VillageMaterial>>();
+    let mut assets = world.resource_mut::<Assets<SourceSurfaceMaterial>>();
     for (name, material) in prepared {
         if let Some(mut existing) = state.materials.get(&name).and_then(|h| assets.get_mut(h)) {
             *existing = material;
@@ -382,7 +409,7 @@ fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> 
     Ok(())
 }
 
-pub(super) fn lighting(world: &World) -> Option<materials::LightingBindings> {
+pub(super) fn lighting(world: &World) -> Option<forge_engine::source_surface::LightingBindings> {
     let state = world.get_resource::<State>()?;
     if state.key?.0 != imported_buildings::published_generation() {
         return None;
@@ -391,14 +418,14 @@ pub(super) fn lighting(world: &World) -> Option<materials::LightingBindings> {
 }
 
 /// Clone the actual resident common receiver bindings, including live buffers.
-pub(crate) fn resident_lighting_material(world: &World) -> Option<VillageMaterial> {
+pub(crate) fn resident_lighting_material(world: &World) -> Option<SourceSurfaceMaterial> {
     let state = world.get_resource::<State>()?;
     if state.key?.0 != imported_buildings::published_generation() {
         return None;
     }
     let handle = state.materials.values().next()?;
     world
-        .get_resource::<Assets<VillageMaterial>>()?
+        .get_resource::<Assets<SourceSurfaceMaterial>>()?
         .get(handle)
         .cloned()
 }
@@ -559,7 +586,7 @@ fn replace(
             .ok_or("Géométrie bâtiment absente")?,
         &state.materials,
         world.resource::<Assets<Mesh>>(),
-        world.resource::<Assets<VillageMaterial>>(),
+        world.resource::<Assets<SourceSurfaceMaterial>>(),
     )?;
     prepared.stage(world);
     stage_side_structures(

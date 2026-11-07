@@ -39,7 +39,6 @@ fn select(id: Option<EntityId>) {
 
 /// Choose from the current authoring head, without a raycast or document mutation.
 pub(crate) fn choose(id: Option<EntityId>) {
-    super::super::cancel_preview();
     cancel();
     select(id);
 }
@@ -90,7 +89,7 @@ pub(super) fn reconcile(placements: &[super::ManualPlacement]) {
 pub(super) fn pick(
     cameras: Query<
         (&Camera, &GlobalTransform),
-        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
+        forge_engine::source_sky::preview::SceneCameraFilter,
     >,
     parts: Query<&PlacementPart>,
     mut raycast: MeshRayCast,

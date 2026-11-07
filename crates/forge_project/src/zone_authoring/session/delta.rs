@@ -39,6 +39,8 @@ fn assign<T>(change: Change<T>, target: &mut T) {
 #[serde(deny_unknown_fields)]
 struct CorrectionsDelta {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    wind: Option<Change<Option<crate::zone_authoring::wind::SceneWindSettings>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     gameplay_visuals:
         Option<Change<Option<Vec<crate::module_gameplay_visuals::GameplayVisualBinding>>>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -78,6 +80,11 @@ struct CorrectionsDelta {
 impl CorrectionsDelta {
     fn between(a: &ZoneCorrections, b: &ZoneCorrections) -> Result<Self, String> {
         Ok(Self {
+            wind: if a.wind.is_some() || b.wind.is_some() {
+                Some(difference(&a.wind, &b.wind)?)
+            } else {
+                None
+            },
             gameplay_visuals: if a.gameplay_visuals.is_some() || b.gameplay_visuals.is_some() {
                 Some(difference(&a.gameplay_visuals, &b.gameplay_visuals)?)
             } else {
@@ -169,6 +176,9 @@ impl CorrectionsDelta {
         })
     }
     fn apply(self, target: &mut ZoneCorrections) {
+        if let Some(change) = self.wind {
+            assign(change, &mut target.wind);
+        }
         if let Some(change) = self.gameplay_visuals {
             assign(change, &mut target.gameplay_visuals);
         }

@@ -1,6 +1,13 @@
 use super::{SampledTerrainPlan, SampledTerrainPlanError};
 use forge_core::ContentHash;
 
+/// One canonical corner-grid sample, with global finite-difference normal.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SampledTerrainVertex {
+    pub position_m: [f32; 3],
+    pub normal: [f32; 3],
+}
+
 /// Bounded derived tile. Render and collision consumers share these positions
 /// and the same CCW-from-above triangle split. No persistent alternate terrain.
 #[derive(Clone, Debug, PartialEq)]
@@ -15,6 +22,38 @@ pub struct SampledTerrainPatch {
 }
 
 impl SampledTerrainPlan {
+    /// Explicit corner sample, including the closed outer perimeter. LOD adapters
+    /// reuse this evaluator so seams retain exactly the same authored height/normal.
+    pub fn sample_vertex(
+        &self,
+        sample: [u16; 2],
+    ) -> Result<SampledTerrainVertex, SampledTerrainPlanError> {
+        let source = self.raster().source();
+        if u32::from(sample[0]) > source.width || u32::from(sample[1]) > source.height {
+            return Err(SampledTerrainPlanError::PatchBounds);
+        }
+        let [x, z] = std::array::from_fn(|axis| {
+            source.origin_xz_m[axis] + f64::from(sample[axis]) * source.sample_spacing_m
+        });
+        self.surface_at(x, z)
+    }
+
+    #[allow(clippy::cast_possible_truncation)] // Same finite f32 domain as build_patch.
+    fn surface_at(&self, x: f64, z: f64) -> Result<SampledTerrainVertex, SampledTerrainPlanError> {
+        let step = self.raster().source().sample_spacing_m;
+        let y = self.height_at(x, z)?;
+        let dx = (self.height_at(x + step, z)? - self.height_at(x - step, z)?) / (2.0 * step);
+        let dz = (self.height_at(x, z + step)? - self.height_at(x, z - step)?) / (2.0 * step);
+        let length = dx.hypot(dz).hypot(1.0);
+        Ok(SampledTerrainVertex {
+            position_m: [x as f32, y as f32, z as f32],
+            normal: [
+                (-dx / length) as f32,
+                (1.0 / length) as f32,
+                (-dz / length) as f32,
+            ],
+        })
+    }
     /// Explicitly requested lattice sampling, never a silent resolution change.
     /// At most 129² vertices per call. Neighbouring tiles sample global positions
     /// and global finite differences, including across correction boundaries.
@@ -50,18 +89,9 @@ impl SampledTerrainPlan {
                     + (f64::from(minimum_cell[0]) + f64::from(column) * f64::from(stride)) * step;
                 let z = source.origin_xz_m[1]
                     + (f64::from(minimum_cell[1]) + f64::from(row) * f64::from(stride)) * step;
-                let y = self.height_at(x, z)?;
-                positions_m.push([x as f32, y as f32, z as f32]);
-                let dx =
-                    (self.height_at(x + step, z)? - self.height_at(x - step, z)?) / (2.0 * step);
-                let dz =
-                    (self.height_at(x, z + step)? - self.height_at(x, z - step)?) / (2.0 * step);
-                let length = dx.hypot(dz).hypot(1.0);
-                normals.push([
-                    (-dx / length) as f32,
-                    (1.0 / length) as f32,
-                    (-dz / length) as f32,
-                ]);
+                let vertex = self.surface_at(x, z)?;
+                positions_m.push(vertex.position_m);
+                normals.push(vertex.normal);
             }
         }
         let mut indices =

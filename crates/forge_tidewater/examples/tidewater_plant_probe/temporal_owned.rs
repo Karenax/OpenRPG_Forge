@@ -13,12 +13,15 @@ use bevy::{
         },
     },
 };
-use forge_tidewater::{tidewater_refraction as refraction, tidewater_temporal as temporal};
 use std::{
     collections::VecDeque,
     path::PathBuf,
     sync::{Arc, Mutex, atomic::Ordering},
     time::{Duration, Instant},
+};
+use {
+    forge_engine::source_refraction_capture as refraction,
+    forge_engine::source_temporal as temporal,
 };
 
 const MAIL_LIMIT: usize = 80;
@@ -37,6 +40,115 @@ const LABELS: [&str; 7] = [
 struct Intent {
     case: usize,
     expects_stall_contact: bool,
+    expects_hull_fixture: bool,
+}
+
+/// Diagnostic-only addition to a reference scene that has no other boat renderer.
+/// It exercises the hull pass, not boat appearance or visual water exclusion.
+#[derive(Resource)]
+enum HullFixture {
+    Synthetic {
+        entity: Entity,
+        geometry: std::sync::Arc<forge_engine::source_hull_mask::Geometry>,
+        transform: Transform,
+    },
+    SourceBoat(forge_tidewater::tidewater_boat::ResidentBoat<StandardMaterial>),
+}
+
+fn fixture_census(world: &World) -> Result<Vec<Entity>, String> {
+    let fixture = world
+        .get_resource::<HullFixture>()
+        .ok_or("Hull fixture absent")?;
+    match fixture {
+        HullFixture::Synthetic {
+            entity,
+            geometry,
+            transform,
+        } => {
+            if world
+                .get::<forge_engine::source_hull_mask::HullVolume>(*entity)
+                .is_none_or(|hull| !std::sync::Arc::ptr_eq(&hull.0, geometry))
+                || world.get::<Transform>(*entity) != Some(transform)
+            {
+                return Err("Hull fixture identity or pose changed".into());
+            }
+            Ok(vec![*entity])
+        }
+        HullFixture::SourceBoat(resident) => {
+            resident.census(world)?;
+            Ok(resident.water_exclusions())
+        }
+    }
+}
+
+fn install_hull_fixture(app: &mut App) -> Result<bool, String> {
+    use forge_engine::source_hull_mask::{self, Geometry, HullVolume};
+    let boat = std::env::var_os("FORGE_TEMPORAL_TEST_BOAT_PACKAGE");
+    let synthetic = match std::env::var("FORGE_TEMPORAL_TEST_HULL").as_deref() {
+        Err(std::env::VarError::NotPresent) => false,
+        Ok("1") => true,
+        _ => return Err("FORGE_TEMPORAL_TEST_HULL must be 1 or absent".into()),
+    };
+    if synthetic && boat.is_some() {
+        return Err("Select only one diagnostic hull fixture".into());
+    }
+    if !synthetic && boat.is_none() {
+        return Ok(false);
+    }
+    source_hull_mask::register(app)?;
+    let fixture = if let Some(path) = boat {
+        source_boat_fixture(app, std::path::Path::new(&path))?
+    } else {
+        let geometry = Geometry::new(
+            vec![[0., 0., 0.], [1., 0., 0.], [0., 1., 0.], [0., 0., 1.]],
+            vec![0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3],
+        )?;
+        let transform = Transform::from_xyz(42.0, 10.0, -80.0).with_scale(Vec3::splat(5.0));
+        let entity = app
+            .world_mut()
+            .spawn((HullVolume(geometry.clone()), transform))
+            .id();
+        HullFixture::Synthetic {
+            entity,
+            geometry,
+            transform,
+        }
+    };
+    app.insert_resource(fixture);
+    source_hull_mask::register_temporal_adapter(app, fixture_census)?;
+    Ok(true)
+}
+
+/// The source boat uses diagnostic materials only; this does not qualify its appearance.
+fn source_boat_fixture(app: &mut App, root: &std::path::Path) -> Result<HullFixture, String> {
+    use forge_tidewater_assets::tidewater_boat::{self, BoatPackage};
+    if !root.is_absolute() {
+        return Err("Boat fixture package root must be absolute".into());
+    }
+    let manifest = std::fs::read(root.join("manifest.json")).map_err(|e| e.to_string())?;
+    let package = BoatPackage::load(&manifest, tidewater_boat::package_hash(), |name, _| {
+        std::fs::read(root.join(name)).map_err(|e| e.to_string())
+    })?;
+    let names: std::collections::BTreeSet<_> = package
+        .description()
+        .parts
+        .iter()
+        .map(|part| part.material.clone())
+        .collect();
+    let mut materials = std::collections::BTreeMap::new();
+    for name in names {
+        let handle = app
+            .world_mut()
+            .resource_mut::<Assets<StandardMaterial>>()
+            .add(StandardMaterial::default());
+        materials.insert(name, handle);
+    }
+    let resident = forge_tidewater::tidewater_boat::PreparedBoat::from_package(
+        &package,
+        tidewater_boat::asset_id(),
+    )?
+    .stage(app.world_mut(), &materials)?;
+    Ok(HullFixture::SourceBoat(resident))
 }
 #[derive(Clone)]
 struct Sample {
@@ -67,8 +179,8 @@ struct Bridge(Arc<Mutex<Mail>>);
 #[derive(Resource, Default)]
 struct Seen {
     last_success: Option<(
-        temporal::frame::FrameTag,
-        forge_tidewater::tidewater_temporal_frame::Frame,
+        forge_engine::scene_camera::FrameTag,
+        forge_engine::source_temporal_frame::Frame,
         u64,
         u64,
     )>,
@@ -118,14 +230,18 @@ pub fn install(app: &mut App) -> Result<(), String> {
         Family::TerrainLod,
         MaterialRole::Opaque,
     )?;
-    temporal::register_material::<super::PlantMaterial>(app, Family::Plant, MaterialRole::Opaque)?;
-    temporal::register_material::<super::village::VillageMaterial>(
+    temporal::register_material::<super::CapturedPlantMaterial>(
+        app,
+        Family::Plant,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::source_surface::SourceSurfaceMaterial>(
         app,
         Family::Village,
         MaterialRole::Opaque,
     )?;
     // Nature has the same acquired ABI; its actual installed source shader is derived.
-    temporal::register_material::<forge_tidewater::tidewater_debris::nature::NatureMaterial>(
+    temporal::register_material::<forge_engine::source_surface::nature::NatureMaterial>(
         app,
         Family::Village,
         MaterialRole::Opaque,
@@ -136,7 +252,7 @@ pub fn install(app: &mut App) -> Result<(), String> {
     temporal::register_material::<
         forge_tidewater::tidewater_debris::scanned_material::ScannedMaterial,
     >(app, Family::Scanned, MaterialRole::Opaque)?;
-    temporal::register_material::<forge_tidewater::tidewater_fish_props::material::FishMaterial>(
+    temporal::register_material::<forge_engine::source_fish::material::FishMaterial>(
         app,
         Family::Fish,
         MaterialRole::Opaque,
@@ -158,7 +274,7 @@ pub fn install(app: &mut App) -> Result<(), String> {
             MaterialRole::Opaque,
         )?;
     }
-    temporal::register_material::<super::breaker_lip::LipMaterial>(
+    temporal::register_material::<forge_engine::source_breaker_render::LipMaterial>(
         app,
         Family::BreakerLip,
         MaterialRole::Transparent,
@@ -169,6 +285,7 @@ pub fn install(app: &mut App) -> Result<(), String> {
         MaterialRole::Transparent,
     )?;
     temporal::phase::register_standard_opaque(app)?;
+    temporal::phase::register_source_model_opaque(app)?;
     temporal::phase::register_sky_material::<super::sky::SkyMaterial>(app)?;
     if !app
         .world()
@@ -181,11 +298,12 @@ pub fn install(app: &mut App) -> Result<(), String> {
             .with_extension("water-query.json");
         super::spray::enable_water_queries(app, output)?;
     }
-    if !app.is_plugin_added::<forge_tidewater::tidewater_underwater::TidewaterUnderwaterPlugin>() {
+    if !app.is_plugin_added::<forge_engine::source_underwater::SourceUnderwaterPlugin>() {
         let underwater = super::walk::underwater_plugin(app).map_err(|e| e.to_string())?;
         app.add_plugins(underwater);
     }
     temporal::render_owned::register(app)?;
+    let expects_hull_fixture = install_hull_fixture(app)?;
     let screenshot = app.world().resource::<super::Probe>().screenshot.clone();
     let output = screenshot.with_extension("owned.json");
     if screenshot.exists() || output.exists() {
@@ -197,6 +315,7 @@ pub fn install(app: &mut App) -> Result<(), String> {
         .insert_resource(Intent {
             case: 0,
             expects_stall_contact,
+            expects_hull_fixture,
         })
         .add_plugins(ExtractResourcePlugin::<Intent>::default())
         .insert_resource(Proof {
@@ -222,14 +341,14 @@ pub fn install(app: &mut App) -> Result<(), String> {
             PostUpdate,
             select_camera
                 .before(temporal::FrameSystems::Prepare)
-                .before(forge_tidewater::tidewater_underwater::WaterMediumUpdateSet),
+                .before(forge_engine::source_underwater::WaterMediumUpdateSet),
         )
         .add_systems(
             PostUpdate,
             water_query
                 .after(select_camera)
                 .after(bevy::transform::TransformSystems::Propagate)
-                .before(forge_tidewater::tidewater_underwater::WaterMediumUpdateSet),
+                .before(forge_engine::source_underwater::WaterMediumUpdateSet),
         )
         .add_systems(Update, advance);
     app.sub_app_mut(RenderApp)
@@ -254,9 +373,10 @@ fn select_camera(world: &mut World) {
     if world.resource::<Proof>().selected.is_some() {
         return;
     }
-    let mut query = world
-        .query_filtered::<(Entity, &Camera), (With<Camera3d>, Without<refraction::CaptureCamera>)>(
-        );
+    let mut query = world.query_filtered::<(Entity, &Camera), (
+        With<Camera3d>,
+        Without<forge_engine::source_refraction::CaptureCamera>,
+    )>();
     let active: Vec<_> = query
         .iter(world)
         .filter(|(_, c)| c.is_active)
@@ -270,11 +390,17 @@ fn select_camera(world: &mut World) {
         return;
     }
     let entity = active[0];
-    // The submitted native scene was audited: it contains no boat/hull renderer.
-    world.entity_mut(entity).insert((
-        temporal::render::HullRequirement::NoHullsInScene,
-        forge_tidewater::tidewater_underwater::TidewaterUnderwaterCamera,
-    ));
+    world
+        .entity_mut(entity)
+        .insert(forge_engine::source_underwater::SourceUnderwaterCamera);
+    if world.contains_resource::<HullFixture>() {
+        forge_engine::source_hull_mask::select_camera(world, Some(entity));
+    } else {
+        // The submitted native scene was audited: it contains no boat/hull renderer.
+        world
+            .entity_mut(entity)
+            .insert(temporal::render::HullRequirement::NoHullsInScene);
+    }
     match temporal::render_owned::select(world, Some(entity)) {
         Ok(()) => world.resource_mut::<Proof>().selected = Some(entity),
         Err(e) => world.resource_mut::<Proof>().error = Some(e),
@@ -332,15 +458,15 @@ fn observe(
     hdr: Res<temporal::hdr::HdrObservations>,
     captures: Query<
         (
-            &refraction::CaptureSource,
+            &forge_engine::source_refraction::CaptureSource,
             &ExtractedView,
             &ExtractedCamera,
             Option<&TemporalJitter>,
         ),
-        With<refraction::CaptureCamera>,
+        With<forge_engine::source_refraction::CaptureCamera>,
     >,
     capture_targets: Option<Res<refraction::Targets>>,
-    stall_contact: Option<Res<forge_tidewater::tidewater_stall::contact_gpu::Observation>>,
+    stall_contact: Option<Res<forge_engine::source_scene_depth::contact_gpu::Observation>>,
     intent: Res<Intent>,
     bridge: Res<Bridge>,
     mut seen: ResMut<Seen>,
@@ -399,6 +525,13 @@ fn observe(
         }),
         "auxiliary-same-tag-complete",
     );
+    if intent.expects_hull_fixture {
+        check(
+            aux.as_ref()
+                .is_some_and(|a| a.hull_contract_satisfied && a.hull_draws == 1),
+            "diagnostic-hull-encoded",
+        );
+    }
     check(
         medium
             .as_ref()
@@ -560,6 +693,8 @@ fn observe(
                 "depth_cleared":r.previous_depth_cleared,"depth_copied":r.previous_depth_copied,"output_copied":r.output_copied,
                 "frames_encoded":r.frames_encoded,"error":format!("{:?}",r.error)})),
             "auxiliary":aux.as_ref().map(|a|format!("{a:?}")),"hdr":medium.as_ref().map(|h|format!("{h:?}")),
+            "diagnostic_hull_required":intent.expects_hull_fixture,
+            "diagnostic_hull_draws":aux.as_ref().map(|a|a.hull_draws),
             "refraction_join":capture_json,"refraction_join_valid":capture_ok,
             "stall_contact_required":intent.expects_stall_contact,
             "stall_contact":contact.as_ref().map(|contact|serde_json::json!({
@@ -735,14 +870,21 @@ fn advance(world: &mut World) {
                 {
                     return Err("Odd resize did not change actual generations/epoch".into());
                 }
-                if !proof.samples.iter().any(|s| {
+                let resize_seed = proof.samples.iter().any(|s| {
                     s["case"] == "odd-resize"
                         && s["valid"] == true
                         && s["input_size"] == serde_json::json!([1919, 1079])
                         && s["flags"] == 1
                         && s["resolve"]["seed_draws"] == 1
-                }) {
-                    return Err("Resize-only seed without model flag2 was not observed".into());
+                });
+                let hull_gap_seed = world.resource::<Intent>().expects_hull_fixture
+                    && resize_hull_gap_recovered(
+                        &proof.samples,
+                        before.resets,
+                        before.recovery_resets,
+                    );
+                if !resize_seed && !hull_gap_seed {
+                    return Err("Resize seed or verified hull-gap recovery was not observed".into());
                 }
                 proof.remember_current();
                 proof.inactive_before = inactive;
@@ -839,6 +981,52 @@ fn advance(world: &mut World) {
 
 // Each completed stage has a fresh immutable receipt before the next stage.
 // A later panic leaves these diagnostics; none is a final PASS verdict.
+/// A resized hull image may be pending for one real Render frame. That frame
+/// must not commit, and the first successful frame must reset and seed history.
+fn resize_hull_gap_recovered(
+    samples: &VecDeque<serde_json::Value>,
+    before_resets: u64,
+    before_recovery_resets: u64,
+) -> bool {
+    samples.iter().any(|failed| {
+        if failed["case"] != "odd-resize"
+            || failed["valid"] != false
+            || failed["input_size"] != serde_json::json!([1919, 1079])
+            || failed["flags"] != 1
+            || failed["owner_committed"] != failed["previous_owner_committed"]
+            || failed["resolve"]["complete"] != false
+            || !failed["auxiliary"].as_str().is_some_and(|message| {
+                message.contains("Hull beauty encoding is stale or belongs to another view")
+            })
+        {
+            return false;
+        }
+        let (Some(serial), Some(committed)) = (
+            failed["tag"]["serial"].as_u64(),
+            failed["owner_committed"].as_u64(),
+        ) else {
+            return false;
+        };
+        samples.iter().any(|recovered| {
+            recovered["case"] == "odd-resize"
+                && recovered["valid"] == true
+                && recovered["input_size"] == serde_json::json!([1919, 1079])
+                && recovered["flags"] == 3
+                && recovered["resolve"]["seed_draws"] == 1
+                && recovered["tag"]["serial"]
+                    .as_u64()
+                    .is_some_and(|next| next > serial)
+                && recovered["owner_committed"].as_u64() == committed.checked_add(1)
+                && recovered["owner_resets"]
+                    .as_u64()
+                    .is_some_and(|value| value > before_resets)
+                && recovered["recovery_resets"]
+                    .as_u64()
+                    .is_some_and(|value| value > before_recovery_resets)
+        })
+    })
+}
+
 fn write_progress(
     proof: &Proof,
     completed_case: usize,
@@ -935,5 +1123,30 @@ mod tests {
             Mat4::IDENTITY,
             Mat4::from_cols_array(&[f32::NAN; 16])
         ));
+    }
+
+    #[test]
+    fn resize_gap_requires_a_real_noncommitted_hull_refusal_and_reset_seed() {
+        let failed = serde_json::json!({
+            "case":"odd-resize", "valid":false, "input_size":[1919,1079], "flags":1,
+            "owner_committed":44, "previous_owner_committed":44,
+            "resolve":{"complete":false}, "tag":{"serial":175},
+            "auxiliary":"Hull beauty encoding is stale or belongs to another view"
+        });
+        let recovered = serde_json::json!({
+            "case":"odd-resize", "valid":true, "input_size":[1919,1079], "flags":3,
+            "owner_committed":45, "owner_resets":2, "recovery_resets":1,
+            "resolve":{"seed_draws":1}, "tag":{"serial":176}
+        });
+        let mut samples = VecDeque::from([failed, recovered]);
+        assert!(resize_hull_gap_recovered(&samples, 1, 0));
+        samples[0]["owner_committed"] = 45.into();
+        assert!(!resize_hull_gap_recovered(&samples, 1, 0));
+        samples[0]["owner_committed"] = 44.into();
+        samples[1]["flags"] = 1.into();
+        assert!(!resize_hull_gap_recovered(&samples, 1, 0));
+        samples[1]["flags"] = 3.into();
+        samples[1]["recovery_resets"] = 0.into();
+        assert!(!resize_hull_gap_recovered(&samples, 1, 0));
     }
 }

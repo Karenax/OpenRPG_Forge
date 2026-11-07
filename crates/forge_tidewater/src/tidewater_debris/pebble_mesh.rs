@@ -1,12 +1,12 @@
 //! Preserve the acquired pebble patch and density pixels in Bevy resources.
 use super::pebble_patch::Patch;
-use crate::tidewater_mesh::VillageMeshBytes;
 use bevy::{
     asset::RenderAssetUsages,
     image::{ImageAddressMode, ImageFilterMode, ImageSampler, ImageSamplerDescriptor},
     prelude::*,
     render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
+use forge_engine::source_surface::mesh::SourceMeshBytes;
 
 pub struct Prepared {
     pub mesh: Mesh,
@@ -40,7 +40,7 @@ pub fn prepare(patch: &Patch) -> Result<Prepared, String> {
     // These shared mesh attributes are not read by the original pebble program.
     let uv = vec![0; patch.positions.len() * 8];
     let tint = bytes(&vec![[1.0_f32; 3]; patch.positions.len()]);
-    let mesh = VillageMeshBytes {
+    let mesh = SourceMeshBytes {
         positions: &positions,
         normals: &normals,
         uv: &uv,
@@ -85,7 +85,8 @@ fn bytes<const N: usize>(values: &[[f32; N]]) -> Vec<u8> {
 mod tests {
     use super::*;
     use bevy::mesh::{Indices, VertexAttributeValues};
-    use forge_tidewater_assets::tidewater_debris::{self, DebrisPackage};
+    use forge_tidewater_assets::tidewater_debris;
+    use forge_tidewater_assets::tidewater_debris::DebrisPackage;
 
     #[test]
     #[ignore = "Requires the acquired Debris package; CPU resource construction, no GPU draw"]
@@ -111,8 +112,9 @@ mod tests {
             };
             assert_eq!(bytes(actual), bytes(expected));
         }
-        let Some(VertexAttributeValues::Float32x4(actual)) =
-            prepared.mesh.attribute(crate::tidewater_mesh::DATA)
+        let Some(VertexAttributeValues::Float32x4(actual)) = prepared
+            .mesh
+            .attribute(forge_engine::source_surface::mesh::DATA)
         else {
             panic!("Source slot layout differs");
         };

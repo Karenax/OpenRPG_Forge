@@ -31,7 +31,9 @@
     if (globalThis.document?.querySelector('.forge-map-loading[aria-busy="true"]')) {
       activeUntil = timestamp + 2000;
     }
-    const interval = timestamp <= activeUntil ? activeInterval : idleInterval;
+    const animatedScene = globalThis.document?.querySelector(
+      '#forge-authoring-canvas[data-forge-editing-quality="module"]');
+    const interval = animatedScene || timestamp <= activeUntil ? activeInterval : idleInterval;
     if (timestamp - previous < interval) { schedule(); return; }
     previous = timestamp;
     const batch = [...jobs.entries()];

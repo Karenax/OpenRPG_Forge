@@ -11,7 +11,7 @@ use serde::Serialize;
 mod adaptive;
 mod application;
 mod effective;
-mod gpu_submission;
+pub(crate) mod gpu_submission;
 pub use adaptive::QualityAdaptationStats;
 pub use application::QualityApplicationEvidence;
 pub use effective::EffectiveQualityEvidence;

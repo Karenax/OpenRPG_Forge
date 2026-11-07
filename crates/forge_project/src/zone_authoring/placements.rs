@@ -6,6 +6,9 @@ use super::{
 use forge_core::{AssetId, CommandId, ContentHash, EntityId, Transform};
 use serde::{Deserialize, Serialize};
 
+mod local_lights;
+pub use local_lights::{LocalLightAnchor, LocalLightPackageReference};
+
 pub const MAX_MANUAL_PLACEMENTS: usize = 4096;
 pub const MAX_PLACEMENT_BATCH: usize = 256;
 
@@ -33,8 +36,19 @@ impl PlacementChanges {
             };
             let new = &after[index];
             result.references += usize::from(
-                (old.asset_id, old.asset_hash, &old.physics, &old.particles)
-                    != (new.asset_id, new.asset_hash, &new.physics, &new.particles),
+                (
+                    old.asset_id,
+                    old.asset_hash,
+                    &old.physics,
+                    &old.particles,
+                    &old.local_lights,
+                ) != (
+                    new.asset_id,
+                    new.asset_hash,
+                    &new.physics,
+                    &new.particles,
+                    &new.local_lights,
+                ),
             );
             result.transforms += usize::from(old.transform != new.transform);
             result.names += usize::from(old.name != new.name);
@@ -81,6 +95,9 @@ pub struct ManualPlacement {
     /// Exact particle resources belonging to this carrier; no renderer state is saved.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub particles: Option<Box<ParticlePackageReference>>,
+    /// Reviewed source-unit lights and their authored model-relative anchors.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub local_lights: Option<Box<LocalLightPackageReference>>,
     pub transform: Transform,
     pub locked: bool,
 }
@@ -122,11 +139,15 @@ pub enum PlacementEdit {
         expected_physics: Option<Box<PhysicsPackageReference>>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         expected_particles: Option<Box<ParticlePackageReference>>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        expected_local_lights: Option<Box<LocalLightPackageReference>>,
         asset_id: AssetId,
         asset_hash: ContentHash,
         physics: Option<Box<PhysicsPackageReference>>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         particles: Option<Box<ParticlePackageReference>>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        local_lights: Option<Box<LocalLightPackageReference>>,
     },
     SetLocked {
         id: EntityId,
@@ -160,6 +181,9 @@ pub(super) fn validate(placements: &[ManualPlacement]) -> Result<(), String> {
             particles.schema_version != 1 || particles.carrier_sha256 != placement.asset_hash
         }) {
             return Err("Particle reference must pin the placement carrier".into());
+        }
+        if let Some(lights) = &placement.local_lights {
+            lights.validate(placement.asset_hash)?;
         }
     }
     Ok(())
@@ -250,10 +274,12 @@ impl ZoneAuthoringHead {
                 expected_asset_hash,
                 expected_physics,
                 expected_particles,
+                expected_local_lights,
                 asset_id,
                 asset_hash,
                 physics,
                 particles,
+                local_lights,
             } => {
                 replace_pinned_asset(
                     placements,
@@ -263,13 +289,12 @@ impl ZoneAuthoringHead {
                         expected_asset_hash,
                         expected_physics,
                         expected_particles,
+                        expected_local_lights,
                     ),
-                    &(asset_id, asset_hash, physics, particles),
+                    &(asset_id, asset_hash, physics, particles, local_lights),
                 )?;
             }
-            PlacementEdit::SetLocked { id, locked } => {
-                find(placements, id)?.locked = locked;
-            }
+            PlacementEdit::SetLocked { id, locked } => find(placements, id)?.locked = locked,
             PlacementEdit::Remove { id } => {
                 find(placements, id)?;
                 placements.retain(|p| p.id != id);
@@ -301,6 +326,7 @@ type ReplacementPin = (
     ContentHash,
     Option<Box<PhysicsPackageReference>>,
     Option<Box<ParticlePackageReference>>,
+    Option<Box<LocalLightPackageReference>>,
 );
 
 fn replace_pinned_asset(
@@ -326,14 +352,21 @@ fn replace_pinned_asset(
             placement.asset_hash,
             &placement.physics,
             &placement.particles,
-        ) != (expected.0, expected.1, &expected.2, &expected.3)
-        {
+            &placement.local_lights,
+        ) != (
+            expected.0,
+            expected.1,
+            &expected.2,
+            &expected.3,
+            &expected.4,
+        ) {
             return Err("Placement reference changed; review replacement again".into());
         }
         placement.asset_id = target.0;
         placement.asset_hash = target.1;
         placement.physics.clone_from(&target.2);
         placement.particles.clone_from(&target.3);
+        placement.local_lights.clone_from(&target.4);
     }
     Ok(())
 }
@@ -356,9 +389,12 @@ fn replace_asset(
     }
     for id in ids {
         let placement = find(placements, id)?;
-        if placement.physics.is_some() || placement.particles.is_some() {
+        if placement.physics.is_some()
+            || placement.particles.is_some()
+            || placement.local_lights.is_some()
+        {
             return Err(
-                "Replacing this asset requires an explicitly reviewed physics package".into(),
+                "Replacing this asset requires explicitly reviewed companion references".into(),
             );
         }
         if (placement.asset_id, placement.asset_hash) != expected {

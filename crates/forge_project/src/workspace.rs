@@ -6,6 +6,8 @@ use thiserror::Error;
 
 #[cfg(not(target_arch = "wasm32"))]
 mod atomic_publish;
+#[cfg(not(target_arch = "wasm32"))]
+pub use atomic_publish::publish as publish_no_replace;
 pub mod creator;
 #[cfg(not(target_arch = "wasm32"))]
 mod creator_objects;
@@ -14,6 +16,7 @@ pub mod export;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod file_session;
 pub mod history;
+pub mod launcher;
 pub use creator::ModuleCreatorReview;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod objects;
@@ -45,6 +48,8 @@ pub struct WorkspaceHead {
 pub struct ProjectEntry {
     pub id: ProjectId,
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub game: Option<launcher::GameConfiguration>,
     pub modules: Vec<ModuleEntry>,
 }
 
@@ -121,6 +126,8 @@ pub enum WorkspaceError {
     Origin(&'static str),
     #[error("invalid module creator: {0}")]
     Creator(&'static str),
+    #[error("invalid game configuration: {0}")]
+    Game(&'static str),
     #[error("invalid workspace JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("cannot hash workspace: {0}")]
@@ -139,15 +146,21 @@ impl Default for WorkspaceHead {
 }
 
 impl WorkspaceHead {
-    pub fn validate(&self) -> Result<(), WorkspaceError> {
-        let configured = self
+    fn expected_schema_version(&self) -> u32 {
+        if self.projects.iter().any(|project| project.game.is_some()) {
+            return 3;
+        }
+        let creator_configured = self
             .projects
             .iter()
             .flat_map(|project| &project.modules)
             .any(|module| module.creator.is_some());
-        let expected_version = if configured { 2 } else { 1 };
+        if creator_configured { 2 } else { 1 }
+    }
+
+    pub fn validate(&self) -> Result<(), WorkspaceError> {
         if self.schema != SCHEMA
-            || self.schema_version != expected_version
+            || self.schema_version != self.expected_schema_version()
             || self.revision.get() == 0
         {
             return Err(WorkspaceError::Schema);
@@ -163,6 +176,9 @@ impl WorkspaceHead {
             validate_name(&project.name)?;
             if !projects.insert(project.id) || !project_names.insert(&project.name) {
                 return Err(WorkspaceError::Duplicate);
+            }
+            if let Some(game) = &project.game {
+                game.validate(project)?;
             }
             let mut module_names = BTreeSet::new();
             for module in &project.modules {
@@ -221,10 +237,75 @@ impl WorkspaceHead {
         proposed.projects.push(ProjectEntry {
             id,
             name,
+            game: None,
             modules: Vec::new(),
         });
         proposed.validate()?;
         Ok(proposed)
+    }
+
+    /// Pure reviewed replacement. The command session owns acceptance/history.
+    pub fn with_game_configuration(
+        &self,
+        project_id: ProjectId,
+        before: Option<&launcher::GameConfiguration>,
+        after: Option<launcher::GameConfiguration>,
+    ) -> Result<Self, WorkspaceError> {
+        let mut proposed = self.clone();
+        let project = proposed
+            .projects
+            .iter_mut()
+            .find(|project| project.id == project_id)
+            .ok_or(WorkspaceError::MissingProject)?;
+        if project.game.as_ref() != before {
+            return Err(WorkspaceError::Game("configuration changed since review"));
+        }
+        if project.game == after {
+            return Err(WorkspaceError::Game("configuration has no change"));
+        }
+        project.game = after;
+        proposed.schema_version = proposed.expected_schema_version();
+        proposed.validate()?;
+        Ok(proposed)
+    }
+
+    /// A delivery projection, never a mutable replacement for the project.
+    pub fn derive_game_manifest(
+        &self,
+        project_id: ProjectId,
+    ) -> Result<launcher::DerivedGameManifest, WorkspaceError> {
+        self.validate()?;
+        let project = self
+            .projects
+            .iter()
+            .find(|project| project.id == project_id)
+            .ok_or(WorkspaceError::MissingProject)?;
+        let configuration = project
+            .game
+            .clone()
+            .ok_or(WorkspaceError::Game("project has no game configuration"))?;
+        for content in &configuration.contents {
+            let module = project
+                .modules
+                .iter()
+                .find(|module| module.id == content.module_id)
+                .ok_or(WorkspaceError::Game("module is not part of the project"))?;
+            // The current module exporter always serializes every zone. Never
+            // derive a distributable that would include an unselected zone.
+            if content.areas.len() != module.zones.len() {
+                return Err(WorkspaceError::Game(
+                    "partial module export is not supported yet",
+                ));
+            }
+        }
+        Ok(launcher::DerivedGameManifest {
+            schema: "forge.game-launch-manifest".into(),
+            version: 1,
+            game_id: project.id,
+            source_workspace_hash: self.content_hash()?,
+            configuration,
+            save_namespace: format!("games/{}/saves", project.id),
+        })
     }
 
     pub fn with_module(
@@ -233,19 +314,31 @@ impl WorkspaceHead {
         id: ModuleId,
         name: String,
     ) -> Result<Self, WorkspaceError> {
+        self.with_module_entry(
+            project_id,
+            ModuleEntry {
+                id,
+                name,
+                origin: None,
+                creator: None,
+                zones: Vec::new(),
+            },
+        )
+    }
+
+    fn with_module_entry(
+        &self,
+        project_id: ProjectId,
+        module: ModuleEntry,
+    ) -> Result<Self, WorkspaceError> {
         let mut proposed = self.clone();
         let project = proposed
             .projects
             .iter_mut()
             .find(|p| p.id == project_id)
             .ok_or(WorkspaceError::MissingProject)?;
-        project.modules.push(ModuleEntry {
-            id,
-            name,
-            origin: None,
-            creator: None,
-            zones: Vec::new(),
-        });
+        project.modules.push(module);
+        proposed.schema_version = proposed.expected_schema_version();
         proposed.validate()?;
         Ok(proposed)
     }
@@ -290,7 +383,7 @@ impl WorkspaceHead {
         }
         module.creator = Some(after);
         module.zones = after_zones.to_vec();
-        proposed.schema_version = 2;
+        proposed.schema_version = proposed.expected_schema_version();
         proposed.validate()?;
         Ok(proposed)
     }
@@ -302,19 +395,35 @@ impl WorkspaceHead {
         name: String,
         origin: ModuleOriginPin,
     ) -> Result<Self, WorkspaceError> {
-        origin.validate()?;
-        let mut proposed = self.with_module(project_id, id, name)?;
-        // with_module validates uniqueness before the origin can be attached. There
-        // is deliberately no setter capable of replacing an existing origin.
-        let module = proposed
-            .projects
-            .iter_mut()
-            .find(|project| project.id == project_id)
-            .and_then(|project| project.modules.iter_mut().find(|module| module.id == id))
-            .ok_or(WorkspaceError::MissingProject)?;
-        module.origin = Some(origin);
-        proposed.validate()?;
-        Ok(proposed)
+        self.with_module_entry(
+            project_id,
+            ModuleEntry {
+                id,
+                name,
+                origin: Some(origin),
+                creator: None,
+                zones: Vec::new(),
+            },
+        )
+    }
+
+    fn with_module_package(
+        &self,
+        project_id: ProjectId,
+        new_project_name: Option<&str>,
+        module: &ModuleEntry,
+    ) -> Result<Self, WorkspaceError> {
+        if module.origin.is_none() || module.zones.is_empty() {
+            return Err(WorkspaceError::Origin(
+                "an imported package needs an origin and zones",
+            ));
+        }
+        if let Some(name) = new_project_name {
+            self.with_project(project_id, name.to_owned())?
+                .with_module_entry(project_id, module.clone())
+        } else {
+            self.with_module_entry(project_id, module.clone())
+        }
     }
 }
 

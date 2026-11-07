@@ -3,11 +3,18 @@ fn main() {
     if desktop_enabled && std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() != Ok("wasm32") {
         let app_manifest = tauri_build::AppManifest::new().commands(&[
             "execute_studio_command",
+            "read_module_resources",
+            "execute_assistant",
+            "execute_mcp",
+            "search_assistant_assets",
             "execute_asset_import",
+            "import_module_package",
             "export_module",
+            "export_game",
             "read_asset_library",
             "read_asset_model",
             "read_asset_physics",
+            "read_asset_particles",
             "launch_native_game",
             "launch_exported_module",
             "native_game_running",

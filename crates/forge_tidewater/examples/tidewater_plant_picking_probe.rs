@@ -1,5 +1,5 @@
 //! Adapter and ID boundary checks against the acquired shader; not GPU proof.
-use forge_tidewater::tidewater_plants::picking::{MAX_ID, PickingExtension, decode, shader_source};
+use forge_engine::source_vegetation::picking::{MAX_ID, PickingExtension, decode, shader_source};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args()
         .nth(1)
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn check_occluder(source: &str) -> Result<(), String> {
-    use forge_tidewater::tidewater_plants::picking::occluders::village_shader;
+    use forge_engine::source_vegetation::picking::occluders::village_shader;
     let result = village_shader(source)?;
     let source = source.replace("\r\n", "\n");
     let anchor = "    if s.alpha < mat.alphaTest { discard; }";

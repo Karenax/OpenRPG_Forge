@@ -12,6 +12,7 @@ pub enum WorkspaceHostRequest {
     Open,
     Inspect,
     /// Open an existing workspace if needed, then return its module/map browser.
+    /// Return an empty browser if the workspace has not been initialized.
     /// Never creates, saves, adopts or replaces an active zone.
     Browse,
     ReadHistory {

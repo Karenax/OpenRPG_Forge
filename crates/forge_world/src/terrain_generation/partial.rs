@@ -1,9 +1,9 @@
-use super::sampling::{material_weights_for, sample_height_unchecked, sample_normal};
+use super::sampling::surface_vertex;
 use super::{
     GeneratedTerrain, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNK_INTERVALS,
     TERRAIN_CHUNK_VERTICES_PER_AXIS, TERRAIN_CHUNKS_PER_AXIS, TERRAIN_GLOBAL_INTERVALS_PER_AXIS,
-    TERRAIN_HALF_EXTENT_M, TERRAIN_SAMPLE_SPACING_M, TerrainChunkCoordinate, TerrainChunkMesh,
-    TerrainDirtyChunk, TerrainGenerationError, TerrainGenerationPlan,
+    TerrainChunkCoordinate, TerrainChunkMesh, TerrainDirtyChunk, TerrainGenerationError,
+    TerrainGenerationPlan,
 };
 use forge_core::{ContentHash, Revision, RevisionError};
 use forge_project::{
@@ -703,17 +703,7 @@ fn patch_sample(
     sample: TerrainHeightSampleCoordinate,
     height_changed: bool,
 ) {
-    let x_m = world_coordinate(sample.sample_x);
-    let z_m = world_coordinate(sample.sample_z);
-    let height_m = sample_height_unchecked(document, x_m, z_m);
-    let normal = sample_normal(document, x_m, z_m);
-    let weights = material_weights_for(
-        document,
-        height_m,
-        normal[1],
-        sample.sample_x,
-        sample.sample_z,
-    );
+    let vertex = surface_vertex(document, sample.sample_x, sample.sample_z);
 
     for coordinate in affected_chunk_coordinates(&[sample]) {
         let local_x = sample.sample_x - coordinate.x * TERRAIN_CHUNK_INTERVALS;
@@ -725,22 +715,17 @@ fn patch_sample(
             .find(|chunk| chunk.coordinate == coordinate)
             .expect("every dependency chunk is prepared as a replacement");
         if height_changed {
-            chunk.positions_m[vertex_index][1] = height_m;
-            chunk.collider.vertices_m[vertex_index][1] = height_m;
+            chunk.positions_m[vertex_index][1] = vertex.height_m;
+            chunk.collider.vertices_m[vertex_index][1] = vertex.height_m;
         }
-        chunk.normals[vertex_index] = normal;
-        chunk.material_weights[vertex_index] = weights;
+        chunk.normals[vertex_index] = vertex.shading_normal;
+        chunk.material_weights[vertex_index] = vertex.material_weights;
     }
 }
 
 #[must_use]
 fn chunk_index(coordinate: TerrainChunkCoordinate) -> usize {
     usize::from(coordinate.z) * usize::from(TERRAIN_CHUNKS_PER_AXIS) + usize::from(coordinate.x)
-}
-
-#[must_use]
-fn world_coordinate(sample: u16) -> f32 {
-    -TERRAIN_HALF_EXTENT_M + f32::from(sample) * TERRAIN_SAMPLE_SPACING_M
 }
 
 #[derive(Debug, Error)]

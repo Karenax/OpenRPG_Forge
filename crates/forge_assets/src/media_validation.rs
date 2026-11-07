@@ -70,6 +70,19 @@ pub enum MediaInfo {
     },
 }
 
+/// The selected byte-validation route does not imply render or licence admission.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum MediaRoute {
+    Standard,
+    SourceGraph,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ValidatedMedia {
+    pub route: MediaRoute,
+    pub info: MediaInfo,
+}
+
 #[derive(Debug, Error)]
 #[error("{format:?}: {reason}")]
 pub struct MediaValidationError {
@@ -82,12 +95,7 @@ pub fn validate_media(
     format: MediaFormat,
     limits: MediaLimits,
 ) -> Result<MediaInfo, MediaValidationError> {
-    if bytes.is_empty() {
-        return Err(error(format, "empty media input"));
-    }
-    if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > limits.max_input_bytes {
-        return Err(error(format, "input byte budget exceeded"));
-    }
+    validate_input(bytes, format, limits)?;
     match format {
         MediaFormat::Png | MediaFormat::Jpeg => images::decode(bytes, format, limits),
         MediaFormat::Wav | MediaFormat::OggVorbis | MediaFormat::Flac => {
@@ -95,6 +103,61 @@ pub fn validate_media(
         }
         MediaFormat::Glb => geometry::decode(bytes, limits),
     }
+}
+
+/// Validate media by its declared contents without treating an invalid source
+/// graph as ordinary glTF. Consumers must still select a compatible renderer.
+pub fn validate_declared_media(
+    bytes: &[u8],
+    format: MediaFormat,
+    limits: MediaLimits,
+    carrier_budget: crate::source_graph_glb::SourceGraphGlbReadBudget,
+) -> Result<ValidatedMedia, MediaValidationError> {
+    validate_input(bytes, format, limits)?;
+    let has_source_graph = if format == MediaFormat::Glb {
+        crate::source_graph_glb::read_source_graph_glb_with_budget(bytes, carrier_budget)
+            .map_err(|reason| error(format, reason))?
+            .is_some()
+    } else {
+        false
+    };
+    if has_source_graph {
+        Ok(ValidatedMedia {
+            route: MediaRoute::SourceGraph,
+            info: validate_source_graph_media(bytes, limits, carrier_budget)?,
+        })
+    } else {
+        Ok(ValidatedMedia {
+            route: MediaRoute::Standard,
+            info: validate_media(bytes, format, limits)?,
+        })
+    }
+}
+
+/// Validate a declared source graph's pinned programs, geometry and images with
+/// explicit carrier and decoded-media budgets. This is byte admission only: it
+/// does not authorize ordinary glTF fallback, package distribution or rendering.
+pub fn validate_source_graph_media(
+    bytes: &[u8],
+    limits: MediaLimits,
+    carrier_budget: crate::source_graph_glb::SourceGraphGlbReadBudget,
+) -> Result<MediaInfo, MediaValidationError> {
+    validate_input(bytes, MediaFormat::Glb, limits)?;
+    geometry::decode_source_graph(bytes, limits, carrier_budget)
+}
+
+fn validate_input(
+    bytes: &[u8],
+    format: MediaFormat,
+    limits: MediaLimits,
+) -> Result<(), MediaValidationError> {
+    if bytes.is_empty() {
+        return Err(error(format, "empty media input"));
+    }
+    if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > limits.max_input_bytes {
+        return Err(error(format, "input byte budget exceeded"));
+    }
+    Ok(())
 }
 
 fn error(format: MediaFormat, reason: impl Into<String>) -> MediaValidationError {

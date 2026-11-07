@@ -29,32 +29,42 @@ pub(super) fn ContainerControls(
     let quantity = RwSignal::new("1".to_owned());
     let contents = RwSignal::new(BTreeMap::<EntityId, u32>::new());
     let filters = RwSignal::new(BTreeSet::<EntityId>::new());
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let current = (selected.get(), super::source_hash(state));
-        if previous.as_ref() == Some(&current) {
-            return current;
-        }
-        if let Some(definition) = document().and_then(|d| {
-            id(&selected.get())
-                .ok()
-                .and_then(|object| d.container_definition(object).cloned())
-        }) {
-            capacity.set(definition.capacity_units.to_string());
-            contents.set(definition.initial_items);
-            key.set(
-                definition
-                    .key
-                    .map_or_else(String::new, |key| key.to_string()),
-            );
-            filters.set(definition.accepts.into_iter().collect());
-        } else {
-            capacity.set("6".into());
-            contents.set(BTreeMap::new());
-            filters.set(BTreeSet::new());
-            key.set(String::new());
-        }
-        current
-    });
+    let draft_notice = super::draft::bind(
+        move || {
+            let selected = selected.get();
+            let source = super::draft::records(state, &selected);
+            (selected, source)
+        },
+        vec![
+            super::draft::Field::new(capacity),
+            super::draft::Field::new(contents),
+            super::draft::Field::new(key),
+            super::draft::Field::new(filters),
+        ],
+        move || {
+            if let Some(definition) = document().and_then(|d| {
+                id(&selected.get())
+                    .ok()
+                    .and_then(|object| d.container_definition(object).cloned())
+            }) {
+                capacity.set(definition.capacity_units.to_string());
+                contents.set(definition.initial_items);
+                key.set(
+                    definition
+                        .key
+                        .map_or_else(String::new, |key| key.to_string()),
+                );
+                filters.set(definition.accepts.into_iter().collect());
+            } else {
+                capacity.set("6".into());
+                contents.set(BTreeMap::new());
+                filters.set(BTreeSet::new());
+                key.set(String::new());
+            }
+        },
+    );
+    let definition_send = draft_notice.submitter(send);
+
     let disabled = move || {
         busy.get()
             || state
@@ -64,21 +74,21 @@ pub(super) fn ContainerControls(
     view! {
         <Show when=move ||document().is_some_and(|d|d.surface_visible(CreatorSurface::Containers))>
             <details class="creator-containers"><summary>"Conteneurs et contenu initial"</summary>
-                <fieldset disabled=disabled>
+                <fieldset disabled=disabled><super::draft::DraftNotice notice=draft_notice/>
                     <p>"Choisir un objet physique ou un conteneur. Pour créer un coffre, ajouter d’abord un objet physique. Son identité, son nom, sa position et ses propriétés physiques seront conservés."</p>
                     <label>"Objet du conteneur"<select prop:value=move ||selected.get() on:change=move |e|selected.set(event_target_value(&e))>
                         <option value="">"Choisir un objet"</option>
                         {move ||document().map(|d|d.objects.into_iter().filter(|o|matches!(o.kind,ObjectKind::Prop | ObjectKind::Container { .. }))
                             .map(|o|view!{<option value=o.id.to_string()>{o.name}</option>}).collect_view())}
                     </select></label>
-                    <label>"Capacité (unités d’items)"<input type="number" min="0" max=forge_gameplay::MAX_INVENTORY_UNITS.to_string() step="1" prop:value=move ||capacity.get() on:input=move |e|capacity.set(event_target_value(&e))/></label>
+                    <label>"Capacité (unités d’objets d’inventaire)"<input type="number" min="0" max=forge_gameplay::MAX_INVENTORY_UNITS.to_string() step="1" prop:value=move ||capacity.get() on:input=move |e|capacity.set(event_target_value(&e))/></label>
                     <p>"La capacité compte les quantités, avec la même limite de pile que le catalogue. Ce profil ne calcule pas un poids."</p>
                     <label>"Clé initiale"<select prop:value=move ||key.get() on:change=move |e|key.set(event_target_value(&e))>
                         <option value="">"Sans serrure"</option>
                         {move ||document().map(|d|d.items.into_iter().map(|i|view!{<option value=i.id.to_string()>{i.name}</option>}).collect_view())}
                     </select></label>
                     <p>"Une clé choisie rend le conteneur verrouillé au début de la partie. La clé doit être possédée pour ouvrir ou verrouiller ; elle n’est pas consommée."</p>
-                    <label>"Item à préparer"<select prop:value=move ||item.get() on:change=move |e|item.set(event_target_value(&e))>
+                    <label>"Objet d’inventaire à préparer"<select prop:value=move ||item.get() on:change=move |e|item.set(event_target_value(&e))>
                         <option value="">"Choisir dans le catalogue"</option>
                         {move ||document().map(|d|d.items.into_iter().map(|i|view!{<option value=i.id.to_string()>{format!("{} · pile max. {}",i.name,i.max_stack)}</option>}).collect_view())}
                     </select></label>
@@ -100,7 +110,7 @@ pub(super) fn ContainerControls(
                         view!{<li>{format!("{name} × {quantity}")}<button on:click=move |_|contents.update(|items|{items.remove(&item);})>"Retirer de la préparation"</button></li>}
                     }).collect_view()}</ul>
                     <details><summary>"Filtre des dépôts"</summary>
-                        <p>"Sans sélection, tous les items déclarés sont admis. Le contenu initial doit aussi respecter le filtre."</p>
+                        <p>"Sans sélection, tous les objets d’inventaire déclarés sont admis. Le contenu initial doit aussi respecter le filtre."</p>
                         {move ||document().map(|d|d.items.into_iter().map(|item| {
                             let id = item.id;
                             view!{<label><input type="checkbox" prop:checked=move ||filters.get().contains(&id) on:change=move |e|filters.update(|items|{
@@ -109,7 +119,7 @@ pub(super) fn ContainerControls(
                         }).collect_view())}
                     </details>
                     <p>"Ces champs préparent un candidat. Examiner puis appliquer pour enregistrer dans l’historique. Modifier le contenu initial, le filtre ou la clé peut rendre une sauvegarde de partie incompatible."</p>
-                    <button on:click=move |_|send.run(edit(state.get_untracked(),move |_,source| {
+                    <button on:click=move |_|definition_send.run(edit(state.get_untracked(),move |_,source| {
                         let definition = ContainerDefinition {
                             capacity_units: capacity.get_untracked().trim().parse().map_err(|_|"La capacité doit être un entier positif ou nul.".to_owned())?,
                             initial_items: contents.get_untracked(), accepts: filters.get_untracked().into_iter().collect(),

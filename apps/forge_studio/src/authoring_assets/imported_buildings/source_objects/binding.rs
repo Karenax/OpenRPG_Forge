@@ -70,6 +70,7 @@ pub(super) fn placement(
     ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic(format!("imported-object:{area}:{asset_id}:{key}")),
         name,
         asset_id,

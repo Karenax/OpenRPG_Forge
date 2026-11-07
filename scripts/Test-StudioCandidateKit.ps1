@@ -48,6 +48,32 @@ foreach ($name in @('preview.json', 'prototype-catalog.json')) {
 $parameters = @{ Frontend = $frontend; ExpectedWasmSha256 = $wasmHash; Output = (Join-Path $root 'candidate'); ValidateOnly = $true }
 $builder = Join-Path $PSScriptRoot 'Build-StudioCandidate.ps1'
 $plain = & $builder @parameters | ConvertFrom-Json
+# Legacy v1 remains accepted above; a v2 receipt must pin the exact profile command.
+$workerManifestPath = Join-Path $frontend 'forge-navigation-worker-manifest.json'
+$workerReceipt = Get-Content -LiteralPath $workerManifestPath -Raw | ConvertFrom-Json
+$workerReceipt.version = 2
+$workerReceipt | Add-Member -NotePropertyName cargo_profile -NotePropertyValue 'forge-navigation-worker'
+$workerReceipt | Add-Member -NotePropertyName profile_inherits -NotePropertyValue 'release'
+$workerReceipt | Add-Member -NotePropertyName cargo_target -NotePropertyValue 'wasm32-unknown-unknown'
+$workerReceipt | Add-Member -NotePropertyName cargo_arguments -NotePropertyValue @('--config','profile.forge-navigation-worker.inherits="release"',
+    'build','-p','forge_navigation','--lib','--no-default-features','--features','web',
+    '--target','wasm32-unknown-unknown','--locked','--offline','-j1','--profile','forge-navigation-worker')
+$workerReceipt | Add-Member -NotePropertyName effective_profile_overrides_verified -NotePropertyValue $false
+$workerReceipt.source_pins += [pscustomobject]@{path='.cargo/config.toml';sha256=(Get-FileHash -LiteralPath (Join-Path $repository '.cargo/config.toml')).Hash.ToLowerInvariant()}
+function Save-WorkerReceipt { $workerReceipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $workerManifestPath }
+Save-WorkerReceipt
+$profiled = & $builder @parameters | ConvertFrom-Json
+if ($profiled.files -ne $plain.files -or $profiled.build_executed) { throw 'Profiled worker validation failed' }
+$workerReceipt.profile_inherits = 'dev'
+Save-WorkerReceipt
+try {
+    & $builder @parameters | Out-Null
+    throw 'Invalid worker profile was accepted'
+} catch {
+    if ($_.Exception.Message -notlike '*Invalid navigation worker manifest/configuration*') { throw }
+}
+$workerReceipt.profile_inherits = 'release'
+Save-WorkerReceipt
 if ($null -ne $plain.window_x -or $null -ne $plain.window_y) { throw 'Default window position changed' }
 if ($plain.window_width -ne 1920 -or $plain.window_height -ne 1080) { throw 'Default window size changed' }
 $sized = & $builder @parameters -WindowWidth 1600 -WindowHeight 900 | ConvertFrom-Json

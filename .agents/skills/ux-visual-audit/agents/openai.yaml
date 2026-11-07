@@ -1,0 +1,4 @@
+interface:
+  display_name: "ux-visual-audit"
+  short_description: "Qualité UX adaptée aux utilisateurs de Forge"
+  default_prompt: "Utiliser $ux-visual-audit pour cette interface."

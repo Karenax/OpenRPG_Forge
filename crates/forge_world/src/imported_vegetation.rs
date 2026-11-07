@@ -14,6 +14,7 @@ mod catalogue;
 pub use catalogue::ImportedPlantCatalogEntry;
 pub mod acquisition;
 pub mod editable;
+pub mod streaming;
 mod terrain;
 pub use terrain::{ImportedTerrainLayer, ImportedTerrainView};
 

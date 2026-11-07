@@ -28,6 +28,8 @@ const FAMILIES: &[(u32, u32, u32)] = &[
     (40, 41, 42),
     (43, 44, 45),
     (46, 47, 48),
+    (49, 50, 51),
+    (52, 53, 54),
 ];
 
 pub(super) fn encoding(version: u32) -> Result<Encoding, String> {
@@ -65,11 +67,15 @@ mod tests {
     fn historical_wire_numbers_route_to_exactly_one_codec() {
         // Independent frozen protocol lists, including the early irregular codecs.
         let full = [
-            1, 2, 4, 8, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46,
+            1, 2, 4, 8, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52,
         ];
-        let compact = [3, 5, 9, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47];
-        let delta = [6, 7, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48];
-        for version in 1..=48 {
+        let compact = [
+            3, 5, 9, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53,
+        ];
+        let delta = [
+            6, 7, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54,
+        ];
+        for version in 1..=54 {
             let expected = if full.contains(&version) {
                 Encoding::Full
             } else if compact.contains(&version) {
@@ -93,9 +99,9 @@ mod tests {
                 .collect();
             assert!(kinds.iter().all(|&kind| kind == expected));
         }
-        for version in [0, 49, u32::MAX] {
+        for version in [0, 55, u32::MAX] {
             assert!(encoding(version).is_err());
         }
-        assert!(encoded_version(49, Encoding::Compact).is_err());
+        assert!(encoded_version(55, Encoding::Compact).is_err());
     }
 }

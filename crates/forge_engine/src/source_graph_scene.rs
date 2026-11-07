@@ -39,6 +39,17 @@ pub fn spawn_source_graph_hierarchy(
     world: &mut World,
     placement_root: Entity,
 ) -> Result<BTreeMap<usize, Entity>, String> {
+    spawn_source_graph_hierarchy_with_node_identities(plan, world, placement_root, &BTreeSet::new())
+}
+
+/// The same source hierarchy, with original frames retained only for selected
+/// model nodes. The complete selection is checked before creating any entities.
+pub fn spawn_source_graph_hierarchy_with_node_identities(
+    plan: &SourceGraphScenePlan,
+    world: &mut World,
+    placement_root: Entity,
+    tracked_nodes: &BTreeSet<usize>,
+) -> Result<BTreeMap<usize, Entity>, String> {
     if !world.entities().contains(placement_root) {
         return Err("source placement root does not exist".into());
     }
@@ -72,6 +83,12 @@ pub fn spawn_source_graph_hierarchy(
             return Err("source local transform no longer matches its declared matrix".into());
         }
     }
+    if !tracked_nodes.is_subset(&seen) {
+        return Err("tracked source node is absent from the selected scene".into());
+    }
+    for index in tracked_nodes {
+        u64::try_from(*index).map_err(|_| "tracked source node index exceeds u64")?;
+    }
     let mut entities = BTreeMap::new();
     for node in &plan.nodes {
         let parent = node
@@ -89,6 +106,12 @@ pub fn spawn_source_graph_hierarchy(
         ));
         if let Some(name) = &node.name {
             entity.insert(Name::new(name.clone()));
+        }
+        if tracked_nodes.contains(&node.source_node) {
+            entity.insert(crate::model_nodes::ModelNodeIdentity::new(
+                u64::try_from(node.source_node).expect("tracked source node index was validated"),
+                node.local_transform,
+            ));
         }
         entities.insert(node.source_node, entity.id());
     }
@@ -390,6 +413,40 @@ mod tests {
                 .source_node,
             0
         );
+        assert!(
+            world
+                .get::<crate::model_nodes::ModelNodeIdentity>(entities[&0])
+                .is_none()
+        );
+        let tracked_root = world.spawn(Transform::IDENTITY).id();
+        let tracked = spawn_source_graph_hierarchy_with_node_identities(
+            &plan,
+            &mut world,
+            tracked_root,
+            &BTreeSet::from([0]),
+        )
+        .unwrap();
+        let common = world
+            .get::<crate::model_nodes::ModelNodeIdentity>(tracked[&0])
+            .unwrap();
+        assert_eq!(common.index(), 0);
+        assert_eq!(common.rest(), *world.get::<Transform>(tracked[&0]).unwrap());
+        assert!(
+            world
+                .get::<crate::model_nodes::ModelNodeIdentity>(tracked[&1])
+                .is_none()
+        );
+        let before_refusal = world.entities().len();
+        assert!(
+            spawn_source_graph_hierarchy_with_node_identities(
+                &plan,
+                &mut world,
+                tracked_root,
+                &BTreeSet::from([999]),
+            )
+            .is_err()
+        );
+        assert_eq!(world.entities().len(), before_refusal);
         assert_eq!(
             *world.get::<Visibility>(entities[&0]).unwrap(),
             Visibility::Inherited

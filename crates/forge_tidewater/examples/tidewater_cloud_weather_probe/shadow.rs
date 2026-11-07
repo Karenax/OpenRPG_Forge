@@ -1,5 +1,5 @@
 //! Verified native fixture acquisition for the shared cloud inputs.
-use forge_tidewater::tidewater_clouds::shadow::Input;
+use forge_engine::source_clouds::shadow::Input;
 use serde_json::Value;
 use std::{error::Error, path::Path};
 #[allow(clippy::fn_params_excessive_bools)] // Independent diagnostic switches.
@@ -28,7 +28,7 @@ pub fn load(
     let mut frames = Vec::new();
     for step in 1..=120 {
         let local = if let Some(generated) = &generated {
-            forge_tidewater::cloud_controller::bytes(&generated[step - 1].frame)
+            forge_engine::cloud_controller::bytes(&generated[step - 1].frame)
         } else {
             super::checked(root, meta, &format!("cloud-step{step:03}-frame.bin"))?
         };

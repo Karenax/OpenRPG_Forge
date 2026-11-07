@@ -8,7 +8,10 @@ use crate::asset_library_protocol::{
     LibraryRequest, LibraryResponse, vault_asset_id,
 };
 use serde_json::Value;
+#[cfg(test)]
+mod companion_storage_tests;
 mod history;
+mod module_export;
 mod particle_transport;
 mod physics_transport;
 use sha2::{Digest, Sha256};
@@ -334,9 +337,9 @@ impl Library {
             .resolve_access(asset, false)?
             .model
             .ok_or("modèle absent")?;
-        let bytes = read_model_limited(&path, MAX_MODEL)?;
+        let (bytes, actual) = read_model_limited(&self.root, &path, MAX_MODEL)?;
         let expected = required(&asset.details, "model_sha256")?;
-        if !same_hash(&bytes, expected) {
+        if !actual.eq_ignore_ascii_case(expected) {
             return Err("empreinte de modèle incohérente".to_owned());
         }
         // Envelope admission only; the existing governed GLB validator must
@@ -351,7 +354,7 @@ impl Library {
         Ok(LibraryModel {
             id: asset.card.id.clone(),
             asset_id: vault_asset_id(&asset.card.id),
-            sha256: forge_core::ContentHash::from_bytes(Sha256::digest(&bytes).into()),
+            sha256: forge_core::ContentHash::parse(&actual).map_err(|e| e.to_string())?,
             bytes,
         })
     }
@@ -1073,11 +1076,8 @@ impl Library {
                     &mut paths,
                 )?;
                 if full_hash
-                    && !same_file_hash(
-                        &declared,
-                        required(&asset.details, "model_sha256")?,
-                        metadata.len(),
-                    )?
+                    && !forge_delivery::vault_storage::file_hash(&self.root, &declared, MAX_MODEL)?
+                        .eq_ignore_ascii_case(required(&asset.details, "model_sha256")?)
                 {
                     return Err("empreinte de modèle incohérente".to_owned());
                 }
@@ -1425,29 +1425,13 @@ fn parse_json(raw: &[u8], label: &str) -> Result<Value, String> {
 
 /// Reserve packet headroom before reading a bounded model. Metadata size is
 /// checked first; shrink/growth during reading remains a refusal.
-fn read_model_limited(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
-    let file = fs::File::open(path).map_err(|error| format!("lecture refusée: {error}"))?;
-    let metadata = file
-        .metadata()
-        .map_err(|error| format!("lecture refusée: {error}"))?;
-    if !metadata.is_file() || metadata.len() > limit {
-        return Err("fichier absent, non régulier ou trop volumineux".to_owned());
-    }
-    let body_len = usize::try_from(metadata.len()).map_err(|_| "taille de modèle invalide")?;
-    let capacity = body_len
-        .checked_add(crate::asset_library_model_wire::MODEL_HEADER_HEADROOM)
-        .ok_or("taille de modèle invalide")?;
-    let mut bytes = Vec::new();
+fn read_model_limited(root: &Path, path: &Path, limit: u64) -> Result<(Vec<u8>, String), String> {
+    let (mut bytes, digest) =
+        forge_delivery::vault_storage::read_file_with_hash(root, path, limit)?;
     bytes
-        .try_reserve_exact(capacity)
+        .try_reserve_exact(crate::asset_library_model_wire::MODEL_HEADER_HEADROOM)
         .map_err(|error| format!("allocation de modèle refusée: {error}"))?;
-    file.take(metadata.len().saturating_add(1))
-        .read_to_end(&mut bytes)
-        .map_err(|error| format!("lecture impossible: {error}"))?;
-    if bytes.len() != body_len {
-        return Err("modèle modifié pendant la lecture".to_owned());
-    }
-    Ok(bytes)
+    Ok((bytes, digest))
 }
 
 fn read_limited(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
@@ -1652,6 +1636,22 @@ mod tests {
     }
 
     fn valid_model_fixture(root: &Path) -> Vec<u8> {
+        // Minimal aligned GLB, deliberately not a geometry/runtime qualification.
+        let mut json = br#"{"asset":{"version":"2.0"}}"#.to_vec();
+        while !json.len().is_multiple_of(4) {
+            json.push(b' ');
+        }
+        let mut bytes = b"glTF".to_vec();
+        bytes.extend_from_slice(&2_u32.to_le_bytes());
+        bytes.extend_from_slice(&u32::try_from(20 + json.len()).unwrap().to_le_bytes());
+        bytes.extend_from_slice(&u32::try_from(json.len()).unwrap().to_le_bytes());
+        bytes.extend_from_slice(b"JSON");
+        bytes.extend_from_slice(&json);
+        set_model_fixture(root, &bytes);
+        bytes
+    }
+
+    pub(super) fn set_model_fixture(root: &Path, bytes: &[u8]) {
         let catalog_path = root.join("normalized/demo/catalog.v1.json");
         let pack = root.join("metadata/rev/demo/one");
         let mut details: Value =
@@ -1659,21 +1659,44 @@ mod tests {
         let mut profiles: Value =
             serde_json::from_slice(&fs::read(pack.join("profiles.v1.json")).unwrap()).unwrap();
         let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path).unwrap()).unwrap();
-        // Minimal GLB envelope, deliberately not a geometry/runtime qualification.
-        let json = br#"{"asset":{"version":"2.0"}}  "#;
-        let mut bytes = b"glTF".to_vec();
-        bytes.extend_from_slice(&2_u32.to_le_bytes());
-        bytes.extend_from_slice(&u32::try_from(20 + json.len()).unwrap().to_le_bytes());
-        bytes.extend_from_slice(&u32::try_from(json.len()).unwrap().to_le_bytes());
-        bytes.extend_from_slice(b"JSON");
-        bytes.extend_from_slice(json);
-        let hash = sha256(&bytes);
+        let hash = sha256(bytes);
         details["assets"][0]["model_sha256"] = hash.clone().into();
         profiles["profiles"][0]["model_content_sha256"] = hash.clone().into();
         catalog["assets"][0]["sha256"] = hash.clone().into();
-        fs::write(root.join("normalized/demo/models/a.glb"), &bytes).unwrap();
+        fs::write(root.join("normalized/demo/models/a.glb"), bytes).unwrap();
         write_pack_fixture(root, "demo", &details, &profiles, &catalog, &catalog_path);
-        bytes
+    }
+
+    fn compacted_model_fixture(root: &Path, bytes: &[u8]) -> Vec<u8> {
+        fs::create_dir_all(root.join(".forge-storage/packs")).unwrap();
+        fs::write(
+            root.join(".forge-storage/root.v1.json"),
+            br#"{"schema":1,"vault_id":"11111111111111111111111111111111"}"#,
+        )
+        .unwrap();
+        fs::write(
+            root.join(".forge-storage/packs/22222222222222222222222222222222.pack"),
+            bytes,
+        )
+        .unwrap();
+        let descriptor = forge_delivery::vault_storage::Descriptor {
+            schema: 1,
+            vault_id: "1".repeat(32),
+            bytes: bytes.len() as u64,
+            sha256: sha256(bytes),
+            segments: vec![forge_delivery::vault_storage::Segment {
+                pack: "2".repeat(32),
+                offset: 0,
+                stored_bytes: bytes.len() as u64,
+                bytes: bytes.len() as u64,
+                sha256: sha256(bytes),
+                codec: "raw".into(),
+            }],
+        };
+        let mut envelope = forge_delivery::vault_storage::MAGIC.to_vec();
+        envelope.extend(serde_json::to_vec(&descriptor).unwrap());
+        fs::write(root.join("normalized/demo/models/a.glb"), &envelope).unwrap();
+        envelope
     }
 
     #[test]
@@ -1757,6 +1780,534 @@ mod tests {
                 .as_nanos()
         ));
         fixture_at(root)
+    }
+
+    #[test]
+    fn compacted_vault_model_keeps_library_pins_and_exports_real_glb() {
+        let (root, _) = fixture();
+        let bytes = valid_model_fixture(&root);
+        let model = root.join("normalized/demo/models/a.glb");
+        let registry = fs::read(root.join("metadata/asset-import-registry.v1.json")).unwrap();
+        let envelope = compacted_model_fixture(&root, &bytes);
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library
+            .execute(LibraryRequest::Search {
+                query: LibraryQuery::default(),
+            })
+            .unwrap()
+        else {
+            panic!()
+        };
+        let pin = forge_core::bytes_sha256(&bytes);
+        let id = vault_asset_id(&page.assets[0].id);
+        let exported = library
+            .export_private_models(&[(id, pin)], "2026-10-27", 1024 * 1024)
+            .unwrap();
+        let asset = &exported.catalog.assets[0];
+        assert_eq!(asset.payload.bytes, bytes.len() as u64);
+        assert_eq!(asset.payload.sha256, pin);
+        assert_eq!(exported.files[&asset.payload.path], bytes);
+        assert_eq!(fs::read(&model).unwrap(), envelope);
+        assert_eq!(
+            fs::read(root.join("metadata/asset-import-registry.v1.json")).unwrap(),
+            registry
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn source_graph_private_export_reads_compacted_model_and_refuses_tampered_program() {
+        let (root, _) = fixture();
+        let mut bytes = crate::source_graph_test_fixture::fixture().unwrap();
+        set_model_fixture(&root, &bytes);
+        let envelope = compacted_model_fixture(&root, &bytes);
+        let registry_path = root.join("metadata/asset-import-registry.v1.json");
+        let registry = fs::read(&registry_path).unwrap();
+        let model = root.join("normalized/demo/models/a.glb");
+        let id = vault_asset_id("demo.arbre-eclaire");
+        let mut library = Library::new(&root).unwrap();
+        let exported = library
+            .export_private_models(
+                &[(id, forge_core::bytes_sha256(&bytes))],
+                "2026-11-02",
+                1024 * 1024,
+            )
+            .unwrap();
+        let asset = &exported.catalog.assets[0];
+        assert_eq!(exported.files[&asset.payload.path], bytes);
+        assert_eq!(fs::read(&model).unwrap(), envelope);
+        assert_eq!(fs::read(&registry_path).unwrap(), registry);
+
+        let offset = bytes
+            .windows(crate::source_graph_test_fixture::FORWARD.len())
+            .position(|window| window == crate::source_graph_test_fixture::FORWARD.as_bytes())
+            .unwrap();
+        bytes[offset] ^= 1;
+        set_model_fixture(&root, &bytes);
+        let envelope = compacted_model_fixture(&root, &bytes);
+        let registry = fs::read(&registry_path).unwrap();
+        let mut library = Library::new(&root).unwrap();
+        assert!(
+            library
+                .export_private_models(
+                    &[(id, forge_core::bytes_sha256(&bytes))],
+                    "2026-11-02",
+                    1024 * 1024
+                )
+                .is_err()
+        );
+        assert_eq!(fs::read(&model).unwrap(), envelope);
+        assert_eq!(fs::read(&registry_path).unwrap(), registry);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn private_vault_export_captures_exact_bytes_and_declared_provenance_without_writes() {
+        let (root, _) = fixture();
+        let bytes = valid_model_fixture(&root);
+        let registry = fs::read(root.join("metadata/asset-import-registry.v1.json")).unwrap();
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library
+            .execute(LibraryRequest::Search {
+                query: LibraryQuery::default(),
+            })
+            .unwrap()
+        else {
+            panic!()
+        };
+        let pin = forge_core::bytes_sha256(&bytes);
+        let id = vault_asset_id(&page.assets[0].id);
+        let exported = library
+            .export_private_models(&[(id, pin)], "2026-10-22", 1024 * 1024)
+            .unwrap();
+        assert_eq!(exported.catalog.assets.len(), 1);
+        let asset = &exported.catalog.assets[0];
+        assert_eq!(asset.id, id);
+        assert_eq!(asset.payload.sha256, pin);
+        assert_eq!(exported.files[&asset.payload.path], bytes);
+        assert_eq!(asset.provenance.license, "CC0");
+        assert!(asset.provenance.rights.local_use);
+        assert_eq!(
+            asset.provenance.rights.redistribution,
+            forge_assets::governed_import::RedistributionRights::Forbidden
+        );
+        assert!(exported.catalog.validate_for_publication().is_err());
+        let proof: Value =
+            serde_json::from_slice(&exported.files[&asset.provenance.evidence]).unwrap();
+        assert_eq!(proof["package_copy_acquired_on"], "2026-10-22");
+        assert!(proof["original_acquisition_date"].is_null());
+        assert_eq!(proof["model_sha256"], pin.to_string());
+        assert_eq!(proof["library_id"], page.assets[0].id);
+        assert_eq!(
+            fs::read(root.join("metadata/asset-import-registry.v1.json")).unwrap(),
+            registry
+        );
+        assert_eq!(
+            fs::read(root.join("normalized/demo/models/a.glb")).unwrap(),
+            bytes
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn private_vault_export_refuses_missing_pins_budget_date_and_corrupt_models() {
+        let (root, _) = fixture();
+        let mut bytes = valid_model_fixture(&root);
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library
+            .execute(LibraryRequest::Search {
+                query: LibraryQuery::default(),
+            })
+            .unwrap()
+        else {
+            panic!()
+        };
+        let pair = (
+            vault_asset_id(&page.assets[0].id),
+            forge_core::bytes_sha256(&bytes),
+        );
+        assert!(
+            library
+                .export_private_models(&[pair], "2026-10-22", 1)
+                .is_err()
+        );
+        assert!(
+            library
+                .export_private_models(&[pair], "unknown", 1024 * 1024)
+                .is_err()
+        );
+        assert!(
+            library
+                .export_private_models(&[pair, pair], "2026-10-22", 1024 * 1024)
+                .is_err()
+        );
+        assert!(
+            library
+                .export_private_models(
+                    &[(pair.0, forge_core::bytes_sha256(b"missing"))],
+                    "2026-10-22",
+                    1024 * 1024
+                )
+                .is_err()
+        );
+        let last = bytes.len() - 1;
+        bytes[last] ^= 1;
+        fs::write(root.join("normalized/demo/models/a.glb"), bytes).unwrap();
+        assert!(
+            library
+                .export_private_models(&[pair], "2026-10-22", 1024 * 1024)
+                .is_err()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    #[ignore = "Requires an explicit private Vault model pin and a fresh external evidence path"]
+    fn live_selected_private_vault_export() {
+        use std::io::Write;
+        let root = PathBuf::from(std::env::var("OPENRPG_ASSET_VAULT").expect("explicit Vault"));
+        let id: forge_core::AssetId = std::env::var("OPENRPG_GATE6_TEST_ASSET_ID")
+            .unwrap()
+            .parse()
+            .unwrap();
+        let pin = forge_core::ContentHash::parse(
+            &std::env::var("OPENRPG_GATE6_TEST_ASSET_SHA256").unwrap(),
+        )
+        .unwrap();
+        let utc = std::env::var("OPENRPG_GATE6_TEST_UTC").unwrap();
+        let output = PathBuf::from(std::env::var("OPENRPG_GATE6_TEST_REPORT").unwrap());
+        let mut library = Library::new(&root).unwrap();
+        let started = std::time::Instant::now();
+        let snapshot = library
+            .export_private_models(
+                &[(id, pin)],
+                utc.get(..10).unwrap(),
+                crate::asset_import_native::MAX_EXPORT_BYTES,
+            )
+            .unwrap();
+        assert_eq!(snapshot.catalog.assets.len(), 1);
+        assert!(snapshot.catalog.validate_for_publication().is_err());
+        let asset = &snapshot.catalog.assets[0];
+        assert_eq!(asset.id, id);
+        assert_eq!(asset.payload.sha256, pin);
+        assert_eq!(
+            forge_core::bytes_sha256(&snapshot.files[&asset.payload.path]),
+            pin
+        );
+        let report = serde_json::json!({"schema":"forge.gate6.live-vault-private-export.v1","utc":utc,"asset_id":id,"model_sha256":pin,"model_bytes":asset.payload.bytes,"license":asset.provenance.license,"proof_file":asset.provenance.evidence,"export_files":snapshot.files.len(),"export_bytes":snapshot.files.values().map(|bytes|bytes.len() as u64).sum::<u64>(),"seconds":started.elapsed().as_secs_f64(),"local_catalog_valid":true,"public_export_refused":true,"vault_written":false,"provider_called":false,"native_game_qualified":false,"gate_closed":false});
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&output)
+            .unwrap();
+        file.write_all(&serde_json::to_vec_pretty(&report).unwrap())
+            .unwrap();
+        println!("{report}");
+    }
+
+    #[test]
+    fn assistant_asset_search_shares_bounded_metadata_without_private_paths() {
+        use crate::{assistant_asset_protocol::AssetQuery, assistant_assets_native};
+        let (root, _) = fixture();
+        valid_model_fixture(&root);
+        let mut library = Library::new(&root).unwrap();
+        let page = assistant_assets_native::search(
+            &mut library,
+            &AssetQuery {
+                text: "Arbre".into(),
+                pack: "demo".into(),
+                offset: 0,
+            },
+        )
+        .unwrap();
+        assert_eq!(page.assets.len(), 1);
+        assert_eq!(page.assets[0].asset.name, "Arbre éclairé");
+        assert!(!page.assets[0].asset.model_verified);
+        let bytes = serde_json::to_string(&page).unwrap();
+        assert!(!bytes.contains(&root.display().to_string()));
+        assert!(!bytes.contains("model_path"));
+        assert!(!bytes.contains("source_path"));
+        assert!(!bytes.contains("catalog_asset"));
+        assert!(!page.assets[0].asset.runtime_qualified);
+        drop(library);
+        discard_assistant_fixture(&root);
+    }
+
+    #[test]
+    fn assistant_asset_resolution_verifies_model_pins_and_rejects_corruption_or_stale_catalog() {
+        use crate::{
+            assistant_asset_protocol::{AssetQuery, AssetSelection},
+            assistant_assets_native,
+        };
+        let (root, _) = fixture();
+        valid_model_fixture(&root);
+        let mut library = Library::new(&root).unwrap();
+        let page = assistant_assets_native::search(
+            &mut library,
+            &AssetQuery {
+                text: "Arbre".into(),
+                pack: "demo".into(),
+                offset: 0,
+            },
+        )
+        .unwrap();
+        let selection = AssetSelection {
+            revision: page.revision,
+            ids: vec![page.assets[0].library_id.clone()],
+            allow_placement: false,
+        };
+        let verified = assistant_assets_native::resolve(&mut library, &selection).unwrap();
+        assert!(verified.catalog_for(&selection).unwrap().context().assets[0].model_verified);
+        let creation = AssetSelection {
+            allow_placement: true,
+            ..selection.clone()
+        };
+        assert!(verified.catalog_for(&creation).is_err());
+        let allowed = assistant_assets_native::resolve(&mut library, &creation).unwrap();
+        assert!(
+            allowed
+                .catalog_for(&creation)
+                .unwrap()
+                .context()
+                .allow_placement
+        );
+        let mut changed = selection.clone();
+        changed.ids.push(changed.ids[0].clone());
+        assert!(verified.catalog_for(&changed).is_err());
+        assert!(assistant_assets_native::resolve(&mut library, &changed).is_err());
+        let path = root.join("normalized/demo/models/a.glb");
+        let original = fs::read(&path).unwrap();
+        fs::write(&path, b"corrupt").unwrap();
+        assert!(assistant_assets_native::resolve(&mut library, &selection).is_err());
+        fs::write(&path, &original).unwrap();
+        let registry = root.join("metadata/asset-import-registry.v1.json");
+        let mut bytes = fs::read(&registry).unwrap();
+        bytes.push(b'\n');
+        fs::write(&registry, bytes).unwrap();
+        assert!(assistant_assets_native::resolve(&mut library, &selection).is_err());
+        drop(library);
+        discard_assistant_fixture(&root);
+    }
+
+    fn mcp_asset_fixture(
+        root: &Path,
+        library: &mut Library,
+    ) -> (
+        forge_project::authoring::host::AuthoringHost,
+        crate::mcp_protocol::ScopeRequest,
+    ) {
+        use crate::{
+            assistant_asset_protocol::{AssetQuery, AssetSelection},
+            assistant_assets_native,
+        };
+        use forge_project::{
+            assistant::selection::{Region, Selection},
+            authoring::{AuthoringRequest, host::AuthoringHost, new_terrain},
+        };
+        let page = assistant_assets_native::search(
+            library,
+            &AssetQuery {
+                text: "Arbre".into(),
+                pack: "demo".into(),
+                offset: 0,
+            },
+        )
+        .unwrap();
+        fs::create_dir(root.join("mcp-authoring")).unwrap();
+        let mut host = AuthoringHost::new(&root.join("mcp-authoring")).unwrap();
+        let state = host
+            .execute(AuthoringRequest::CreateZone {
+                document: Box::new(new_terrain("mcp-assets", "zone", "Original").unwrap()),
+            })
+            .unwrap();
+        let scope = crate::mcp_protocol::ScopeRequest {
+            expected_head: state.zone_head.unwrap().content_hash().unwrap(),
+            selection: Selection {
+                zone_properties: true,
+                ..Selection::default()
+            },
+            region: Region {
+                minimum: forge_core::Vec3::new(-5.0, -5.0, -5.0),
+                maximum: forge_core::Vec3::new(5.0, 5.0, 5.0),
+            },
+            assets: Some(AssetSelection {
+                revision: page.revision,
+                ids: vec![page.assets[0].library_id.clone()],
+                allow_placement: true,
+            }),
+        };
+        (host, scope)
+    }
+
+    fn authorize_mcp_assets(
+        controller: &mut crate::assistant_mcp_controller::Controller,
+        host: &mut forge_project::authoring::host::AuthoringHost,
+        library: &mut Library,
+        scope: &crate::mcp_protocol::ScopeRequest,
+    ) -> forge_project::assistant::selection::PlanningContext {
+        use crate::{assistant_assets_native, mcp_protocol::McpRequest};
+        let preview = controller
+            .ui_with_assets(
+                host,
+                McpRequest::Preview {
+                    scope: scope.clone(),
+                },
+                |selection| assistant_assets_native::resolve(library, selection),
+            )
+            .unwrap();
+        assert!(controller.context(host).unwrap().is_none());
+        let authorized = controller
+            .ui_with_assets(
+                host,
+                McpRequest::Authorize {
+                    scope: scope.clone(),
+                    expected_context_hash: preview.context_hash.unwrap(),
+                },
+                |selection| assistant_assets_native::resolve(library, selection),
+            )
+            .unwrap();
+        assert_eq!(authorized.context_hash, preview.context_hash);
+        controller.context(host).unwrap().unwrap()
+    }
+
+    fn mcp_tree_proposal(
+        context: &forge_project::assistant::selection::PlanningContext,
+    ) -> forge_project::assistant::planning::PlanProposal {
+        use forge_project::assistant::planning::{PlanProposal, PlannedOperation};
+        PlanProposal {
+            context_hash: context.content_hash().unwrap(),
+            summary: "Place verified tree".into(),
+            missing_capabilities: vec![],
+            operations: vec![PlannedOperation::PlaceAsset {
+                key: "tree".into(),
+                name: "Arbre relu".into(),
+                asset_id: context.asset_catalog.as_ref().unwrap().assets[0].asset_id,
+                position: forge_core::Vec3::ZERO,
+                yaw_degrees: 0.0,
+                scale: 1.0,
+            }],
+        }
+    }
+
+    fn mcp_asset_controller(root: &Path) -> crate::assistant_mcp_controller::Controller {
+        let mut controller = crate::assistant_mcp_controller::Controller::default();
+        controller
+            .set_storage_root(&root.join("mcp-authoring"))
+            .unwrap();
+        controller.set_transport_open(true);
+        controller
+    }
+
+    #[test]
+    fn mcp_asset_scope_requires_native_verification_and_preserves_exact_catalog_on_restart() {
+        use crate::{assistant_assets_native, assistant_mcp::ToolCall, mcp_protocol::McpRequest};
+        use forge_core::CommandId;
+        let (root, _) = fixture();
+        valid_model_fixture(&root);
+        let mut library = Library::new(&root).unwrap();
+        let (mut host, scope) = mcp_asset_fixture(&root, &mut library);
+        let mut controller = mcp_asset_controller(&root);
+        assert!(
+            controller
+                .ui(
+                    &mut host,
+                    McpRequest::Preview {
+                        scope: scope.clone()
+                    }
+                )
+                .is_err()
+        );
+        let context = authorize_mcp_assets(&mut controller, &mut host, &mut library, &scope);
+        let hash = context.content_hash().unwrap();
+        let catalog = context.asset_catalog.as_ref().unwrap();
+        assert_eq!(catalog.assets.len(), 1);
+        assert!(catalog.allow_placement && catalog.assets[0].model_verified);
+        assert!(
+            !serde_json::to_string(&context)
+                .unwrap()
+                .contains(&root.display().to_string())
+        );
+        let staged = controller
+            .tool(
+                &mut host,
+                "2026-10-22T20:00:00Z",
+                ToolCall::ProposeEdits(Box::new(mcp_tree_proposal(&context))),
+            )
+            .unwrap();
+        let old_review = controller.status().unwrap().proposals[0].review_hash;
+        let id: CommandId = serde_json::from_value(staged["command_id"].clone()).unwrap();
+        drop(controller);
+        let mut controller = mcp_asset_controller(&root);
+        authorize_mcp_assets(&mut controller, &mut host, &mut library, &scope);
+        let restored = controller.status().unwrap();
+        assert_eq!(restored.proposals.len(), 1);
+        assert_eq!(restored.proposals[0].command_id, id);
+        assert_ne!(restored.proposals[0].review_hash, old_review);
+        assert_eq!(controller.context(&mut host).unwrap().unwrap(), context);
+        assert!(
+            controller
+                .ui(
+                    &mut host,
+                    McpRequest::Apply {
+                        command_id: id,
+                        review_hash: old_review
+                    }
+                )
+                .is_err()
+        );
+        controller.ui(&mut host, McpRequest::Revoke).unwrap();
+        let mut changed = scope.clone();
+        changed.assets.as_mut().unwrap().allow_placement = false;
+        let changed_preview = controller
+            .ui_with_assets(
+                &mut host,
+                McpRequest::Preview {
+                    scope: changed.clone(),
+                },
+                |selection| assistant_assets_native::resolve(&mut library, selection),
+            )
+            .unwrap();
+        assert_ne!(changed_preview.context_hash, Some(hash));
+        assert!(
+            controller
+                .ui_with_assets(
+                    &mut host,
+                    McpRequest::Authorize {
+                        scope: changed,
+                        expected_context_hash: hash
+                    },
+                    |selection| assistant_assets_native::resolve(&mut library, selection)
+                )
+                .is_err()
+        );
+        fs::write(root.join("normalized/demo/models/a.glb"), b"corrupt").unwrap();
+        assert!(
+            controller
+                .ui_with_assets(&mut host, McpRequest::Preview { scope }, |selection| {
+                    assistant_assets_native::resolve(&mut library, selection)
+                })
+                .is_err()
+        );
+        drop(controller);
+        drop(host);
+        drop(library);
+        discard_assistant_fixture(&root);
+    }
+
+    fn discard_assistant_fixture(root: &Path) {
+        let absolute = root.canonicalize().unwrap();
+        assert_eq!(
+            absolute.parent(),
+            Some(std::env::temp_dir().canonicalize().unwrap().as_path())
+        );
+        assert!(
+            absolute
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .starts_with("forge-library-")
+        );
+        fs::remove_dir_all(absolute).unwrap();
     }
 
     fn fixture_at(root: PathBuf) -> (PathBuf, String) {
@@ -2591,7 +3142,7 @@ mod tests {
         );
     }
 
-    fn write_pack_fixture(
+    pub(super) fn write_pack_fixture(
         root: &Path,
         pack: &str,
         details: &Value,
@@ -3412,7 +3963,7 @@ mod model_headroom_tests {
         fs::create_dir_all(&root).unwrap();
         let path = root.join("body.bin");
         fs::write(&path, b"original-body").unwrap();
-        let body = read_model_limited(&path, 13).unwrap();
+        let (body, _) = read_model_limited(&root, &path, 13).unwrap();
         assert_eq!(body, b"original-body");
         assert!(
             body.capacity() >= body.len() + crate::asset_library_model_wire::MODEL_HEADER_HEADROOM
@@ -3427,8 +3978,8 @@ mod model_headroom_tests {
         };
         let packet = crate::asset_library_model_wire::encode(model).unwrap();
         assert_eq!(packet.as_ptr(), pointer);
-        assert!(read_model_limited(&path, 12).is_err());
-        assert!(read_model_limited(&root, 13).is_err());
+        assert!(read_model_limited(&root, &path, 12).is_err());
+        assert!(read_model_limited(&root, &root, 13).is_err());
         fs::remove_file(&path).unwrap();
         fs::remove_dir(&root).unwrap();
     }

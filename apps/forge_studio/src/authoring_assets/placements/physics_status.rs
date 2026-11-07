@@ -57,8 +57,7 @@ mod tests {
         assert!(registered.starts_with("1 placements · 3 primitives synchronisées"));
 
         super::super::report(
-            "1 placements LOD0 projetés · préparation UCX demandée ; Jouer attend les collisions synchronisées."
-                .into(),
+            "1 placements LOD0 projetés · préparation UCX demandée ; Jouer attend les collisions synchronisées.",
         );
         app.update();
         assert_eq!(

@@ -28,6 +28,9 @@ pub fn manual_placements_ready(world: &mut World, accepted: &[ManualPlacement]) 
         {
             return false;
         }
+        if projected.0.physics.is_some() {
+            return crate::source_graph_placement::manual_physics_ready(world, root);
+        }
         world
             .get::<ManualPlacementCollisionExpected>(root)
             .is_some_and(|expected| {
@@ -68,7 +71,7 @@ pub fn placement_transform(placement: &ManualPlacement) -> Transform {
 }
 
 /// Reject stale propagated transforms (including a still-restoring gizmo).
-pub(super) fn current_global(world: &World, mut entity: Entity) -> Option<GlobalTransform> {
+pub(crate) fn current_global(world: &World, mut entity: Entity) -> Option<GlobalTransform> {
     let mut result = GlobalTransform::IDENTITY;
     for _ in 0..128 {
         let local = world.get::<Transform>(entity)?;

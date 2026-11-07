@@ -241,7 +241,33 @@ Après chaque tranche : ID du lot, vérifié/attendu pour le contrôle réalisé
     output += '**Composition du shader arithmetique :** deux controles Bevy/Naga passent avec les bindings canoniques. Sonde de types composee, non executee ; passes completes et rendu Studio restent ouverts. [Preuve](../townsmith-s-paint-canonical-wgsl-check-v1/RESULT.v1.json). Aucun asset complet ajoute.\n\n'
     host_adapter_proof_path=W/'townsmith-s-paint-material-host-adapter-v1/RESULT.v1.json'
     output += '**Adaptateur du materiau et reprise moteur :** binding uniform 100, trois profils de normales et transforms explicites raccordes ; deux compositions passent. Le test moteur v1 a refuse un constructeur non eclaire incomplet ; trois slots optionnels initialises sans changer sa capacite de sept textures. Reprise sequentielle v2, refus v1 conserve. UV0 complet dans les varyings, passes completes et Studio restent ouverts. [Adaptateur](../townsmith-s-paint-material-host-adapter-v1/RESULT.v1.json), [reprise](../townsmith-ten-texture-engine-recovery-v1/RUN-RESULT.v1.json). Aucun asset complet ajoute.\n\n'
+    vertex_transport_proof_path=W/'townsmith-s-paint-vertex-transport-reopen-v1/RESULT.v1.json'
+    output += '**Transport vertex/UV0 :** quatre compositions reouvertes (forward, profondeur, normales, orthographique) avec les modules Bevy epingles. UV0 float4 et index instance conserves. Normale tangentielle implicite derivee du shader genere Unity. Execution GPU et fragments de rendu eclaires restants. [Preuve](../townsmith-s-paint-vertex-transport-reopen-v1/RESULT.v1.json). Aucun asset complet ajoute.\n\n'
+    render_contract_proof_path=W/'townsmith-s-paint-original-render-contract-v1/RESULT.v1.json'
+    format_epoch_proof_path=W/'native-capture-common-format-epoch-v1/RESULT.v1.json'
+    output += '**Etat HDRP original et installation :** materiau opaque standard, normales tangentielles, occlusion speculaire mode 1 ; keywords valides/inactifs et passes conservees. Le changement de source commun est prouve equivalent apres formatage ; snapshots historiques conserves, installation v3 attend les tests moteur v2. [Contrat](../townsmith-s-paint-original-render-contract-v1/RESULT.v1.json), [equivalence](../native-capture-common-format-epoch-v1/RESULT.v1.json), [installation](../native-texture-capture-common-install-v3/RUN-RESULT.v1.json). Rendu et Studio non qualifies.\n\n'
+    townsmith_lit_proof_path=W/'townsmith-s-paint-lit-fragments-v1/RESULT.v1.json'
+    output += '**Fragments Lit et prepasse candidats :** sept compositions passent avec dix slots texture et UV0 float4 ; 134 operations originales conservees, licence Bevy copiee. Layout/pipeline GPU, fidelite HDRP, sampling implicite et Studio restent ouverts. [Preuve](../townsmith-s-paint-lit-fragments-v1/RESULT.v1.json). Aucun asset complet ajoute.\n\n'
+    townsmith_pipeline_proof_path=W/'townsmith-s-paint-native-pipeline-reopen-v1/RESULT.v1.json'
+    output += '**Admission GPU native autonome :** sept pipelines D3D12 crees et reouverts sur RX 7800 XT, layouts inferes ; 103 tests moteur cibles passent, cinq refus Tidewater du controle elargi restent conserves. Contrat commun applique ; 28 tests assets et 103 tests moteur cibles apres installation passent. Bindings Bevy effectifs, draw/readback et fidelite Unity/Studio restent ouverts. [Preuve](../townsmith-s-paint-native-pipeline-reopen-v1/RESULT.v1.json), [installation](../native-texture-capture-common-install-v4/RUN-RESULT.v1.json). Aucun asset complet ajoute.\n\n'
+    output += '**Prochain controle GPU Bevy prepare et en file :** sept variantes avec le layout installe SourceGraphMaterial et les trois groupes reels MeshPipeline (vue, binding array, modele). Les tests post-installation passent ; la version 2 attend la liberation du cache par les compilations existantes. Le refus v1 reste conserve. Aucune creation de bind groups avec ressources ni draw encore qualifies. [Etat](../townsmith-s-paint-bevy-pipeline-v2/RUN-RESULT.v1.json).\n\n'
+    packet_close_path = W / 'townsmith-s-paint-material-packet-reopen-v1/RESULT.v1.json'
+    if packet_close_path.exists():
+        output += '**Paquet materiau complet reouvert :** dix textures, shaders forward/prepass et etats primaires source ; 37 tests isoles passent. Le defaut du controle normal xyz est confirme par deux echecs attendus avec le validateur original. Correction preparee, non installee ; MRT/stencil, pipeline source complet, ressources liees, draw, fidelite et Studio restent ouverts. [Preuve](../townsmith-s-paint-material-packet-reopen-v1/RESULT.v1.json). Aucun asset complet supplementaire.\n\n'
+    door_carrier_path = W / 'townsmith-paint-door-glb-reopen-v1/RESULT.v1.json'
+    if door_carrier_path.exists():
+        output += '**GLB autonome de porte reouvert :** trois LOD, 6 981 sommets, dix textures natives, tous les blocs identiques aux entrees et trois submeshes sans dessin couleur conserves. 50 tests isoles passent, dont les controles precedents. Rendu, politique des ombres, LOD runtime, prefab complet et Studio non qualifies. [Preuve](../townsmith-paint-door-glb-reopen-v1/RESULT.v1.json).\n\n'
+    if (W / 'house-source-thumbnail-batch-0009-0016-v1/RUN-RESULT.v1.json').exists():
+        output += '**Tranche images parallele L08.IMAGE.HOUSE.03 :** huit nouveaux prefabs House, seize images attendues ; 742 fichiers originaux controles. Capture, revue visuelle puis indexation a verifier. Aucune image installee par anticipation. [Etat](../house-source-thumbnail-batch-0009-0016-v1/RUN-RESULT.v1.json).\n\n'
+    house_delivery_path = W / 'house-source-thumbnail-batch-0009-0016-delivery-reopen-v1/RESULT.v1.json'
+    if house_delivery_path.exists():
+        output += '**L08.IMAGE.HOUSE.03 termine pour les vignettes source et le lecteur natif :** huit fiches mises a jour, seize PNG revus et installes ; recherche, filtres, details et lecture des images verifies avec le lecteur actuel du produit. 942 -> 934 fiches source sans image. Sources, licences, readiness et autres fiches inchangees ; delta Vault rehache. Validation visuelle dans Studio, conversion 3D et runtime non qualifies. [Preuve](../house-source-thumbnail-batch-0009-0016-delivery-reopen-v1/RESULT.v1.json).\n\n'
+    if (W / 'townsmith-s-paint-bevy-pipeline-v3/RUN-RESULT.v1.json').exists():
+        output += '**Reprise GPU Bevy v3 :** execution comme exemple du package moteur dans le workspace reel, avec son patch rerecast et ses profils. Le refus Serde v2 du projet isole est conserve ; aucune source de navigation changee. Attend les tests du correctif xyz. [Etat](../townsmith-s-paint-bevy-pipeline-v3/RUN-RESULT.v1.json).\n\n'
     path = T / 'LOTS_ET_AVANCEMENT.md'
+    house_delivery_next_path = W / 'house-source-thumbnail-batch-0017-0024-delivery-reopen-v1/RESULT.v1.json'
+    if house_delivery_next_path.exists():
+        output += '**L08.IMAGE.HOUSE.04 termine pour les vignettes et le lecteur natif :** maison, pierre tombale, dalles et vegetation ; huit fiches / seize PNG. Recherche, filtres, details et octets verifies ; 934 -> 926 fiches source sans image. Sources, licences, readiness et autres fiches conservees. Validation visuelle dans Studio et usage 3D restent ouverts. [Preuve](../house-source-thumbnail-batch-0017-0024-delivery-reopen-v1/RESULT.v1.json).\n\n'
     temp = path.with_suffix('.md.tmp')
     temp.write_text(output, encoding='utf-8')
     temp.replace(path)
@@ -296,7 +322,18 @@ Après chaque tranche : ID du lot, vérifié/attendu pour le contrôle réalisé
     manifest['input_pins'][str(texture_set_proof_path)]=hashlib.sha256(texture_set_proof_path.read_bytes()).hexdigest()
     manifest['input_pins'][str(canonical_wgsl_proof_path)]=hashlib.sha256(canonical_wgsl_proof_path.read_bytes()).hexdigest()
     manifest['input_pins'][str(host_adapter_proof_path)]=hashlib.sha256(host_adapter_proof_path.read_bytes()).hexdigest()
+    manifest['input_pins'][str(vertex_transport_proof_path)]=hashlib.sha256(vertex_transport_proof_path.read_bytes()).hexdigest()
+    manifest['input_pins'][str(render_contract_proof_path)]=hashlib.sha256(render_contract_proof_path.read_bytes()).hexdigest()
+    manifest['input_pins'][str(format_epoch_proof_path)]=hashlib.sha256(format_epoch_proof_path.read_bytes()).hexdigest()
+    manifest['input_pins'][str(townsmith_lit_proof_path)]=hashlib.sha256(townsmith_lit_proof_path.read_bytes()).hexdigest()
+    manifest['input_pins'][str(townsmith_pipeline_proof_path)]=hashlib.sha256(townsmith_pipeline_proof_path.read_bytes()).hexdigest()
+    for progress_path in [packet_close_path, door_carrier_path, house_delivery_path, W / 'townsmith-s-paint-bevy-pipeline-v3/RUN-RESULT.v1.json', W / 'normal-decode-swizzle-common-install-v1/RUN-RESULT.v1.json', W / 'house-source-thumbnail-batch-0009-0016-v1/RUN-RESULT.v1.json']:
+        if progress_path.exists():
+            manifest['input_pins'][str(progress_path)] = hashlib.sha256(progress_path.read_bytes()).hexdigest()
     meta = T / 'LOTS_ET_AVANCEMENT.v1.json'
+    for progress_path in [house_delivery_next_path, W / 'normal-decode-swizzle-common-install-reopen-v1/RESULT.v1.json', W / 'house-registry-epoch-0017-0024-v1/RESULT.v1.json']:
+        if progress_path.exists():
+            manifest['input_pins'][str(progress_path)] = hashlib.sha256(progress_path.read_bytes()).hexdigest()
     temp = meta.with_suffix('.json.tmp')
     temp.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     temp.replace(meta)

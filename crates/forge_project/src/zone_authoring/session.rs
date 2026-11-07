@@ -8,13 +8,19 @@ use forge_core::{CommandId, ContentHash, Revision, canonical_json_bytes};
 use serde::{Deserialize, Serialize};
 mod compact;
 mod delta;
+mod local_lights;
+mod placements;
 mod source_blobs;
 mod versions;
+
+pub use placements::{SourceCompanionPin, SourceCompanionRequirements};
 
 const SOURCE_OBJECT_ARCHIVE_VERSION: u32 = 37;
 const PHYSICS_ARCHIVE_VERSION: u32 = 40;
 const PLACEMENT_PHYSICS_ARCHIVE_VERSION: u32 = 43;
 const GAMEPLAY_VISUALS_ARCHIVE_VERSION: u32 = 46;
+const LOCAL_LIGHTS_ARCHIVE_VERSION: u32 = 49;
+const SCENE_WIND_ARCHIVE_VERSION: u32 = 52;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -163,6 +169,17 @@ impl ZoneEditSession {
     #[must_use]
     pub fn audit(&self) -> &[ZoneReceipt] {
         &self.receipts
+    }
+
+    /// Include undo history: older readers must not be given an archive which
+    /// only happens to have removed wind from its current head.
+    #[must_use]
+    pub fn has_wind_history(&self) -> bool {
+        self.head.corrections.wind.is_some()
+            || self
+                .receipts
+                .iter()
+                .any(|receipt| receipt.applied.wind.is_some() || receipt.inverse.wind.is_some())
     }
 
     #[must_use]
@@ -503,6 +520,18 @@ impl ZoneEditSession {
 }
 
 fn archive_version(receipts: &[ZoneReceipt]) -> u32 {
+    if receipts
+        .iter()
+        .any(|receipt| receipt.applied.wind.is_some() || receipt.inverse.wind.is_some())
+    {
+        return SCENE_WIND_ARCHIVE_VERSION;
+    }
+    if receipts
+        .iter()
+        .any(|r| r.applied.has_local_light_references() || r.inverse.has_local_light_references())
+    {
+        return LOCAL_LIGHTS_ARCHIVE_VERSION;
+    }
     if has_gameplay_visuals(receipts) {
         return GAMEPLAY_VISUALS_ARCHIVE_VERSION;
     }

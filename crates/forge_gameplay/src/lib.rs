@@ -24,6 +24,8 @@ mod narrative;
 mod narrative_conditions;
 mod narrative_edit;
 mod narrative_runtime;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod native_storage;
 mod presentation_edit;
 mod rules;
 mod save;

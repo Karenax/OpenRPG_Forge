@@ -1,10 +1,8 @@
 //! Pinned preview particle payload; filesystem paths remain in the native Vault adapter.
 use forge_assets::source_particle_emission::SourceEmissionEvent;
-use forge_assets::source_particle_package::SourceParticlePackage;
-use forge_core::ContentHash;
+pub(super) use forge_engine::source_graph_mount::SourceParticlePayload;
 use leptos::prelude::*;
 use std::cell::RefCell;
-use std::sync::Arc;
 
 #[derive(Clone, Copy)]
 pub(super) enum ControlTarget {
@@ -54,41 +52,4 @@ pub(super) fn SourceParticleControls(target: ControlTarget) -> impl IntoView {
         <button on:click=move |_|action(SourceEmissionEvent::Stop)>"Arrêter l’émission"</button>
         <p role="status">{move ||status.get()}</p>
     </div>}
-}
-
-#[derive(Clone)]
-pub(super) struct SourceParticlePayload {
-    pub wire: Arc<[u8]>,
-    pub carrier_sha256: ContentHash,
-    pub manifest_sha256: ContentHash,
-    pub package_sha256: ContentHash,
-}
-
-impl SourceParticlePayload {
-    pub(super) fn install(
-        &self,
-        world: &mut bevy::prelude::World,
-        host: &mut super::source_graph_host::SourceSceneHost,
-        carrier: &[u8],
-    ) -> Result<(), String> {
-        let package = SourceParticlePackage::decode_pinned(
-            &self.wire,
-            self.carrier_sha256,
-            self.manifest_sha256,
-            self.package_sha256,
-        )?;
-        let resolved = package.resolve_for_carrier(carrier)?;
-        let slots = forge_engine::source_particle_host::HostedSourceParticle::available_slot_pairs(
-            world,
-            resolved.contract.owners.len(),
-        )?;
-        host.install_particle_package(
-            world,
-            carrier,
-            &package.manifest,
-            self.manifest_sha256,
-            &resolved.resources,
-            &slots,
-        )
-    }
 }

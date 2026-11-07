@@ -6,7 +6,7 @@ fn main() -> Result<(), String> {
         BootstrapRequest, ModuleSetRequest, prepare_module_set_workspace, prepare_module_workspace,
     };
     use std::{collections::BTreeMap, ffi::OsString, io::Read as _, path::PathBuf};
-    let usage = "prepare_module_workspace --module FILE.orpmod --area UUID --expected-package-sha256 SHA256 --destination FRESH_ABSOLUTE_DIRECTORY\nOr: --module-set REQUEST.json. All module areas are preserved; source blobs are explicitly unsupported. No Vault fallback or UI qualification.";
+    let usage = "prepare_module_workspace --module FILE.orpmod --area UUID --expected-package-sha256 SHA256 --destination FRESH_ABSOLUTE_DIRECTORY\nOr: --module-set REQUEST.json. All module areas and their exact archive source closure are preserved within the admission budgets. No Vault fallback or UI qualification.";
     let mut args = std::env::args_os().skip(1);
     let mut values = BTreeMap::<String, OsString>::new();
     while let Some(flag) = args.next() {

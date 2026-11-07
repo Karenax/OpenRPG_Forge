@@ -1,7 +1,7 @@
 //! Native acquisition adapter for the shared terrain surface material.
 use bevy::prelude::*;
-use forge_tidewater::tidewater_caustics::CausticMaterialInputs;
-pub use forge_tidewater::tidewater_terrain::{TerrainMaterial, TerrainSettings};
+use forge_engine::source_surface::underwater::CausticMaterialInputs;
+pub use forge_engine::source_terrain::{TerrainMaterial, TerrainSettings};
 
 #[allow(clippy::too_many_arguments)] // Shared scene textures and material resources.
 pub fn load(
@@ -14,16 +14,18 @@ pub fn load(
     normal: Handle<Image>,
     caustics: Option<&CausticMaterialInputs>,
 ) -> Handle<TerrainMaterial> {
-    let surface =
-        forge_tidewater::tidewater_terrain::textures::PreparedSurface::new(&data[1], &data[2])
-            .expect("terrain mip sizes validated before application construction")
-            .stage(images);
+    let surface = forge_engine::source_terrain::textures::PreparedSurface::new(&data[1], &data[2])
+        .expect("terrain mip sizes validated before application construction")
+        .stage(images);
     let placeholder = images.add(Image::default());
     let caustics = caustics
         .cloned()
         .unwrap_or_else(|| CausticMaterialInputs::disabled(images));
     materials.add(TerrainMaterial {
-        scene_lighting: forge_tidewater::tidewater_material::scene_buffer::HANDLE.clone(),
+        local_lights: forge_engine::source_lighting::local_lights::gpu::BUFFER,
+        paint_weights: forge_engine::source_terrain::paint::BUFFER,
+        paint_parameters: default(),
+        scene_lighting: forge_engine::source_lighting::scene_buffer::HANDLE.clone(),
         shore_state: placeholder.clone(),
         shore_lace: placeholder,
         shore_params: [UVec4::ZERO; 3],
@@ -37,7 +39,7 @@ pub fn load(
         hill_shadow,
         object_shadow: object.image.clone(),
         object_settings: object.settings.clone(),
-        live_shadows: forge_tidewater::tidewater_object_shadow::receiver::DEFAULT_BUFFER.clone(),
+        live_shadows: forge_engine::source_shadows::receiver::DEFAULT_BUFFER.clone(),
         clouds: [Vec4::ZERO; 5],
         cloud_shadow: None,
         normal,

@@ -154,7 +154,7 @@ fn reuse(world: &mut World, groups: &Groups, origin: [f32; 2]) -> bool {
             ));
         }
         for part in groups.values().flatten() {
-            world.entity_mut(part.entity).remove::<Mesh3d>();
+            crate::mesh_visibility::remove_mesh3d(world.entity_mut(part.entity));
         }
         info!(
             event_kind = "governed_far_batches_reused",
@@ -254,7 +254,7 @@ fn project_inner(world: &mut World) -> Result<(), String> {
             });
         }
         for original in batch.originals {
-            world.entity_mut(original).remove::<Mesh3d>();
+            crate::mesh_visibility::remove_mesh3d(world.entity_mut(original));
         }
     }
     info!(

@@ -3,7 +3,7 @@ use super::{
     Command, ContentHash, File, GAME, OpenOptions, ReportPins, RunningGame, Stdio, SystemTime,
     UNIX_EPOCH, bytes_sha256, fs, poll_game, write_new,
 };
-use std::path::Path;
+use std::{ffi::OsString, path::Path};
 
 fn open_export(path: &Path, expected: ContentHash) -> Result<File, String> {
     forge_delivery::manifest::safe_chain(path)?;
@@ -122,15 +122,7 @@ fn module_command(
 ) -> Result<Command, String> {
     let log = File::create(session.join("game.log")).map_err(|e| e.to_string())?;
     let mut command = Command::new(&config.executable);
-    for (name, _) in std::env::vars_os() {
-        let normalized = name.to_string_lossy().to_ascii_uppercase();
-        if normalized.starts_with("FORGE_TIDEWATER_")
-            || normalized.starts_with("FORGE_NATIVE_GAMEPLAY_")
-            || normalized == "FORGE_GAME_OBSERVATIONS"
-        {
-            command.env_remove(name);
-        }
-    }
+    clear_inherited_overrides(&mut command, std::env::vars_os().map(|(name, _)| name));
     command
         .current_dir(session)
         .arg("--module")
@@ -154,4 +146,41 @@ fn module_command(
         command.creation_flags(0x0800_0000);
     }
     Ok(command)
+}
+
+fn clear_inherited_overrides(command: &mut Command, names: impl IntoIterator<Item = OsString>) {
+    for name in names {
+        let normalized = name.to_string_lossy().to_ascii_uppercase();
+        if normalized.starts_with("FORGE_TIDEWATER_")
+            || normalized.starts_with("FORGE_NATIVE_GAMEPLAY_")
+            || normalized == "FORGE_GAME_OBSERVATIONS"
+            || normalized == forge_delivery::installed_modules::GAME_DEFAULT_DISPLAY_MODE_ENV
+        {
+            command.env_remove(name);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn inherited_display_override_is_removed_from_studio_playtest() {
+        let mut command = Command::new("inert-test-executable");
+        let name = forge_delivery::installed_modules::GAME_DEFAULT_DISPLAY_MODE_ENV;
+        command.env(name, "fullscreen").env("PRESERVED_TEST", "yes");
+        clear_inherited_overrides(&mut command, [OsString::from(name)]);
+        let variables: Vec<_> = command.get_envs().collect();
+        assert!(
+            variables
+                .iter()
+                .any(|(key, value)| *key == name && value.is_none())
+        );
+        assert!(
+            variables
+                .iter()
+                .any(|(key, value)| *key == "PRESERVED_TEST" && value.is_some())
+        );
+    }
 }

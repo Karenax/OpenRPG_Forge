@@ -4,10 +4,12 @@
 
 pub mod building_layout;
 mod building_vegetation;
+pub mod cell_streaming;
 mod clouds;
 pub mod editor_vegetation;
 mod environment;
 pub mod imported_vegetation;
+pub mod mesh_hlod;
 pub mod path_intersections;
 pub mod path_placement;
 pub mod path_stroke;
@@ -35,6 +37,9 @@ pub mod terrain_brush;
 pub mod terrain_brush_preview;
 pub mod terrain_brush_stroke;
 mod terrain_generation;
+pub mod terrain_hlod;
+pub mod terrain_lod;
+pub mod terrain_lod_bounds;
 pub mod terrain_material_brush;
 mod vegetation;
 pub mod vegetation_density_brush;

@@ -1,5 +1,5 @@
 //! Local typed script drafts use the common source command boundary.
-use super::{Edit, edit, id, source_hash};
+use super::{Edit, edit, id};
 use forge_core::{EntityId, canonical_json_sha256};
 use forge_gameplay::{
     CreatorSurface, GameplayDocument, GameplayError, ObjectKind, ScriptDefinition,
@@ -193,12 +193,22 @@ pub(super) fn ScriptControls(
         instruction: RwSignal::new(String::new()),
         verification: RwSignal::new(None),
     };
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let key = (fields.selected.get(), source_hash(state));
-        if previous.as_ref() != Some(&key) {
+    let draft_notice = super::draft::bind(
+        move || {
+            let selected = fields.selected.get();
             let source = document(state);
             let current = source.as_ref().and_then(|source| {
-                id(&key.0)
+                id(&selected)
+                    .ok()
+                    .and_then(|id| source.script_definition(id).cloned())
+            });
+            (selected, serde_json::to_value(current).unwrap_or_default())
+        },
+        vec![super::draft::Field::new(fields.draft)],
+        move || {
+            let source = document(state);
+            let current = source.as_ref().and_then(|source| {
+                id(&fields.selected.get_untracked())
                     .ok()
                     .and_then(|id| source.script_definition(id).cloned())
             });
@@ -207,9 +217,10 @@ pub(super) fn ScriptControls(
                 .set(current.unwrap_or_else(|| blank(source.as_ref())));
             fields.error.set(None);
             fields.instruction.set(String::new());
-        }
-        key
-    });
+        },
+    );
+    let preview_send = draft_notice.submitter(send);
+
     let disabled = move || {
         busy.get()
             || state
@@ -218,7 +229,7 @@ pub(super) fn ScriptControls(
     };
     view! {
         <Show when=move ||document(state).is_some_and(|source|source.surface_visible(CreatorSurface::SandboxedScripts))>
-            <details><summary>"Scripts bornés et permissions"</summary><fieldset disabled=disabled>
+            <details class="creator-script-editor"><summary>"Scripts bornés et permissions"</summary><fieldset disabled=disabled><super::draft::DraftNotice notice=draft_notice/>
                 <p>"Composer un programme avec variables, portes, messages, branches et répétitions. Un accès interdit ou un quota dépassé annule l’appel entier. Le script n’a aucun accès aux fichiers, au réseau ou aux processus."</p>
                 <label>"Script à retoucher"<select prop:value=move ||fields.selected.get() on:change=move |event|fields.selected.set(event_target_value(&event))>
                     <option value="">"Préparer un nouveau script"</option>
@@ -230,8 +241,8 @@ pub(super) fn ScriptControls(
                 <instruction_fields::InstructionControls fields=fields state=state/>
                 <diagnostics::DiagnosticControls fields=fields state=state/>
                 <p role="alert">{move ||fields.error.get()}</p>
-                <button disabled=move ||!fields.selected.get().is_empty() on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner un nouveau script"</button>
-                <button disabled=move ||fields.selected.get().is_empty() on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche du script"</button>
+                <button disabled=move ||!fields.selected.get().is_empty() on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),true))>"Examiner un nouveau script"</button>
+                <button disabled=move ||fields.selected.get().is_empty() on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche du script"</button>
                 <button disabled=move ||fields.selected.get().is_empty() on:click=move |_|send.run(fields.remove(state.get_untracked()))>"Examiner la suppression du script"</button>
                 <p>"Le programme reste un brouillon avant application. Modifier ses instructions ou permissions peut rendre une partie sauvegardée incompatible."</p>
             </fieldset></details>

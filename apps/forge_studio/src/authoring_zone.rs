@@ -39,6 +39,7 @@ pub(super) fn SourceControls(
     view! {
         <section class="authoring-panel" data-authoring-tab="project" hidden=move || active_tab.get() != super::authoring_controls::AuthoringTab::Project>
             <MigrationControls state=state busy=busy on_command=on_command/>
+            <super::authoring_wind::WindControls state=state busy=busy on_command=on_command/>
             <super::authoring_physics::PhysicsControls state=state busy=busy on_command=on_command/>
         </section>
         <section class="authoring-panel" data-authoring-tab="nature" hidden=move || active_tab.get() != super::authoring_controls::AuthoringTab::Nature>
@@ -141,6 +142,13 @@ pub(super) fn preview_label(state: &AuthoringState, receipt: &ZoneReceipt) -> St
 }
 
 fn preview_primary_change(state: &AuthoringState, receipt: &ZoneReceipt) -> Option<String> {
+    if receipt.applied.wind != receipt.inverse.wind {
+        super::authoring_preview::clear();
+        return Some(receipt.applied.wind.map_or_else(
+            || "Retrait du vent de la carte examiné · non appliqué. Appliquer puis sauvegarder.".into(),
+            |wind| format!("Vent examiné · {} m/s vers {:.0}° · non appliqué. Appliquer puis sauvegarder ; annulation et rétablissement restent disponibles.", wind.speed_mps, wind.heading_degrees),
+        ));
+    }
     if let Some(label) = crate::authoring_gameplay_visuals::preview_label(receipt) {
         super::authoring_preview::clear();
         return Some(label);

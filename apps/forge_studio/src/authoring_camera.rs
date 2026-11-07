@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use std::cell::RefCell;
 
 type EditorCameraFilter = (
-    forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
+    forge_engine::source_sky::preview::SceneCameraFilter,
     Without<forge_engine::ForgePlayerCamera>,
 );
 
@@ -68,9 +68,67 @@ pub(super) fn CameraControls() -> impl IntoView {
             <button on:click=move |_| INPUT.with(|input| input.borrow_mut().zoom -= 0.2)>"Rapprocher"</button>
             <button on:click=move |_| INPUT.with(|input| input.borrow_mut().zoom += 0.2)>"Éloigner"</button>
             <button on:click=move |_| INPUT.with(|input| input.borrow_mut().reset = true)>"Vue d’ensemble"</button>
-            <span>"Clic droit : tourner · clic central : déplacer la vue"</span>
+            <details class="camera-help"><summary>"Déplacer la vue"</summary>
+                <p id="forge-camera-help">"Dans la vue 3D : flèches pour tourner, Maj + flèches pour déplacer, + et − pour zoomer, Origine pour la vue d’ensemble. Souris : clic droit pour tourner, clic central pour déplacer ; pavé tactile : défilement pour zoomer."</p>
+                <button aria-label="Tourner à gauche" on:click=move |_| step(Vec2::new(-20.0,0.0),false)>"↶ Gauche"</button>
+                <button aria-label="Tourner à droite" on:click=move |_| step(Vec2::new(20.0,0.0),false)>"Droite ↷"</button>
+                <button aria-label="Incliner vers le haut" on:click=move |_| step(Vec2::new(0.0,-20.0),false)>"Incliner ↑"</button>
+                <button aria-label="Incliner vers le bas" on:click=move |_| step(Vec2::new(0.0,20.0),false)>"Incliner ↓"</button>
+                <button on:click=move |_| step(Vec2::new(-20.0,0.0),true)>"Déplacer ←"</button>
+                <button on:click=move |_| step(Vec2::new(20.0,0.0),true)>"Déplacer →"</button>
+                <button on:click=move |_| step(Vec2::new(0.0,-20.0),true)>"Déplacer ↑"</button>
+                <button on:click=move |_| step(Vec2::new(0.0,20.0),true)>"Déplacer ↓"</button>
+            </details>
         </div>
     }
+}
+
+fn step(delta: Vec2, pan: bool) {
+    INPUT.with(|input| {
+        let mut input = input.borrow_mut();
+        if pan {
+            input.pan += delta;
+        } else {
+            input.orbit += delta;
+        }
+    });
+}
+
+/// Only called by the focused canvas: text fields retain all editing keys.
+pub(super) fn key(event: &web_sys::KeyboardEvent) -> bool {
+    if event.ctrl_key()
+        || event.alt_key()
+        || event.meta_key()
+        || event.is_composing()
+        || !super::authoring_viewport::can_preview_asset()
+    {
+        return false;
+    }
+    let delta = match event.key().as_str() {
+        "ArrowLeft" => Some(Vec2::new(-20.0, 0.0)),
+        "ArrowRight" => Some(Vec2::new(20.0, 0.0)),
+        "ArrowUp" => Some(Vec2::new(0.0, -20.0)),
+        "ArrowDown" => Some(Vec2::new(0.0, 20.0)),
+        "+" | "=" => {
+            INPUT.with(|i| i.borrow_mut().zoom -= 0.1);
+            None
+        }
+        "-" | "−" => {
+            INPUT.with(|i| i.borrow_mut().zoom += 0.1);
+            None
+        }
+        "Home" => {
+            INPUT.with(|i| i.borrow_mut().reset = true);
+            None
+        }
+        _ => return false,
+    };
+    if let Some(delta) = delta {
+        step(delta, event.shift_key());
+    }
+    event.prevent_default();
+    event.stop_propagation();
+    true
 }
 
 pub(super) fn press(event: &web_sys::MouseEvent) {
@@ -126,7 +184,9 @@ pub(super) fn navigate(
     mut cameras: Query<&mut Transform, EditorCameraFilter>,
     terrain: Option<Res<forge_engine::TerrainRuntimeState>>,
     sampled: Option<Res<forge_engine::sampled_terrain_physics::SampledTerrainPhysicsState>>,
+    streamed: Option<Res<forge_engine::cell_streaming::ResidentSampledTerrain>>,
     player: Option<Res<forge_engine::PlayerRuntimeSnapshot>>,
+    mut observer: Option<ResMut<forge_engine::cell_streaming::CellStreamingObserver>>,
     mut state: Local<CameraState>,
 ) {
     if player.is_some() {
@@ -136,12 +196,83 @@ pub(super) fn navigate(
     let Ok(mut camera) = cameras.single_mut() else {
         return;
     };
+    let plan = sampled
+        .as_ref()
+        .map(|source| source.plan.as_ref())
+        .or_else(|| streamed.as_ref().map(|source| source.plan().as_ref()));
+    let bounds = match CameraBounds::new(terrain.as_deref(), plan) {
+        Ok(bounds) => bounds,
+        Err(error) => {
+            super::authoring_viewport::report(format!(
+                "Déplacement de la vue indisponible : {error}"
+            ));
+            return;
+        }
+    };
+    navigate_camera(&mut camera, &mut state, bounds);
+    if let Some(observer) = observer.as_mut() {
+        observer.position_xz_m = [f64::from(state.pivot.x), f64::from(state.pivot.z)];
+        for (index, coordinate) in observer.position_xz_m.iter_mut().enumerate() {
+            let minimum = f64::from(bounds.minimum[index]);
+            let maximum = f64::from(bounds.maximum[index]);
+            *coordinate = coordinate.clamp(minimum, maximum - (maximum - minimum) * 0.000_001);
+        }
+    }
     super::authoring_compass::publish_camera(&camera);
+}
+
+#[derive(Clone, Copy)]
+struct CameraBounds {
+    minimum: Vec2,
+    maximum: Vec2,
+    maximum_distance: f32,
+    pivot: Vec3,
+}
+
+impl CameraBounds {
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "Validated finite raster and cell-policy coordinates"
+    )]
+    fn new(
+        procedural: Option<&forge_engine::TerrainRuntimeState>,
+        sampled: Option<&forge_world::sampled_terrain::SampledTerrainPlan>,
+    ) -> Result<Self, String> {
+        if let Some(plan) = sampled {
+            let source = plan.raster().source();
+            let size = Vec2::new(
+                plan.document().extent_m.size_x_m,
+                plan.document().extent_m.size_z_m,
+            );
+            let minimum = Vec2::new(source.origin_xz_m[0] as f32, source.origin_xz_m[1] as f32);
+            let center = minimum + size * 0.5;
+            let height = plan
+                .height_at(f64::from(center.x), f64::from(center.y))
+                .map_err(|error| error.to_string())? as f32;
+            Ok(Self {
+                minimum,
+                maximum: minimum + size,
+                maximum_distance: size.max_element() * 2.0,
+                pivot: Vec3::new(center.x, height, center.y),
+            })
+        } else {
+            Ok(Self {
+                minimum: Vec2::splat(-256.0),
+                maximum: Vec2::splat(256.0),
+                maximum_distance: 1000.0,
+                pivot: Vec3::Y
+                    * procedural.map_or(0.0, |source| {
+                        source.document().height_sampling.base_elevation_m
+                    }),
+            })
+        }
+    }
+}
+
+fn navigate_camera(camera: &mut Transform, state: &mut CameraState, bounds: CameraBounds) {
     if state.initial.is_none() {
         state.initial = Some(*camera);
-        state.pivot.y = terrain.as_ref().map_or(0.0, |terrain| {
-            terrain.document().height_sampling.base_elevation_m
-        });
+        state.pivot = bounds.pivot;
     }
     let input = INPUT.with(|input| {
         let mut input = input.borrow_mut();
@@ -180,7 +311,7 @@ pub(super) fn navigate(
             *camera = initial;
         }
         state.initial = None;
-        state.pivot = Vec3::ZERO;
+        state.pivot = bounds.pivot;
         return;
     }
     if input.orbit == Vec2::ZERO && input.pan == Vec2::ZERO && input.zoom == 0.0 {
@@ -198,18 +329,10 @@ pub(super) fn navigate(
         + forward * input.pan.y.clamp(-200.0, 200.0))
         * distance
         * 0.002;
-    let (half_x, half_z, maximum_distance) =
-        sampled.as_ref().map_or((256.0, 256.0, 1000.0), |terrain| {
-            let extent = &terrain.plan.document().extent_m;
-            (
-                extent.size_x_m * 0.5,
-                extent.size_z_m * 0.5,
-                extent.size_x_m.max(extent.size_z_m) * 2.0,
-            )
-        });
-    state.pivot.x = state.pivot.x.clamp(-half_x, half_x);
-    state.pivot.z = state.pivot.z.clamp(-half_z, half_z);
-    let distance = (distance * input.zoom.clamp(-1.0, 1.0).exp()).clamp(4.0, maximum_distance);
+    state.pivot.x = state.pivot.x.clamp(bounds.minimum.x, bounds.maximum.x);
+    state.pivot.z = state.pivot.z.clamp(bounds.minimum.y, bounds.maximum.y);
+    let distance =
+        (distance * input.zoom.clamp(-1.0, 1.0).exp()).clamp(4.0, bounds.maximum_distance.max(4.0));
     camera.translation = state.pivot
         + distance
             * Vec3::new(

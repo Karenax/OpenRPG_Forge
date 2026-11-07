@@ -9,6 +9,24 @@ use crate::{
 };
 
 impl AuthoringHost {
+    /// Native admission owns the package bytes and publishes their fixed origin
+    /// before applying a workspace edit. This entry point is absent from IPC.
+    pub fn import_native_module(
+        &mut self,
+        import: impl FnOnce(
+            &std::path::Path,
+            &mut FileWorkspaceSession,
+        ) -> Result<crate::workspace::session::WorkspaceReceipt, String>,
+    ) -> Result<WorkspaceHostState, String> {
+        self.require_workspace_command(&WorkspaceHostRequest::Open)?;
+        self.require_closed()?;
+        let root = self.root.clone();
+        let receipt = import(&root, self.workspace()?)?;
+        let mut state = self.execute_workspace(WorkspaceHostRequest::Inspect)?;
+        state.receipt = Some(receipt);
+        Ok(state)
+    }
+
     pub fn execute_workspace_with_audit(
         &mut self,
         request: WorkspaceHostRequest,
@@ -134,6 +152,12 @@ impl AuthoringHost {
     ) -> Result<crate::workspace::session::WorkspaceReceipt, String> {
         if matches!(
             request.action,
+            crate::workspace::session::WorkspaceAction::ImportModulePackage { .. }
+        ) {
+            return Err("Module packages require the reviewed native import operation".into());
+        }
+        if matches!(
+            request.action,
             crate::workspace::session::WorkspaceAction::ConfigureCreator { .. }
         ) {
             return Err("Module Creator changes require the reviewed module operation".into());
@@ -187,7 +211,7 @@ impl AuthoringHost {
 
     fn browse_existing_workspace(&mut self) -> Result<(), String> {
         if self.workspace.is_none() {
-            self.workspace = Some(FileWorkspaceSession::open(&self.root)?);
+            self.workspace = FileWorkspaceSession::open_if_present(&self.root)?;
         }
         Ok(())
     }

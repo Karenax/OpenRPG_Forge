@@ -1,5 +1,5 @@
 //! Compare native parameters with independently executed pinned OceanFFT.js.
-use forge_tidewater::ocean_spectrum::{OceanFrame, OceanSpectrum};
+use forge_engine::ocean_spectrum::{OceanFrame, OceanSpectrum};
 use serde::Deserialize;
 use std::{collections::BTreeMap, fs, path::PathBuf};
 #[derive(Deserialize)]

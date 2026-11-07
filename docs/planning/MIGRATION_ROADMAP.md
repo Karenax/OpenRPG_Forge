@@ -21,7 +21,7 @@ cible produit ; les fonctions utiles sont réaffectées aux deux parcours sur le
 socle commun. L'identité Aube/Tidewater ne doit pas être imposée aux autres jeux.
 La [transition planifiée dans Gate 7](GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher)
 précise la migration et les preuves attendues. Le lot 048 a retiré le Hub
-du checkout de qualification. Le candidat privé Windows 049 a couvert le parcours Studio,
+du checkout. Le candidat privé Windows 049 a couvert le parcours Studio,
 l'export, le jeu autonome et les cycles de maintenance en Sandbox sans SDK.
 Les essais Linux 0837 couvrent une partie des parcours. La
 [passation](../HANDOFF.md#gate-7-etat-courant) distingue les résultats et les
@@ -4203,47 +4203,96 @@ la distribution et les plateformes distantes ne sont pas qualifiées par ce bila
 
 # Gate 6 — IA et MCP gouvernés
 
+Ouverte par le propriétaire le 22 octobre 2026 avec objectif de clôture documentée
+sur preuves, **clôturée localement le 23 octobre 2026** selon
+[le rapport final](../evidence/gate6/GATE6_CLOSURE_20261023.md) et
+[la matrice de qualification](../evidence/gate6/GATE6_ACCEPTANCE_MATRIX_20261022.md).
+Les 21 critères ci-dessous sont vérifiés localement : 721 tests PASS, 11 ignorés,
+parcours fournisseur/Studio/MCP et jeu, comparaison et archive ZIP64 vérifiée.
+Aucun gain général de productivité ni qualification esthétique/distribution n'est
+déduit. Les gates suivantes restent non ouvertes.
+
 ## R6-A — Fondations gouvernées
 
-- [ ] inspection projet ;
-- [ ] recherche d’assets ;
-- [ ] proposition de carte ;
-- [ ] génération de plan ;
-- [ ] dry-run ;
-- [ ] approbation ;
-- [ ] application transactionnelle ;
-- [ ] undo ;
-- [ ] tests ;
-- [ ] captures ;
-- [ ] audit ;
-- [ ] quotas ;
-- [ ] absence de shell arbitraire.
+- [x] inspection projet ;
+- [x] recherche d’assets ;
+- [x] proposition de carte ;
+- [x] génération de plan ;
+- [x] dry-run ;
+- [x] approbation ;
+- [x] application transactionnelle ;
+- [x] undo ;
+- [x] tests ;
+- [x] captures ;
+- [x] audit ;
+- [x] quotas ;
+- [x] absence de shell arbitraire.
 
 ## R6-B — Parcours IA avec retouche humaine conservée
 
-- [ ] `R6-P01` transformer un brief en plan lié aux lieux, personnages, règles et assets réellement disponibles ; signaler les capacités absentes.
-- [ ] `R6-P02` utiliser les commandes stabilisées du Studio ; borner la demande à la sélection, aux propriétés et à la région affichées dans le diff.
-- [ ] `R6-P03` créer l'aventure de référence, retoucher porte et dialogue à la main, puis demander une variante locale ; prouver zéro perte après réouverture.
-- [ ] `R6-P04` rejeter un plan périmé et revalider les conflits ; une replanification ne réutilise pas silencieusement l'approbation d'un ancien diff.
-- [ ] `R6-P05` interrompre/reprendre un job sans doublon ; produire en staging puis promouvoir selon la révision et les permissions applicables.
-- [ ] `R6-P06` afficher étape réelle, fournisseur, données à transmettre, plafond de coût et politique de retry ; arrêter au plafond en conservant les résultats.
-- [ ] `R6-P07` comparer au parcours manuel le temps, les corrections, le coût et la qualité ; distinguer fournisseur réel et plans synthétiques de test.
-- [ ] `R6-P08` vérifier que le résultat reste éditable et jouable sans le modèle qui l'a produit ; aucun fournisseur obligatoire au runtime.
+- [x] `R6-P01` transformer un brief en plan lié aux lieux, personnages, règles et assets réellement disponibles ; signaler les capacités absentes.
+- [x] `R6-P02` utiliser les commandes stabilisées du Studio ; borner la demande à la sélection, aux propriétés et à la région affichées dans le diff.
+- [x] `R6-P03` créer l'aventure de référence, retoucher porte et dialogue à la main, puis demander une variante locale ; prouver zéro perte après réouverture.
+- [x] `R6-P04` rejeter un plan périmé et revalider les conflits ; une replanification ne réutilise pas silencieusement l'approbation d'un ancien diff.
+- [x] `R6-P05` interrompre/reprendre un job sans doublon ; produire en staging puis promouvoir selon la révision et les permissions applicables.
+- [x] `R6-P06` afficher étape réelle, fournisseur, données à transmettre, plafond de coût et politique de retry ; arrêter au plafond en conservant les résultats.
+- [x] `R6-P07` comparer au parcours manuel le temps, les corrections, le coût et la qualité ; distinguer fournisseur réel et plans synthétiques de test.
+- [x] `R6-P08` vérifier que le résultat reste éditable et jouable sans le modèle qui l'a produit ; aucun fournisseur obligatoire au runtime.
 
 ---
 
 # Gate 7 — Monde étendu et distribution
 
-- [ ] streaming de cellules ;
-- [ ] HLOD ;
-- [ ] sauvegardes multi-zones ;
-- [ ] packaging runtime ;
-- [ ] profils graphiques ;
-- [ ] lanceur ;
-- [ ] builds Windows/Linux ;
+**Ouverte le 23 octobre 2026** par le propriétaire avec objectif de clôture
+documentée sur preuves, après la clôture locale de Gate 6.
+Suivi : [plan de réalisation](GATE7_IMPLEMENTATION_PLAN.md) et
+[matrice et progression](../evidence/gate7/GATE7_PROGRESS_20261023.md).
+Les acquis précédents sont réutilisables sur entrées vérifiées ; ils ne cochent
+pas automatiquement les critères ci-dessous. ADR-0034 s'applique aux contrôles
+GitHub ; builds Linux et qualification sur machine propre restent exigés.
+
+**Découpage obligatoire du 2 novembre :** la distribution visée est celle du jeu
+créé dans le Studio, avec son propre launcher et sans Hub séparé. Les critères
+de packaging, lanceur et installateur ci-dessous portent sur ce parcours final,
+selon le [plan de transition](GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher).
+Les résultats de l'ancien découpage conservent leur portée et leur date ; ils
+ne valent pas qualification du nouveau parcours sans rejeu des parties affectées.
+
+- [x] streaming de cellules — qualification locale Windows du 5 novembre,
+  `profile-prepass-lifecycle-20261105-015/R7-01-streaming-assessment-015.json` :
+  région 2 km, trajet réel de 291 m, 72 tests actuels, sources et persistance
+  rapprochées ; SHA-256 `e4e7c0b2cc98fb6849e9f26b5d67c907d23f46028988a9605d3c6b8819341569` ;
+- [x] HLOD — qualification locale Windows du 5 novembre, moteur commun 017
+  sur module du vrai export privé 1.0.2, quatre profils et retour au détail ;
+  cas dense texturé séparé. Reçu `R7-02-hlod-assessment-017.json`,
+  SHA-256 `e8878ffdf90deb114011fa627a47d56dbda5dad9c54d8b000219ebc5688212e2` ;
+- [x] sauvegardes multi-zones — qualification locale Windows du 27 octobre,
+  `R7-03-saves-assessment-001.json` : A→B→A→B natif, états complets retrouvés,
+  séparation module/zone et interruption de staging contrôlées ;
+- [x] packaging runtime — qualification locale Windows du 5 novembre,
+  `profile-prepass-lifecycle-20261105-015/R7-04-runtime-packaging-assessment-015.json` :
+  export réel, exécutions et ressources fermées, refus d'intégrité sur sources
+  actuelles ; SHA-256 `5ef6f45265c58aeb924523d1b1578e315a71aa5c75792a440eda80b68bb8a2be`.
+  OS propre, Linux, licences et cycle d'installation 015 restent distincts ;
+- [x] profils graphiques — qualification locale Windows du 5 novembre,
+  `profile-prepass-lifecycle-20261105-015/R7-05-graphics-profiles-assessment-015.json` :
+  quatre profils appliqués/persistés, relance, ressources GPU, refus et revue
+  du défaut Medium rapprochés ; SHA-256
+  `cf9dc52a2f100dc62fa3284e60183307d59c4050d728801c47a6729c97e83b38`.
+  Les mesures courtes ne qualifient pas un benchmark FPS ou la parité Tidewater ;
+- [x] lanceur du jeu exporté, configuré depuis le projet et autonome sans Hub — PASS local Windows, reçu R7-06 015 ; parcours réel 011 et sources/frontend rapprochés, 32 tests actuels ;
+- [ ] builds Windows/Linux. Volet Windows constaté sur les quatre binaires
+  du candidat privé 049, issus du même inventaire de sources ;
 - [ ] licences agrégées ;
-- [ ] installateur ;
-- [ ] qualification sur machine propre.
+- [ ] installateur. Volet Windows constaté sur le candidat privé 049 :
+  cycles jeu et Studio avec conservation des données ;
+- [ ] qualification sur machine propre. Volet Windows constaté sur le 049 :
+  Studio installé et deux exports installés et repris dans un invité joueur
+  sans Studio ni outils de développement.
+
+Le [rapprochement des preuves Windows 049](../HANDOFF.md) précise les
+conditions, limites et empreintes des parcours. Les trois critères
+conservent leur volet Linux.
 
 Extension maritime possible, différée et non requise pour fermer Gate 7 : de grands lacs et des mers
 pourront utiliser un rendu spectral inspiré de
@@ -4274,6 +4323,53 @@ natif/WebGPU avant implémentation.
 
 ---
 
+# Gate 9 — Tidewater reproductible par les capacités communes
+
+**Planifiée le 7 novembre 2026, non ouverte.** Cette gate suit la numérotation existante ;
+elle ne modifie ni l'ordre ou les critères des gates précédentes, ni l'état courant de
+Gate 7. Son ouverture et son exécution ne sont pas implicites dans cette décision.
+
+Tidewater est un jeu créé dans Forge, composé de données et réglages propres, puis exporté
+avec son launcher. Les fonctionnalités réutilisables nécessaires à sa création et à son
+exécution doivent être des capacités génériques de l'éditeur et du moteur, utilisables
+pour d'autres jeux. Les contenus spécifiques et leurs licences restent attachés à leur
+projet ; les attributions de provenance sont conservées.
+
+## Critères de clôture
+
+- [ ] **R9-01 — Inventaire et traçabilité.** Recenser les fonctionnalités, outils,
+  comportements, rendus, données, dépendances et parcours de Tidewater, y compris les
+  adaptateurs et chemins historiques Studio/runtime. Pour chaque élément, identifier son
+  propriétaire, ses consommateurs, son statut et les preuves ou travaux restants ; distinguer
+  capacité réutilisable, donnée propre au jeu et attribution de provenance.
+- [ ] **R9-02 — Moteur commun.** Généraliser et raccorder les mécanismes réutilisables au
+  moteur et au runtime communs, avec contrats, paramètres, ressources et gardes adaptés à
+  plusieurs jeux. Vérifier l'absence de dépendance fonctionnelle à l'identité, aux assets,
+  aux chemins ou à un exécutable spécifique de Tidewater ; préserver ses comportements.
+- [ ] **R9-03 — Éditeur commun.** Exposer les capacités nécessaires dans le Studio par des
+  outils génériques configurables, y compris création, modification, sauvegarde et réouverture.
+  Une intervention manuelle dans le code ou hors produit ne remplace pas le parcours auteur.
+- [ ] **R9-04 — Reproduction de Tidewater.** Créer ou reconstituer et modifier Tidewater
+  avec ces capacités, sauvegarder, rouvrir, exporter son jeu et son launcher, installer,
+  jouer, sauvegarder et reprendre. Vérifier les fonctionnalités inventoriées, leurs données,
+  leur rendu et leurs performances pertinentes ; documenter tout écart ou refus.
+- [ ] **R9-05 — Autre jeu indépendant.** Créer dans Studio au moins un autre jeu distinct,
+  avec ses propres données, identité et réglages ; y reproduire chacune des capacités
+  réutilisables inventoriées, sans dépendance au contenu ou à l'identité de Tidewater.
+  Sauvegarder, rouvrir, exporter, installer, jouer et reprendre avec son propre launcher.
+- [ ] **R9-06 — Qualification et preuves.** Rapprocher chaque capacité des preuves de ses
+  consommateurs réels, tests, observations visuelles et mesures de performance pertinentes,
+  sur les plateformes et profils concernés. Vérifier les ressources, licences et provenance,
+  les échecs et leurs corrections ; consigner les limites résiduelles et le verdict. Une
+  compilation, un renommage, un simple déplacement ou un test synthétique isolé ne suffisent pas.
+
+Les preuves déjà acquises peuvent être réutilisées après vérification de leur portée et des
+entrées concernées ; elles ne deviennent pas automatiquement des PASS de Gate 9. Ne pas
+réécrire les reçus historiques, ni retirer des composants encore utilisés avant inventaire et
+transfert vérifié. La Gate 9 ne conditionne pas rétroactivement les verdicts déjà prononcés.
+
+---
+
 # Scorecard de décision
 
 À remplir à Gate 1 et Gate 2 :
@@ -4299,3 +4395,14 @@ Décisions possibles :
 - **Arrêter** : la nouvelle pile n’apporte pas le gain attendu.
 
 Aucune décision ne doit être formulée uniquement sur la quantité de code déjà écrite.
+
+## 26 octobre — Consommation native des objets source
+
+Le jeu de module consomme les objets API 7 via la géométrie, les matériaux et les
+collisions du moteur commun. Le rejeu privé `module-object-runtime-native-003`
+affiche deux bâtiments source dans un module indépendant et passe ses six étapes,
+avec ressources GPU réelles et captures inspectées. La couverture HLOD suit les
+originaux détaillés ; leur agrégation n'est pas qualifiée. Studio, autres adapters,
+parité et performances restent à terminer. Voir le suivi Gate 7 et le catalogue
+central `module-object-runtime-validation-001.json`. Les dix critères généraux
+restent ouverts ; aucune clôture ni publication n'est déduite de ce raccord.

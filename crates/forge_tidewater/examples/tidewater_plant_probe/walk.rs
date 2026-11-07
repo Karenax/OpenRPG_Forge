@@ -7,13 +7,13 @@ use bevy::{
 };
 use std::sync::Arc;
 use {
+    forge_engine::source_terrain::{lod::ViewGeometry, scene::ResidentTerrain},
     forge_engine::{
         ForgePlayerCamera, PlayerControllerPlugin, PlayerInputFocus, PlayerSimulationReady,
         sampled_terrain_physics::{
             self, PreparedSampledTerrainPhysics, SampledTerrainPhysicsState,
         },
     },
-    forge_tidewater::tidewater_terrain::{lod::ViewGeometry, scene::ResidentTerrain},
 };
 #[path = "escape_menu.rs"]
 pub(super) mod escape_menu;
@@ -23,8 +23,7 @@ pub(super) mod graphics;
 mod ladder_smoke;
 #[path = "camera_perf.rs"]
 pub(super) mod perf;
-#[path = "resident_tiles.rs"]
-mod resident_tiles;
+use forge_engine::source_terrain::resident_tiles;
 #[path = "walk_smoke.rs"]
 mod smoke;
 #[path = "swim_smoke.rs"]
@@ -35,8 +34,7 @@ const PIER_LADDER: forge_tidewater::ClimbableLadder = forge_tidewater::Climbable
     1.95,
     Vec3::new(61.12, 2.3, 35.1),
 );
-pub(super) const WATER_TIME_SCALE: f64 = 1.5;
-const CAMERA_LOOK_RADIANS_PER_UNIT: f32 = 0.0022;
+pub(super) use forge_engine::source_ocean::DEFAULT_LIVE_TIME_SCALE as WATER_TIME_SCALE;
 
 /// Use the playable camera's full grading and exposure chain for static parity captures.
 pub(super) fn install_static_graphics(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
@@ -47,18 +45,13 @@ pub(super) fn install_static_graphics(app: &mut App) -> Result<(), Box<dyn std::
 #[derive(Resource)]
 struct Walk {
     geometry: ViewGeometry,
-    previous: Option<Transform>,
-    previous_lens: Option<[u32; 4]>,
+    source_view_cadence: forge_engine::scene_camera::SourceViewCadence,
     plant_camera: Option<Vec3>,
-    terrain_nodes: Vec<forge_tidewater_assets::cdlod::CdlodNode>,
-    ocean_nodes: Vec<forge_tidewater_assets::cdlod::CdlodNode>,
+    terrain_nodes: Vec<forge_world::terrain_lod::CdlodNode>,
+    ocean_nodes: usize,
     terrain_tiles: resident_tiles::ResidentTiles,
-    ocean_tiles: resident_tiles::ResidentTiles,
     ocean_updates: usize,
 }
-
-#[derive(Component)]
-struct LadderPrompt;
 
 fn walk_spawn(smoke: bool, ladder_test: bool, swim_test: bool) -> Vec2 {
     if escape_menu::terrain_inland_requested() {
@@ -103,18 +96,8 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let physics = PreparedSampledTerrainPhysics::new(plan.clone())?;
     let geometry = ViewGeometry::new(&plan)?;
     let mut profile = forge_world::embedded_visual_valley_player_controller_profile()?;
-    profile.controller.capsule_radius_m = forge_tidewater::amphibious_locomotion::RADIUS;
-    profile.controller.capsule_half_segment_m = forge_tidewater::amphibious_locomotion::WALK_HEIGHT
-        * 0.5
-        - profile.controller.capsule_radius_m;
-    profile.controller.walk_speed_mps = 3.0;
-    profile.controller.sprint_multiplier = 6.2 / 3.0;
-    profile.controller.jump_speed_mps = 4.6;
-    profile.controller.max_step_height_m = 0.4;
-    profile.camera.eye_height_m = 1.62;
-    profile.camera.look_sensitivity_degrees_per_unit = CAMERA_LOOK_RADIANS_PER_UNIT.to_degrees();
-    profile.camera.pitch_min_degrees = -1.5_f32.to_degrees();
-    profile.camera.pitch_max_degrees = 1.5_f32.to_degrees();
+    forge_engine::amphibious_player::configure_player_profile(&mut profile);
+    forge_engine::player_controller::configure_source_camera_look(&mut profile);
     let center = profile.controller.capsule_radius_m + profile.controller.capsule_half_segment_m;
     let authored_start = probe.authored_start;
     let spawn_xz = authored_start
@@ -175,22 +158,24 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         .with_initial_camera_target(initial_target)
         .with_interactive_input(!smoke),
     )
-    .add_plugins((locomotion, underwater))
+    .add_plugins((
+        locomotion,
+        underwater,
+        forge_engine::amphibious_player::ladder_prompt::LadderPromptPlugin,
+    ))
     .insert_resource(PlayerSimulationReady(false))
     .insert_resource(PlayerInputFocus(false))
     .insert_resource(Walk {
         geometry,
-        previous: None,
-        previous_lens: None,
+        source_view_cadence: default(),
         plant_camera: None,
         terrain_nodes: Vec::new(),
-        ocean_nodes: Vec::new(),
+        ocean_nodes: 0,
         terrain_tiles: resident_tiles::ResidentTiles::default(),
-        ocean_tiles: resident_tiles::ResidentTiles::default(),
         ocean_updates: 0,
     })
     .add_systems(PostStartup, (configure, buildings))
-    .add_systems(Update, (cursor_system, update_ladder_prompt))
+    .add_systems(Update, cursor_system)
     .add_systems(
         PostUpdate,
         (
@@ -254,26 +239,23 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
 
 pub(super) fn underwater_plugin(
     app: &App,
-) -> Result<
-    forge_tidewater::tidewater_underwater::TidewaterUnderwaterPlugin,
-    Box<dyn std::error::Error>,
-> {
+) -> Result<forge_engine::source_underwater::SourceUnderwaterPlugin, Box<dyn std::error::Error>> {
     let targets = app
         .world()
         .get_resource::<super::spray::water_queries::Targets>()
         .ok_or("Native immersion requires installed ocean/shore surface queries")?;
     let maps = app
         .world()
-        .get_resource::<forge_tidewater::tidewater_caustics::CausticMaps>()
+        .get_resource::<forge_engine::source_caustics::CausticMaps>()
         .ok_or("Native immersion requires the live caustic photon maps")?
         .clone();
     let params = &app
         .world()
-        .get_resource::<forge_tidewater::tidewater_caustics::CausticMaterialInputs>()
+        .get_resource::<forge_engine::source_surface::underwater::CausticMaterialInputs>()
         .ok_or("Native immersion requires the real caustic material inputs")?
         .params;
     Ok(
-        forge_tidewater::tidewater_underwater::TidewaterUnderwaterPlugin::new(
+        forge_engine::source_underwater::SourceUnderwaterPlugin::new(
             targets.queries.clone(),
             targets.packet.clone(),
             super::water_optics::underwater_optics(app)?,
@@ -333,42 +315,8 @@ fn configure(
                     .into(),
                 ..default()
             },
-            forge_tidewater::tidewater_underwater::TidewaterUnderwaterCamera,
+            forge_engine::source_underwater::SourceUnderwaterCamera,
         ));
-    }
-    commands
-        .spawn((
-            LadderPrompt,
-            Visibility::Hidden,
-            Node {
-                position_type: PositionType::Absolute,
-                bottom: Val::Px(72.0),
-                left: Val::Percent(50.0),
-                padding: UiRect::axes(Val::Px(14.0), Val::Px(8.0)),
-                ..default()
-            },
-            BackgroundColor(Color::srgba(0.02, 0.03, 0.04, 0.78)),
-        ))
-        .with_child((
-            Text::new("Space — Climb ladder"),
-            TextFont {
-                font_size: FontSize::Px(26.0),
-                ..default()
-            },
-            TextColor(Color::WHITE),
-        ));
-}
-
-fn update_ladder_prompt(
-    state: Res<forge_tidewater::AmphibiousPlayerState>,
-    mut prompt: Query<&mut Visibility, With<LadderPrompt>>,
-) {
-    if let Ok(mut visibility) = prompt.single_mut() {
-        *visibility = if state.ladder_nearby {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
     }
 }
 
@@ -418,7 +366,7 @@ fn buildings(world: &mut World) {
     let mut query = world.query::<(
         Entity,
         &Mesh3d,
-        &MeshMaterial3d<super::village::VillageMaterial>,
+        &MeshMaterial3d<forge_engine::source_surface::SourceSurfaceMaterial>,
         &Visibility,
     )>();
     let colliders = query
@@ -430,7 +378,7 @@ fn buildings(world: &mut World) {
                 .get(&mesh.0)
                 .expect("village mesh");
             let (collider, _) =
-                forge_tidewater::tidewater_assets::scene::surface(mesh).expect("village collision");
+                forge_engine::source_surface::objects::surface(mesh).expect("village collision");
             (entity, collider)
         })
         .collect::<Vec<_>>();
@@ -519,25 +467,17 @@ fn update(world: &mut World) {
         }
         return;
     }
-    let mut query = world.query_filtered::<(&Transform, &Projection), With<ForgePlayerCamera>>();
-    let Ok((transform, Projection::Perspective(projection))) = query.single(world) else {
+    let mut query =
+        world.query_filtered::<(Entity, &Transform, &Projection), With<ForgePlayerCamera>>();
+    let Ok((camera, transform, Projection::Perspective(projection))) = query.single(world) else {
         return;
     };
     let transform = *transform;
     let projection = projection.clone();
     let state = world.resource::<Walk>();
-    let lens = [
-        projection.fov,
-        projection.aspect_ratio,
-        projection.near,
-        projection.far,
-    ]
-    .map(f32::to_bits);
-    if state.previous_lens == Some(lens)
-        && state.previous.is_some_and(|p| {
-            p.translation.distance_squared(transform.translation) < 1.0
-                && p.rotation.dot(transform.rotation).abs() > 0.9999
-        })
+    if !state
+        .source_view_cadence
+        .needs_refresh(camera, &transform, &projection)
     {
         return;
     }
@@ -549,7 +489,7 @@ fn update(world: &mut World) {
     perf::end(world, started, "terrain_selection");
     let started = perf::start(world);
     let state = world.resource::<Walk>();
-    if !forge_tidewater_assets::cdlod::same_node_geometry(&state.terrain_nodes, &nodes) {
+    if !forge_world::terrain_lod::same_node_geometry(&state.terrain_nodes, &nodes) {
         let terrain = world
             .resource::<ResidentTerrain>()
             .entity
@@ -557,7 +497,7 @@ fn update(world: &mut World) {
         world.resource_scope(|world, mut state: Mut<Walk>| {
             state
                 .terrain_tiles
-                .select::<forge_tidewater::tidewater_terrain::lod::LodMaterial>(
+                .select::<forge_engine::source_terrain::lod::LodMaterial>(
                     world,
                     terrain,
                     &nodes,
@@ -573,18 +513,20 @@ fn update(world: &mut World) {
     perf::end(world, started, "terrain_mesh");
     // Vegetation selection is radial: orientation cannot alter its result.
     // Keep its existing one-metre movement budget independently of yaw updates.
-    if world
-        .resource::<Walk>()
-        .plant_camera
-        .is_none_or(|position| position.distance_squared(transform.translation) >= 1.0)
-    {
+    if forge_engine::source_vegetation_selection::needs_refresh(
+        world
+            .resource::<Walk>()
+            .plant_camera
+            .map(|position| position.to_array()),
+        transform.translation.to_array(),
+    ) {
         let started = perf::start(world);
         world.resource_scope(|world, mut plants: Mut<ResidentProof>| {
             plants
                 .resident
                 .select(
                     world,
-                    forge_tidewater::tidewater_plants::scene::View {
+                    forge_engine::source_vegetation::scene::View {
                         camera: transform.translation,
                         visibility: Visibility::Visible,
                     },
@@ -595,36 +537,31 @@ fn update(world: &mut World) {
         perf::end(world, started, "plant_selection");
     }
     update_ocean(world, &transform, &projection);
-    world.resource_mut::<Walk>().previous = Some(transform);
-    world.resource_mut::<Walk>().previous_lens = Some(lens);
+    world
+        .resource_mut::<Walk>()
+        .source_view_cadence
+        .record(camera, &transform, &projection);
 }
 
 fn update_ocean(world: &mut World, transform: &Transform, projection: &PerspectiveProjection) {
-    let started = perf::start(world);
-    let nodes =
-        super::ocean_geometry::view_nodes(transform, projection).expect("walk ocean selection");
-    perf::end(world, started, "ocean_selection");
-    if forge_tidewater_assets::cdlod::same_node_geometry(
-        &nodes,
-        &world.resource::<Walk>().ocean_nodes,
-    ) {
-        return;
-    }
     let mut query = world.query_filtered::<Entity, With<super::ocean_geometry::OceanSurface>>();
     let Ok(entity) = query.single(world) else {
         return;
     };
+    forge_engine::source_ocean_geometry::adopt_optical_surface(world, entity)
+        .expect("walk owns its optical ocean surface");
     let started = perf::start(world);
-    world.resource_scope(|world, mut state: Mut<Walk>| {
-        state
-            .ocean_tiles
-            .select::<super::water_optics::WaterMaterial>(world, entity, &nodes, |node| {
-                super::ocean_geometry::node_mesh(std::slice::from_ref(node))
-            });
-        state.ocean_nodes = nodes;
+    let update = forge_engine::source_ocean_geometry::update_view_observed(
+        world,
+        super::terrain_lod::source_view(transform, projection),
+    )
+    .expect("walk ocean view");
+    perf::end(world, started, "ocean_update");
+    let mut state = world.resource_mut::<Walk>();
+    state.ocean_nodes = update.nodes;
+    if update.changed {
         state.ocean_updates += 1;
-    });
-    perf::end(world, started, "ocean_mesh");
+    }
 }
 
 pub(super) fn tile_entities(world: &World) -> Vec<Entity> {
@@ -633,11 +570,14 @@ pub(super) fn tile_entities(world: &World) -> Vec<Entity> {
         .terrain_tiles
         .entities()
         .into_iter()
-        .chain(state.ocean_tiles.entities())
+        .chain(forge_engine::source_ocean_geometry::tile_entities(world))
         .collect()
 }
 
 pub(super) fn tile_counts(world: &World) -> [[usize; 2]; 2] {
     let state = world.resource::<Walk>();
-    [state.terrain_tiles.counts(), state.ocean_tiles.counts()]
+    [
+        state.terrain_tiles.counts(),
+        forge_engine::source_ocean_geometry::tile_counts(world),
+    ]
 }

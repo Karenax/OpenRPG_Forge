@@ -1,0 +1,4 @@
+interface:
+  display_name: "professional-ui-design"
+  short_description: "Qualité UX adaptée aux utilisateurs de Forge"
+  default_prompt: "Utiliser $professional-ui-design pour cette interface."

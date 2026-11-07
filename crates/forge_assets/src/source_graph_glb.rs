@@ -49,6 +49,33 @@ fn declared(document: &Value, field: &str) -> Result<bool, String> {
     Ok(names.contains(SOURCE_GRAPH_EXTENSION))
 }
 
+/// Inspect the existing GLB document before choosing a renderer. This does not
+/// validate a graph or its resources: a declared graph must still pass the
+/// full source reader and rendering admission. A partial declaration is never
+/// permission to fall back to ordinary glTF materials.
+pub fn source_graph_declared(document: &Value) -> Result<bool, String> {
+    let used = declared(document, "extensionsUsed")?;
+    let required = declared(document, "extensionsRequired")?;
+    let contains_payload = document
+        .get("materials")
+        .and_then(Value::as_array)
+        .is_some_and(|list| {
+            list.iter().any(|material| {
+                material
+                    .get("extensions")
+                    .and_then(|extensions| extensions.get(SOURCE_GRAPH_EXTENSION))
+                    .is_some()
+            })
+        });
+    if !used && !required && !contains_payload {
+        return Ok(false);
+    }
+    if !used || !required || !contains_payload {
+        return Err("source graph must be used, required, and attached to a material".into());
+    }
+    Ok(true)
+}
+
 /// Carrier-byte limits are independent of JSON, decoded geometry and image
 /// limits. They do not represent a GPU or whole-scene memory admission.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -112,23 +139,10 @@ pub fn read_source_graph_glb_with_budget(
     budget: SourceGraphGlbReadBudget,
 ) -> Result<Option<SourceGraphGlb<'_>>, String> {
     let (document, json_end) = read_glb_document(raw, budget)?;
-    let used = declared(&document, "extensionsUsed")?;
-    let required = declared(&document, "extensionsRequired")?;
-    let materials = document.get("materials").and_then(Value::as_array);
-    let contains_payload = materials.is_some_and(|list| {
-        list.iter().any(|m| {
-            m.get("extensions")
-                .and_then(|e| e.get(SOURCE_GRAPH_EXTENSION))
-                .is_some()
-        })
-    });
-    if !used && !required && !contains_payload {
+    if !source_graph_declared(&document)? {
         return Ok(None);
     }
-    // Never allow ordinary PBR fallback to conceal an unimplemented source graph.
-    if !used || !required || !contains_payload {
-        return Err("source graph must be used, required, and attached to a material".into());
-    }
+    let materials = document.get("materials").and_then(Value::as_array);
     if document
         .get("asset")
         .and_then(|a| a.get("version"))

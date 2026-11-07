@@ -144,6 +144,9 @@ impl AuthoringRequest {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthoringState {
+    /// Canonical origin of the active managed module; standalone views have none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub module_origin: Option<crate::workspace::ModuleOriginPin>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub module_creator_context: Option<creator::ModuleCreatorContext>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

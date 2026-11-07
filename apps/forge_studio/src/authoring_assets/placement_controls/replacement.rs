@@ -26,7 +26,9 @@ pub(super) fn ReplacementControls(
                 .and_then(|state| state.zone_head.as_ref())
                 .and_then(|head| super::super::objects::lookup(head, id).ok())
                 .is_some_and(|placement| {
-                    placement.physics.is_some() || placement.particles.is_some()
+                    placement.physics.is_some()
+                        || placement.particles.is_some()
+                        || placement.local_lights.is_some()
                 })
         })
     });
@@ -39,7 +41,7 @@ pub(super) fn ReplacementControls(
             <Show when=move ||physical_source.get()>
                 <label><input type="checkbox" prop:checked=move ||remove_physics.get()
                     on:change=move |ev| remove_physics.set(event_target_checked(&ev))/>
-                    "Retirer explicitement les données physiques et d’effet lors du remplacement"</label>
+                    "Retirer les données physiques, d’effet et d’éclairage"</label>
                 <p>"Les références précédentes seront conservées dans l’historique pour Annuler."</p>
             </Show>
             <output aria-live="polite">{move || {

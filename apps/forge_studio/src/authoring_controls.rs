@@ -7,6 +7,42 @@ use forge_project::{
 };
 use leptos::prelude::*;
 
+#[derive(Clone, Copy)]
+pub(crate) struct DraftRegistry {
+    dirty: RwSignal<std::collections::BTreeSet<usize>>,
+    next: StoredValue<usize>,
+    reset: RwSignal<u64>,
+    applied: RwSignal<Option<CommandId>>,
+}
+
+impl DraftRegistry {
+    pub(crate) fn applied_command(self) -> Option<CommandId> {
+        self.applied.get()
+    }
+    pub(crate) fn is_dirty(self) -> bool {
+        !self.dirty.get().is_empty()
+    }
+    pub(crate) fn reset_generation(self) -> u64 {
+        self.reset.get()
+    }
+    pub(crate) fn register(self) -> usize {
+        let id = self.next.get_value();
+        self.next.set_value(id + 1);
+        id
+    }
+    pub(crate) fn mark(self, id: usize, dirty: bool) {
+        if self.dirty.get_untracked().contains(&id) != dirty {
+            self.dirty.update(|entries| {
+                if dirty {
+                    entries.insert(id);
+                } else {
+                    entries.remove(&id);
+                }
+            });
+        }
+    }
+}
+
 #[derive(Clone)]
 struct ActionEvent {
     kind: &'static str,
@@ -35,7 +71,7 @@ fn command_label(request: &AuthoringRequest) -> &'static str {
         | AuthoringRequest::ApplyZone { .. }
         | AuthoringRequest::ApplyModuleCreator { .. }
         | AuthoringRequest::ApplyModuleHistory { .. } => "Retouche appliquée",
-        AuthoringRequest::Save => "Zone sauvegardée",
+        AuthoringRequest::Save => "Carte sauvegardée",
         AuthoringRequest::Inspect => "Session relue",
         _ => "Commande terminée",
     }
@@ -102,6 +138,13 @@ impl AuthoringTab {
     reason = "One session owner keeps mounted tool panels and native command state consistent"
 )]
 pub fn AuthoringControls() -> impl IntoView {
+    let drafts = DraftRegistry {
+        dirty: RwSignal::new(std::collections::BTreeSet::new()),
+        next: StoredValue::new(0),
+        reset: RwSignal::new(0),
+        applied: RwSignal::new(None),
+    };
+    provide_context(drafts);
     let state = RwSignal::new(None::<AuthoringState>);
     let busy = RwSignal::new(false);
     Effect::new(move |_| super::authoring_brush_pointer::set_command_busy(busy.get()));
@@ -153,8 +196,10 @@ pub fn AuthoringControls() -> impl IntoView {
         }
         selected
     });
+    let scroll_positions = StoredValue::new([0_i32; 8]);
     Effect::new(move |_| {
-        let _ = active_tab.get();
+        let tab = active_tab.get();
+        panel_layout.reveal();
         if let Some(panel) = web_sys::window()
             .and_then(|window| window.document())
             .and_then(|document| {
@@ -164,7 +209,7 @@ pub fn AuthoringControls() -> impl IntoView {
                     .flatten()
             })
         {
-            panel.set_scroll_top(0);
+            panel.set_scroll_top(scroll_positions.with_value(|positions| positions[tab.index()]));
         }
     });
     Effect::new(move |previous: Option<Option<forge_core::AreaId>>| {
@@ -204,6 +249,29 @@ pub fn AuthoringControls() -> impl IntoView {
             return;
         }
         let label = command_label(&request);
+        let applied_id = matches!(
+            request,
+            AuthoringRequest::Apply { .. }
+                | AuthoringRequest::ApplyZone { .. }
+                | AuthoringRequest::ApplyModuleCreator { .. }
+                | AuthoringRequest::ApplyModuleHistory { .. }
+        )
+        .then(|| request_command_id(&request))
+        .flatten();
+        if preview.get_untracked().is_some()
+            && matches!(
+                request,
+                AuthoringRequest::Preview { .. }
+                    | AuthoringRequest::PreviewZone { .. }
+                    | AuthoringRequest::PreviewModuleCreator { .. }
+                    | AuthoringRequest::PreviewModuleHistory { .. }
+            )
+        {
+            let message = "Votre aperçu est conservé. Appliquez-le ou choisissez Abandonner l’aperçu avant d’examiner une autre retouche.";
+            status.set(message.into());
+            record_event(events, "warning", message);
+            return;
+        }
         // Only one native request may be in flight. Cancellation remains sticky until
         // the next accepted request, so a late preview cannot restore its Apply button.
         preview_cancelled.set(false);
@@ -257,6 +325,9 @@ pub fn AuthoringControls() -> impl IntoView {
                     record_event(events, "success", &detail);
                     status.set(session_status(&result).into());
                     state.set(Some(*result));
+                    if let Some(id) = applied_id {
+                        drafts.applied.set(Some(id));
+                    }
                 }
                 Ok(StudioResponse::Rejected { reason }) | Err(reason) => {
                     super::authoring_loading::finish();
@@ -318,6 +389,7 @@ pub fn AuthoringControls() -> impl IntoView {
                                 aria-current=move || if active_tab.get() == tab { "page" } else { "false" }
                                 on:click=move |_| {
                                     super::authoring_brush_pointer::cancel();
+                                    remember_panel_scroll(scroll_positions, active_tab);
                                     active_tab.set(tab);
                                 }><svg class="authoring-tool-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d=match tab {
                                     AuthoringTab::Project => "M3 7h7l2 2h9v11H3Z M3 7V4h7l2 3",
@@ -331,9 +403,23 @@ pub fn AuthoringControls() -> impl IntoView {
                                 }/></svg><span>{tab.label()}</span></button>
                         }).collect_view()}
                     </nav>
+
                 </div>
                 <aside class="authoring-scene-tree" aria-label="Scène">
-                    <div class="forge-project-card">
+                    <label class="authoring-task-picker">"Créer et raconter"
+                        <select aria-label="Accès direct aux outils RPG" on:change=move |event| {
+                            let selector = event_target_value(&event);
+                            if !selector.is_empty() { remember_panel_scroll(scroll_positions, active_tab); open_task(active_tab, &selector); }
+                        }>
+                            <option value="">"Choisir une tâche…"</option>
+                            <option value=".authoring-gameplay-editor">"Personnages et objets RPG"</option>
+                            <option value=".creator-dialogue-graph">"Dialogues"</option>
+                            <option value=".creator-quest-flow">"Quêtes et journal"</option>
+                            <option value=".creator-script-editor">"Scripts"</option>
+                            <option value=".assistant-controls">"Assistant IA"</option>
+                        </select>
+                    </label>
+                    <div class="forge-project-card" hidden=move || state.get().is_none_or(|s| s.document.is_none())>
                         <svg viewBox="0 0 220 82" aria-hidden="true"><path d="M0 82V62L45 15l48 43 36-30 91 54Z"/><path d="m17 82 52-47 46 47M115 82l43-46 62 46"/><circle cx="180" cy="18" r="9"/></svg>
                         <span>"ESPACE DE CRÉATION"</span>
                         <h3>{move || state.get().and_then(|s| s.document.map(|d| d.name)).unwrap_or_else(|| "Votre prochain monde".into())}</h3>
@@ -346,7 +432,8 @@ pub fn AuthoringControls() -> impl IntoView {
                 <div class="forge-topic-window" data-dock=move || panel_layout.current().dock.key()
                     data-collapsed=move || panel_layout.current().collapsed.to_string() style=move || panel_layout.style()>
                     <super::authoring_dock::PanelHeader layout=panel_layout/>
-                <div class="authoring-panel-scroll" hidden=move || panel_layout.current().collapsed>
+                <div class="authoring-panel-scroll" hidden=move || panel_layout.current().collapsed
+                    on:scroll=move |_|remember_panel_scroll(scroll_positions, active_tab)>
                     <section class="authoring-panel" data-authoring-tab="project" hidden=move || active_tab.get() != AuthoringTab::Project>
                         <h2>"Modules et cartes"</h2>
                         <super::workspace_controls::ModuleBrowser authoring=state host_busy=busy
@@ -354,7 +441,7 @@ pub fn AuthoringControls() -> impl IntoView {
                             on_open=Callback::new(move |area_id| send(Ok(AuthoringRequest::OpenManaged { area_id })))
                             on_close=Callback::new(move |()| send(Ok(AuthoringRequest::Close)))/>
                         <Show when=move || !authoring_route>
-                            <p>"Cette scène de preuve n’est pas la zone éditée."</p>
+                            <p>"Cette scène de preuve n’est pas la carte éditée."</p>
                             <a href="?authoring=1">"Ouvrir l’espace terrain édité"</a>
                         </Show>
                     </section>
@@ -367,8 +454,15 @@ pub fn AuthoringControls() -> impl IntoView {
                     <section class="authoring-panel" data-authoring-tab="objects" hidden=move || active_tab.get() != AuthoringTab::Objects>
                         <super::authoring_assets::AssetBrowserControls state=state host_busy=busy inspected=placement_selection on_command=Callback::new(send)/>
                         <super::authoring_gameplay::GameplayEditor state=state busy=busy send=Callback::new(send)/>
+                        <super::assistant_ui::AssistantControls state=state host_busy=busy selected_placement=placement_selection
+                            on_applied=Callback::new(move |result: AuthoringState| {
+                                if observe_or_report(&result, state, status, busy, false) { state.set(Some(result)); }
+                                workspace_refresh.update(|epoch| *epoch = epoch.wrapping_add(1));
+                                record_event(events, "success", "Proposition IA acceptée dans les sources ; sauvegarder la carte pour la conserver.");
+                            })/>
                     </section>
                     <section class="authoring-panel" data-authoring-tab="follow-up" hidden=move || active_tab.get() != AuthoringTab::FollowUp>
+                        <super::module_export_ui::ModuleExportControls state=state busy=busy/>
                         <super::authoring_playtest_controls::PlaytestControls state=state busy=busy send=Callback::new(send)/>
                         <Show when=super::embedded_playtest_available>
                             <super::authoring_gameplay::GameplayControls state=state busy=busy send=Callback::new(send)/>
@@ -377,7 +471,7 @@ pub fn AuthoringControls() -> impl IntoView {
                         <p>{super::EMBEDDED_PLAYTEST_RETIRED}</p>
                         <super::authoring_history::HistoryControls state=state/>
                         <details><summary>"Aide et raccourcis"</summary>
-                            <p>"Ctrl+Entrée applique l’aperçu · Ctrl+S sauvegarde · Ctrl+Z annule · Ctrl+Y ou Ctrl+Maj+Z rétablit. Appliquer avant de sauvegarder."</p>
+                            <p>"Ctrl+Entrée applique l’aperçu · Ctrl+S sauvegarde · Ctrl+Z examine l’annulation · Ctrl+Y ou Ctrl+Maj+Z examine le rétablissement. Dans un module, Appliquer confirme l’historique. Les champs de texte gardent leur annulation habituelle."</p>
                             <output>{move || command_timing.get()}</output>
                         </details>
                     </section>
@@ -401,15 +495,87 @@ pub fn AuthoringControls() -> impl IntoView {
 
 #[component]
 pub(super) fn WorkspaceWelcome() -> impl IntoView {
+    let active_tab = expect_context::<RwSignal<AuthoringTab>>();
     // Visibility is driven by the native-session observation, not a fake scene.
     view! {
         <div class="forge-workspace-welcome">
             <div class="forge-welcome-emblem" aria-hidden="true">"F"</div>
-            <span>"VOTRE ATELIER DE MONDES"</span>
-            <h2>"Tout commence par un lieu."</h2>
-            <p>"Choisissez un module, puis une carte dans le panneau Modules."</p>
-            <div class="forge-welcome-steps"><span>"01  Choisir un module"</span><span>"02  Ouvrir une carte"</span><span>"03  Donner vie au décor"</span></div>
+            <h2>"Ouvrir votre atelier"</h2>
+            <p>"Choisissez un module et une carte, ou créez votre premier module."</p>
+            <button type="button" on:click=move |_| {
+                active_tab.set(AuthoringTab::Project);
+                leptos::leptos_dom::helpers::request_animation_frame(move || {
+                    if let Some(element) = web_sys::window().and_then(|w|w.document())
+                        .and_then(|d|d.query_selector(".module-map-browser select[aria-label=\"Module\"]").ok().flatten()) {
+                        use wasm_bindgen::JsCast;
+                        if let Some(element) = element.dyn_ref::<web_sys::HtmlElement>() { let _ = element.focus(); }
+                    }
+                });
+            }>"Choisir ou créer un module"</button>
         </div>
+    }
+}
+
+fn open_task(active_tab: RwSignal<AuthoringTab>, selector: &str) {
+    active_tab.set(AuthoringTab::Objects);
+    let selector = selector.to_owned();
+    leptos::leptos_dom::helpers::request_animation_frame(move || {
+        use wasm_bindgen::JsCast;
+        let Some(document) = web_sys::window().and_then(|w| w.document()) else {
+            return;
+        };
+        let Some(element) = document.query_selector(&selector).ok().flatten() else {
+            super::authoring_viewport::report("Ouvrez une carte et activez cette surface dans les règles de son module pour utiliser cet outil.".into());
+            return;
+        };
+        let mut ancestor = Some(element.clone());
+        while let Some(current) = ancestor {
+            if current.tag_name() == "DETAILS" {
+                let _ = current.set_attribute("open", "");
+            }
+            ancestor = current.parent_element();
+        }
+        element.scroll_into_view();
+        if let Some(summary) = element
+            .query_selector("summary")
+            .ok()
+            .flatten()
+            .and_then(|e| e.dyn_into::<web_sys::HtmlElement>().ok())
+        {
+            let _ = summary.focus();
+        }
+    });
+}
+
+fn remember_panel_scroll(positions: StoredValue<[i32; 8]>, active: RwSignal<AuthoringTab>) {
+    if let Some(panel) = web_sys::window()
+        .and_then(|window| window.document())
+        .and_then(|document| {
+            document
+                .query_selector(".authoring-panel-scroll")
+                .ok()
+                .flatten()
+        })
+    {
+        positions.update_value(|positions| {
+            positions[active.get_untracked().index()] = panel.scroll_top();
+        });
+    }
+}
+
+pub(crate) fn request_command_id(request: &AuthoringRequest) -> Option<CommandId> {
+    match request {
+        AuthoringRequest::Preview { request } | AuthoringRequest::Apply { request } => {
+            Some(request.command_id)
+        }
+        AuthoringRequest::PreviewZone { request } | AuthoringRequest::ApplyZone { request } => {
+            Some(request.command_id)
+        }
+        AuthoringRequest::PreviewModuleCreator { command_id, .. }
+        | AuthoringRequest::PreviewModuleHistory { command_id, .. } => Some(*command_id),
+        AuthoringRequest::ApplyModuleCreator { review } => Some(review.request.command_id),
+        AuthoringRequest::ApplyModuleHistory { request } => Some(request.command_id),
+        _ => None,
     }
 }
 
@@ -603,6 +769,7 @@ fn CommandBar(
     send: Callback<Result<AuthoringRequest, String>>,
     cancel_preview: Callback<()>,
 ) -> impl IntoView {
+    let drafts = expect_context::<DraftRegistry>();
     let promotion_ready = super::authoring_vegetation::bind_promotion_ready();
     let apply_error = move || {
         let _ = promotion_ready.get();
@@ -611,14 +778,17 @@ fn CommandBar(
         })
     };
     view! {
-        <div class="authoring-command-bar" role="group" aria-label="Actions de la zone courante">
+        <div class="authoring-command-bar" role="group" aria-label="Actions de la carte courante">
             <button class="authoring-apply" title="Appliquer la retouche prévisualisée · Ctrl+Entrée" disabled=move || busy.get() || preview.get().is_none() || apply_error().is_some() on:click=move |_| send.run(preview.get_untracked().ok_or_else(|| "Prévisualiser une retouche d’abord".into()))>"Appliquer"</button>
             <output aria-live="polite" hidden=move || apply_error().is_none()>{move || apply_error().unwrap_or_default()}</output>
-            <button title="Dans un module, examiner l’annulation puis Appliquer pour confirmer" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| !super::authoring_history_request::available(&s, false)) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Undo))>"Annuler"</button>
-            <button title="Dans un module, examiner le rétablissement puis Appliquer pour confirmer" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| !super::authoring_history_request::available(&s, true)) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Redo))>"Rétablir"</button>
+            <button title="Ctrl+Z · examiner l’annulation, puis Appliquer pour confirmer dans un module" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| !super::authoring_history_request::available(&s, false)) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Undo))>{move ||if state.get().is_some_and(|state|state.module_creator_context.is_some()) {"Examiner l’annulation"}else{"Annuler"}}</button>
+            <button title="Ctrl+Y · examiner le rétablissement, puis Appliquer pour confirmer dans un module" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| !super::authoring_history_request::available(&s, true)) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Redo))>{move ||if state.get().is_some_and(|state|state.module_creator_context.is_some()) {"Examiner le rétablissement"}else{"Rétablir"}}</button>
             <button title="Enregistrer les retouches appliquées · Ctrl+S" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| s.document.is_none() || s.playtest_hash.is_some()) on:click=move |_| send.run(Ok(AuthoringRequest::Save))>"Sauvegarder"</button>
-            <span class="gold-save-state" aria-live="polite">{move || if preview.get().is_some() { "Retouche en attente : Appliquer ou Abandonner avant de sélectionner un autre objet." } else if state.get().is_some_and(|s| s.dirty) { "Non enregistré" } else { "" }}</span>
+            <span class="gold-save-state" aria-live="polite">{move || if preview.get().is_some() { "Aperçu conservé pour la retouche examinée · Appliquer ou Abandonner avant une nouvelle proposition." } else if state.get().is_some_and(|s| s.dirty) { "Retouches appliquées · non sauvegardées ; les brouillons doivent être examinés séparément" } else if !drafts.dirty.get().is_empty() { "Brouillons locaux · non examinés et non sauvegardés" } else if state.get().is_some_and(|s| s.document.is_some()) { "Carte sauvegardée" } else { "Aucune carte ouverte" }}</span>
             <button hidden=move || preview.get().is_none() on:click=move |_| cancel_preview.run(())>"Abandonner l’aperçu"</button>
+            <button hidden=move ||!drafts.is_dirty() disabled=move ||busy.get() ||preview.get().is_some()
+                title="Restaurer les champs non examinés depuis leurs versions appliquées ; les modifications déjà appliquées sont conservées"
+                on:click=move |_|drafts.reset.update(|generation|*generation=generation.wrapping_add(1))>"Abandonner les brouillons"</button>
             <output class="authoring-command-diff" aria-live="polite" hidden=move || difference.get().is_empty()>{move || difference.get()}</output>
             <output class="authoring-command-status" aria-live="polite">{move || status.get()}</output>
         </div>
@@ -757,11 +927,11 @@ fn session_status(state: &AuthoringState) -> &'static str {
     if state.playtest_hash.is_some() {
         "Playtest · sources gelées, aucune sauvegarde implicite"
     } else if state.document.is_none() {
-        "Aucune zone ouverte"
+        "Aucune carte ouverte"
     } else if state.dirty {
         "Retouches non sauvegardées"
     } else {
-        "Session synchronisée"
+        "Carte sauvegardée · brouillons locaux non inclus"
     }
 }
 
@@ -790,9 +960,24 @@ fn prepare_brush(
         .as_ref()
         .and_then(|state| state.document.as_ref())
         .ok_or("Ouvrir une zone avant de peindre son relief")?;
-    let edit = match state.as_ref().and_then(|s| s.zone_head.as_ref()) {
-        Some(head) => forge_world::river_projection::prepare_brush(head, &brush)?,
-        None => brush.prepare(document)?,
+    let head = state.as_ref().and_then(|s| s.zone_head.as_ref());
+    let edit = if document.sampled_source.is_some() {
+        let visible = head.map_or_else(|| Ok(document.clone()), super::authoring_scene::terrain)?;
+        let bytes = super::authoring_raster::source_bytes(&visible)?;
+        let plan =
+            forge_world::sampled_terrain::SampledTerrainPlan::from_document(&visible, &bytes)
+                .map_err(|error| error.to_string())?;
+        match head {
+            Some(head) => {
+                forge_world::river_projection::prepare_sampled_brush(head, &brush, &plan)?
+            }
+            None => brush.prepare_sampled(&plan)?,
+        }
+    } else {
+        match head {
+            Some(head) => forge_world::river_projection::prepare_brush(head, &brush)?,
+            None => brush.prepare(document)?,
+        }
     };
     prepare_edit(state, TerrainAction::Edit(edit))
 }

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-import-module-package"
+description = "Enables the import_module_package command without any pre-configured scope."
+commands.allow = ["import_module_package"]
+
+[[permission]]
+identifier = "deny-import-module-package"
+description = "Denies the import_module_package command without any pre-configured scope."
+commands.deny = ["import_module_package"]

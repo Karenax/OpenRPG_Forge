@@ -286,7 +286,7 @@ impl Prewarm {
 
 fn gain() -> f32 {
     // Same configured profile conversion as the controller, no second engine API.
-    super::super::CAMERA_LOOK_RADIANS_PER_UNIT
+    forge_engine::player_controller::SOURCE_CAMERA_LOOK_RADIANS_PER_UNIT
         .to_degrees()
         .to_radians()
 }
@@ -345,7 +345,10 @@ fn observation(world: &mut World, prewarm: &Prewarm) -> Result<Observation, Stri
         fixed_tick: player.fixed_tick,
         last_applied_sequence: player.last_applied_sequence,
         elapsed_s: prewarm.installed.elapsed().as_secs_f64(),
-        wall_ms: perf.wall_ms,
+        wall_ms: world
+            .resource::<forge_engine::render_timing::MainClock>()
+            .wall_ms()
+            .unwrap_or(0.0),
         stage: prewarm.stage,
         waypoint: prewarm.waypoint,
         target_units: prewarm.target_units(),

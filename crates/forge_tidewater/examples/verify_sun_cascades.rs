@@ -1,6 +1,6 @@
 //! Compare the native cascade fitter/scheduler against a clean source oracle.
 use bevy::math::{DMat4, DVec3};
-use forge_tidewater::sun_cascades::{CascadeConfig, CascadeView, SunCascades};
+use forge_engine::sun_cascades::{CascadeConfig, CascadeView, SunCascades};
 use serde::Deserialize;
 use std::{error::Error, fs};
 

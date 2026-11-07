@@ -13,6 +13,9 @@ use bevy::{
     shader::ShaderCacheError,
 };
 use forge_core::{ContentHash, EntityId};
+use forge_engine::source_vegetation::picking;
+use forge_engine::source_vegetation::picking::decode;
+use forge_engine::source_vegetation::picking::occluders;
 use forge_project::{
     VegetationLayerId,
     authoring::{AuthoringRequest, AuthoringState},
@@ -22,12 +25,14 @@ use forge_project::{
         session::{ZoneAction, ZoneRequest},
     },
 };
-use forge_tidewater::tidewater_plants::picking::{
-    self, decode,
-    occluders::{self, Prepared},
-    render::{Pass, View},
-};
+type Prepared = forge_engine::source_vegetation::picking::occluders::Prepared<
+    forge_engine::source_terrain::lod::LodMaterial,
+    forge_engine::source_surface::SourceSurfaceMaterial,
+>;
+mod pass;
+use forge_engine::source_vegetation::picking::render::View;
 use leptos::prelude::*;
+use pass::Pass;
 use std::cell::Cell;
 
 #[path = "readback.rs"]
@@ -46,7 +51,7 @@ thread_local! {
 struct Pipelines {
     ready_frames: u8,
     failure: Option<String>,
-    expected: [bool; 4],
+    expected: [bool; 5],
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -78,7 +83,9 @@ impl CameraKey {
 
 #[derive(Resource)]
 struct Pending {
+    module_revision: u64,
     pass: Pass,
+    common: Option<forge_engine::source_vegetation::scene::streamed::host::picking::Identity>,
     head: ContentHash,
     generation: u64,
     epoch: u64,
@@ -91,7 +98,7 @@ struct Pending {
     done: bool,
 }
 
-pub(super) fn install(app: &mut App) {
+pub(crate) fn install(app: &mut App) {
     app.init_resource::<Pipelines>()
         .add_systems(Update, request_readback)
         .add_systems(
@@ -99,6 +106,7 @@ pub(super) fn install(app: &mut App) {
             (stage, cleanup)
                 .chain()
                 .after(super::update)
+                .after(picking::governed::SyncSet)
                 .after(crate::authoring_assets::imported_scene::update)
                 .after(bevy::camera::CameraUpdateSystems)
                 .after(bevy::transform::TransformSystems::Propagate),
@@ -449,18 +457,14 @@ fn stage(world: &mut World) {
             return Err("Clic de plante périmé ou hors vue".into());
         }
         let generation = imported_buildings::published_generation();
-        let snapshot = world.resource_scope(|world, state: Mut<State>| {
-            if state.source != Some((head, generation)) || state.failed.is_some() {
-                return Err("Projection végétale non synchronisée".into());
-            }
-            state
-                .resident
-                .as_ref()
-                .ok_or("Plantes non projetées")?
-                .picking_snapshot(world)
-        })?;
-        let (_, camera) = crate::authoring_imported_terrain::shadow_source(world)
-            .ok_or("Terrain non synchronisé")?;
+        let module_revision = crate::authoring_module_resources::revision();
+        let camera = if crate::authoring_module_viewport::installed() {
+            forge_engine::scene_camera::primary(world)?.0
+        } else {
+            crate::authoring_imported_terrain::shadow_source(world)
+                .ok_or("Terrain non synchronisé")?
+                .1
+        };
         let camera_view = world.get::<Camera>(camera).ok_or("Caméra absente")?;
         let transform = world
             .get::<GlobalTransform>(camera)
@@ -478,7 +482,7 @@ fn stage(world: &mut World) {
         let occluders = Prepared::from_world(world)?;
         let (terrain_count, village_count) = occluders.counts();
         let standard_count = occluders.standard_count();
-        let mut pass = Pass::spawn(world, snapshot, view)?;
+        let (mut pass, common) = Pass::spawn(world, head, generation, module_revision, view)?;
         if let Err(error) = pass.add_occluders(world, occluders) {
             pass.retire(world);
             return Err(error);
@@ -487,13 +491,16 @@ fn stage(world: &mut World) {
         pipelines.ready_frames = 0;
         pipelines.failure = None;
         pipelines.expected = [
-            true,
+            pass.has_source_batches(),
             terrain_count > 0,
             village_count > 0,
             standard_count > 0,
+            pass.has_models(),
         ];
         Ok(Pending {
+            module_revision,
             pass,
+            common,
             head,
             generation,
             epoch,
@@ -520,6 +527,7 @@ fn request_readback(
     frame: Res<FrameCount>,
     time: Res<Time<Real>>,
     pipelines: Res<Pipelines>,
+    common: Option<Res<forge_engine::source_vegetation::scene::streamed::host::HostStatus>>,
     mut pending: Option<ResMut<Pending>>,
     mut commands: Commands,
 ) {
@@ -542,12 +550,18 @@ fn request_readback(
     if pending.reader.is_some()
         || frame.0.saturating_sub(pending.started) < 8
         || pipelines.ready_frames < 8
+        // The ID pass can add pipelines and temporarily revoke the resident's
+        // GPU receipt. Wait for that same source generation to be ready before
+        // requesting its one-shot copy; receive still rechecks every guard.
+        || pending.common.as_ref().is_some_and(|key| {
+            common.as_deref().is_none_or(|status| !key.matches_status(status))
+        })
     {
         return;
     }
     pending.reader = Some(
         commands
-            .spawn(Readback::texture(pending.pass.target.clone()))
+            .spawn(Readback::texture(pending.pass.target().clone()))
             .observe(receive)
             .id(),
     );
@@ -557,7 +571,8 @@ fn request_readback(
 fn receive(
     event: On<ReadbackComplete>,
     pending: Option<ResMut<Pending>>,
-    state: Res<State>,
+    state: Option<Res<State>>,
+    common: Option<Res<forge_engine::source_vegetation::scene::streamed::host::HostStatus>>,
     cameras: Query<(&Camera, &GlobalTransform, &Projection)>,
 ) {
     let Some(mut pending) = pending else {
@@ -573,13 +588,43 @@ fn receive(
         let (camera, transform, projection) = cameras
             .get(pending.camera)
             .map_err(|_| "Caméra remplacée")?;
-        if !crate::authoring_viewport::can_preview_asset()
-            || EPOCH.with(Cell::get) != pending.epoch
-            || current_head != pending.head
-            || state.source != Some((pending.head, pending.generation))
-            || imported_buildings::published_generation() != pending.generation
-            || CameraKey::new(camera, transform, projection)? != pending.camera_key
+        let camera_key = CameraKey::new(camera, transform, projection)?;
+        let preview_current = crate::authoring_viewport::can_preview_asset();
+        let epoch_current = EPOCH.with(Cell::get) == pending.epoch;
+        let head_current = current_head == pending.head;
+        let plants_current = !match &pending.common {
+            Some(key) => common
+                .as_deref()
+                .is_none_or(|status| !key.matches_status(status)),
+            None => state.as_deref().is_none_or(|state| {
+                state.source != Some((pending.head, pending.generation, pending.module_revision))
+                    || state.failed.is_some()
+                    || state.resident.is_none()
+                    || (state.species.is_some() && !state.species_committed)
+            }),
+        };
+        let module_current =
+            crate::authoring_module_resources::revision() == pending.module_revision;
+        let generation_current = imported_buildings::published_generation() == pending.generation;
+        if !preview_current
+            || !epoch_current
+            || !head_current
+            || !plants_current
+            || !module_current
+            || !generation_current
+            || camera_key != pending.camera_key
         {
+            bevy::log::warn!(
+                event_kind = "studio_plant_pick_stale",
+                preview_current, epoch_current, head_current, plants_current,
+                module_current, generation_current,
+                camera_pose_current = camera_key.matrix == pending.camera_key.matrix,
+                camera_projection_current = camera_key.projection == pending.camera_key.projection,
+                camera_size_current = camera_key.size == pending.camera_key.size,
+                plant_status = ?common.as_deref().map(|s| (s.ready, s.generation, s.sequence, &s.error)),
+                expected_plants = ?pending.common.as_ref().map(|s| (s.generation, s.sequence)),
+                "Plant readback refused by its unchanged validity guards"
+            );
             return Err("Réponse GPU périmée : carte, bibliothèque ou caméra modifiée".into());
         }
         let x = pixel_coordinate(pending.position.x, pending.camera_key.size.x);
@@ -590,7 +635,6 @@ fn receive(
         }
         pending
             .pass
-            .snapshot
             .resolve(decode(pixel).unwrap_or(0), current_head)
     })();
     match result {
@@ -630,6 +674,7 @@ fn observe_pipelines(mut main: ResMut<MainWorld>, pipelines: Res<PipelineCache>)
     if !main.contains_resource::<Pending>() {
         return;
     }
+    let plant_shader = main.resource::<Pending>().pass.shader_id();
     let Some(mut status) = main.get_resource_mut::<Pipelines>() else {
         return;
     };
@@ -637,12 +682,13 @@ fn observe_pipelines(mut main: ResMut<MainWorld>, pipelines: Res<PipelineCache>)
         return;
     }
     let shader_ids = [
-        picking::shader_id(),
+        plant_shader,
         occluders::shader_ids()[0],
         occluders::shader_ids()[1],
         occluders::shader_ids()[2],
+        picking::governed::shader_id(),
     ];
-    let mut seen = [false; 4];
+    let mut seen = [false; 5];
     let mut ready = true;
     for pipeline in pipelines.pipelines() {
         let PipelineDescriptor::RenderPipelineDescriptor(descriptor) = &pipeline.descriptor else {

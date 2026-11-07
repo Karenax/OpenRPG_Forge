@@ -1,5 +1,4 @@
 //! Content adapter: pinned GLB scenes projected from the common saved placements.
-use super::village::VillageMaterial;
 use bevy::{
     ecs::system::SystemParam,
     gltf::GltfAssetLabel,
@@ -7,6 +6,7 @@ use bevy::{
     world_serialization::{WorldAssetRoot, WorldInstanceReady},
 };
 use forge_core::{AssetId, ContentHash, bytes_sha256};
+use forge_engine::source_surface::SourceSurfaceMaterial;
 use forge_project::zone_authoring::{placements::ManualPlacement, session::ZoneEditSession};
 use serde::Deserialize;
 use std::{
@@ -21,8 +21,10 @@ struct PreparedTextures(std::collections::HashSet<bevy::asset::AssetId<Image>>);
 #[derive(Resource, Default)]
 struct SceneSurfaces {
     meshes: std::collections::HashMap<bevy::asset::AssetId<Mesh>, Handle<Mesh>>,
-    materials:
-        std::collections::HashMap<bevy::asset::AssetId<StandardMaterial>, Handle<VillageMaterial>>,
+    materials: std::collections::HashMap<
+        bevy::asset::AssetId<StandardMaterial>,
+        Handle<SourceSurfaceMaterial>,
+    >,
 }
 
 #[derive(SystemParam)]
@@ -32,7 +34,7 @@ struct MaterializeAssets<'w> {
     images: ResMut<'w, Assets<Image>>,
     prepared: ResMut<'w, PreparedTextures>,
     templates: Res<'w, super::village::SharedMaterials>,
-    scene_materials: ResMut<'w, Assets<VillageMaterial>>,
+    scene_materials: ResMut<'w, Assets<SourceSurfaceMaterial>>,
     surfaces: ResMut<'w, SceneSurfaces>,
 }
 
@@ -88,7 +90,7 @@ pub struct Plan(
 impl Plan {
     pub fn shadow_draws(
         &self,
-    ) -> Result<Vec<forge_tidewater::tidewater_object_shadow::OpaqueDraw>, String> {
+    ) -> Result<Vec<forge_engine::source_shadows::casters::OpaqueDraw>, String> {
         self.0
             .iter()
             .map(|(placement, _)| {
@@ -97,7 +99,7 @@ impl Plan {
                     .get(&placement.asset_id)
                     .ok_or("Missing static shadow mesh")?;
                 let t = forge_engine::placement_transform(placement);
-                forge_tidewater::tidewater_object_shadow::OpaqueDraw::new(
+                forge_engine::source_shadows::casters::OpaqueDraw::new(
                     positions.clone(),
                     indices.clone(),
                     t.to_matrix(),
@@ -167,7 +169,7 @@ pub fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Option<Plan>, Box<dyn E
             .get(&asset.shadow_indices)
             .ok_or("Missing static shadow indices")?
             .clone();
-        forge_tidewater::tidewater_object_shadow::OpaqueDraw::new(
+        forge_engine::source_shadows::casters::OpaqueDraw::new(
             positions.clone(),
             indices.clone(),
             Mat4::IDENTITY,
@@ -330,7 +332,7 @@ fn materialize(
             commands.entity(event.entity).insert(Failed);
             return;
         };
-        let Ok((collider, _)) = forge_tidewater::tidewater_assets::scene::surface(mesh) else {
+        let Ok((collider, _)) = forge_engine::source_surface::objects::surface(mesh) else {
             error!("Static asset collider failed: {}", root.0.id);
             commands.entity(event.entity).insert(Failed);
             return;
@@ -387,12 +389,18 @@ fn scene_mesh(source: &Mesh) -> Mesh {
         }
         _ => vec![[1.0; 3]; count],
     };
-    mesh.insert_attribute(forge_tidewater::tidewater_mesh::TINT, tint);
-    mesh.insert_attribute(forge_tidewater::tidewater_mesh::DATA, vec![[0.0; 4]; count]);
+    mesh.insert_attribute(forge_engine::source_surface::mesh::TINT, tint);
+    mesh.insert_attribute(
+        forge_engine::source_surface::mesh::DATA,
+        vec![[0.0; 4]; count],
+    );
     mesh
 }
 
-fn scene_material(material: &StandardMaterial, template: &VillageMaterial) -> VillageMaterial {
+fn scene_material(
+    material: &StandardMaterial,
+    template: &SourceSurfaceMaterial,
+) -> SourceSurfaceMaterial {
     let mut scene = template.clone();
     // Kind 7 belongs to the engine's common untextured neutral surface.
     // This content adapter retains the GLB's textured surface in its own branch.

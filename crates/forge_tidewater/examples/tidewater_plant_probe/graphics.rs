@@ -1,171 +1,15 @@
 //! Playable Tidewater graphics controls. Only controls with a live renderer effect appear.
 use bevy::{
-    anti_alias::{
-        contrast_adaptive_sharpening::ContrastAdaptiveSharpening, fxaa::Fxaa,
-        taa::TemporalAntiAliasing,
-    },
-    camera::Hdr,
-    core_pipeline::prepass::{DepthPrepass, MotionVectorPrepass},
-    core_pipeline::tonemapping::Tonemapping,
     input::mouse::{MouseScrollUnit, MouseWheel},
-    post_process::{
-        auto_exposure::{AutoExposure, AutoExposureCompensationCurve, AutoExposurePlugin},
-        bloom::Bloom,
-        effect_stack::Vignette,
-        motion_blur::MotionBlur,
-    },
     prelude::*,
-    render::{
-        camera::{MipBias, TemporalJitter},
-        view::ColorGrading,
-    },
     text::FontSource,
 };
-use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-use {
-    forge_engine::{ForgePlayerCamera, PlayerInputFocus},
-    forge_tidewater::{
-        ambient_occlusion::{AmbientOcclusionPlugin, AmbientOcclusionSettings},
-        exposure_metering,
-        film_grain::{FilmGrain, FilmGrainPlugin},
-        lens_flare::{LensFlare, LensFlarePlugin},
-        tidewater_air_haze::{TidewaterAirHaze, TidewaterAirHazePlugin},
-        tidewater_material::VillageMaterial,
-    },
+use forge_engine::{
+    ForgePlayerCamera, PlayerInputFocus,
+    source_graphics::{self, Control as Setting, Settings as Values},
+    source_surface::SourceSurfaceMaterial,
 };
-
-#[path = "source_final_post.rs"]
-mod source_final_post;
-
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq)]
-#[serde(default)]
-#[serde(deny_unknown_fields)]
-struct Values {
-    auto_exposure: f32,
-    ambient_occlusion: f32,
-    fxaa: f32,
-    temporal_aa: f32,
-    exposure_ev: f32,
-    bloom: f32,
-    saturation: f32,
-    contrast: f32,
-    sharpen: f32,
-    vignette: f32,
-    film_grain: f32,
-    haze: f32,
-    bounce_light: f32,
-    motion_blur_degrees: f32,
-    lens_flare: f32,
-    underwater_shafts: f32,
-    underwater_lighting: f32,
-    underwater_caustics: f32,
-    underwater_shadow_refraction: f32,
-    water_refraction_capture: f32,
-}
-
-impl Default for Values {
-    fn default() -> Self {
-        Self {
-            auto_exposure: 1.0,
-            ambient_occlusion: 1.0,
-            fxaa: 1.0,
-            temporal_aa: 0.0,
-            exposure_ev: 0.4,
-            bloom: 0.05,
-            saturation: 1.06,
-            contrast: 1.04,
-            sharpen: 0.2,
-            vignette: 0.28,
-            film_grain: 0.012,
-            haze: 1.6,
-            bounce_light: 1.0,
-            // Keep camera movement readable; cinematic blur remains opt-in.
-            motion_blur_degrees: 0.0,
-            lens_flare: 1.0,
-            underwater_shafts: 1.0,
-            underwater_lighting: 1.0,
-            underwater_caustics: 0.75,
-            underwater_shadow_refraction: 1.0,
-            water_refraction_capture: 1.0,
-        }
-    }
-}
-
-impl Values {
-    fn valid(self) -> bool {
-        (0.0..=1.0).contains(&self.auto_exposure)
-            && (0.0..=1.5).contains(&self.ambient_occlusion)
-            && (0.0..=1.0).contains(&self.fxaa)
-            && (0.0..=1.0).contains(&self.temporal_aa)
-            && (-3.0..=3.0).contains(&self.exposure_ev)
-            && (0.0..=0.3).contains(&self.bloom)
-            && (0.5..=1.5).contains(&self.saturation)
-            && (0.8..=1.3).contains(&self.contrast)
-            && (0.0..=1.0).contains(&self.sharpen)
-            && (0.0..=1.0).contains(&self.vignette)
-            && (0.0..=0.06).contains(&self.film_grain)
-            && (0.0..=4.0).contains(&self.haze)
-            && (0.0..=2.0).contains(&self.bounce_light)
-            && (0.0..=360.0).contains(&self.motion_blur_degrees)
-            && (0.0..=2.0).contains(&self.lens_flare)
-            && (0.0..=2.0).contains(&self.underwater_shafts)
-            && (0.0..=1.0).contains(&self.underwater_lighting)
-            && (0.0..=4.0).contains(&self.underwater_caustics)
-            && (0.0..=1.0).contains(&self.underwater_shadow_refraction)
-            && (0.0..=1.0).contains(&self.water_refraction_capture)
-    }
-
-    fn field_mut(&mut self, setting: Setting) -> &mut f32 {
-        match setting {
-            Setting::AutoExposure => &mut self.auto_exposure,
-            Setting::AmbientOcclusion => &mut self.ambient_occlusion,
-            Setting::Fxaa => &mut self.fxaa,
-            Setting::TemporalAa => &mut self.temporal_aa,
-            Setting::Exposure => &mut self.exposure_ev,
-            Setting::Bloom => &mut self.bloom,
-            Setting::Saturation => &mut self.saturation,
-            Setting::Contrast => &mut self.contrast,
-            Setting::Sharpen => &mut self.sharpen,
-            Setting::Vignette => &mut self.vignette,
-            Setting::FilmGrain => &mut self.film_grain,
-            Setting::Haze => &mut self.haze,
-            Setting::BounceLight => &mut self.bounce_light,
-            Setting::MotionBlur => &mut self.motion_blur_degrees,
-            Setting::LensFlare => &mut self.lens_flare,
-            Setting::UnderwaterShafts => &mut self.underwater_shafts,
-            Setting::UnderwaterLighting => &mut self.underwater_lighting,
-            Setting::UnderwaterCaustics => &mut self.underwater_caustics,
-            Setting::UnderwaterShadowRefraction => &mut self.underwater_shadow_refraction,
-            Setting::WaterRefractionCapture => &mut self.water_refraction_capture,
-        }
-    }
-
-    fn field(self, setting: Setting) -> f32 {
-        match setting {
-            Setting::AutoExposure => self.auto_exposure,
-            Setting::AmbientOcclusion => self.ambient_occlusion,
-            Setting::Fxaa => self.fxaa,
-            Setting::TemporalAa => self.temporal_aa,
-            Setting::Exposure => self.exposure_ev,
-            Setting::Bloom => self.bloom,
-            Setting::Saturation => self.saturation,
-            Setting::Contrast => self.contrast,
-            Setting::Sharpen => self.sharpen,
-            Setting::Vignette => self.vignette,
-            Setting::FilmGrain => self.film_grain,
-            Setting::Haze => self.haze,
-            Setting::BounceLight => self.bounce_light,
-            Setting::MotionBlur => self.motion_blur_degrees,
-            Setting::LensFlare => self.lens_flare,
-            Setting::UnderwaterShafts => self.underwater_shafts,
-            Setting::UnderwaterLighting => self.underwater_lighting,
-            Setting::UnderwaterCaustics => self.underwater_caustics,
-            Setting::UnderwaterShadowRefraction => self.underwater_shadow_refraction,
-            Setting::WaterRefractionCapture => self.water_refraction_capture,
-        }
-    }
-}
+use std::path::PathBuf;
 
 #[derive(Resource)]
 pub(crate) struct GraphicsState {
@@ -173,12 +17,6 @@ pub(crate) struct GraphicsState {
     pub open: bool,
     path: Option<PathBuf>,
 }
-
-#[derive(Resource)]
-struct SourceExposureCurve(Handle<AutoExposureCompensationCurve>);
-
-#[derive(Resource)]
-struct SourceExposureMask(Handle<Image>);
 
 impl GraphicsState {
     pub(crate) fn values_receipt(&self) -> serde_json::Value {
@@ -224,132 +62,6 @@ impl GraphicsState {
     }
 }
 
-#[derive(Clone, Copy, Component)]
-enum Setting {
-    AutoExposure,
-    AmbientOcclusion,
-    Fxaa,
-    TemporalAa,
-    Exposure,
-    Bloom,
-    Saturation,
-    Contrast,
-    Sharpen,
-    Vignette,
-    FilmGrain,
-    Haze,
-    BounceLight,
-    MotionBlur,
-    LensFlare,
-    UnderwaterShafts,
-    UnderwaterLighting,
-    UnderwaterCaustics,
-    UnderwaterShadowRefraction,
-    WaterRefractionCapture,
-}
-
-impl Setting {
-    const ALL: [Self; 20] = [
-        Self::AutoExposure,
-        Self::AmbientOcclusion,
-        Self::Fxaa,
-        Self::TemporalAa,
-        Self::Exposure,
-        Self::Bloom,
-        Self::Saturation,
-        Self::Contrast,
-        Self::Sharpen,
-        Self::Vignette,
-        Self::FilmGrain,
-        Self::Haze,
-        Self::BounceLight,
-        Self::MotionBlur,
-        Self::LensFlare,
-        Self::UnderwaterShafts,
-        Self::UnderwaterLighting,
-        Self::UnderwaterCaustics,
-        Self::UnderwaterShadowRefraction,
-        Self::WaterRefractionCapture,
-    ];
-
-    const fn label(self) -> &'static str {
-        match self {
-            Self::AutoExposure => "Adaptation",
-            Self::AmbientOcclusion => "Occlusion ambiante",
-            Self::Fxaa => "FXAA",
-            Self::TemporalAa => "TAA (expérimental)",
-            Self::Exposure => "Exposition",
-            Self::Bloom => "Bloom",
-            Self::Saturation => "Saturation",
-            Self::Contrast => "Contraste",
-            Self::Sharpen => "Netteté",
-            Self::Vignette => "Vignette",
-            Self::FilmGrain => "Grain photo",
-            Self::Haze => "Brume marine",
-            Self::BounceLight => "Lumière rebond",
-            Self::MotionBlur => "Flou de mouvement",
-            Self::LensFlare => "Lens flare solaire",
-            Self::UnderwaterShafts => "Rayons sous-marins",
-            Self::UnderwaterLighting => "Surfaces immergées",
-            Self::UnderwaterCaustics => "Caustiques",
-            Self::UnderwaterShadowRefraction => "Réfraction des ombres",
-            Self::WaterRefractionCapture => "Capture de réfraction",
-        }
-    }
-
-    const fn bounds(self) -> (f32, f32, f32) {
-        match self {
-            Self::AutoExposure
-            | Self::Fxaa
-            | Self::TemporalAa
-            | Self::UnderwaterLighting
-            | Self::UnderwaterShadowRefraction
-            | Self::WaterRefractionCapture => (0.0, 1.0, 1.0),
-            Self::AmbientOcclusion => (0.0, 1.5, 0.01),
-            Self::Exposure => (-3.0, 3.0, 0.1),
-            Self::Bloom => (0.0, 0.3, 0.005),
-            Self::Saturation => (0.5, 1.5, 0.01),
-            Self::Contrast => (0.8, 1.3, 0.01),
-            Self::Sharpen | Self::Vignette => (0.0, 1.0, 0.01),
-            Self::FilmGrain => (0.0, 0.06, 0.001),
-            Self::Haze | Self::UnderwaterCaustics => (0.0, 4.0, 0.05),
-            Self::BounceLight => (0.0, 2.0, 0.01),
-            Self::LensFlare | Self::UnderwaterShafts => (0.0, 2.0, 0.05),
-            Self::MotionBlur => (0.0, 360.0, 18.0),
-        }
-    }
-
-    fn display(self, values: Values) -> String {
-        match self {
-            Self::AutoExposure => if values.auto_exposure > 0.5 {
-                "Auto"
-            } else {
-                "Fixe"
-            }
-            .to_owned(),
-            Self::Fxaa => if values.fxaa > 0.5 { "Actif" } else { "Arrêt" }.to_owned(),
-            Self::TemporalAa => if values.temporal_aa > 0.5 {
-                "Actif"
-            } else {
-                "Arrêt"
-            }
-            .to_owned(),
-            Self::WaterRefractionCapture => if values.water_refraction_capture > 0.5 {
-                "Actif"
-            } else {
-                "Arrêt"
-            }
-            .to_owned(),
-            Self::Exposure => format!("{:+.1} EV", values.field(self)),
-            Self::MotionBlur => format!("{:.0}°", values.field(self)),
-            Self::LensFlare => format!("{:.2}", values.lens_flare),
-            Self::Bloom => format!("{:.3}", values.bloom),
-            Self::FilmGrain => format!("{:.3}", values.film_grain),
-            _ => format!("{:.2}", values.field(self)),
-        }
-    }
-}
-
 #[derive(Component)]
 pub(super) struct Panel;
 #[derive(Component)]
@@ -361,28 +73,13 @@ struct Step {
 }
 
 pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
-    if std::env::var("FORGE_TIDEWATER_SOURCE_FINAL_POST").as_deref() == Ok("1") {
-        app.add_plugins(source_final_post::PluginSourceFinal);
+    if std::env::var("FORGE_TIDEWATER_SOURCE_FINAL_POST").as_deref() == Ok("1")
+        && !app.is_plugin_added::<forge_engine::source_final_post::PluginSourceFinal>()
+    {
+        app.add_plugins(forge_engine::source_final_post::PluginSourceFinal);
     }
-    app.add_plugins((
-        AutoExposurePlugin,
-        FilmGrainPlugin,
-        TidewaterAirHazePlugin,
-        AmbientOcclusionPlugin,
-        LensFlarePlugin,
-        forge_tidewater::tidewater_material::ImportedSunRelayPlugin,
-    ));
-    let curve = app
-        .world_mut()
-        .resource_mut::<Assets<AutoExposureCompensationCurve>>()
-        .add(exposure_metering::ExposureProfile::default().compensation_curve()?);
-    let mask = app
-        .world_mut()
-        .resource_mut::<Assets<Image>>()
-        .add(exposure_metering::center_weighted_metering_mask());
-    app.insert_resource(SourceExposureCurve(curve))
-        .insert_resource(SourceExposureMask(mask))
-        .insert_resource(GraphicsState::load())
+    source_graphics::install(app)?;
+    app.insert_resource(GraphicsState::load())
         .add_systems(PostStartup, spawn_panel)
         .add_systems(
             Update,
@@ -459,12 +156,9 @@ fn click(
         if *interaction != Interaction::Pressed {
             continue;
         }
-        let (low, high, step) = button.setting.bounds();
-        let field = state.values.field_mut(button.setting);
-        let next = (*field + button.direction * step).clamp(low, high);
-        if next.to_bits() != field.to_bits() {
-            *field = next;
-            changed = true;
+        match button.setting.step(&mut state.values, button.direction) {
+            Ok(updated) => changed |= updated,
+            Err(error) => warn!(%error, "Source graphics control refused"),
         }
     }
     if changed {
@@ -472,176 +166,32 @@ fn click(
     }
 }
 
-// Bevy supplies these independent resources to one render-settings system;
-// keeping the owned parameters preserves change tracking and stage ordering.
-#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+// The UI supplies settings; the shared engine owns the rendering behavior.
 fn apply(
     state: Res<GraphicsState>,
-    curve: Res<SourceExposureCurve>,
-    mask: Res<SourceExposureMask>,
     cameras: Query<Entity, With<ForgePlayerCamera>>,
-    mut village_materials: ResMut<Assets<VillageMaterial>>,
-    underwater: Option<ResMut<forge_tidewater::tidewater_underwater::TidewaterUnderwaterControl>>,
-    lighting: Option<ResMut<forge_tidewater::tidewater_underwater_lighting::Control>>,
-    refraction: Option<ResMut<forge_tidewater::tidewater_refraction::Control>>,
     mut commands: Commands,
 ) {
     if !state.is_changed() {
         return;
     }
     let Ok(camera) = cameras.single() else { return };
-    if let Some(mut underwater) = underwater {
-        underwater.shafts_strength = state.values.underwater_shafts;
-    }
-    if let Some(mut lighting) = lighting {
-        let next = forge_tidewater::tidewater_underwater_lighting::Control {
-            enabled: state.values.underwater_lighting > 0.5,
-            caustics_strength: state.values.underwater_caustics,
-            shadow_refraction: state.values.underwater_shadow_refraction > 0.5,
-        };
-        if *lighting != next {
-            *lighting = next;
+    let values = state.values;
+    let pipeline = if std::env::var("FORGE_TIDEWATER_SOURCE_FINAL_POST").as_deref() == Ok("1") {
+        source_graphics::Pipeline::SourceFinal
+    } else {
+        source_graphics::Pipeline::Reference
+    };
+    let quality = forge_project::PostProcessQualitySettings {
+        bloom_enabled: true,
+        color_grading_enabled: true,
+        tonemapping_enabled: true,
+    };
+    commands.queue(move |world: &mut World| {
+        if let Err(error) = source_graphics::apply(world, camera, values, quality, pipeline) {
+            error!(%error, "Source graphics settings refused");
         }
-    }
-    if let Some(mut refraction) = refraction {
-        let enabled = state.values.water_refraction_capture > 0.5;
-        if refraction.enabled != enabled {
-            refraction.enabled = enabled;
-        }
-    }
-    for (_, material) in village_materials.iter_mut() {
-        if material.ground_bounce.is_some() {
-            material.bounce_settings.x = state.values.bounce_light;
-        }
-    }
-    let mut grading = ColorGrading::default();
-    grading.global.exposure = state.values.exposure_ev;
-    grading.global.post_saturation = state.values.saturation;
-    grading.midtones.contrast = state.values.contrast;
-    commands.entity(camera).insert((
-        Hdr,
-        Tonemapping::AcesFitted,
-        grading,
-        ContrastAdaptiveSharpening {
-            enabled: state.values.sharpen > 0.0,
-            sharpening_strength: state.values.sharpen,
-            denoise: false,
-        },
-        Vignette {
-            intensity: state.values.vignette,
-            ..default()
-        },
-    ));
-    if state.values.bloom > 0.0 {
-        commands.entity(camera).insert(Bloom {
-            intensity: state.values.bloom,
-            ..Bloom::NATURAL
-        });
-    } else {
-        commands.entity(camera).remove::<Bloom>();
-    }
-    if state.values.film_grain > 0.0 {
-        commands
-            .entity(camera)
-            .insert(FilmGrain::new(state.values.film_grain));
-    } else {
-        commands.entity(camera).remove::<FilmGrain>();
-    }
-    // Keep the render topology stable when the slider reaches zero: removing
-    // a ping-pong pass also changes which target auto exposure sees next frame.
-    commands.entity(camera).insert((
-        TidewaterAirHaze::default(),
-        forge_engine::atmospheric_haze::AirHazeSettings::new(state.values.haze),
-    ));
-    commands
-        .entity(camera)
-        .insert(AmbientOcclusionSettings::new(
-            state.values.ambient_occlusion,
-        ));
-    // The 1x1 visibility pass branches before depth reads at zero, while the
-    // camera keeps its ping-pong render topology for stable auto exposure.
-    commands
-        .entity(camera)
-        .insert(LensFlare::new(state.values.lens_flare));
-    if state.values.auto_exposure > 0.5 {
-        commands.entity(camera).insert(AutoExposure {
-            filter: 0.0..=1.0,
-            speed_brighten: 1.6,
-            speed_darken: 1.1,
-            compensation_curve: curve.0.clone(),
-            metering_mask: mask.0.clone(),
-            ..default()
-        });
-    } else {
-        commands.entity(camera).remove::<AutoExposure>();
-    }
-    if state.values.temporal_aa > 0.5 {
-        commands
-            .entity(camera)
-            .insert(TemporalAntiAliasing::default());
-        commands.entity(camera).remove::<Fxaa>();
-    } else {
-        commands
-            .entity(camera)
-            .remove::<(TemporalAntiAliasing, TemporalJitter, MipBias)>();
-        if state.values.fxaa > 0.5 {
-            commands.entity(camera).insert(Fxaa::default());
-        } else {
-            commands.entity(camera).remove::<Fxaa>();
-        }
-    }
-    if state.values.motion_blur_degrees > 0.0 {
-        commands.entity(camera).insert((
-            MotionBlur {
-                shutter_angle: state.values.motion_blur_degrees / 360.0,
-                samples: 3,
-            },
-            MotionVectorPrepass,
-        ));
-    } else {
-        commands.entity(camera).remove::<MotionBlur>();
-    }
-    if state.values.temporal_aa <= 0.5 && state.values.motion_blur_degrees <= 0.0 {
-        commands
-            .entity(camera)
-            .remove::<(DepthPrepass, MotionVectorPrepass)>();
-    }
-    if std::env::var("FORGE_TIDEWATER_SOURCE_FINAL_POST").as_deref() == Ok("1") {
-        // Candidate owns these operations in the source HDR order. Other effects
-        // remain native inputs and need independent parity qualification.
-        commands
-            .entity(camera)
-            .remove::<(
-                AutoExposure,
-                Bloom,
-                Vignette,
-                FilmGrain,
-                ContrastAdaptiveSharpening,
-            )>()
-            .insert((
-                Tonemapping::None,
-                Msaa::Off,
-                ColorGrading::default(),
-                source_final_post::Controls {
-                    grade: Vec4::new(
-                        state.values.vignette,
-                        state.values.saturation,
-                        state.values.contrast,
-                        0.02,
-                    ),
-                    // UI EV and source linear exposure are distinct. Anchor .4 EV
-                    // to the captured source default .55; each EV adds one stop.
-                    effects: Vec4::new(
-                        state.values.film_grain,
-                        state.values.bloom,
-                        0.55 * (state.values.exposure_ev - 0.4).exp2(),
-                        state.values.auto_exposure,
-                    ),
-                    timing: Vec4::new(0.0, 0.0, state.values.sharpen, 0.0),
-                    frame: UVec4::ZERO,
-                },
-            ));
-    }
+    });
 }
 
 fn refresh(state: Res<GraphicsState>, mut labels: Query<(&SettingValue, &mut Text)>) {
@@ -659,7 +209,7 @@ fn spawn_panel(
     mut commands: Commands,
     state: Res<GraphicsState>,
     mut fonts: ResMut<Assets<Font>>,
-    village_materials: Res<Assets<VillageMaterial>>,
+    village_materials: Res<Assets<SourceSurfaceMaterial>>,
 ) {
     let proof_position = if std::env::var_os("FORGE_TIDEWATER_STATIC_POSTFX").is_some() {
         match std::env::var("FORGE_TIDEWATER_GRAPHICS_PROOF").as_deref() {
@@ -851,10 +401,12 @@ mod tests {
         app.insert_resource(ButtonInput::<KeyCode>::default())
             .insert_resource(PlayerInputFocus(true))
             .insert_resource(GraphicsState::load_from(Some(path.clone()), true))
-            .insert_resource(SourceExposureCurve(Handle::default()))
-            .insert_resource(SourceExposureMask(Handle::default()))
-            .insert_resource(Assets::<VillageMaterial>::default())
-            .insert_resource(forge_tidewater::tidewater_refraction::Control { enabled: false })
+            .insert_resource(source_graphics::ExposureAssets {
+                curve: Handle::default(),
+                mask: Handle::default(),
+            })
+            .insert_resource(Assets::<SourceSurfaceMaterial>::default())
+            .insert_resource(forge_engine::source_refraction_capture::Control { enabled: false })
             .add_systems(Update, (toggle, click, apply, refresh).chain());
         app.world_mut().spawn(ForgePlayerCamera);
         let minus = app
@@ -878,7 +430,7 @@ mod tests {
         app.update();
         assert!(
             app.world()
-                .resource::<forge_tidewater::tidewater_refraction::Control>()
+                .resource::<forge_engine::source_refraction_capture::Control>()
                 .enabled
         );
         assert_eq!(app.world().get::<Text>(label).unwrap().0, "Actif");
@@ -887,7 +439,7 @@ mod tests {
         app.update();
         assert!(
             !app.world()
-                .resource::<forge_tidewater::tidewater_refraction::Control>()
+                .resource::<forge_engine::source_refraction_capture::Control>()
                 .enabled
         );
         assert_eq!(app.world().get::<Text>(label).unwrap().0, "Arrêt");
@@ -896,11 +448,11 @@ mod tests {
             app.world().resource::<GraphicsState>().values
         );
         app.insert_resource(GraphicsState::load_from(Some(path.clone()), true))
-            .insert_resource(forge_tidewater::tidewater_refraction::Control { enabled: true });
+            .insert_resource(forge_engine::source_refraction_capture::Control { enabled: true });
         app.update();
         assert!(
             !app.world()
-                .resource::<forge_tidewater::tidewater_refraction::Control>()
+                .resource::<forge_engine::source_refraction_capture::Control>()
                 .enabled
         );
 
@@ -910,7 +462,7 @@ mod tests {
         app.update();
         assert!(
             app.world()
-                .resource::<forge_tidewater::tidewater_refraction::Control>()
+                .resource::<forge_engine::source_refraction_capture::Control>()
                 .enabled
         );
         assert_eq!(app.world().get::<Text>(label).unwrap().0, "Actif");
@@ -1091,10 +643,9 @@ pub(super) fn terrain_transition(world: &mut World, index: usize) {
         (Setting::WaterRefractionCapture, 0.0),
         (Setting::WaterRefractionCapture, 1.0),
     ];
-    if let Some(&(setting, value)) = changes.get(index) {
-        *world
-            .resource_mut::<GraphicsState>()
-            .values
-            .field_mut(setting) = value;
+    if let Some(&(setting, value)) = changes.get(index)
+        && let Err(error) = setting.set(&mut world.resource_mut::<GraphicsState>().values, value)
+    {
+        error!(%error, "Source graphics diagnostic control refused");
     }
 }

@@ -7,7 +7,7 @@ use crate::{
 use std::{
     fs::{self, File, OpenOptions},
     io::{Read, Write},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 const MAGIC: &[u8; 8] = b"FORGEPK1";
@@ -60,11 +60,26 @@ pub fn inspect(path: &Path) -> Result<(Descriptor, String)> {
     Ok(result)
 }
 
+// Reserve every ASCII case on all hosts, including case-insensitive filesystems.
+fn storage_component(name: &std::ffi::OsStr) -> bool {
+    name.to_str()
+        .is_some_and(|name| name.eq_ignore_ascii_case(".forge-storage"))
+}
+
+fn contains_storage(path: &Path) -> bool {
+    path.components().any(|component| {
+        matches!(component, std::path::Component::Normal(name) if storage_component(name))
+    })
+}
+
 fn inventory(root: &Path, folder: &Path, files: &mut Vec<Entry>) -> Result<()> {
     manifest::no_links(folder)?;
     for child in fs::read_dir(folder).map_err(|e| e.to_string())? {
         let child = child.map_err(|e| e.to_string())?;
         manifest::no_links(&child.path())?;
+        if storage_component(&child.file_name()) {
+            continue;
+        }
         let metadata = child.metadata().map_err(|e| e.to_string())?;
         if metadata.is_dir() {
             inventory(root, &child.path(), files)?;
@@ -84,8 +99,16 @@ fn inventory(root: &Path, folder: &Path, files: &mut Vec<Entry>) -> Result<()> {
                 .replace('\\', "/");
             files.push(Entry {
                 path: relative,
-                bytes: metadata.len(),
-                sha256: file_hash(&child.path())?,
+                bytes: crate::vault_storage::logical_size(
+                    root,
+                    &child.path(),
+                    manifest::MAX_FILE_BYTES,
+                )?,
+                sha256: crate::vault_storage::file_hash(
+                    root,
+                    &child.path(),
+                    manifest::MAX_FILE_BYTES,
+                )?,
             });
         } else {
             return Err("Non-regular package file".into());
@@ -98,14 +121,106 @@ pub fn pack(root: &Path, descriptor: Descriptor, output: &Path) -> Result<(Descr
     pack_selected(root, descriptor, output, &[])
 }
 
+// PathBuf::push normalizes `..` on Windows verbatim paths; preserve the
+// spelling until each traversed prefix has passed the link guard.
+fn literal_join(base: &Path, tail: &Path) -> PathBuf {
+    let mut path = base.as_os_str().to_os_string();
+    let last = base.as_os_str().as_encoded_bytes().last().copied();
+    let separated = if cfg!(windows) {
+        matches!(last, Some(b'/' | b'\\'))
+    } else {
+        last == Some(b'/')
+    };
+    if !separated {
+        path.push(std::path::MAIN_SEPARATOR_STR);
+    }
+    path.push(tail.as_os_str());
+    PathBuf::from(path)
+}
+
+#[cfg(windows)]
+fn ordinary_disk_base(base: PathBuf) -> PathBuf {
+    use std::os::windows::ffi::{OsStrExt, OsStringExt};
+    if matches!(
+        base.components().next(),
+        Some(std::path::Component::Prefix(prefix))
+            if matches!(prefix.kind(), std::path::Prefix::VerbatimDisk(_))
+    ) {
+        let wide: Vec<_> = base.as_os_str().encode_wide().skip(4).collect();
+        return PathBuf::from(std::ffi::OsString::from_wide(&wide));
+    }
+    base
+}
+
+// Anchor relative inputs without erasing `..` before their prefixes are checked.
+fn anchored_source(root: &Path) -> Result<PathBuf> {
+    if root.as_os_str().is_empty() {
+        return Err("Package source path is empty".into());
+    }
+    if root.is_absolute() {
+        return Ok(root.to_path_buf());
+    }
+    #[cfg(windows)]
+    if let Some(std::path::Component::Prefix(prefix)) = root.components().next() {
+        // Windows permits e.g. `E:folder`, relative to that drive's current
+        // directory. Resolve only its anchor, never the unchecked suffix.
+        if let std::path::Prefix::Disk(drive) = prefix.kind() {
+            let anchor = format!("{}:.", char::from(drive));
+            let anchor =
+                ordinary_disk_base(std::path::absolute(&anchor).map_err(|e| e.to_string())?);
+            let mut components = root.components();
+            components.next();
+            return Ok(literal_join(&anchor, components.as_path()));
+        }
+        return Err("Unsupported relative Windows source path".into());
+    }
+    let cwd = std::env::current_dir().map_err(|e| e.to_string())?;
+    #[cfg(windows)]
+    let cwd = ordinary_disk_base(cwd);
+    #[cfg(windows)]
+    if root.has_root() {
+        if let Some(std::path::Component::Prefix(prefix)) = cwd.components().next()
+            && let std::path::Prefix::Disk(drive) = prefix.kind()
+        {
+            let mut path = std::ffi::OsString::from(format!("{}:", char::from(drive)));
+            path.push(root.as_os_str());
+            return Ok(path.into());
+        }
+        return Err("Unsupported current Windows drive".into());
+    }
+    Ok(literal_join(&cwd, root))
+}
+
+fn checked_source(root: &Path) -> Result<PathBuf> {
+    let source = anchored_source(root)?;
+    let mut checked = PathBuf::new();
+    for component in source.components() {
+        match component {
+            // A link traversed before `..` must not disappear from inspection.
+            std::path::Component::ParentDir => {
+                manifest::safe_chain(&checked)?;
+                checked.pop();
+            }
+            std::path::Component::CurDir => {}
+            _ => checked.push(component.as_os_str()),
+        }
+    }
+    manifest::safe_chain(&checked)?;
+    let source = fs::canonicalize(&source).map_err(|e| e.to_string())?;
+    manifest::no_links(&source)?;
+    Ok(source)
+}
+
 pub fn pack_selected(
     root: &Path,
     mut descriptor: Descriptor,
     output: &Path,
     selections: &[String],
 ) -> Result<(Descriptor, String)> {
-    let root = fs::canonicalize(root).map_err(|e| e.to_string())?;
-    manifest::no_links(&root)?;
+    let root = checked_source(root)?;
+    if contains_storage(&root) {
+        return Err("Internal Vault storage is not a distributable source".into());
+    }
     if output.is_relative() {
         return Err("Package output must be absolute".into());
     }
@@ -120,19 +235,75 @@ pub fn pack_selected(
     } else {
         for selected in selections {
             let path = manifest::confined(&root, selected)?;
+            if contains_storage(Path::new(selected)) {
+                return Err("Internal Vault storage is not a distributable payload".into());
+            }
+            // Resolve a possible Windows short-name alias only after the existing
+            // no-link confinement checks. A name may hide a reserved ancestor.
+            let physical = fs::canonicalize(&path).map_err(|e| e.to_string())?;
+            if contains_storage(&physical) {
+                return Err("Internal Vault storage is not a distributable payload".into());
+            }
             if path.is_dir() {
                 inventory(&root, &path, &mut descriptor.files)?;
             } else {
                 descriptor.files.push(Entry {
                     path: selected.clone(),
-                    bytes: fs::metadata(&path).map_err(|e| e.to_string())?.len(),
-                    sha256: file_hash(&path)?,
+                    bytes: crate::vault_storage::logical_size(
+                        &root,
+                        &path,
+                        manifest::MAX_FILE_BYTES,
+                    )?,
+                    sha256: crate::vault_storage::file_hash(
+                        &root,
+                        &path,
+                        manifest::MAX_FILE_BYTES,
+                    )?,
                 });
             }
         }
     }
     descriptor.files.sort_by(|a, b| a.path.cmp(&b.path));
     descriptor.validate()?;
+    write_package(&root, descriptor, output, &parent)
+}
+
+/// Transfer a verified installed package without changing its descriptor or rights.
+pub(crate) fn export_installed(root: &Path, revision: &str, output: &Path) -> Result<()> {
+    let descriptor = verify_directory(root, revision)?;
+    let parent = output.parent().ok_or("Output parent missing")?;
+    manifest::safe_chain(parent)?;
+    if !output.is_absolute() || !crate::install::physically_disjoint(root, output)? {
+        return Err("Installed package export requires a separate absolute directory".into());
+    }
+    write_package(root, descriptor, output, parent)?;
+    Ok(())
+}
+
+/// Recheck a previously transferred package without extracting a second copy.
+pub(crate) fn verify_payload(path: &Path, revision: &str) -> Result<Descriptor> {
+    manifest::safe_chain(path)?;
+    if !fs::metadata(path).map_err(|error| error.to_string())?.is_file() {
+        return Err("Recovered package must be a regular file".into());
+    }
+    let mut input = File::open(path).map_err(|error| error.to_string())?;
+    let (descriptor, actual_revision) = header(&mut input)?;
+    if actual_revision != revision {
+        return Err("Recovered package manifest differs from the installed revision".into());
+    }
+    let mut sink = std::io::sink();
+    for entry in &descriptor.files {
+        copy_verified(&mut input, &mut sink, entry)?;
+    }
+    Ok(descriptor)
+}
+
+fn write_package(
+    root: &Path,
+    descriptor: Descriptor,
+    output: &Path,
+    parent: &Path,
+) -> Result<(Descriptor, String)> {
     let bytes = json(&descriptor)?;
     if u64::try_from(bytes.len()).map_err(|e| e.to_string())? > manifest::MAX_MANIFEST {
         return Err("Descriptor exceeds limit".into());
@@ -153,9 +324,17 @@ pub fn pack_selected(
             .map_err(|e| e.to_string())?;
         file.write_all(&bytes).map_err(|e| e.to_string())?;
         for entry in &descriptor.files {
-            let input = manifest::confined(&root, &entry.path)?;
-            let mut source = File::open(&input).map_err(|e| e.to_string())?;
-            copy_verified(&mut source, &mut file, entry)?;
+            let input = manifest::confined(root, &entry.path)?;
+            let count = crate::vault_storage::copy_verified(
+                root,
+                &input,
+                entry.bytes,
+                &entry.sha256,
+                &mut file,
+            )?;
+            if count != entry.bytes {
+                return Err("Logical export size changed".into());
+            }
         }
         file.sync_all().map_err(|e| e.to_string())?;
         drop(file);
@@ -211,6 +390,20 @@ pub fn extract(path: &Path, destination: &Path, expected_manifest: &str) -> Resu
             .open(&output)
             .map_err(|e| e.to_string())?;
         copy_verified(&mut file, &mut output, entry)?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            // The transport carries no Unix modes. Grant execution only to
+            // declared app entries and the two validated Studio v3 kit tools.
+            let executable = descriptor.requires_execution_permission(&entry.path);
+            output
+                .set_permissions(fs::Permissions::from_mode(if executable {
+                    0o755
+                } else {
+                    0o644
+                }))
+                .map_err(|e| e.to_string())?;
+        }
         output.sync_all().map_err(|e| e.to_string())?;
     }
     let mut manifest = OpenOptions::new()
@@ -245,6 +438,22 @@ pub fn verify_directory(root: &Path, revision: &str) -> Result<Descriptor> {
             || file_hash(&path)? != entry.sha256
         {
             return Err(format!("Installed file integrity mismatch: {}", entry.path));
+        }
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&path)
+                .map_err(|e| e.to_string())?
+                .permissions()
+                .mode();
+            let executable = descriptor.requires_execution_permission(&entry.path);
+            let expected = if executable { 0o111 } else { 0 };
+            if mode & 0o7000 != 0 || mode & 0o111 != expected {
+                return Err(format!(
+                    "Installed file execution permissions mismatch: {}",
+                    entry.path
+                ));
+            }
         }
     }
     crate::orpmod::verify_installed(root, &descriptor)?;
@@ -284,4 +493,34 @@ fn audit_layout(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod source_path_tests {
+    use super::*;
+
+    #[test]
+    fn literal_join_does_not_erase_a_parent_segment() {
+        #[cfg(windows)]
+        let base = Path::new(r"\\?\C:\fixture");
+        #[cfg(not(windows))]
+        let base = Path::new("/fixture");
+        let relative = Path::new("source-link").join("..").join("target");
+        let actual = literal_join(base, &relative);
+        assert!(
+            actual
+                .components()
+                .any(|part| part == std::path::Component::ParentDir)
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn verbatim_current_directory_becomes_an_equivalent_disk_base() {
+        let base = PathBuf::from(r"\\?\E:\épreuve\fixture");
+        assert_eq!(
+            ordinary_disk_base(base),
+            PathBuf::from(r"E:\épreuve\fixture")
+        );
+    }
 }

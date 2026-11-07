@@ -1,5 +1,5 @@
 //! Sequence drafts promoted through the common source command boundary.
-use super::{Edit, edit, id, source_hash};
+use super::{Edit, edit, id};
 use forge_core::{EntityId, Vec3, canonical_json_sha256};
 use forge_gameplay::{
     CinematicCamera, CinematicCue, CinematicDefinition, CreatorSurface, GameplayDocument,
@@ -98,11 +98,19 @@ pub(super) fn CinematicControls(
         cues: RwSignal::new(vec![]),
         error: RwSignal::new(None),
     };
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let key = (fields.selected.get(), source_hash(state));
-        if previous.as_ref() != Some(&key) {
+    let draft_notice = super::draft::bind(
+        move || {
+            let selected = fields.selected.get();
+            let source = super::draft::records(state, &selected);
+            (selected, source)
+        },
+        vec![
+            super::draft::Field::new(fields.name),
+            super::draft::Field::new(fields.cues),
+        ],
+        move || {
             let current = document(state).and_then(|source| {
-                id(&key.0)
+                id(&fields.selected.get_untracked())
                     .ok()
                     .and_then(|id| source.cinematic_definition(id).cloned())
             });
@@ -114,9 +122,10 @@ pub(super) fn CinematicControls(
                 fields.cues.set(vec![]);
             }
             fields.error.set(None);
-        }
-        key
-    });
+        },
+    );
+    let preview_send = draft_notice.submitter(send);
+
     let disabled = move || {
         busy.get()
             || state
@@ -125,7 +134,7 @@ pub(super) fn CinematicControls(
     };
     view! {
         <Show when=move ||document(state).is_some_and(|source|source.surface_visible(CreatorSurface::Cinematics))>
-            <details><summary>"Séquences cinématiques"</summary><fieldset disabled=disabled>
+            <details><summary>"Séquences cinématiques"</summary><fieldset disabled=disabled><super::draft::DraftNotice notice=draft_notice/>
                 <p>"Composer des répliques et plans de caméra. La lecture utilise l’horloge de simulation ; le joueur peut toujours la sauter. Les séquences de ce profil ne distribuent aucune récompense et ne changent pas les quêtes."</p>
                 <label>"Séquence à retoucher"<select prop:value=move ||fields.selected.get() on:change=move |event|fields.selected.set(event_target_value(&event))>
                     <option value="">"Préparer une nouvelle séquence"</option>
@@ -136,8 +145,8 @@ pub(super) fn CinematicControls(
                 <CueList fields=fields/>
                 <CueControls fields=fields state=state/>
                 <p role="alert">{move ||fields.error.get()}</p>
-                <button disabled=move ||!fields.selected.get().is_empty() on:click=move |_|send.run(fields.preview(state.get_untracked(),true))>"Examiner une nouvelle séquence"</button>
-                <button disabled=move ||fields.selected.get().is_empty() on:click=move |_|send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la séquence"</button>
+                <button disabled=move ||!fields.selected.get().is_empty() on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),true))>"Examiner une nouvelle séquence"</button>
+                <button disabled=move ||fields.selected.get().is_empty() on:click=move |_|preview_send.run(fields.preview(state.get_untracked(),false))>"Examiner la retouche de la séquence"</button>
                 <button disabled=move ||fields.selected.get().is_empty() on:click=move |_|send.run(fields.remove(state.get_untracked()))>"Examiner la suppression de la séquence"</button>
                 <p>"Les segments ci-dessus restent un brouillon avant l’aperçu et l’application. Modifier l’ordre, les durées ou la caméra peut rendre une partie sauvegardée incompatible."</p>
             </fieldset></details>

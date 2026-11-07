@@ -1,16 +1,17 @@
 use bevy::prelude::*;
-use forge_tidewater::{
-    tidewater_plants::{Params, PlantMaterial, textures::ResidentTextures},
-    tidewater_scene_environment::ResidentEnvironment,
-    tidewater_terrain::{lod::LodMaterial, scene::ResidentTerrain},
-};
+use forge_engine::source_environment::scene::ResidentEnvironment;
+use forge_engine::source_terrain::lod::LodMaterial;
+use forge_engine::source_terrain::scene::ResidentTerrain;
+use forge_engine::source_vegetation::Params;
+use forge_engine::source_vegetation::captured::CapturedPlantMaterial;
+use forge_engine::source_vegetation::textures::ResidentTextures;
 #[derive(PartialEq)]
 pub(super) struct Key([AssetId<Image>; 5], [u32; 4]);
 
-pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
+pub(super) fn material(world: &World) -> Option<(Key, CapturedPlantMaterial)> {
     let textures = world.get_resource::<ResidentTextures>()?;
     let environment = world.get_resource::<ResidentEnvironment>()?;
-    let hill = world.get_resource::<forge_tidewater::tidewater_hill_shadow::Images>()?;
+    let hill = world.get_resource::<forge_engine::source_shadows::heightfield::Images>()?;
     let shadow = &world
         .get_resource::<crate::authoring_imported_shadows::Receiver>()?
         .0;
@@ -19,7 +20,7 @@ pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
         .get_resource::<Assets<LodMaterial>>()?
         .get(terrain.material.as_ref()?)?;
     let sun = environment.scene_lighting.sun_direction;
-    let acquired = world.get_resource::<forge_tidewater::scene_wind::AcquiredFrame>()?;
+    let acquired = world.get_resource::<forge_engine::source_wind::AcquiredFrame>()?;
     let wind = acquired.wind_frame().ok()?.material_uniform();
     let gust_lod = bevy::math::DVec4::new(
         acquired.vegetation_gust_offset[0],
@@ -42,9 +43,9 @@ pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
     );
     Some((
         key,
-        PlantMaterial {
-            scene_lighting: forge_tidewater::tidewater_material::scene_buffer::HANDLE.clone(),
-            motion: forge_tidewater::tidewater_plants::motion::DEFAULT_BUFFER.clone(),
+        CapturedPlantMaterial {
+            scene_lighting: forge_engine::source_lighting::scene_buffer::HANDLE.clone(),
+            motion: forge_engine::source_vegetation::motion::DEFAULT_BUFFER.clone(),
             params: Params {
                 i_pos: Vec4::ZERO,
                 i_dat: Vec4::ZERO,
@@ -63,8 +64,8 @@ pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
             hill_shadow: hill.output.clone(),
             object_shadow: shadow.image.clone(),
             object_settings: shadow.settings.clone(),
-            live_shadows: forge_tidewater::tidewater_object_shadow::receiver::DEFAULT_BUFFER
-                .clone(),
+            live_shadows: forge_engine::source_shadows::receiver::DEFAULT_BUFFER.clone(),
+            local_lights: forge_engine::source_lighting::local_lights::gpu::BUFFER,
             clouds: environment.cloud_view,
             cloud_shadow: Some(environment.clouds.images[2].clone()),
             grass_heights: material.extension.height.clone(),
@@ -74,7 +75,7 @@ pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
     ))
 }
 
-pub(super) fn refresh(material: &mut PlantMaterial, base: &PlantMaterial) {
+pub(super) fn refresh(material: &mut CapturedPlantMaterial, base: &CapturedPlantMaterial) {
     material.environment.clone_from(&base.environment);
     material.hill_shadow.clone_from(&base.hill_shadow);
     material.object_shadow.clone_from(&base.object_shadow);

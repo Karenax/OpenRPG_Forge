@@ -1,4 +1,4 @@
-//! ECS/Rapier coverage for opt-in Tidewater player locomotion.
+// ECS/Rapier coverage for opt-in Tidewater player locomotion.
 use super::*;
 use bevy::{ecs::system::SystemState, time::TimeUpdateStrategy, transform::TransformPlugin};
 use bevy_rapier3d::{
@@ -20,6 +20,99 @@ use forge_project::{
 };
 use forge_world::{VisualValleyPlayerControllerRecipe, sampled_terrain::SampledTerrainPlan};
 use std::{sync::Arc, time::Duration};
+
+#[test]
+fn initial_water_readiness_requires_an_accepted_sample_for_the_spawn() {
+    let (mut app, queries) = prepared_app(0.0);
+    app.world_mut()
+        .resource_mut::<WaterSampleReadiness>()
+        .initial_step = None;
+    let slot = {
+        let mut state = app.world_mut().resource_mut::<AmphibiousPlayerState>();
+        state.motion.position = Vec3::new(2.0, 0.0, -3.0);
+        state.water_query_slot().unwrap() as usize
+    };
+    app.update();
+    assert_eq!(
+        app.world().resource::<WaterSampleReadiness>().initial_step,
+        None,
+        "A stale sample at the former position cannot release readiness"
+    );
+    let mut packet = vec![0_u8; forge_engine::source_water_queries::PACKET_BYTES];
+    packet[..4].copy_from_slice(&2_u32.to_le_bytes());
+    packet[4..8].copy_from_slice(&2_u32.to_le_bytes());
+    packet[8..16].copy_from_slice(&1_f64.to_le_bytes());
+    let point = 16 + slot * 16;
+    packet[point..point + 4].copy_from_slice(&2_f32.to_le_bytes());
+    packet[point + 4..point + 8].copy_from_slice(&(-3_f32).to_le_bytes());
+    let result = 16 + forge_engine::source_water_queries::MAX_QUERIES * 16 + slot * 16;
+    packet[result..result + 4].copy_from_slice(&1.75_f32.to_le_bytes());
+    assert_eq!(queries.accept(&packet), Ok(true));
+    app.update();
+    assert_eq!(
+        app.world().resource::<WaterSampleReadiness>().initial_step,
+        Some(2)
+    );
+    let state = app.world().resource::<AmphibiousPlayerState>();
+    assert_eq!(
+        state.water_query_step, 0,
+        "The simulation stays frozen until its gate opens"
+    );
+    assert_eq!(state.motion.water_h.to_bits(), 0.0_f32.to_bits());
+}
+
+#[test]
+fn shared_player_profile_retains_source_capsule_and_motion_budgets() {
+    let mut profile = VisualValleyPlayerControllerRecipe.build().unwrap();
+    configure_player_profile(&mut profile);
+    assert_eq!(
+        profile.controller.capsule_radius_m.to_bits(),
+        RADIUS.to_bits()
+    );
+    assert_eq!(
+        profile.controller.total_capsule_height_m().to_bits(),
+        WALK_HEIGHT.to_bits()
+    );
+    assert_eq!(
+        profile.controller.walk_speed_mps.to_bits(),
+        3.0_f32.to_bits()
+    );
+    assert_eq!(
+        profile.controller.sprint_multiplier.to_bits(),
+        (6.2_f32 / 3.0).to_bits()
+    );
+    assert_eq!(
+        profile.controller.jump_speed_mps.to_bits(),
+        4.6_f32.to_bits()
+    );
+    assert_eq!(profile.camera.eye_height_m.to_bits(), 1.62_f32.to_bits());
+    profile.validate().unwrap();
+}
+
+#[test]
+fn player_water_query_reports_current_position_and_refuses_nonfinite_values() {
+    let (mut app, queries) = prepared_app(0.0);
+    let slot = {
+        let mut state = app.world_mut().resource_mut::<AmphibiousPlayerState>();
+        state.motion.position = Vec3::new(12.0, 3.0, -8.0);
+        state.water_query_slot().unwrap()
+    };
+    player_water_query(app.world(), &queries).unwrap();
+    assert_eq!(
+        queries.snapshot().points[slot as usize].map(f32::to_bits),
+        [12.0_f32, -8.0, 0.0, 0.0].map(f32::to_bits)
+    );
+    app.world_mut()
+        .resource_mut::<AmphibiousPlayerState>()
+        .motion
+        .position
+        .x = f32::NAN;
+    assert!(player_water_query(app.world(), &queries).is_err());
+    assert_eq!(
+        queries.snapshot().points[slot as usize].map(f32::to_bits),
+        [12.0_f32, -8.0, 0.0, 0.0].map(f32::to_bits)
+    );
+}
 
 #[test]
 fn adjacent_heightfield_tiles_preserve_raw_kcc_walkable_slope_crossing() {
@@ -792,54 +885,6 @@ fn real_autostep_keeps_forward_progress_through_side_contact() {
     assert!(motion(&app).grounded);
 }
 
-pub(super) struct WallGuardTimer {
-    started: std::time::Instant,
-    casts: u64,
-    preflights: u64,
-}
-
-impl WallGuardTimer {
-    pub(super) fn new() -> Self {
-        Self {
-            started: std::time::Instant::now(),
-            casts: 0,
-            preflights: 0,
-        }
-    }
-    pub(super) fn cast(&mut self) {
-        self.casts += 1;
-    }
-    pub(super) fn preflight(&mut self) {
-        self.preflights += 1;
-    }
-}
-
-impl Drop for WallGuardTimer {
-    fn drop(&mut self) {
-        use std::sync::atomic::{AtomicU64, Ordering};
-        static STEPS: AtomicU64 = AtomicU64::new(0);
-        static CASTS: AtomicU64 = AtomicU64::new(0);
-        static PREFLIGHTS: AtomicU64 = AtomicU64::new(0);
-        static TOTAL_NS: AtomicU64 = AtomicU64::new(0);
-        static MAX_NS: AtomicU64 = AtomicU64::new(0);
-        let nanos = u64::try_from(self.started.elapsed().as_nanos()).unwrap_or(u64::MAX);
-        CASTS.fetch_add(self.casts, Ordering::Relaxed);
-        PREFLIGHTS.fetch_add(self.preflights, Ordering::Relaxed);
-        TOTAL_NS.fetch_add(nanos, Ordering::Relaxed);
-        MAX_NS.fetch_max(nanos, Ordering::Relaxed);
-        let steps = STEPS.fetch_add(1, Ordering::Relaxed) + 1;
-        if steps.is_multiple_of(120) {
-            eprintln!(
-                "wall guard cost: sampled_steps={steps}, casts={}, preflights={}, average_ns_per_guarded_step={}, max_ns={}",
-                CASTS.load(Ordering::Relaxed),
-                PREFLIGHTS.load(Ordering::Relaxed),
-                TOTAL_NS.load(Ordering::Relaxed) / steps,
-                MAX_NS.load(Ordering::Relaxed)
-            );
-        }
-    }
-}
-
 fn support_ray_observation(app: &mut App, anchor: Vec3) -> Option<(Vec3, Vec3, bool)> {
     let entity = app
         .world()
@@ -1276,6 +1321,64 @@ fn authored_ladder_does_not_capture_a_walking_player() {
     assert!(!state.ladder_nearby);
 }
 
+#[test]
+fn dry_scene_and_deep_water_use_the_same_live_walking_controller() {
+    let (mut wet, _) = prepared_app(-100.0);
+    let terrain = Arc::new(terrain_on_slope(0.0));
+    let controller = AmphibiousPlayerPlugin::without_water(terrain).with_interactive_input(false);
+    let mut dry = player_app_with_controller(controller, 0.0);
+    for _ in 0..4 {
+        dry.update();
+    }
+    start(&mut wet);
+    start(&mut dry);
+    settle(&mut wet, 90);
+    settle(&mut dry, 90);
+    for app in [&mut wet, &mut dry] {
+        submit(
+            app,
+            PlayerControlCommand {
+                move_axis: Vec2::Y,
+                ..default()
+            },
+        );
+        settle(app, 30);
+    }
+    let wet_motion = motion(&wet);
+    let dry_motion = motion(&dry);
+    assert!(wet_motion.position.distance(dry_motion.position) < 1.0e-5);
+    assert!(wet_motion.velocity.distance(dry_motion.velocity) < 1.0e-5);
+    assert!(
+        dry_motion.position.z < -0.1,
+        "the dry player must actually move"
+    );
+    assert_eq!(dry_motion.mode, Mode::Walk);
+    assert_eq!(dry_motion.water_mean, None);
+    let state = dry.world().resource::<AmphibiousPlayerState>();
+    assert_eq!(state.water_query_slot(), None);
+    assert_eq!(state.water_query_step, 0);
+    assert_eq!(
+        dry.world()
+            .resource::<forge_engine::player_motion_extension::PlayerMotionExtension>()
+            .wet_contact,
+        None
+    );
+}
+
+#[test]
+fn procedural_player_uses_the_exact_generated_collision_surface() {
+    let document = forge_world::embedded_visual_valley_terrain_document().unwrap();
+    let plan = Arc::new(TerrainGenerationPlan::from_document(&document).unwrap());
+    let player = AmphibiousPlayerPlugin::without_water_procedural(plan.clone());
+    assert!(player.water.is_none());
+    for [x, z] in [[0.0, 0.0], [1.0, -3.0], [-7.0, 4.0]] {
+        assert_eq!(
+            player.terrain.height_at(x, z).unwrap().to_bits(),
+            plan.surface_height_at(x, z).unwrap().to_bits()
+        );
+    }
+}
+
 fn prepared_app(initial_height: f32) -> (App, Queries) {
     prepared_app_with_ladders(initial_height, [])
 }
@@ -1294,16 +1397,24 @@ fn prepared_app_on_slope(
 ) -> (App, Queries) {
     let queries = Queries::default();
     let terrain = Arc::new(terrain_on_slope(slope_radians));
+    let controller = AmphibiousPlayerPlugin::new(queries.clone(), terrain)
+        .expect("allocate source player water slot")
+        .with_interactive_input(false)
+        .with_ladders(ladders);
+    let mut app = player_app_with_controller(controller, slope_radians);
+    accept_height(&queries, 1, initial_height);
+    for _ in 0..4 {
+        app.update();
+    }
+    assert_eq!(snapshot(&app).fixed_tick, 0);
+    (app, queries)
+}
+
+fn player_app_with_controller(controller: AmphibiousPlayerPlugin, slope_radians: f32) -> App {
     let mut profile = VisualValleyPlayerControllerRecipe
         .build()
         .expect("valid profile");
-    profile.controller.capsule_radius_m = RADIUS;
-    profile.controller.capsule_half_segment_m = WALK_HEIGHT * 0.5 - RADIUS;
-    profile.controller.max_step_height_m = 0.4;
-    profile.controller.walk_speed_mps = 3.0;
-    profile.controller.sprint_multiplier = 6.2 / 3.0;
-    profile.controller.jump_speed_mps = 4.6;
-    profile.camera.eye_height_m = 1.62;
+    configure_player_profile(&mut profile);
     let slope_clearance = RADIUS * (slope_radians.cos().recip() - 1.0);
     let spawn = Vec3::new(0.0, WALK_HEIGHT * 0.5 + slope_clearance + 0.02, 0.0);
     let mut app = App::new();
@@ -1319,24 +1430,14 @@ fn prepared_app_on_slope(
         })
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default().in_fixed_schedule())
         .add_plugins(PlayerControllerPlugin::new(profile, spawn).with_interactive_input(false))
-        .add_plugins(
-            AmphibiousPlayerPlugin::new(queries.clone(), terrain)
-                .expect("allocate source player water slot")
-                .with_interactive_input(false)
-                .with_ladders(ladders),
-        )
+        .add_plugins(controller)
         .insert_resource(PlayerSimulationReady(false));
     app.world_mut().spawn((
         Collider::cuboid(3.0, 0.1, 3.0),
         Transform::from_xyz(0.0, -0.1 / slope_radians.cos(), 0.0)
             .with_rotation(Quat::from_rotation_z(slope_radians)),
     ));
-    accept_height(&queries, 1, initial_height);
-    for _ in 0..4 {
-        app.update();
-    }
-    assert_eq!(snapshot(&app).fixed_tick, 0);
-    (app, queries)
+    app
 }
 
 fn start(app: &mut App) {
@@ -1376,12 +1477,12 @@ fn terrain_on_slope(slope_radians: f32) -> SampledTerrainPlan {
 }
 
 fn accept_height(queries: &Queries, step: u32, height: f32) {
-    let mut bytes = vec![0_u8; crate::water_height_queries::PACKET_BYTES];
+    let mut bytes = vec![0_u8; forge_engine::source_water_queries::PACKET_BYTES];
     bytes[..4].copy_from_slice(&step.to_le_bytes());
     bytes[4..8].copy_from_slice(&2_u32.to_le_bytes());
     bytes[8..16].copy_from_slice(&(f64::from(step) / 60.0).to_le_bytes());
-    for slot in 0..crate::water_height_queries::MAX_QUERIES {
-        let result = 16 + crate::water_height_queries::MAX_QUERIES * 16 + slot * 16;
+    for slot in 0..forge_engine::source_water_queries::MAX_QUERIES {
+        let result = 16 + forge_engine::source_water_queries::MAX_QUERIES * 16 + slot * 16;
         bytes[result..result + 4].copy_from_slice(&height.to_le_bytes());
     }
     assert_eq!(queries.accept(&bytes), Ok(true));
@@ -1580,7 +1681,7 @@ fn prepare_real_tidewater_entry_app() -> App {
         )
         .expect("pinned raster"),
     );
-    app.world_mut().resource_mut::<Surface>().terrain = plan;
+    app.world_mut().resource_mut::<Surface>().terrain = PlayerTerrain::Sampled(plan);
     let floors: Vec<Entity> = {
         let world = app.world_mut();
         world

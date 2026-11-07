@@ -25,6 +25,8 @@ forge_gameplay.workspace = true
 forge_navigation = { workspace = true, optional = true }
 forge_project.workspace = true
 forge_world.workspace = true
+# Bevy's existing glTF loader passes source nodes to the shared node-identity hook.
+gltf = { version = "=1.4.1", default-features = false }
 # Bevy's public SortedPhaseItem API names this exact already-locked type.
 indexmap = "=2.14.1"
 serde.workspace = true
@@ -32,6 +34,11 @@ serde.workspace = true
 serde_json = { workspace = true, features = ["float_roundtrip"] }
 tracing.workspace = true
 wgpu = { version = "=29.0.4", default-features = false, features = ["wgsl"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# Native rendering prepares shaders on several threads. Without wgpu/std,
+# validation scopes are global and concurrent pipelines can corrupt the stack.
+wgpu = { version = "=29.0.4", default-features = false, features = ["std"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys.workspace = true

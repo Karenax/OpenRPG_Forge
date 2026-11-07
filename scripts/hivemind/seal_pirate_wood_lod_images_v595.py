@@ -1,0 +1,8 @@
+from pathlib import Path
+import re
+parent=Path(__file__).with_name('seal_pirate_lod_batch03_visual_review_v371.py')
+code=parent.read_text('utf-8').replace('pirate-lod-batch03-combined-review-v371','pirate-wood-lod-images-sealed-v595').replace('pirate-lod-thumbnail-batch03-review-v370','pirate-wood-lod-images-review-v594').replace("len(r['rows'])==16","len(r['rows'])==24").replace("for a in r['rows'])==32","for a in r['rows'])==48").replace('cards_verified=16,images_verified=32','cards_verified=24,images_verified=48').replace('sixteen_actual_lod_variants_agent_reviewed','twenty_four_actual_wood_lod_variants_agent_reviewed')
+code,count=re.subn(r"visual_observations='[^']*'",'visual_observations='+repr('All 48 views inspected across eight sheets. Twelve plank wall groups retain faded blue paint, wood grain, vertical posts and diagonal braces. Closed walls, one-window and two-window walls, door openings and wide openings are recognizable from both sides. Side6m01 retains gaps between source planks, and Side8m05 retains the loose narrow post beside the wide opening. Views are fully framed without pink shader failure, uniform image or cut-off. Exact LOD1/2 mesh identities differ from LOD0. The material receipt qualifies only current SDK source thumbnail comparisons, not original SDK pipeline parity, converted Forge materials or geometry, placement, runtime or Studio GUI.'),code)
+assert count==1
+code=code.replace("r['input_pins'][str(p)]=sha(p);","r['input_pins'][str(parent)]=sha(parent);r['input_pins'][str(p)]=sha(p);")
+exec(compile(code,str(parent)+'#48-actually-inspected-wood-views','exec'),globals())

@@ -136,6 +136,7 @@ pub struct VisualValleyTerrainExtension {
     pub wetness_parameters: Vec4,
     #[texture(101)]
     #[sampler(102)]
+    #[dependency]
     pub detail_texture: Handle<Image>,
 }
 
@@ -171,6 +172,7 @@ pub type VisualValleyTerrainMaterial =
     ExtendedMaterial<StandardMaterial, VisualValleyTerrainExtension>;
 
 pub(crate) fn register_terrain_material(app: &mut App) {
+    crate::terrain_palette::register(app);
     if !app.is_plugin_added::<MaterialPlugin<VisualValleyTerrainMaterial>>() {
         embedded_asset!(app, "shaders/visual_valley_terrain.wgsl");
         app.add_plugins(MaterialPlugin::<VisualValleyTerrainMaterial>::default());
@@ -310,7 +312,6 @@ impl Plugin for VisualValleyPlugin {
 
         register_terrain_material(app);
         app.insert_resource(self.debug)
-            .init_resource::<VisualValleyShadowStats>()
             .insert_resource(VisualValleyOverviewCameraEnabled(
                 self.overview_camera && {
                     #[cfg(feature = "physics-rapier")]
@@ -331,13 +332,12 @@ impl Plugin for VisualValleyPlugin {
             })
             .insert_resource(PreparedVisualValley(Some(prepared)))
             .insert_resource(ClearColor(Color::srgb(0.32, 0.48, 0.66)))
-            .add_plugins(RuntimeEvidencePlugin::new(self.automation.clone()))
+            .add_plugins((
+                RuntimeEvidencePlugin::new(self.automation.clone()),
+                TerrainLightingPlugin,
+            ))
             .init_gizmo_group::<VisualValleyChunkGizmos>()
             .add_systems(Startup, spawn_visual_valley)
-            .add_systems(
-                PostUpdate,
-                observe_visual_valley_shadow_config.after(crate::shadow_quality::ShadowQualitySet),
-            )
             .add_systems(Update, draw_visual_valley_chunk_debug);
 
         #[cfg(feature = "physics-rapier")]
@@ -663,7 +663,6 @@ fn spawn_visual_valley(
     mut commands: Commands,
     mut prepared: ResMut<PreparedVisualValley>,
     overview_camera_enabled: Res<VisualValleyOverviewCameraEnabled>,
-    vegetation_presentation: Option<Res<VegetationPresentation>>,
     (mut meshes, mut images): (ResMut<Assets<Mesh>>, ResMut<Assets<Image>>),
     mut materials: ResMut<Assets<VisualValleyTerrainMaterial>>,
     #[cfg(feature = "physics-rapier")] mut bindings: ResMut<TerrainRuntimeBindings>,
@@ -712,20 +711,6 @@ fn spawn_visual_valley(
         );
     }
 
-    let shadow_config = visual_valley_shadow_config(vegetation_presentation.as_deref());
-    commands.spawn((
-        Name::new("Visual Valley sun"),
-        VisualValleySun,
-        DirectionalLight {
-            color: Color::srgb(1.0, 0.93, 0.78),
-            illuminance: 55_000.0,
-            shadow_maps_enabled: true,
-            ..default()
-        },
-        Transform::IDENTITY.looking_at(Vec3::new(-0.45, -1.0, -0.28), Vec3::Y),
-        shadow_config,
-    ));
-
     if overview_camera_enabled.0 {
         let focus_height_m = f32::midpoint(prepared.minimum_height_m, prepared.maximum_height_m);
         let camera_position = Vec3::new(-210.0, prepared.maximum_height_m + 125.0, 210.0);
@@ -763,6 +748,40 @@ fn spawn_visual_valley(
         lod_zero_chunks = prepared.stats.lod_zero_chunks,
         "Visual Valley terrain materialized from the canonical document"
     );
+}
+
+/// Shared lighting for the existing procedural and streamed terrain adapters.
+/// The sun marker and quality observations remain the same for both hosts.
+pub struct TerrainLightingPlugin;
+
+impl Plugin for TerrainLightingPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<VisualValleyShadowStats>()
+            .add_systems(Startup, spawn_terrain_sun)
+            .add_systems(
+                PostUpdate,
+                observe_visual_valley_shadow_config.after(crate::shadow_quality::ShadowQualitySet),
+            );
+    }
+}
+
+#[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
+fn spawn_terrain_sun(
+    mut commands: Commands,
+    vegetation_presentation: Option<Res<VegetationPresentation>>,
+) {
+    commands.spawn((
+        Name::new("Visual Valley sun"),
+        VisualValleySun,
+        DirectionalLight {
+            color: Color::srgb(1.0, 0.93, 0.78),
+            illuminance: 55_000.0,
+            shadow_maps_enabled: true,
+            ..default()
+        },
+        Transform::IDENTITY.looking_at(Vec3::new(-0.45, -1.0, -0.28), Vec3::Y),
+        visual_valley_shadow_config(vegetation_presentation.as_deref()),
+    ));
 }
 
 fn visual_valley_shadow_config(
@@ -1082,10 +1101,14 @@ mod tests {
 
     #[test]
     fn original_shader_consumes_color_weights_and_three_pbr_palettes() {
-        let shader = include_str!("shaders/visual_valley_terrain.wgsl");
+        let shader = format!(
+            "{}\n{}",
+            include_str!("shaders/visual_valley_terrain.wgsl"),
+            include_str!("shaders/terrain_palette.wgsl")
+        );
 
         assert!(shader.contains("normalized_material_weights(in.color.rgb)"));
-        assert!(shader.contains("let world_xz = in.world_position.xz"));
+        assert!(shader.contains("let world_xz = position.xz"));
         assert!(shader.contains("smoothstep(0.35, 1.25, footprint_m * cells_per_m)"));
         assert!(shader.contains("weights.x * layer_detail.x"));
         assert!(shader.contains("let dry_litter = clamp(0.08 + medium_detail * 0.16, 0.0, 0.16)"));
@@ -1099,7 +1122,7 @@ mod tests {
         assert!(shader.contains("let eased = fraction * fraction * (vec2(3.0) - 2.0 * fraction)"));
         assert!(shader.contains("dpdx(relief_height_m) * reciprocal_x"));
         assert!(shader.contains("length(gradient_numerator) / 0.65"));
-        assert!(shader.contains("pbr_input.N = normalize(normal - gradient)"));
+        assert!(shader.contains("surface.normal = normalize(normal - gradient)"));
         assert!(!shader.contains("pbr_input.world_normal ="));
         assert_eq!(shader.matches("textureSample(").count(), 1);
         assert!(!shader.contains("terrain_value_noise"));
@@ -1108,7 +1131,7 @@ mod tests {
         assert!(shader.contains("rock_color_roughness"));
         assert!(shader.contains("pbr_input.material.perceptual_roughness"));
         assert!(shader.contains("pbr_input.material.metallic"));
-        assert!(shader.contains("pbr_input.material.reflectance = vec3("));
+        assert!(shader.contains("surface.reflectance = vec3("));
         assert!(!shader.to_ascii_lowercase().contains("cadle"));
     }
 

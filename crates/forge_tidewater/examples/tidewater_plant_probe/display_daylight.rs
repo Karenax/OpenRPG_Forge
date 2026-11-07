@@ -1,11 +1,12 @@
 //! Fixed solar clock driven by the presentation menu, with resident GPU inputs.
 use super::State;
 use bevy::prelude::*;
-use forge_tidewater::{
-    tidewater_atmosphere::{self as atmosphere, controller, readback},
-    tidewater_material::{SceneLighting, scene_buffer},
-    tidewater_sky::solar,
-};
+use forge_engine::source_atmosphere as atmosphere;
+use forge_engine::source_atmosphere::controller;
+use forge_engine::source_lighting::SceneLighting;
+use forge_engine::source_lighting::scene_buffer;
+use forge_engine::source_sky::publication;
+use forge_engine::source_sky::solar;
 #[derive(Resource)]
 pub(super) struct Daylight {
     pub frame: solar::Frame,
@@ -51,7 +52,7 @@ pub(super) fn update(world: &mut World) {
                 sources.set_sun(daylight.frame.key)?;
             }
             if let Some(mut settings) =
-                world.get_resource_mut::<forge_tidewater::tidewater_hill_shadow::Settings>()
+                world.get_resource_mut::<forge_engine::source_shadows::heightfield::Settings>()
             {
                 settings.sun_bake = daylight.frame.key.as_vec3();
             }
@@ -60,40 +61,20 @@ pub(super) fn update(world: &mut World) {
         let params = world.resource::<atmosphere::Targets>().params;
         let mut values: [f32; 16] = std::array::from_fn(|i| params[i / 4][i % 4]);
         values[12..15].copy_from_slice(&frame.sun.as_vec3().to_array());
-        controller::advance(
+        let params =
+            std::array::from_fn(|i| Vec4::from_array(std::array::from_fn(|j| values[i * 4 + j])));
+        let Some(publication) = publication::advance_uniforms(
             world,
             world.resource::<Time<Real>>().delta_secs_f64(),
             frame,
-            values,
-            false,
-        )?;
-        if let Some(mut skies) =
-            world.get_resource_mut::<Assets<forge_tidewater::tidewater_sky::SkyMaterial>>()
-        {
-            let params: [Vec4; 4] = std::array::from_fn(|i| {
-                Vec4::from_array(std::array::from_fn(|j| values[i * 4 + j]))
-            });
-            let changed: Vec<_> = skies
-                .iter()
-                .filter_map(|(id, m)| {
-                    (m.atmosphere != params
-                        || m.settings.moon_disk.truncate() != frame.moon.as_vec3()
-                        || m.settings.stars_time_night.z.to_bits()
-                            != (frame.night as f32).to_bits())
-                    .then_some(id)
-                })
-                .collect();
-            for id in changed {
-                let mut m = skies.get_mut(id).expect("resident sky");
-                m.atmosphere = params;
-                m.settings.moon_disk = frame.moon.as_vec3().extend(1.0);
-                m.settings.stars_time_night.z = frame.night as f32;
-            }
-        }
-        let Some(completed) = readback::latest(world, frame) else {
+            params,
+            None,
+            Some(1.0),
+        )?
+        else {
             return Ok(());
         };
-        let lighting = completed?.lighting;
+        let lighting = &publication.lighting;
         daylight.completed_hours = Some(frame.hours);
         let signature = (frame.hours, lighting.sun_color, lighting.sky_irradiance);
         if daylight.published == Some(signature) {
@@ -111,39 +92,16 @@ pub(super) fn update(world: &mut World) {
             daylight.reference = Some((acquired, lighting.sky_irradiance));
         }
         let (reference, irradiance) = daylight.reference.as_ref().expect("reference initialized");
-        let ratio = Vec3::from_array(std::array::from_fn(|i| {
-            (lighting.sky_irradiance[i] / irradiance[i].max(1e-8)).clamp(0.0, 8.0) as f32
-        }));
-        let scene = SceneLighting {
-            sun_direction: frame.key.as_vec3().extend(0.0),
-            sun_color: Vec3::from_array(lighting.sun_color.map(|x| x as f32)).extend(0.0),
-            environment_sh: reference
-                .environment_sh
-                .map(|v| (v.truncate() * ratio).extend(0.0)),
-        };
+        let scene = publication::scaled_reference(reference, *irradiance, &publication);
         scene_buffer::publish(world, &scene)?;
         if let Some(mut materials) =
-            world.get_resource_mut::<Assets<forge_tidewater::tidewater_material::VillageMaterial>>()
+            world.get_resource_mut::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
         {
             for (_, material) in materials.iter_mut() {
                 material.scene_lighting = scene.clone();
             }
         }
-        let color = scene.sun_color.truncate();
-        let strength = color.max_element().max(0.00001);
-        let direction = -frame.key.as_vec3();
-        let up = if direction.dot(Vec3::Y).abs() > 0.999 {
-            Vec3::Z
-        } else {
-            Vec3::Y
-        };
-        let mut lights = world.query::<(&mut DirectionalLight, &mut Transform)>();
-        for (mut light, mut pose) in lights.iter_mut(world) {
-            light.color =
-                Color::linear_rgb(color.x / strength, color.y / strength, color.z / strength);
-            light.illuminance = 10000.0 * strength / 11.0;
-            *pose = Transform::default().looking_to(direction, up);
-        }
+        publication::sync_directional_lights(world, &scene, frame);
         daylight.published = Some(signature);
         Ok(())
     });

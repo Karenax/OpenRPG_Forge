@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-asset-particles"
+description = "Enables the read_asset_particles command without any pre-configured scope."
+commands.allow = ["read_asset_particles"]
+
+[[permission]]
+identifier = "deny-read-asset-particles"
+description = "Denies the read_asset_particles command without any pre-configured scope."
+commands.deny = ["read_asset_particles"]

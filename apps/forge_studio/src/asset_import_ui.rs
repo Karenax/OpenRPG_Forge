@@ -102,7 +102,14 @@ impl Ui {
         self.uploads.get_value().source.set(None);
         self.uploads.get_value().thumbnail.set(None);
         self.name.set(asset.name.clone());
-        self.kind.set(kind_name(asset.kind).into());
+        self.kind.set(
+            match asset.kind {
+                GovernedAssetKind::Mesh => "mesh",
+                GovernedAssetKind::Texture => "texture",
+                GovernedAssetKind::Audio => "audio",
+            }
+            .into(),
+        );
         self.author.set(asset.provenance.author.clone());
         self.origin.set(asset.provenance.source.clone());
         self.license.set(asset.provenance.license.clone());
@@ -219,9 +226,9 @@ impl Ui {
 
 fn kind_name(kind: GovernedAssetKind) -> &'static str {
     match kind {
-        GovernedAssetKind::Mesh => "mesh",
-        GovernedAssetKind::Texture => "texture",
-        GovernedAssetKind::Audio => "audio",
+        GovernedAssetKind::Mesh => "Modèle 3D",
+        GovernedAssetKind::Texture => "Image ou texture",
+        GovernedAssetKind::Audio => "Son",
     }
 }
 fn command_id(action: &str) -> CommandId {
@@ -273,10 +280,10 @@ fn refresh(ui: Ui) {
 #[component]
 pub(crate) fn AssetImportLauncher() -> impl IntoView {
     let dialog = NodeRef::<leptos::html::Dialog>::new();
-    let open = RwSignal::new(false);
-    view! {<style>{include_str!("asset_import.css")}</style><button class="asset-library-launch" on:click=move |_|{if let Some(dialog)=dialog.get() &&dialog.show_modal().is_ok(){open.set(true);}}>"Importer mes assets"</button>
-    <dialog node_ref=dialog class="asset-import-dialog" aria-label="Importer des assets" on:close=move |_|open.set(false) on:keydown=move|event|event.stop_propagation() on:mousedown=move|event|event.stop_propagation()>
-    <Show when=move||open.get()><ImportPanel close=Callback::new(move|()|{if let Some(dialog)=dialog.get(){dialog.close();}open.set(false);})/></Show></dialog>}
+    let mounted = RwSignal::new(false);
+    view! {<style>{include_str!("asset_import.css")}</style><button class="asset-library-launch" on:click=move |_|{if let Some(dialog)=dialog.get() &&dialog.show_modal().is_ok(){mounted.set(true);}}>"Importer mes assets"</button>
+    <dialog node_ref=dialog class="asset-import-dialog" aria-label="Importer des assets" on:keydown=move|event|event.stop_propagation() on:mousedown=move|event|event.stop_propagation()>
+    <Show when=move ||mounted.get()><ImportPanel close=Callback::new(move|()|{if let Some(dialog)=dialog.get(){dialog.close();}})/></Show></dialog>}
 }
 
 #[component]
@@ -289,7 +296,7 @@ fn ImportPanel(close: Callback<()>) -> impl IntoView {
             let _ = web_sys::Url::revoke_object_url(&url);
         }
     });
-    view! {<section class="asset-import-panel"><header><div><p>"VOTRE COLLECTION D’AUTEUR"</p><h1>"Importer des assets"</h1><p>"Modèles GLB autonomes, images et sons conservés dans vos données utilisateur."</p></div><button on:click=move |_|close.run(())>"Fermer ×"</button></header>
+    view! {<section class="asset-import-panel"><header><div><p>"VOTRE COLLECTION D’AUTEUR"</p><h1>"Importer des assets"</h1><p>"Modèles GLB autonomes, images et sons conservés dans vos données utilisateur."</p><p>"Le formulaire reste disponible à la fermeture de cette fenêtre. Terminez l’import avant de changer de carte ou de fermer le Studio."</p></div><button on:click=move |_|close.run(())>"Fermer ×"</button></header>
     <div class="asset-import-columns"><aside><ImportedEntries ui=ui/><button disabled=move||ui.busy.get() on:click=move |_|ui.new_asset()>"Nouvel asset"</button><button disabled=move||ui.busy.get()||ui.selected.get().is_none() on:click=move |_|ui.variant()>"Créer une variante"</button><button disabled=move||ui.busy.get() on:click=move |_|refresh(ui)>"Actualiser"</button></aside>
     <main><MetadataFields ui=ui/><SourceFields ui=ui/><ImportActions ui=ui close=close/><AssetPreview ui=ui/></main></div><output role="status" aria-live="polite">{move||ui.status.get()}</output></section>}
 }

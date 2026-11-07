@@ -1,11 +1,11 @@
 //! Shared far-card mesh proof; spatial selection and authoring remain separate.
-use super::{PlantMaterial, Probe, ProbeMode, ProbeParams, read_vectors};
+use super::{CapturedPlantMaterial, Probe, ProbeMode, ProbeParams, read_vectors};
 use bevy::{
     camera::visibility::NoFrustumCulling, light::NotShadowCaster, mesh::MeshTag, prelude::*,
 };
 use std::{collections::BTreeMap, error::Error};
 
-pub(super) use forge_tidewater::tidewater_plants::Record;
+pub(super) use forge_engine::source_vegetation::Record;
 
 pub(super) fn load(
     files: &BTreeMap<String, Vec<u8>>,
@@ -45,7 +45,7 @@ pub(super) fn spawn(
     commands: &mut Commands,
     probe: &Probe,
     mesh: Handle<Mesh>,
-    material: Handle<PlantMaterial>,
+    material: Handle<CapturedPlantMaterial>,
 ) {
     let visibility = if matches!(
         probe.mode,

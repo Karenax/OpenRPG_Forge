@@ -72,6 +72,16 @@ fn temporal_code(slot: u32, level: u32, spatial_fallback: i32) -> i32 {
 }
 
 const TAU: f32 = 6.283185307179586;
+
+fn vegetation_frame_time(previous: bool) -> f32 {
+    if vegetation.temporal_parameters.z > 0.5 && arrayLength(&temporal_lods) > 0u {
+        // Slot zero never names an object. Its shared frame snapshot is bound
+        // in forward, depth/prepass and picking, unlike the view-only globals.
+        let clock = temporal_lods[0u].metadata;
+        return bitcast<f32>(select(clock.y, clock.z, previous));
+    }
+    return select(vegetation.wind_parameters.z, vegetation.wind_parameters.w, previous);
+}
 const TAG_PHASE_MASK: u32 = 0x00ffffffu;
 const TAG_PHASE_DENOMINATOR: f32 = 16777215.0;
 
@@ -222,7 +232,7 @@ fn vertex(vertex: Vertex
         phase,
         wind_response,
         instance_scale,
-        vegetation.wind_parameters.z,
+        vegetation_frame_time(false),
     );
     out.world_position = undeformed_world_position + vec4(displacement, 0.0);
     out.position = position_world_to_clip(out.world_position.xyz);
@@ -295,7 +305,7 @@ fn vertex(vertex: Vertex
         phase,
         wind_response,
         previous_instance_scale,
-        vegetation.wind_parameters.w,
+        vegetation_frame_time(true),
     );
     out.previous_world_position = previous_undeformed_world_position
         + vec4(previous_displacement, 0.0);

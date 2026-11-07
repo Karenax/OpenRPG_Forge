@@ -104,7 +104,14 @@ fn additional_uvs<const WIDTH: usize>(
     Ok(channels)
 }
 
-fn check_geometry_budget(attrs: &Value, count: usize, indices: usize) -> Result<(), String> {
+const MAX_DECODED_GEOMETRY_BYTES: usize = 512 * 1024 * 1024;
+
+fn check_geometry_budget(
+    attrs: &Value,
+    count: usize,
+    indices: usize,
+    maximum_bytes: usize,
+) -> Result<(), String> {
     // Include both conventional and unmodified source UV buffers before allocating.
     let floats = 23
         + usize::from(attrs.get("_OPENRPG_SOURCE_COLOR").is_some()) * 4
@@ -114,7 +121,7 @@ fn check_geometry_budget(attrs: &Value, count: usize, indices: usize) -> Result<
         .checked_mul(floats)
         .and_then(|n| n.checked_mul(4))
         .and_then(|n| indices.checked_mul(4).and_then(|i| n.checked_add(i)));
-    if budget.is_none_or(|n| n > 512 * 1024 * 1024) {
+    if budget.is_none_or(|n| n > maximum_bytes.min(MAX_DECODED_GEOMETRY_BYTES)) {
         return Err("decoded geometry allocation limit".into());
     }
     Ok(())
@@ -270,6 +277,22 @@ pub fn read_source_graph_primitive_geometry(
     mesh: usize,
     primitive: usize,
 ) -> Result<SourceGraphPrimitiveGeometry, String> {
+    read_source_graph_primitive_geometry_with_budget(
+        glb,
+        mesh,
+        primitive,
+        MAX_DECODED_GEOMETRY_BYTES,
+    )
+}
+
+/// Decode under the smaller of the caller's budget and the fixed renderer limit.
+/// The entire allocation estimate is checked before any vertex buffer is built.
+pub fn read_source_graph_primitive_geometry_with_budget(
+    glb: &SourceGraphGlb<'_>,
+    mesh: usize,
+    primitive: usize,
+    maximum_bytes: usize,
+) -> Result<SourceGraphPrimitiveGeometry, String> {
     let document = glb.document();
     let p = document
         .get("meshes")
@@ -299,7 +322,7 @@ pub fn read_source_graph_primitive_geometry(
         Some(i) => number(accessors.get(i).ok_or("missing index accessor")?, "count")?,
         None => count,
     };
-    check_geometry_budget(attrs, count, index_count)?;
+    check_geometry_budget(attrs, count, index_count, maximum_bytes)?;
     let source = read_source_graph_primitive_attributes(glb, mesh, primitive)?;
     Ok(SourceGraphPrimitiveGeometry {
         positions: decode(document, &glb.views, position, count)?,
@@ -351,7 +374,7 @@ pub fn read_source_graph_primitive_attributes(
         .and_then(|a| a.get(position))
         .ok_or("missing position accessor")?;
     let count = number(position, "count")?;
-    check_geometry_budget(attrs, count, 0)?;
+    check_geometry_budget(attrs, count, 0, MAX_DECODED_GEOMETRY_BYTES)?;
     Ok(SourceGraphPrimitiveAttributes {
         material_index,
         original_normals: decode(
@@ -508,11 +531,13 @@ mod tests {
     #[test]
     fn uv_allocation_budget_includes_source_and_standard_channels() {
         let empty = serde_json::json!({});
-        assert!(check_geometry_budget(&empty, 5_000_000, 0).is_ok());
+        assert!(check_geometry_budget(&empty, 5_000_000, 0, MAX_DECODED_GEOMETRY_BYTES).is_ok());
         let additional = serde_json::json!({"TEXCOORD_1":0,"TEXCOORD_7":0,"_OPENRPG_SOURCE_UV1":0,"_OPENRPG_SOURCE_UV7":0});
-        assert!(check_geometry_budget(&additional, 5_000_000, 0).is_err());
-        assert!(check_geometry_budget(&empty, usize::MAX, 0).is_err());
-        assert!(check_geometry_budget(&empty, 1, usize::MAX).is_err());
+        assert!(
+            check_geometry_budget(&additional, 5_000_000, 0, MAX_DECODED_GEOMETRY_BYTES).is_err()
+        );
+        assert!(check_geometry_budget(&empty, usize::MAX, 0, MAX_DECODED_GEOMETRY_BYTES).is_err());
+        assert!(check_geometry_budget(&empty, 1, usize::MAX, MAX_DECODED_GEOMETRY_BYTES).is_err());
     }
     #[test]
     fn interleaved_original_values_are_not_normalized() {

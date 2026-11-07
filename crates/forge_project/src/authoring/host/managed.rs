@@ -75,7 +75,16 @@ impl AuthoringHost {
             .as_ref()
             .is_some_and(|(zone, _, _)| zone == request);
         if preview || (history_action && !already_reviewed) {
-            let key = canonical_json_sha256(request).map_err(|e| e.to_string())?;
+            // Module undo can restore the same zone request under a new workspace
+            // revision. Scope the wrapper to that revision while keeping exact
+            // Apply replays bound to the retained, reviewed workspace request.
+            let workspace_hash = workspace
+                .session()
+                .head()
+                .content_hash()
+                .map_err(|e| e.to_string())?;
+            let key =
+                canonical_json_sha256(&(workspace_hash, request)).map_err(|e| e.to_string())?;
             let (review, receipt) = workspace.preview_zone_edit_with_audit(
                 area,
                 request,

@@ -9,12 +9,9 @@ use {
     forge_engine::{
         ForgePlayerCamera, PendingPlayerControlCommand, PlayerControlCommand, PlayerControllerSet,
         PlayerRuntimeSnapshot, PlayerSimulationReady,
+        source_underwater::{Immersion, SourceUnderwaterControl, UnderwaterObservation},
     },
-    forge_tidewater::{
-        AmphibiousPlayerInput, AmphibiousPlayerState,
-        amphibious_locomotion::Mode,
-        tidewater_underwater::{Immersion, TidewaterUnderwaterControl, UnderwaterObservation},
-    },
+    forge_tidewater::{AmphibiousPlayerInput, AmphibiousPlayerState, amphibious_locomotion::Mode},
 };
 #[path = "swim_smoke/shadow_proof.rs"]
 mod shadow_proof;
@@ -300,7 +297,7 @@ fn begin_pair(
     smoke: &mut Smoke,
     virtual_time: &mut Time<Virtual>,
     live: &super::super::ocean::LiveClock,
-    control: &mut TidewaterUnderwaterControl,
+    control: &mut SourceUnderwaterControl,
     cloud_hold: &mut super::super::walk_clouds::QualificationHold,
     wind_hold: &mut super::super::walk_wind::QualificationHold,
 ) {
@@ -323,7 +320,7 @@ fn arm_pair(
     mut virtual_time: ResMut<Time<Virtual>>,
     underwater: Res<UnderwaterObservation>,
     live: Res<super::super::ocean::LiveClock>,
-    mut control: ResMut<TidewaterUnderwaterControl>,
+    mut control: ResMut<SourceUnderwaterControl>,
     mut cloud_hold: ResMut<super::super::walk_clouds::QualificationHold>,
     mut wind_hold: ResMut<super::super::walk_wind::QualificationHold>,
     camera: Query<&Transform, With<ForgePlayerCamera>>,
@@ -512,7 +509,7 @@ fn synchronized_signature(
     queries: &super::super::spray::water_queries::Targets,
     water: &super::super::water_time::WaterTime,
     underwater: &UnderwaterObservation,
-    light_maps: &forge_tidewater::tidewater_underwater_lighting::Targets,
+    light_maps: &forge_engine::source_underwater_lighting::Targets,
 ) -> Result<Option<FreezeSignature>, String> {
     let Ok((camera, Projection::Perspective(projection))) = camera.single() else {
         return Err("qualification requires one perspective player camera".into());
@@ -665,7 +662,7 @@ fn request_pair_capture(
               queries: Res<super::super::spray::water_queries::Targets>,
               water: Res<super::super::water_time::WaterTime>,
               underwater: Res<UnderwaterObservation>,
-              light_maps: Res<forge_tidewater::tidewater_underwater_lighting::Targets>,
+              light_maps: Res<forge_engine::source_underwater_lighting::Targets>,
               mut smoke: ResMut<Smoke>| {
             let dimensions = [
                 event.image.texture_descriptor.size.width,
@@ -739,7 +736,7 @@ fn restore_after_pair(
     elapsed: f64,
     virtual_time: &mut Time<Virtual>,
     live: &super::super::ocean::LiveClock,
-    control: &mut TidewaterUnderwaterControl,
+    control: &mut SourceUnderwaterControl,
     cloud_hold: &mut super::super::walk_clouds::QualificationHold,
     wind_hold: &mut super::super::walk_wind::QualificationHold,
 ) -> Result<(), String> {
@@ -764,11 +761,11 @@ fn qualify_pairs(
     camera: Query<(&GlobalTransform, &Projection), With<ForgePlayerCamera>>,
     underwater: Res<UnderwaterObservation>,
     lighting: (
-        Res<forge_tidewater::tidewater_underwater_lighting::Targets>,
-        ResMut<forge_tidewater::tidewater_underwater_lighting::Control>,
+        Res<forge_engine::source_underwater_lighting::Targets>,
+        ResMut<forge_engine::source_underwater_lighting::Control>,
         Local<Option<shadow_proof::Proof>>,
     ),
-    mut control: ResMut<TidewaterUnderwaterControl>,
+    mut control: ResMut<SourceUnderwaterControl>,
     mut cloud_hold: ResMut<super::super::walk_clouds::QualificationHold>,
     mut wind_hold: ResMut<super::super::walk_wind::QualificationHold>,
     probe: Res<super::Probe>,
@@ -1118,7 +1115,7 @@ fn finish(
     time: Res<Time<Real>>,
     state: Res<AmphibiousPlayerState>,
     underwater: Res<UnderwaterObservation>,
-    light_maps: Res<forge_tidewater::tidewater_underwater_lighting::Targets>,
+    light_maps: Res<forge_engine::source_underwater_lighting::Targets>,
     mut smoke: ResMut<Smoke>,
     probe: Res<super::Probe>,
     mut exit: MessageWriter<AppExit>,

@@ -1,0 +1,117 @@
+//! Replay the acquired source-specific GPU pose reference against the common engine.
+use forge_core::bytes_sha256;
+use forge_engine::source_fish::pose::{Bend, deform};
+use serde_json::Value;
+use std::path::Path;
+
+fn cross(first: [f32; 3], second: [f32; 3]) -> [f32; 3] {
+    [
+        first[1] * second[2] - first[2] * second[1],
+        first[2] * second[0] - first[0] * second[2],
+        first[0] * second[1] - first[1] * second[0],
+    ]
+}
+
+fn rotate(quaternion: &[f32], vector: [f32; 3]) -> [f32; 3] {
+    let axis = [quaternion[0], quaternion[1], quaternion[2]];
+    let inner = cross(axis, vector);
+    let outer = cross(
+        axis,
+        std::array::from_fn(|i| inner[i] + vector[i] * quaternion[3]),
+    );
+    std::array::from_fn(|i| vector[i] + outer[i] * 2.0)
+}
+
+fn floats(root: &Path, metadata: &Value, name: &str) -> Vec<f32> {
+    let bytes = std::fs::read(root.join(name)).unwrap();
+    assert_eq!(
+        bytes_sha256(&bytes).to_string(),
+        metadata["files"][name]["sha256"]
+    );
+    assert_eq!(
+        bytes.len(),
+        usize::try_from(metadata["files"][name]["bytes"].as_u64().unwrap()).unwrap()
+    );
+    assert!(bytes.len().is_multiple_of(4));
+    bytes
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|chunk| f32::from_le_bytes(*chunk))
+        .collect()
+}
+
+#[test]
+#[ignore = "Requires byte-pinned private fish package or acquired reference; run the documented external-fixture replay"]
+fn complete_source_gpu_pose_reference() {
+    let root =
+        std::env::var("FORGE_TIDEWATER_FISH_POSE_REFERENCE").expect("Real GPU reference required");
+    let root = Path::new(&root);
+    let raw = std::fs::read(root.join("reference.json")).unwrap();
+    assert_eq!(
+        bytes_sha256(&raw).to_string(),
+        "bb8182a80d303b55d535df5e27688712c56b6275fd114633cd861b576b005f52"
+    );
+    let metadata: Value = serde_json::from_slice(&raw).unwrap();
+    assert_eq!(metadata["vertices"], 169_709);
+    assert_eq!(metadata["cases"].as_array().unwrap().len(), 234);
+    assert_eq!(metadata["gpu_executed"], true);
+    let input = floats(root, &metadata, "input-f32.bin");
+    let output = floats(root, &metadata, "output-f32.bin");
+    let records = floats(root, &metadata, "records-f32.bin");
+    let skin = floats(root, &metadata, "skin-f32.bin");
+    assert_eq!(input.len(), 169_709 * 16);
+    assert_eq!(output.len(), 169_709 * 8);
+    assert_eq!(records.len(), 78 * 16);
+    let mut maximum_position_error = 0.0_f32;
+    let mut maximum_normal_error = 0.0_f32;
+    for (vertex, (source, expected)) in input
+        .as_chunks::<16>()
+        .0
+        .iter()
+        .zip(output.as_chunks::<8>().0.iter())
+        .enumerate()
+    {
+        let ordinal = (0_u8..78)
+            .find(|&i| f32::from(i).to_bits() == source[12].to_bits())
+            .unwrap();
+        let record = &records[usize::from(ordinal) * 16..][..16];
+        let pattern = (0_u8..21)
+            .find(|&i| f32::from(i).to_bits() == record[8].floor().to_bits())
+            .unwrap();
+        let hinge = usize::from(pattern) * 32 + 28;
+        let deformed = deform(
+            source[..3].try_into().unwrap(),
+            source[4..7].try_into().unwrap(),
+            source[8..12].try_into().unwrap(),
+            Bend {
+                curl: record[9],
+                sag: record[10],
+                jaw: record[11],
+                hinge: [skin[hinge + 2], skin[hinge + 3]],
+            },
+        )
+        .unwrap();
+        let scaled = deformed.position.map(|value| value * record[3]);
+        let world_position = rotate(&record[4..8], scaled);
+        let world_normal = rotate(&record[4..8], deformed.normal);
+        for component in 0..3 {
+            let position_error =
+                (world_position[component] + record[component] - expected[component]).abs();
+            let normal_error = (world_normal[component] - expected[component + 4]).abs();
+            maximum_position_error = maximum_position_error.max(position_error);
+            maximum_normal_error = maximum_normal_error.max(normal_error);
+            assert!(
+                position_error <= 3e-5,
+                "Vertex {vertex}: position error {position_error}"
+            );
+            assert!(
+                normal_error <= 2e-5,
+                "Vertex {vertex}: normal error {normal_error}"
+            );
+        }
+    }
+    println!(
+        "{{\"vertices\":169709,\"cases\":234,\"maximum_position_error_m\":{maximum_position_error},\"maximum_normal_error\":{maximum_normal_error}}}"
+    );
+}

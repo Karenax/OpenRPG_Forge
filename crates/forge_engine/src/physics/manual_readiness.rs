@@ -3,7 +3,8 @@ use super::{ManualPlacementCollision, ManualPlacementCollisionFailed};
 use bevy::prelude::*;
 use bevy_rapier3d::{
     plugin::context::{DefaultRapierContext, RapierContextColliders},
-    prelude::{Collider, RapierColliderHandle, RapierContextEntityLink},
+    prelude::{Collider, ColliderDisabled, RapierColliderHandle, RapierContextEntityLink, Sensor},
+    rapier::geometry::InteractionGroups,
 };
 use forge_core::EntityId;
 
@@ -87,14 +88,47 @@ pub(super) fn inspect(
 }
 
 pub fn static_collider_ready(world: &World, entity: Entity) -> bool {
-    collider_ready(world, entity, false)
+    collider_ready(world, entity, false, true, RequiredGroups::Any)
 }
 
 pub fn static_sensor_ready(world: &World, entity: Entity) -> bool {
-    collider_ready(world, entity, true)
+    collider_ready(world, entity, true, true, RequiredGroups::Any)
 }
 
-fn collider_ready(world: &World, entity: Entity, sensor: bool) -> bool {
+pub(crate) fn static_disabled_collider_synchronized(
+    world: &World,
+    entity: Entity,
+    sensor: bool,
+) -> bool {
+    collider_ready(world, entity, sensor, false, RequiredGroups::Any)
+}
+
+pub(crate) fn static_collider_activation_ready(
+    world: &World,
+    entity: Entity,
+    enabled: bool,
+) -> bool {
+    collider_ready(world, entity, false, enabled, RequiredGroups::All)
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum RequiredGroups {
+    Any,
+    All,
+}
+
+fn collider_ready(
+    world: &World,
+    entity: Entity,
+    sensor: bool,
+    enabled: bool,
+    groups: RequiredGroups,
+) -> bool {
+    if world.get::<Sensor>(entity).is_some() != sensor
+        || world.get::<ColliderDisabled>(entity).is_some() == enabled
+    {
+        return false;
+    }
     let binding = world.get::<Collider>(entity).and_then(|_| {
         Some((
             world.get::<RapierColliderHandle>(entity)?,
@@ -107,10 +141,11 @@ fn collider_ready(world: &World, entity: Entity, sensor: bool) -> bool {
                 .get::<RapierContextColliders>(link.0)
                 .is_some_and(|context| {
                     context.entity2collider().get(&entity) == Some(&handle.0)
-                        && context
-                            .colliders
-                            .get(handle.0)
-                            .is_some_and(|backend| synchronized(world, entity, backend, sensor))
+                        && context.colliders.get(handle.0).is_some_and(|backend| {
+                            synchronized(world, entity, backend, sensor, enabled)
+                                && (groups == RequiredGroups::Any
+                                    || backend.collision_groups() == InteractionGroups::all())
+                        })
                 })
     })
 }
@@ -120,6 +155,7 @@ fn synchronized(
     entity: Entity,
     backend: &bevy_rapier3d::rapier::geometry::Collider,
     sensor: bool,
+    enabled: bool,
 ) -> bool {
     let Some(global) = world.get::<GlobalTransform>(entity) else {
         return false;
@@ -143,7 +179,7 @@ fn synchronized(
         && pose.rotation.abs_diff_eq(transform.rotation, 1.0e-5)
         && collider.scale().abs_diff_eq(transform.scale, 1.0e-4)
         && std::ptr::eq(collider.raw.as_ref(), backend.shape())
-        && backend.is_enabled()
+        && backend.is_enabled() == enabled
         && backend.is_sensor() == sensor
         && backend.parent().is_none()
 }
@@ -192,6 +228,111 @@ mod tests {
         );
     }
     use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin};
+
+    #[test]
+    fn pending_disable_and_sensor_changes_revoke_the_old_backend_receipt_immediately() {
+        let mut app = App::new();
+        app.add_plugins((
+            MinimalPlugins,
+            TransformPlugin,
+            RapierPhysicsPlugin::<NoUserData>::default().in_fixed_schedule(),
+        ));
+        let entity = app
+            .world_mut()
+            .spawn((Collider::cuboid(1.0, 1.0, 1.0), Transform::IDENTITY))
+            .id();
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_collider_ready(app.world(), entity));
+
+        app.world_mut().entity_mut(entity).insert(ColliderDisabled);
+        assert!(!static_collider_ready(app.world(), entity));
+        assert!(!static_collider_activation_ready(
+            app.world(),
+            entity,
+            false
+        ));
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_collider_activation_ready(app.world(), entity, false));
+        app.world_mut()
+            .entity_mut(entity)
+            .remove::<ColliderDisabled>();
+        assert!(!static_collider_ready(app.world(), entity));
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_collider_ready(app.world(), entity));
+
+        app.world_mut().entity_mut(entity).insert(Sensor);
+        assert!(!static_collider_ready(app.world(), entity));
+        assert!(!static_sensor_ready(app.world(), entity));
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_sensor_ready(app.world(), entity));
+        assert!(!static_collider_ready(app.world(), entity));
+        app.world_mut().entity_mut(entity).remove::<Sensor>();
+        assert!(!static_sensor_ready(app.world(), entity));
+        assert!(!static_collider_ready(app.world(), entity));
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_collider_ready(app.world(), entity));
+    }
+
+    #[test]
+    fn activation_requires_all_groups_and_live_backend_but_regular_sensors_keep_their_policy() {
+        use bevy_rapier3d::prelude::{CollisionGroups, Group};
+
+        let mut app = App::new();
+        app.add_plugins((
+            MinimalPlugins,
+            TransformPlugin,
+            RapierPhysicsPlugin::<NoUserData>::default().in_fixed_schedule(),
+        ));
+        let entity = app
+            .world_mut()
+            .spawn((Collider::cuboid(1.0, 1.0, 1.0), Transform::IDENTITY))
+            .id();
+        assert!(!static_collider_activation_ready(app.world(), entity, true));
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_collider_activation_ready(app.world(), entity, true));
+
+        app.world_mut()
+            .entity_mut(entity)
+            .insert(CollisionGroups::new(Group::GROUP_1, Group::NONE));
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_collider_ready(app.world(), entity));
+        assert!(!static_collider_activation_ready(app.world(), entity, true));
+
+        app.world_mut().entity_mut(entity).insert(Sensor);
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_sensor_ready(app.world(), entity));
+        assert!(!static_collider_activation_ready(app.world(), entity, true));
+        app.world_mut().entity_mut(entity).remove::<Sensor>();
+        app.world_mut()
+            .entity_mut(entity)
+            .insert(CollisionGroups::default());
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(static_collider_activation_ready(app.world(), entity, true));
+
+        let handle = *app.world().get::<RapierColliderHandle>(entity).unwrap();
+        let link = *app.world().get::<RapierContextEntityLink>(entity).unwrap();
+        app.world_mut()
+            .entity_mut(entity)
+            .remove::<RapierColliderHandle>();
+        assert!(!static_collider_activation_ready(app.world(), entity, true));
+        app.world_mut().entity_mut(entity).insert(handle);
+        app.world_mut()
+            .entity_mut(entity)
+            .remove::<RapierContextEntityLink>();
+        assert!(!static_collider_activation_ready(app.world(), entity, true));
+        app.world_mut().entity_mut(entity).insert(link);
+        assert!(static_collider_activation_ready(app.world(), entity, true));
+        app.world_mut()
+            .entity_mut(link.0)
+            .remove::<DefaultRapierContext>();
+        assert!(!static_collider_activation_ready(app.world(), entity, true));
+        app.world_mut()
+            .entity_mut(link.0)
+            .insert(DefaultRapierContext);
+        assert!(static_collider_activation_ready(app.world(), entity, true));
+    }
 
     #[test]
     fn manual_readiness_requires_real_backend_and_exact_primitives() {

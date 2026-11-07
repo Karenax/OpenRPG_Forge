@@ -1,43 +1,28 @@
 //! Verified CPU preparation for Tidewater's source-authored `FishStandStall`.
-//!
-//! This deliberately keeps the stall outside the 23-building portable-package
-//! contract.  It preserves the source mesh's `aLayer` and `aUV2` attributes
-//! and material texture arrays, but does not claim that source WGSL has been
-//! transposed into a Bevy shader.  See `FishStandMaterialInputs::limitations`.
-use crate::tidewater_material::SceneLighting;
-pub(crate) mod contact_camera;
-pub mod contact_frame;
-pub mod contact_gpu;
+//! Material behavior and shader assembly belong to the shared engine.
 pub mod full_material;
-pub mod full_scene;
-pub mod full_shader;
 use bevy::{
     asset::RenderAssetUsages,
     image::{ImageAddressMode, ImageFilterMode, ImageSampler, ImageSamplerDescriptor},
-    mesh::{Indices, MeshVertexAttribute, MeshVertexBufferLayoutRef},
-    pbr::{Material, MaterialPipeline, MaterialPipelineKey},
+    mesh::Indices,
     prelude::*,
     render::render_resource::{
-        AsBindGroup, Extent3d, Face, PrimitiveTopology, RenderPipelineDescriptor, TextureDataOrder,
-        TextureDimension, TextureFormat, VertexFormat,
+        Extent3d, PrimitiveTopology, TextureDataOrder, TextureDimension, TextureFormat,
     },
-    shader::ShaderRef,
 };
 use forge_core::bytes_sha256;
+pub use forge_engine::source_surface::stall_material::{
+    BASIC_SHADER as FISH_STAND_SHADER, BasicLightingKey as FishStandLightingKey,
+    BasicMaterial as FishStandMaterial, LAYER, UV2, install_basic_shader as install_shader,
+};
+pub use forge_engine::source_surface::stall_scene as full_scene;
+pub use forge_engine::source_surface::stall_shader as full_shader;
 use serde::Deserialize;
 use std::collections::BTreeMap;
-
-pub const LAYER: MeshVertexAttribute =
-    MeshVertexAttribute::new("FishStandLayer", 0x7457_0007, VertexFormat::Float32);
-pub const UV2: MeshVertexAttribute =
-    MeshVertexAttribute::new("FishStandUv2", 0x7457_0008, VertexFormat::Float32x2);
 
 const SOURCE_COMMIT: &str = "1438b1abfcaee3267092b75573014f4d9b4a983c";
 const VERTICES: usize = 32_333;
 const TRIANGLES: usize = 40_259;
-pub const FISH_STAND_SHADER: Handle<Shader> =
-    bevy::asset::uuid_handle!("c1396585-3120-4a83-92b3-32de96c58445");
-
 #[derive(Clone, Debug, Deserialize)]
 pub struct FishStandDescription {
     pub schema: String,
@@ -125,126 +110,10 @@ pub struct FishStandResident {
     pub limitations: Vec<String>,
 }
 
-/// The first executable Bevy material path: it samples the source albedo,
-/// normal and roughness arrays selected by `aLayer`, and consumes `aUV2` for
-/// sign/dial layers.  Its compact lighting is deliberately not the upstream
-/// `standard()` WGSL material; `limitations` records each omitted response.
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
-#[bind_group_data(FishStandLightingKey)]
-pub struct FishStandMaterial {
-    #[storage(55, read_only)]
-    pub scene_buffer: Handle<bevy::render::storage::ShaderBuffer>,
-    pub shared_scene_lighting: bool,
-    #[texture(0, dimension = "2d_array")]
-    #[sampler(1)]
-    pub surf_a: Handle<Image>,
-    #[texture(2, dimension = "2d_array")]
-    pub surf_n: Handle<Image>,
-    #[texture(3, dimension = "2d_array")]
-    pub surf_r: Handle<Image>,
-    #[texture(4, dimension = "2d_array")]
-    pub prop_a: Handle<Image>,
-    #[texture(5, dimension = "2d_array")]
-    pub prop_n: Handle<Image>,
-    #[texture(6, dimension = "2d_array")]
-    pub prop_r: Handle<Image>,
-    #[texture(7, dimension = "2d_array")]
-    #[sampler(8)]
-    pub signs: Handle<Image>,
-    #[uniform(18)]
-    pub scene_lighting: SceneLighting,
-}
-
-impl FishStandMaterial {
-    pub fn from_resident(
-        resident: &FishStandResident,
-        scene_lighting: SceneLighting,
-    ) -> Result<Self, String> {
-        let texture = |name| {
-            resident
-                .textures
-                .get(name)
-                .cloned()
-                .ok_or("FishStand texture unresolved")
-        };
-        Ok(Self {
-            scene_buffer: crate::tidewater_material::scene_buffer::HANDLE.clone(),
-            shared_scene_lighting: false,
-            surf_a: texture("surf_a")?,
-            surf_n: texture("surf_n")?,
-            surf_r: texture("surf_r")?,
-            prop_a: texture("prop_a")?,
-            prop_n: texture("prop_n")?,
-            prop_r: texture("prop_r")?,
-            signs: texture("signs")?,
-            scene_lighting,
-        })
+impl forge_engine::source_surface::stall_material::TextureSource for FishStandResident {
+    fn textures(&self) -> &BTreeMap<String, Handle<Image>> {
+        &self.textures
     }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct FishStandLightingKey(bool);
-
-impl From<&FishStandMaterial> for FishStandLightingKey {
-    fn from(material: &FishStandMaterial) -> Self {
-        Self(material.shared_scene_lighting)
-    }
-}
-
-impl Material for FishStandMaterial {
-    fn vertex_shader() -> ShaderRef {
-        FISH_STAND_SHADER.into()
-    }
-    fn fragment_shader() -> ShaderRef {
-        FISH_STAND_SHADER.into()
-    }
-    fn enable_shadows() -> bool {
-        false
-    }
-    fn specialize(
-        _: &MaterialPipeline,
-        descriptor: &mut RenderPipelineDescriptor,
-        layout: &MeshVertexBufferLayoutRef,
-        key: MaterialPipelineKey<Self>,
-    ) -> Result<(), bevy::material::specialize::SpecializedMeshPipelineError> {
-        if descriptor.vertex.shader.id() == FISH_STAND_SHADER.id() {
-            descriptor.vertex.buffers = vec![layout.0.get_layout(&[
-                Mesh::ATTRIBUTE_POSITION.at_shader_location(0),
-                Mesh::ATTRIBUTE_NORMAL.at_shader_location(1),
-                Mesh::ATTRIBUTE_UV_0.at_shader_location(2),
-                Mesh::ATTRIBUTE_COLOR.at_shader_location(3),
-                LAYER.at_shader_location(4),
-                UV2.at_shader_location(5),
-            ])?];
-        }
-        descriptor.primitive.cull_mode = Some(Face::Back);
-        if key.bind_group_data.0 {
-            let define = crate::tidewater_material::scene_buffer::receiver::DEFINE;
-            descriptor.vertex.shader_defs.push(define.into());
-            if let Some(fragment) = &mut descriptor.fragment {
-                fragment.shader_defs.push(define.into());
-            }
-        }
-        Ok(())
-    }
-}
-
-/// Install the embedded adapter shader without an `AssetServer` fallback.
-pub fn install_shader(app: &mut App) -> Result<(), String> {
-    crate::tidewater_material::scene_buffer::receiver::install(app.world_mut())?;
-    let source = crate::tidewater_material::scene_buffer::receiver::shader_source(
-        include_str!("tidewater_stall.wgsl"),
-        "FishStandSceneLighting",
-    )?;
-    app.world_mut()
-        .get_resource_mut::<Assets<Shader>>()
-        .ok_or("FishStand shader assets unavailable")?
-        .insert(
-            FISH_STAND_SHADER.id(),
-            Shader::from_wgsl(source, "tidewater-fish-stand.wgsl"),
-        )
-        .map_err(|e| e.to_string())?;
-    Ok(())
 }
 
 impl FishStandPrepared {
@@ -591,6 +460,25 @@ mod tests {
         assert_ne!(LAYER.id, Mesh::ATTRIBUTE_COLOR.id);
         assert_eq!(VERTICES, 32_333);
         assert_eq!(TRIANGLES * 3, 120_777);
+    }
+
+    #[test]
+    #[ignore = "requires the byte-pinned private source lighting program"]
+    fn engine_stall_shader_matches_the_source_lighting_program() {
+        let path = std::env::var("FORGE_STALL_LIGHTING_REFERENCE").unwrap();
+        let reference = std::fs::read(path).unwrap();
+        assert_eq!(
+            bytes_sha256(&reference).to_string(),
+            "28dd6f58d3f9e51982810e438b9e219f867ceaf8ea34bb5bc2ab9aa2e2bc9e0b"
+        );
+        let original = std::str::from_utf8(&reference).unwrap();
+        assert_eq!(
+            forge_engine::source_surface::stall_scene::shader_source(original).unwrap(),
+            forge_engine::source_surface::stall_scene::shader_source(
+                forge_engine::source_surface::PROFILE_PROGRAM
+            )
+            .unwrap()
+        );
     }
 
     #[test]

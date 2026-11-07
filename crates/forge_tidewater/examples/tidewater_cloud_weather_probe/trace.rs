@@ -1,5 +1,5 @@
 //! Verified native fixture acquisition for the shared cloud inputs.
-use forge_tidewater::tidewater_clouds::trace::Input;
+use forge_engine::source_clouds::trace::Input;
 use serde_json::Value;
 use std::{error::Error, path::Path};
 pub fn load(
@@ -21,7 +21,7 @@ pub fn load(
         return Err("cloud atmosphere parameters size".into());
     }
     let frame = if native_controller {
-        forge_tidewater::cloud_controller::bytes(&super::controller::generate(meta)?[119].frame)
+        forge_engine::cloud_controller::bytes(&super::controller::generate(meta)?[119].frame)
     } else {
         super::checked(root, meta, "cloud-step120-frame.bin")?
     };

@@ -101,17 +101,30 @@ pub(super) fn BlueprintControls(
                 .cloned()
         })
     };
-    Effect::new(move |previous: Option<super::FieldSource>| {
-        let current = (blueprint.get(), super::source_hash(state));
-        if previous.as_ref() == Some(&current) {
-            return current;
-        }
-        if let Some(current) = definition() {
-            name.set(current.name);
-            fields.set(&current.defaults);
-        }
-        current
-    });
+    let draft_notice = super::draft::bind(
+        move || {
+            let selected = blueprint.get();
+            let source = super::draft::records(state, &selected);
+            (selected, source)
+        },
+        vec![
+            super::draft::Field::new(name),
+            super::draft::Field::new(fields.role),
+            super::draft::Field::new(fields.vitality),
+            super::draft::Field::new(fields.protection),
+            super::draft::Field::new(fields.capacity),
+            super::draft::Field::new(fields.flees),
+        ],
+        move || {
+            if let Some(current) = definition() {
+                name.set(current.name);
+                fields.set(&current.defaults);
+            }
+        },
+    );
+    let definition_send = draft_notice.submitter(send);
+    let new_definition_send = draft_notice.submitter_for(send, &[0]);
+
     let disabled = move || {
         busy.get()
             || state
@@ -121,7 +134,7 @@ pub(super) fn BlueprintControls(
     view! {
         <Show when=move ||document().is_some_and(|d|d.surface_visible(CreatorSurface::Blueprints))>
             <details class="creator-blueprints"><summary>"Blueprints de personnages"</summary>
-                <fieldset disabled=disabled>
+                <fieldset disabled=disabled><super::draft::DraftNotice notice=draft_notice/>
                     <p>"Un blueprint partage les statistiques et le rôle. Chaque personnage conserve son nom, sa position, sa patrouille et ses liens de dialogue. Toutes les modifications passent par l’aperçu avant application."</p>
                     <label>"Personnage du blueprint"<select prop:value=move ||selected.get() on:change=move |e|selected.set(event_target_value(&e))>
                         <option value="">"Choisir un personnage"</option>
@@ -137,7 +150,7 @@ pub(super) fn BlueprintControls(
                         }).collect_view()))}
                     </select></label>
                     <label>"Nom du blueprint"<input prop:value=move ||name.get() on:input=move |e|name.set(event_target_value(&e))/></label>
-                    <button on:click=move |_|send.run(edit(state.get_untracked(),move |_,source| {
+                    <button on:click=move |_|new_definition_send.run(edit(state.get_untracked(),move |_,source| {
                         let actor = source.actor(id(&selected.get_untracked())?).ok_or("Choisir un personnage")?;
                         let hash = canonical_json_sha256(source).map_err(|e|e.to_string())?;
                         let definition = ActorBlueprintDefinition {
@@ -156,7 +169,7 @@ pub(super) fn BlueprintControls(
                         <label>"Capacité d’inventaire héritée"<input type="number" min="0" max=forge_gameplay::MAX_INVENTORY_UNITS.to_string() prop:value=move ||fields.capacity.get() on:input=move |e|fields.capacity.set(event_target_value(&e))/></label>
                         <label><input type="checkbox" prop:checked=move ||fields.flees.get() on:change=move |e|fields.flees.set(event_target_checked(&e))/>"Fuir le danger par défaut"</label>
                         <p>"Réviser propage les valeurs héritées à tous les personnages liés. Les modifications locales restent prioritaires. Une modification des statistiques peut rendre une sauvegarde incompatible."</p>
-                        <button on:click=move |_|send.run(edit(state.get_untracked(),move |_,source| {
+                        <button on:click=move |_|definition_send.run(edit(state.get_untracked(),move |_,source| {
                             let selected = id(&blueprint.get_untracked())?;
                             let mut revised = source.actor_blueprints().and_then(|l|l.definitions.iter().find(|b|b.id == selected)).cloned().ok_or("Blueprint absent")?;
                             revised.version = revised.version.checked_add(1).ok_or("Version maximale atteinte")?;

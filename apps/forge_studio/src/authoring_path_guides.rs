@@ -103,12 +103,18 @@ pub(super) fn install(app: &mut App) {
     app.add_systems(Update, draw);
 }
 
-#[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
+#[allow(
+    clippy::needless_pass_by_value,
+    clippy::too_many_arguments,
+    reason = "Bevy independently schedules optional terrain resources and view parameters"
+)]
 fn draw(
-    terrain: Res<forge_engine::TerrainRuntimeState>,
+    terrain: Option<Res<forge_engine::TerrainRuntimeState>>,
+    streamed: Option<Res<forge_engine::cell_streaming::ResidentSampledTerrain>>,
+    sampled: Option<Res<forge_engine::sampled_terrain_physics::SampledTerrainPhysicsState>>,
     cameras: Query<
         (&Camera, &GlobalTransform),
-        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
+        forge_engine::source_sky::preview::SceneCameraFilter,
     >,
     cursor: Res<forge_engine::TerrainBrushCursor>,
     mut cache: Local<Cache>,
@@ -118,6 +124,17 @@ fn draw(
     if !super::authoring_viewport::can_preview_asset() {
         return;
     }
+    let raster = streamed
+        .as_ref()
+        .map(|source| source.plan().as_ref())
+        .or_else(|| sampled.as_ref().map(|source| source.plan.as_ref()));
+    let hash = raster
+        .map(forge_world::sampled_terrain::SampledTerrainPlan::document_hash)
+        .or_else(|| {
+            terrain
+                .as_ref()
+                .map(|source| source.cache().source_document_hash)
+        });
     let Ok((projection, camera)) = cameras.single() else {
         return;
     };
@@ -126,29 +143,11 @@ fn draw(
         let Some(draft) = slot.as_ref() else {
             return;
         };
-        if draft.terrain != terrain.cache().source_document_hash {
+        if Some(draft.terrain) != hash {
             return;
         }
         if cache.draft.as_ref() != Some(draft) {
-            if cache
-                .plan
-                .as_ref()
-                .is_none_or(|(hash, _)| *hash != draft.terrain)
-            {
-                cache.plan = forge_world::TerrainGenerationPlan::from_document(terrain.document())
-                    .ok()
-                    .map(|plan| (draft.terrain, plan));
-            }
-            cache.positions = draft
-                .points
-                .iter()
-                .map(|point| {
-                    let [x, z] = (*point)?;
-                    let y = cache.plan.as_ref()?.1.surface_height_at(x, z).ok()?;
-                    Some(Vec3::new(x, y + 0.06, z))
-                })
-                .collect();
-            cache.draft = Some(draft.clone());
+            cache_positions(&mut cache, draft, terrain.as_deref(), raster);
         }
         let mut positions = cache.positions.clone();
         if let Some(index) = DRAG.with(Cell::get)
@@ -189,4 +188,43 @@ fn draw(
             }
         }
     });
+}
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "validated finite terrain heights are rendered in float32 coordinates"
+)]
+fn cache_positions(
+    cache: &mut Cache,
+    draft: &Draft,
+    terrain: Option<&forge_engine::TerrainRuntimeState>,
+    raster: Option<&forge_world::sampled_terrain::SampledTerrainPlan>,
+) {
+    if raster.is_some() {
+        cache.plan = None;
+    } else if cache
+        .plan
+        .as_ref()
+        .is_none_or(|(hash, _)| *hash != draft.terrain)
+    {
+        cache.plan = terrain
+            .and_then(|source| {
+                forge_world::TerrainGenerationPlan::from_document(source.document()).ok()
+            })
+            .map(|plan| (draft.terrain, plan));
+    }
+    cache.positions = draft
+        .points
+        .iter()
+        .map(|point| {
+            let [x, z] = (*point)?;
+            let height = if let Some(raster) = raster {
+                raster.height_at(f64::from(x), f64::from(z)).ok()? as f32
+            } else {
+                cache.plan.as_ref()?.1.surface_height_at(x, z).ok()?
+            };
+            Some(Vec3::new(x, height + 0.06, z))
+        })
+        .collect();
+    cache.draft = Some(draft.clone());
 }

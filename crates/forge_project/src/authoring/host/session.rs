@@ -45,6 +45,16 @@ pub(super) enum ActiveSession {
 }
 
 impl ActiveSession {
+    pub(super) fn zone_session(
+        &self,
+    ) -> Result<&crate::zone_authoring::session::ZoneEditSession, String> {
+        match self {
+            Self::Terrain(_) => Err("Assistant requires an aggregate zone".into()),
+            Self::Zone(session) => Ok(session.session()),
+            Self::Managed { session, .. } => Ok(session),
+        }
+    }
+
     pub fn playtest_snapshot(
         &self,
         expected_hash: forge_core::ContentHash,

@@ -19,8 +19,9 @@ use std::{
 };
 const NAMES: [&str; 4] = ["transmittance", "multiScat", "skyView", "irradiance"];
 const SIZES: [(u32, u32); 3] = [(256, 64), (32, 32), (192, 108)];
-pub use forge_tidewater::tidewater_atmosphere::Targets;
-use forge_tidewater::tidewater_atmosphere::{Input, install as install_input};
+use forge_engine::source_atmosphere::Input;
+pub use forge_engine::source_atmosphere::Targets;
+use forge_engine::source_atmosphere::install as install_input;
 #[derive(Resource)]
 struct Output {
     root: PathBuf,
@@ -35,7 +36,7 @@ struct Item {
 }
 fn load(root: &Path, raw_source: bool) -> Result<Input, Box<dyn Error>> {
     let meta: Value = serde_json::from_slice(&fs::read(root.join("atmosphere.json"))?)?;
-    forge_tidewater::tidewater_atmosphere::from_acquisition(&meta, raw_source, |name| {
+    forge_engine::source_atmosphere::acquisition::from_acquisition(&meta, raw_source, |name| {
         fs::read(root.join(name)).map_err(|e| e.to_string())
     })
 }
@@ -81,7 +82,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     )
     .add_plugins(ScheduleRunnerPlugin::run_loop(Duration::from_millis(16)));
     if reload {
-        forge_tidewater::tidewater_atmosphere::register(&mut app)?;
+        forge_engine::source_atmosphere::register(&mut app)?;
         app.insert_resource(PendingAtmospheres(vec![
             load(Path::new(&args[0]), false)?,
             input,
@@ -131,7 +132,7 @@ fn stage_generations(world: &mut World) {
         .pop()
         .expect("two generations");
     let targets =
-        forge_tidewater::tidewater_atmosphere::stage(world, input).expect("registered renderer");
+        forge_engine::source_atmosphere::stage(world, input).expect("registered renderer");
     assert!(!targets.ready.load(Ordering::Acquire));
     if let Some(previous) = previous {
         assert_ne!(previous.images, targets.images);

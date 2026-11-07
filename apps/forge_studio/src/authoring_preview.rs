@@ -46,7 +46,7 @@ pub(super) fn prepare(state: &AuthoringState, receipt: &TerrainEditReceipt) -> S
         if document.content_hash().map_err(|e| e.to_string())? != receipt.request.expected_hash {
             return Err("Aperçu périmé".to_owned());
         }
-        TerrainBrushPreview::prepare(document, &receipt.applied)
+        terrain_preview(document, &receipt.applied)
     })();
     display(result)
 }
@@ -87,9 +87,22 @@ pub(super) fn prepare_zone(
         } else {
             return Ok(None);
         };
-        TerrainBrushPreview::prepare(&before, &edit)
+        terrain_preview(&before, &edit)
     })();
     display(result)
+}
+
+fn terrain_preview(
+    document: &forge_project::TerrainDocument,
+    edit: &forge_project::terrain_edit::TerrainEdit,
+) -> Result<Option<TerrainBrushPreview>, String> {
+    if document.sampled_source.is_none() {
+        return TerrainBrushPreview::prepare(document, edit);
+    }
+    let bytes = crate::authoring_raster::source_bytes(document)?;
+    let plan = forge_world::sampled_terrain::SampledTerrainPlan::from_document(document, &bytes)
+        .map_err(|error| error.to_string())?;
+    TerrainBrushPreview::prepare_sampled(&plan, edit)
 }
 
 fn display(result: Result<Option<TerrainBrushPreview>, String>) -> String {
@@ -108,14 +121,28 @@ fn display(result: Result<Option<TerrainBrushPreview>, String>) -> String {
 }
 
 #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
-pub(super) fn draw(state: Res<forge_engine::TerrainRuntimeState>, mut gizmos: Gizmos) {
-    draw_density(state.cache().source_document_hash, &mut gizmos);
+pub(super) fn draw(
+    state: Option<Res<forge_engine::TerrainRuntimeState>>,
+    streamed: Option<Res<forge_engine::cell_streaming::ResidentSampledTerrain>>,
+    sampled: Option<Res<forge_engine::sampled_terrain_physics::SampledTerrainPhysicsState>>,
+    mut gizmos: Gizmos,
+) {
+    let hash = streamed
+        .as_ref()
+        .map(|source| source.plan().document_hash())
+        .or_else(|| sampled.as_ref().map(|source| source.plan.document_hash()))
+        .or_else(|| {
+            state
+                .as_ref()
+                .map(|source| source.cache().source_document_hash)
+        });
+    let Some(hash) = hash else {
+        return;
+    };
+    draw_density(hash, &mut gizmos);
     PREVIEW.with(|slot| {
         let mut preview = slot.borrow_mut();
-        if preview
-            .as_ref()
-            .is_some_and(|p| p.source_hash != state.cache().source_document_hash)
-        {
+        if preview.as_ref().is_some_and(|p| p.source_hash != hash) {
             *preview = None;
         }
         if let Some(preview) = preview.as_ref() {

@@ -18,6 +18,7 @@ New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 function Get-NavigationSourceInputs {
     $sourceInputs = @('Cargo.toml','Cargo.lock','crates/forge_navigation/Cargo.toml','crates/forge_navigation/build.rs',
         'third_party/rerecast-0.4.0/Cargo.toml','apps/forge_studio/forge-navigation-worker.js')
+    if ($Configuration -eq 'release') { $sourceInputs += '.cargo/config.toml' }
     foreach ($sourceDirectory in @('crates/forge_navigation/src','third_party/rerecast-0.4.0/src')) {
         $sourceInputs += @(Get-ChildItem -LiteralPath (Join-Path $repository $sourceDirectory) -Recurse -File | ForEach-Object {
             [IO.Path]::GetRelativePath($repository,$_.FullName).Replace('\','/')
@@ -34,12 +35,19 @@ try {
     $env:CARGO_TARGET_DIR = $targetRoot
     Push-Location $repository
     try {
-        $arguments = @('build','-p','forge_navigation','--lib','--no-default-features','--features','web',
+        $arguments = @()
+        $profileDirectory = 'debug'
+        if ($Configuration -eq 'release') {
+            # Cargo config overrides are scoped to this invocation; product release is unchanged.
+            $arguments += @('--config','profile.forge-navigation-worker.inherits="release"')
+            $profileDirectory = 'forge-navigation-worker'
+        }
+        $arguments += @('build','-p','forge_navigation','--lib','--no-default-features','--features','web',
             '--target','wasm32-unknown-unknown','--locked','--offline','-j1')
-        if ($Configuration -eq 'release') { $arguments += '--release' }
+        if ($Configuration -eq 'release') { $arguments += @('--profile','forge-navigation-worker') }
         & cargo @arguments
         if ($LASTEXITCODE -ne 0) { throw 'Navigation worker compilation failed.' }
-        $wasm = Join-Path $targetRoot "wasm32-unknown-unknown/$Configuration/forge_navigation.wasm"
+        $wasm = Join-Path $targetRoot "wasm32-unknown-unknown/$profileDirectory/forge_navigation.wasm"
         & wasm-bindgen $wasm --target web --out-dir $outputRoot --out-name forge_navigation
         if ($LASTEXITCODE -ne 0) { throw 'Navigation worker bindings failed.' }
     } finally { Pop-Location }
@@ -53,11 +61,20 @@ try {
         }
     }
     $outputs = @('forge_navigation.js','forge_navigation_bg.wasm','forge-navigation-worker.js')
-    @{ schema='forge.navigation-worker-build'; version=1; build_only=$true; runtime_verified=$false; source_unchanged_during_build=$true;
+    $receipt = @{ schema='forge.navigation-worker-build'; version=1; build_only=$true; runtime_verified=$false; source_unchanged_during_build=$true;
         configuration=$Configuration; recorded_at_utc=[DateTime]::UtcNow.ToString('o'); source_pins=$pins;
         artifacts=@($outputs | ForEach-Object {
             @{ path=$_; sha256=(Get-FileHash -LiteralPath (Join-Path $outputRoot $_) -Algorithm SHA256).Hash.ToLowerInvariant() }
-        }) } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $outputRoot 'forge-navigation-worker-manifest.json') -Encoding utf8
+        }) }
+    if ($Configuration -eq 'release') {
+        $receipt.version = 2
+        $receipt['cargo_profile'] = 'forge-navigation-worker'
+        $receipt['profile_inherits'] = 'release'
+        $receipt['cargo_target'] = 'wasm32-unknown-unknown'
+        $receipt['cargo_arguments'] = $arguments
+        $receipt['effective_profile_overrides_verified'] = $false
+    }
+    $receipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $outputRoot 'forge-navigation-worker-manifest.json') -Encoding utf8
 } finally { $env:CARGO_TARGET_DIR = $previousTarget }
 if ($StageLocalAssets) {
     & (Join-Path $PSScriptRoot 'Stage-StudioLocalAssets.ps1') -Output $outputRoot

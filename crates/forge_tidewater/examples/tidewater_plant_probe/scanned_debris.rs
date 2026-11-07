@@ -44,10 +44,10 @@ struct Live {
     placements: Vec<ManualPlacement>,
     roots: BTreeMap<forge_core::EntityId, Entity>,
     draws: ResidentDraws,
-    base: Handle<super::village::VillageMaterial>,
+    base: Handle<forge_engine::source_surface::SourceSurfaceMaterial>,
     material: Handle<ScannedMaterial>,
     depth_shader: Arc<String>,
-    depth_meshes: Arc<Vec<scanned_shadow_runtime::MeshBytes>>,
+    depth_meshes: Arc<Vec<forge_engine::source_shadows::casters::textured::MeshBytes>>,
 }
 
 fn bounded(path: &Path, limit: usize) -> Result<Vec<u8>, String> {
@@ -123,12 +123,12 @@ fn stage(world: &mut World, input: Input) -> Result<(), String> {
         .ok_or("Scans require resident Village lighting")?
         .clone();
     let base = world
-        .resource::<Assets<super::village::VillageMaterial>>()
+        .resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
         .get(&base_handle)
         .ok_or("Scanned base material absent")?
         .clone();
     let terrain_handle = world
-        .get_resource::<forge_tidewater::tidewater_terrain::scene::ResidentTerrain>()
+        .get_resource::<forge_engine::source_terrain::scene::ResidentTerrain>()
         .and_then(|t| t.material.as_ref())
         .ok_or("Scans require resident terrain")?;
     let terrain = world
@@ -261,12 +261,12 @@ pub fn update(world: &mut World) {
     .and_then(|frame| {
         let poses = scanned_shadow_runtime::poses(&live.source, &live.placements, &frame)?;
         let target = world
-            .get_resource::<forge_tidewater::tidewater_object_shadow::graph::Target>()
+            .get_resource::<forge_engine::source_shadows::casters::graph::Target>()
             .ok_or("Scanned depth graph target unavailable")?
             .image
             .clone();
         live.draws.synchronize(world, &frame, &live.roots)?;
-        world.insert_resource(scanned_shadow_runtime::Frame {
+        world.insert_resource(forge_engine::source_shadows::casters::textured::Frame {
             target,
             shader: live.depth_shader.clone(),
             meshes: live.depth_meshes.clone(),
@@ -275,7 +275,7 @@ pub fn update(world: &mut World) {
         Ok(())
     });
     if let Some(mut base) = world
-        .resource::<Assets<super::village::VillageMaterial>>()
+        .resource::<Assets<forge_engine::source_surface::SourceSurfaceMaterial>>()
         .get(&live.base)
         .cloned()
     {

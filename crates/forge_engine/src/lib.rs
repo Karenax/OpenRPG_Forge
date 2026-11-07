@@ -2,6 +2,19 @@
 
 //! Bevy rendering adapter for shared Forge documents.
 
+extern crate self as forge_engine;
+
+pub mod cloud_controller;
+pub mod cpu_timing;
+pub mod distance_lod;
+pub mod exposure_metering;
+pub mod model_nodes;
+pub mod ocean_spectrum;
+pub mod pendulum_motion;
+pub mod render_timing;
+pub mod spray_budget;
+pub mod sun_cascades;
+
 #[cfg(feature = "physics-rapier")]
 mod bridge;
 #[cfg(feature = "qualification")]
@@ -11,16 +24,47 @@ pub use bridge_crossing_probe::{
     BridgeCrossingProbePlugin, BridgeCrossingProbeStatus, BridgeTemporalLodStatus,
 };
 mod capture_readiness;
-pub use capture_readiness::issued_capture_frame;
+pub use capture_readiness::{
+    CaptureReadinessPlugin, RenderReadiness, issued_capture_frame, observe_render_readiness,
+};
+pub mod amphibious_locomotion;
+#[cfg(feature = "physics-rapier")]
+#[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
+pub mod amphibious_player;
+#[cfg(feature = "physics-rapier")]
+pub mod cell_streaming;
 pub mod finite_perspective;
 mod manual_placement_identity;
+pub mod material_composition;
+#[cfg(any(test, feature = "physics-rapier"))]
+mod mesh_visibility;
+pub mod render_inventory;
+pub mod sampled_terrain_corrections;
 pub mod scene_camera;
+pub mod source_air_haze;
+pub mod source_atmosphere;
+#[cfg(feature = "physics-rapier")]
+pub mod source_boat;
+pub mod source_breaker_contours;
+pub mod source_breaker_geometry;
+pub mod source_breaker_gpu;
+pub mod source_breaker_params;
+pub mod source_breaker_render;
+pub mod source_breaker_resident;
+pub mod source_caustics;
+pub mod source_clouds;
 #[cfg(feature = "physics-rapier")]
 pub mod source_collider_projection;
 #[cfg(feature = "physics-rapier")]
 pub mod source_collider_scene;
 #[cfg(feature = "physics-rapier")]
 pub mod source_colliders;
+pub mod source_environment;
+pub mod source_fish;
+pub mod source_graphics;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod native_display;
+pub mod source_lighting;
 #[cfg(feature = "physics-rapier")]
 pub mod source_mesh_collider_projection;
 #[cfg(feature = "physics-rapier")]
@@ -29,6 +73,34 @@ pub mod source_mesh_colliders;
 pub mod source_physics_contacts;
 #[cfg(feature = "physics-rapier")]
 pub mod source_physics_transport;
+pub mod source_refraction_capture;
+pub mod source_shadows;
+pub mod source_shore_field;
+pub mod source_shore_sim;
+pub mod source_sky;
+pub mod source_spray_feedback;
+pub mod source_spray_generation;
+pub mod source_spray_mips;
+pub mod source_spray_render;
+pub mod source_spray_textures;
+pub mod source_surface;
+pub mod source_surface_queries;
+pub mod source_terrain;
+pub mod source_underwater;
+pub mod source_underwater_lighting;
+pub mod source_vegetation;
+pub mod source_vegetation_selection;
+pub mod source_water_frame;
+pub mod source_water_host;
+pub mod source_water_optics;
+pub mod source_water_queries;
+pub mod source_water_schedule;
+pub mod source_wind;
+#[cfg(feature = "physics-rapier")]
+pub mod static_hlod;
+pub mod static_hlod_geometry;
+pub mod terrain_palette;
+pub mod view_depth;
 pub use manual_placement_identity::ManualPlacementPart;
 #[cfg(feature = "physics-rapier")]
 mod terrain_brush_cursor;
@@ -49,6 +121,7 @@ mod preparation_budget;
 mod quality_cpu_trace;
 pub use quality_cpu_trace::{QualityCpuFrame, QualityCpuPhase, QualityCpuTracePlugin};
 mod gpu_memory;
+mod gpu_readiness;
 pub use gpu_memory::{GpuAllocatorTotals, GpuMemoryDiagnostic};
 #[cfg(feature = "physics-rapier")]
 mod global_quality;
@@ -65,9 +138,12 @@ mod post_process_quality;
 pub use post_process_quality::{PostProcessQualityObservation, PostProcessQualityRequest};
 pub mod atmospheric_haze;
 #[cfg(feature = "physics-rapier")]
+pub mod authoring_buildings;
+#[cfg(feature = "physics-rapier")]
 pub mod gameplay;
 #[cfg(feature = "physics-rapier")]
 mod governed_asset_kit;
+pub mod lens_flare;
 pub mod lens_flare_sun;
 #[cfg(all(feature = "physics-rapier", not(target_arch = "wasm32")))]
 pub mod native_gameplay;
@@ -84,7 +160,15 @@ pub mod player_motion_extension;
 #[cfg(feature = "physics-rapier")]
 pub mod playtest_timing;
 #[cfg(feature = "physics-rapier")]
+pub mod runtime_buildings;
+#[cfg(all(feature = "physics-rapier", not(target_arch = "wasm32")))]
+pub mod runtime_static_admission;
+#[cfg(feature = "physics-rapier")]
 pub mod sampled_terrain_physics;
+#[cfg(feature = "physics-rapier")]
+mod streamed_terrain;
+#[cfg(feature = "physics-rapier")]
+pub use streamed_terrain::{StreamedTerrainIdentity, StreamedTerrainPlugin};
 mod shadow_quality;
 #[cfg(feature = "physics-rapier")]
 pub mod source_mesh_pipeline;
@@ -113,7 +197,9 @@ pub mod vegetation_far_geometry;
 mod vegetation_prototypes;
 #[cfg(feature = "physics-rapier")]
 pub use vegetation::{
-    GovernedFarBatchPreview, VegetationPrototypeForestPreview, governed_forest_ready,
+    GovernedFarBatchPreview, VegetationPrototypeForestPreview, VegetationPrototypeGpuEvidence,
+    VegetationPrototypeGpuReadinessPlugin, VegetationPrototypeRuntimeStatus,
+    governed_forest_gpu_ready, governed_forest_ready, governed_forest_runtime_status,
     stop_governed_forest,
 };
 pub use vegetation::{
@@ -122,6 +208,8 @@ pub use vegetation::{
     update_vegetation_sources_with_buildings, update_vegetation_sources_with_paths,
     update_vegetation_sources_with_promotions, update_vegetation_sources_with_waterways,
 };
+#[cfg(feature = "physics-rapier")]
+pub use vegetation_prototypes::imported::{ImportedTreeBinding, ImportedTreePresentation, ImportedTreeReadiness, bind_imported_trees};
 #[cfg(feature = "physics-rapier")]
 pub use vegetation_prototypes::{
     PromotedTreeAsset, RenderVegetationPrimitive, RenderVegetationPrototype,
@@ -146,13 +234,41 @@ mod source_fragment_loader;
 #[cfg(feature = "physics-rapier")]
 pub mod source_graph;
 #[cfg(feature = "physics-rapier")]
+pub mod source_graph_bootstrap;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_context;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_frame;
+#[cfg(feature = "physics-rapier")]
 pub mod source_graph_glb;
 #[cfg(feature = "physics-rapier")]
+pub mod source_graph_host;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_intake;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_lights;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_lod;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_mount;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_placement;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_resources;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_route;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_runtime;
+#[cfg(feature = "physics-rapier")]
 pub mod source_graph_scene;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_scene_attachment;
 #[cfg(feature = "physics-rapier")]
 pub mod source_graph_scene_geometry;
 #[cfg(feature = "physics-rapier")]
 pub mod source_graph_scene_textures;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_state;
 mod weather;
 
 #[cfg(feature = "physics-rapier")]
@@ -214,7 +330,7 @@ pub use vegetation::{
     inspect_vegetation_projection,
 };
 pub use visual_valley::{
-    VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin,
+    TerrainLightingPlugin, VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin,
     VisualValleyShadowObservationStatus, VisualValleyShadowStats, VisualValleyStats,
     VisualValleyTerrainChunk, VisualValleyTerrainExtension, VisualValleyTerrainMaterial,
 };
@@ -236,13 +352,10 @@ use bevy::{
     diagnostic::{DiagnosticsStore, EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin},
     ecs::system::SystemParam,
     prelude::*,
-    render::{
-        diagnostic::RenderDiagnosticsPlugin,
-        renderer::{RenderAdapterInfo, RenderDevice},
-    },
+    render::renderer::{RenderAdapterInfo, RenderDevice},
     window::{PresentMode, PrimaryWindow, WindowCloseRequested, WindowResized},
 };
-use capture_readiness::{CaptureProgress, CaptureReadinessPlugin, capture_at_requested_frame};
+use capture_readiness::{CaptureProgress, capture_at_requested_frame};
 use forge_core::{EntityId, FrameDistribution as CoreFrameDistribution, FrameTimeHistogram};
 use forge_project::{SceneProofDocument, SceneProofKind};
 use serde::Serialize;
@@ -566,6 +679,7 @@ impl RuntimeEvidencePlugin {
 
 impl Plugin for RuntimeEvidencePlugin {
     fn build(&self, app: &mut App) {
+        render_timing::ensure_diagnostics(app);
         if self.automation.capture_path.is_some()
             && !app.is_plugin_added::<CaptureReadinessPlugin>()
         {
@@ -583,7 +697,6 @@ impl Plugin for RuntimeEvidencePlugin {
             .add_plugins((
                 FrameTimeDiagnosticsPlugin::default(),
                 EntityCountDiagnosticsPlugin::default(),
-                RenderDiagnosticsPlugin,
             ))
             .add_systems(
                 Startup,
@@ -899,6 +1012,7 @@ fn observe_window_events(
             schema = "forge.runtime-event",
             schema_version = 1_u64,
             event_kind = "window_close_observed",
+            frame = frame.0,
             close_requests_observed = lifecycle.close_requests_observed,
             "window close request observed before teardown"
         );
@@ -2158,3 +2272,14 @@ mod tests {
         fs::remove_file(path).unwrap();
     }
 }
+
+pub mod ambient_occlusion;
+pub mod film_grain;
+pub mod source_final_post;
+pub mod source_hull_mask;
+pub mod source_ocean;
+pub mod source_ocean_geometry;
+pub mod source_refraction;
+pub mod source_scene_depth;
+pub mod source_temporal;
+pub mod source_temporal_frame;

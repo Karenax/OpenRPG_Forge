@@ -26,6 +26,7 @@ fn source() -> ManualPlacement {
     ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic("source-door"),
         name: "Imported door".into(),
         asset_id: AssetId::deterministic("verified-door"),
@@ -48,6 +49,7 @@ fn imported_vegetation(session: &ZoneEditSession, marker: u8) -> VegetationDocum
     vegetation.layers.truncate(1);
     vegetation.layers[0].material_filter = None;
     vegetation.imported_source = Some(ImportedVegetationSource {
+        grass: None,
         schema: "forge.imported-vegetation".into(),
         version: 1,
         blocks: vec![ImportedVegetationBlock {
@@ -736,6 +738,7 @@ fn static_source_edits_do_not_block_imported_source_change_but_plant_edits_do() 
     let plant_source = ManualPlacement {
         particles: None,
         physics: None,
+        local_lights: None,
         id: EntityId::deterministic("imported-plant-source"),
         name: "Imported plant".into(),
         asset_id: imported_plant_asset(&plant_session),
@@ -772,4 +775,101 @@ fn static_source_edits_do_not_block_imported_source_change_but_plant_edits_do() 
             .iter()
             .any(|conflict| matches!(conflict, RegenerationConflict::ImportedPlantSourceChanged))
     );
+}
+
+#[test]
+fn model_dependencies_distinguish_imported_instance_edits_from_external_models() {
+    use forge_project::zone_authoring::imported_plants::{is_source_asset, source_asset_id};
+
+    let mut session = session();
+    let mut base = session.head().base.clone();
+    base.vegetation = Some(imported_vegetation(&session, 7));
+    let request = session
+        .head()
+        .prepare_regeneration(base, CommandId::deterministic("model-dependency-source"))
+        .unwrap();
+    session.execute(&request).unwrap();
+    let layer = session.head().base.vegetation.as_ref().unwrap().layers[0]
+        .id
+        .as_str();
+    let mut plant = source();
+    plant.asset_id = source_asset_id(session.head(), layer);
+    assert_eq!(plant.asset_id, imported_plant_asset(&session));
+    assert!(is_source_asset(
+        session.head(),
+        plant.asset_id,
+        plant.asset_hash
+    ));
+    assert!(!is_source_asset(
+        session.head(),
+        plant.asset_id,
+        ContentHash::from_bytes([8; 32]),
+    ));
+    assert!(!is_source_asset(
+        session.head(),
+        AssetId::deterministic("another-area-instance"),
+        plant.asset_hash,
+    ));
+    let request = session
+        .head()
+        .prepare_source_object(
+            plant.clone(),
+            PlacementEdit::Remove { id: plant.id },
+            CommandId::deterministic("remove-source-instance"),
+        )
+        .unwrap();
+    session.execute(&request).unwrap();
+    for (index, action) in [ZoneAction::Undo, ZoneAction::Redo].into_iter().enumerate() {
+        let request = ZoneRequest {
+            command_id: CommandId::deterministic(format!("instance-history-{index}")),
+            expected_revision: session.head().revision,
+            expected_hash: session.head().content_hash().unwrap(),
+            action,
+        };
+        session.execute(&request).unwrap();
+        let reopened =
+            ZoneEditSession::from_archive_bytes(&session.archive_bytes().unwrap()).unwrap();
+        let mut all = 0;
+        reopened
+            .visit_referenced_placements(|_| {
+                all += 1;
+                Ok(())
+            })
+            .unwrap();
+        assert!(all > 0, "the source and undo history must remain intact");
+        reopened
+            .visit_referenced_model_placements(|_| Err("unexpected GLB dependency".into()))
+            .unwrap();
+    }
+
+    // An ordinary authored placement cannot bypass the model catalog by using
+    // an instance-block identity, including when it survives only in history.
+    plant.id = EntityId::deterministic("authored-alias");
+    let insert = session
+        .head()
+        .prepare_placement(
+            CommandId::deterministic("authored-instance-alias"),
+            PlacementEdit::Insert {
+                placement: plant.clone(),
+            },
+        )
+        .unwrap();
+    session.execute(&insert).unwrap();
+    let remove = session
+        .head()
+        .prepare_placement(
+            CommandId::deterministic("remove-authored-instance-alias"),
+            PlacementEdit::Remove { id: plant.id },
+        )
+        .unwrap();
+    session.execute(&remove).unwrap();
+    let mut required = Vec::new();
+    session
+        .visit_referenced_model_placements(|p| {
+            required.push(p.id);
+            Ok(())
+        })
+        .unwrap();
+    assert!(!required.is_empty());
+    assert!(required.iter().all(|id| *id == plant.id));
 }

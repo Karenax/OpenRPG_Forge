@@ -1,13 +1,12 @@
 //! Feed the resident cloud graph and scene materials from the same player camera.
 use bevy::prelude::*;
-use {
-    forge_engine::ForgePlayerCamera,
-    forge_tidewater::{cloud_controller, tidewater_clouds},
-};
+use forge_engine::ForgePlayerCamera;
+use forge_engine::cloud_controller;
+use forge_engine::source_clouds as tidewater_clouds;
 
 #[derive(Resource)]
 struct Live {
-    source: tidewater_clouds::acquisition_controller::Continuation,
+    source: forge_engine::source_clouds::Continuation,
     previous_time: Option<f64>,
 }
 
@@ -79,16 +78,17 @@ fn update(world: &mut World) {
     };
     let solar = crate::walk::escape_menu::solar_frame(world);
     if solar.is_some_and(|frame| {
-        forge_tidewater::tidewater_atmosphere::readback::latest(world, frame).is_none()
+        forge_engine::source_atmosphere::readback::latest(world, frame).is_none()
     }) {
         return;
     }
     let now = world.resource::<Time>().elapsed_secs_f64();
     let underwater = world
-        .get_resource::<forge_tidewater::tidewater_underwater::UnderwaterObservation>()
+        .get_resource::<forge_engine::source_underwater::UnderwaterObservation>()
         .is_some_and(|state| state.camera_underwater());
     let result = world.resource_scope(|world, mut live: Mut<Live>| -> Result<_, String> {
         let mut input = live.source.input;
+        live.source.apply_scene_wind(world, &mut input);
         input.camera = camera;
         input.underwater = underwater;
         input.dt = live
@@ -162,12 +162,25 @@ fn publish(world: &mut World, output: &cloud_controller::Output) {
             }
         };
     }
-    bind!(super::PlantMaterial);
-    bind!(super::village::VillageMaterial);
+    bind!(super::CapturedPlantMaterial);
+    bind!(forge_engine::source_surface::SourceSurfaceMaterial);
     bind!(super::terrain_surface::TerrainMaterial);
-    bind!(super::water_optics::WaterMaterial);
+    {
+        let mut assets = world.resource_mut::<Assets<super::water_optics::WaterMaterial>>();
+        let shadow = UVec4::from_array(params[4].to_array().map(f32::to_bits));
+        let changed: Vec<_> = assets
+            .iter()
+            .filter_map(|(id, material)| (material.constants[26] != shadow).then_some(id))
+            .collect();
+        for id in changed {
+            assets
+                .get_mut(id)
+                .expect("resident water material")
+                .constants[26] = shadow;
+        }
+    }
     bind!(super::spray_sprites::SprayMaterial);
-    bind!(super::breaker_lip::LipMaterial);
+    bind!(forge_engine::source_breaker_render::LipMaterial);
     let mut lod = world.resource_mut::<Assets<super::terrain_lod::LodMaterial>>();
     let changed: Vec<_> = lod
         .iter()

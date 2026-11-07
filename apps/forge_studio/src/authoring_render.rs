@@ -12,28 +12,45 @@ use std::time::Duration;
 pub(crate) struct FastEditing;
 
 pub(crate) fn install(app: &mut App) {
+    let shared_environment = crate::authoring_module_resources::owns_source()
+        && crate::authoring_module_resources::environment().is_some();
+    app.insert_resource(WinitSettings {
+        focused_mode: UpdateMode::reactive(Duration::from_millis(16)),
+        unfocused_mode: UpdateMode::reactive_low_power(Duration::from_millis(250)),
+    })
+    .add_systems(Last, crate::authoring_render_metrics::observe)
+    .add_systems(Last, crate::authoring_render_metrics::observe_materials)
+    .add_systems(
+        PostUpdate,
+        lighten_cameras
+            .before(bevy::light::SimulationLightSystems::UpdateDirectionalLightCascades)
+            .before(bevy::light::SimulationLightSystems::UpdateLightFrusta),
+    );
+    frame_pressure::install(app);
+    if shared_environment {
+        if let Some(canvas) = web_sys::window()
+            .and_then(|window| window.document())
+            .and_then(|document| document.get_element_by_id("forge-authoring-canvas"))
+        {
+            let _ = canvas.set_attribute("data-forge-editing-quality", "module");
+        }
+        return;
+    }
     app.insert_resource(FastEditing)
-        .insert_resource(WinitSettings {
-            focused_mode: UpdateMode::reactive(Duration::from_millis(16)),
-            unfocused_mode: UpdateMode::reactive_low_power(Duration::from_millis(250)),
-        })
         .add_systems(Update, ensure_daylight)
-        .add_systems(Last, crate::authoring_render_metrics::observe)
-        .add_systems(Last, crate::authoring_render_metrics::observe_materials)
         .add_systems(
             PostUpdate,
-            (lighten_cameras, lighten_lights)
+            lighten_lights
                 .before(bevy::light::SimulationLightSystems::UpdateDirectionalLightCascades)
                 .before(bevy::light::SimulationLightSystems::UpdateLightFrusta),
         );
-    frame_pressure::install(app);
     // The editor samples the verified environment seed and fixed lighting.
     // Cloud/atmosphere bootstrap belongs to the separate game renderer.
     app.sub_app_mut(bevy::render::RenderApp).configure_sets(
         bevy::render::renderer::RenderGraph,
         (
-            forge_tidewater::tidewater_atmosphere::AtmosphereCompute.run_if(|| false),
-            forge_tidewater::tidewater_clouds::CloudCompute.run_if(|| false),
+            forge_engine::source_atmosphere::AtmosphereCompute.run_if(|| false),
+            forge_engine::source_clouds::CloudCompute.run_if(|| false),
         ),
     );
     if let Some(canvas) = web_sys::window()

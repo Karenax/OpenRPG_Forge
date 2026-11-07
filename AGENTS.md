@@ -16,6 +16,35 @@ La priorité initiale est de prouver une qualité visuelle nettement supérieure
 plus efficace. Ne pas reconstruire le catalogue fonctionnel complet avant passage des gates visuelles,
 de performance et d’édition définies dans `PROJECT_CONTEXT.md`.
 
+## Découpage produit obligatoire — 2 novembre 2026
+
+- Appliquer la décision canonique de `PROJECT_CONTEXT.md` : **un éditeur Forge
+  et le launcher propre à chaque jeu créé/exporté par cet éditeur**. Le projet
+  fournit l'identité, la présentation et les contenus de son jeu/launcher.
+- Le Hub autonome est à retirer de la cible produit après transfert vérifié de
+  ses fonctions utiles. Ne pas prolonger son développement comme troisième
+  application ni créer un portail ou une seconde interface pour le remplacer.
+  Réaffecter la gestion auteur au Studio et les opérations joueur nécessaires
+  au launcher de son jeu, sur les mêmes services natifs validés.
+- Réutiliser moteur, runtime, contrats et services de livraison communs. Les
+  exécutables techniques ou l'installateur ponctuel restent des détails de
+  réalisation, pas de nouveaux produits. Ne pas multiplier crates, copies de
+  code, dossiers ou pipelines pour ce découpage ; conserver les séparations
+  internes justifiées et retirer les doublons après vérification des usages.
+- Aube et Tidewater sont des jeux/contenus de référence ; aucun jeu indépendant
+  ne doit dépendre de leur identité, de leurs assets ou du checkout pour démarrer.
+  Les notices de provenance/licence nécessaires ne sont pas un tel couplage.
+- Décision du 7 novembre : Tidewater doit être un jeu créé dans le Studio ; ses
+  capacités réutilisables appartiennent à l'éditeur et au moteur communs et doivent
+  être reproductibles dans d'autres jeux. La Gate 9 planifiée, non ouverte, en
+  définit l'inventaire et les preuves dans `docs/planning/MIGRATION_ROADMAP.md`.
+- Inscrire la transition dans **Gate 7 déjà ouverte**, selon la section
+  [transition éditeur/launcher](docs/planning/GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher).
+  Préserver les travaux et preuves en cours ; requalifier les parcours affectés
+  sans réécrire les reçus historiques ni transformer un plan en verdict PASS.
+  Gate 8 et le bonus restent non ouverts. Une demande de contexte/plan ne lance
+  pas implicitement le refactoring, les builds, la suppression ou la publication.
+
 ## Autonomie et portée de la demande
 
 - Une demande d'analyse ou de plan se termine par le livrable demandé, sans implémentation implicite.
@@ -88,6 +117,11 @@ Les conversions d'assets utilisent E: comme espace de travail et F: pour leur
 bibliothèque finale. Ne pas conserver de preuves ou d'historique détaillé des
 conversions closes ; garder les fiches fonctionnelles, provenance, licences,
 hashes, dépendances, profils et retouches nécessaires à l'usage des assets.
+Le contrat [stockage et clôture des assets](docs/ASSET_STORAGE_POLICY.md),
+actualisé le 27 octobre, impose la publication par le pilote du projet,
+la mutualisation sans perte et le retrait vérifié des copies de travail devenues
+inutiles. Une clôture doit justifier les fichiers conservés et mesurer son volume
+résiduel ; une livraison F: seule ne clôture pas son nettoyage E:.
 Consigne de stockage du 20 octobre : les nouvelles preuves et analyses vont sous
 `E:/OpenRPG_Forge/Preuves-et-analyses/` ; `actives/` et `archives/` y donnent accès
 au stockage F:. Les anciennes campagnes sont cataloguées et archivées avec
@@ -105,7 +139,13 @@ Les validations locales et leurs preuves restent exigées. ADR-0034 consigne
 cette décision, distincte des anciennes exceptions et de leurs verdicts.
 Gate 5 est clôturée localement le 22 octobre selon
 `docs/evidence/gate5/GATE5_CLOSURE_20261022.md`.
-Gate 6 et suivantes restent non ouvertes ; aucune publication Git n'est implicite.
+Gate 6 est clôturée localement le 23 octobre selon
+`docs/evidence/gate6/GATE6_CLOSURE_20261023.md` : 21 critères rapprochés de leurs
+preuves, comparaison et archive vérifiée. Le propriétaire ouvre Gate 7 le
+23 octobre avec objectif de clôture documentée sur preuves ; suivre
+`docs/planning/GATE7_IMPLEMENTATION_PLAN.md` et
+`docs/evidence/gate7/GATE7_PROGRESS_20261023.md`.
+Gate 8 et la perspective bonus restent non ouvertes ; aucune publication Git n'est implicite.
 Le run historique du 11 octobre 2026 `38123749165` sur
 `48a894d550c5770a5ea50bc54707113e85ab5218` a exécuté les runners : WASM et supply-chain
 ont réussi ; Windows/Linux ont échoué à Clippy, sans exécuter les tests/builds natifs suivants.
@@ -519,3 +559,26 @@ Une implémentation est terminée seulement si :
 - changement de shell Studio sans Gate 0 et ADR ;
 - données métier canoniques stockées dans l’ECS Bevy ;
 - désactivation silencieuse d’un test ou d’une validation.
+
+
+## UX/UI — Règles permanentes
+
+Toute interface nouvelle ou significativement modifiée doit être conçue pour son utilisateur final, pas pour un développeur.
+Ne pas afficher de debug dans l'interface métier ; garder les diagnostics accessibles dans leur espace dédié.
+Employer le langage métier, des textes utiles et courts, des interactions directes et prévisibles.
+Éviter longues explications sans besoin, décoration gratuite et multiplication artificielle des composants.
+Respecter le design system existant et la densité fonctionnelle nécessaire ; ne pas sacrifier la fonctionnalité à l'esthétique.
+Vérifier erreurs, clavier et accessibilité à proportion du changement ; ne pas masquer les échecs de sauvegarde.
+
+Charger uniquement les skills pertinents sous `.agents/skills/` :
+- `frontend-human-centered` pour toute nouvelle interface et modification significative ;
+- `ux-writing-cleaner` pour tout texte visible créé ou modifié ;
+- `professional-ui-design` pour un changement significatif du design (avec `frontend-design` selon besoin) ;
+- `ux-visual-audit` pour nouvelle page, refonte ou modification importante ;
+- `ux-consistency-review` pour cohérence ou changement transversal ;
+- `web-design-guidelines` pour audit des bonnes pratiques.
+
+Mode normal : contrôles proportionnés, sans audit complet pour une correction sans impact visuel.
+Exécuter `python scripts/Check-UX.py <fichiers modifiés>` pour une modification frontend ; avertissements non bloquants.
+Mode « audit UX complet » : parcourir les écrans accessibles, rapport et captures si possibles, P0–P3, propositions puis corrections demandées et revalidation. Une demande d'audit seule reste en lecture seule.
+Procédure et limites : `docs/tooling/UX_UI_SYSTEM.md`. Ne jamais annoncer une validation visuelle sans accès réel à l'interface.
