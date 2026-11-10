@@ -1144,6 +1144,8 @@ fn validate_selection_response(
 }
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod aurora_m5_ui;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod bridge_probe;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod cloud_preview;
@@ -1472,6 +1474,7 @@ mod web {
                             <pre id="studio-cloud-preview-ledger" hidden></pre>
                         </nav>
                     </details>
+                    <super::aurora_m5_ui::AuroraM5Panel/>
                     <div class="status-stack">
                         <span
                             class:status-ok=move || matches!(webgpu_status.get(), WebGpuStatus::Ready)

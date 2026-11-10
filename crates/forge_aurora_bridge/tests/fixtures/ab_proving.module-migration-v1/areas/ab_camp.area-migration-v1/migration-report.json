@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "area-migration-bundle@1.0.0",
+  "areaResref": "ab_camp",
+  "complete": false,
+  "counts": {
+    "tiles": 36,
+    "instances": 4,
+    "uniqueModels": 0,
+    "textures": 0,
+    "preservedNavigation": 0,
+    "missingItems": 0,
+    "fallbacks": 39,
+    "diagnostics": 6,
+    "warnings": 1,
+    "errors": 0,
+    "byStatus": {
+      "exact": 1,
+      "manual": 39
+    }
+  },
+  "navigationConverted": false,
+  "navigationStatus": "preserved-not-converted",
+  "diagnosticsFile": "diagnostics.jsonl",
+  "bundleIsLocalOnly": true,
+  "sourceModuleImmutable": true,
+  "payloadFileCount": 3,
+  "payloadSizeBytes": 36234
+}

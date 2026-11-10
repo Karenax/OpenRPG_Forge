@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "area-migration-bundle@1.0.0",
+  "exporter": "opennever-area-migration/0.1.0",
+  "moduleSha256": "01fb20336bc222369c2ccd43ea31da0b8b099366d387f6f512b6092f5a36c520",
+  "moduleSizeBytes": 54746,
+  "areaResref": "ab_crypt",
+  "classification": "local_only_proprietary",
+  "redistribution": "not_redistributable_without_separate_rights",
+  "coordinateSystem": {
+    "version": "nwn-to-canonical@1",
+    "source": "NWN right-handed Z-up [x,y,z]",
+    "canonical": "right-handed Y-up [x,y,z]",
+    "mapping": "[x,y,z] -> [x,z,-y]",
+    "handedness": "basis determinant +1; GLB indices adapt NWN front faces to glTF",
+    "basisRows": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        -1,
+        0
+      ]
+    ]
+  },
+  "resolutionPolicy": "OpenNever Resource Manager selected version; shadowed versions retained as sanitized provenance",
+  "dependencies": [],
+  "resources": [
+    {
+      "resourceKey": "ab_chest.utp",
+      "selected": {
+        "sourceKind": "module",
+        "sourceName": "module",
+        "sourceFileName": "ab_proving.mod",
+        "sourcePathSha256": "9c62e052cc5812afd292d3ec4c2593bd0680e53b8c4dcd4a6e23b1683e825c67",
+        "priority": 70000,
+        "offset": 48502,
+        "sizeBytes": 1803,
+        "contentSha256": "fc0676b387f2f5ee518772c0d46d6a069efa8be54f3267ad9c2dea2ab06c249f"
+      },
+      "shadowed": [],
+      "purpose": "instance-blueprint"
+    },
+    {
+      "resourceKey": "ab_crypt.are",
+      "selected": {
+        "sourceKind": "module",
+        "sourceName": "module",
+        "sourceFileName": "ab_proving.mod",
+        "sourcePathSha256": "9c62e052cc5812afd292d3ec4c2593bd0680e53b8c4dcd4a6e23b1683e825c67",
+        "priority": 70000,
+        "offset": 14936,
+        "sizeBytes": 5183,
+        "contentSha256": "bab464a39e2fd59e9f107dcdfc9ac62058fedcdec29cdc861439be2248f77bde"
+      },
+      "shadowed": [],
+      "purpose": "area-definition"
+    },
+    {
+      "resourceKey": "ab_crypt.gic",
+      "selected": {
+        "sourceKind": "module",
+        "sourceName": "module",
+        "sourceFileName": "ab_proving.mod",
+        "sourcePathSha256": "9c62e052cc5812afd292d3ec4c2593bd0680e53b8c4dcd4a6e23b1683e825c67",
+        "priority": 70000,
+        "offset": 52481,
+        "sizeBytes": 392,
+        "contentSha256": "20b5f2935ab06c9b974b154423a98830d1513d17ac049abd6a943b0d07728f89"
+      },
+      "shadowed": [],
+      "purpose": "area-toolset-data"
+    },
+    {
+      "resourceKey": "ab_crypt.git",
+      "selected": {
+        "sourceKind": "module",
+        "sourceName": "module",
+        "sourceFileName": "ab_proving.mod",
+        "sourcePathSha256": "9c62e052cc5812afd292d3ec4c2593bd0680e53b8c4dcd4a6e23b1683e825c67",
+        "priority": 70000,
+        "offset": 27244,
+        "sizeBytes": 7048,
+        "contentSha256": "bbb8fe8edd0246413abe53e91946ba5aa83e5c4d01f73cdf4e06af33ffa194de"
+      },
+      "shadowed": [],
+      "purpose": "area-instances"
+    },
+    {
+      "resourceKey": "ab_crypt_arrival.utw",
+      "selected": {
+        "sourceKind": "module",
+        "sourceName": "module",
+        "sourceFileName": "ab_proving.mod",
+        "sourcePathSha256": "9c62e052cc5812afd292d3ec4c2593bd0680e53b8c4dcd4a6e23b1683e825c67",
+        "priority": 70000,
+        "offset": 53652,
+        "sizeBytes": 559,
+        "contentSha256": "39e8e7dcdeb61727bb1cdecf53609f9ee8c8c06b623bd9871765dbbc65abcc1b"
+      },
+      "shadowed": [],
+      "purpose": "instance-blueprint"
+    },
+    {
+      "resourceKey": "ab_gate_back.utd",
+      "selected": {
+        "sourceKind": "module",
+        "sourceName": "module",
+        "sourceFileName": "ab_proving.mod",
+        "sourcePathSha256": "9c62e052cc5812afd292d3ec4c2593bd0680e53b8c4dcd4a6e23b1683e825c67",
+        "priority": 70000,
+        "offset": 46802,
+        "sizeBytes": 1700,
+        "contentSha256": "ca0a2f906be5cb7b8bf2099348ee80d1c4e3ad2ecdee481b31d2f663b2e1c849"
+      },
+      "shadowed": [],
+      "purpose": "instance-blueprint"
+    },
+    {
+      "resourceKey": "ab_guardian.utc",
+      "selected": {
+        "sourceKind": "module",
+        "sourceName": "module",
+        "sourceFileName": "ab_proving.mod",
+        "sourcePathSha256": "9c62e052cc5812afd292d3ec4c2593bd0680e53b8c4dcd4a6e23b1683e825c67",
+        "priority": 70000,
+        "offset": 35082,
+        "sizeBytes": 2241,
+        "contentSha256": "337bfb2aef29da47568aea240c935a8ed66eb3820e681edce4827b8caf5dad6a"
+      },
+      "shadowed": [],
+      "purpose": "instance-blueprint"
+    },
+    {
+      "resourceKey": "ab_relic_trigger.utt",
+      "selected": {
+        "sourceKind": "module",
+        "sourceName": "module",
+        "sourceFileName": "ab_proving.mod",
+        "sourcePathSha256": "9c62e052cc5812afd292d3ec4c2593bd0680e53b8c4dcd4a6e23b1683e825c67",
+        "priority": 70000,
+        "offset": 43202,
+        "sizeBytes": 1175,
+        "contentSha256": "c42668c5eacd698d5c1da91700eda44301ac3ee3496461e8bdd6b4e744b4ec0d"
+      },
+      "shadowed": [],
+      "purpose": "instance-blueprint"
+    }
+  ],
+  "counts": {
+    "tiles": 20,
+    "instances": 5,
+    "uniqueModels": 0,
+    "textures": 0,
+    "preservedNavigation": 0,
+    "missingItems": 0,
+    "fallbacks": 24,
+    "diagnostics": 7,
+    "warnings": 1,
+    "errors": 0,
+    "byStatus": {
+      "exact": 1,
+      "approximated": 1,
+      "manual": 23
+    }
+  },
+  "files": [
+    {
+      "path": "area.json",
+      "sizeBytes": 20181,
+      "sha256": "2a386cdfe7cb5b49855ad4d97a7ac4459ac8c57696feb103473d3731b8e63fba",
+      "role": "area"
+    },
+    {
+      "path": "diagnostics.jsonl",
+      "sizeBytes": 2132,
+      "sha256": "9ddd3a019c56377be3c8176ce1cb14b59e3f9073f1aa75fd74cfa2c9c5e8398e",
+      "role": "diagnostics"
+    },
+    {
+      "path": "identity-map.json",
+      "sizeBytes": 4389,
+      "sha256": "4049af67012c268ef20ed38777d8be1658b4f7666efa5d1744d07501ff5e260d",
+      "role": "identity-map"
+    },
+    {
+      "path": "migration-report.json",
+      "sizeBytes": 657,
+      "sha256": "85c6b48ac0c6f2d0fad17bb82a79ec52faafd7b370f081f5f872143c5f24c242",
+      "role": "report"
+    }
+  ],
+  "integrityScope": "files lists every payload file with final byte size and SHA-256; manifest.json is self-excluded and its final hash is returned by the exporter"
+}

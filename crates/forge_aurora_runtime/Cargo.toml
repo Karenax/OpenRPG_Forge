@@ -1,0 +1,22 @@
+[package]
+name = "forge_aurora_runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "Projection Forge et session de visite en lecture seule des bundles Aurora."
+
+[dependencies]
+forge_aurora_bridge = { path = "../forge_aurora_bridge" }
+forge_core.workspace = true
+forge_gameplay.workspace = true
+forge_navigation.workspace = true
+forge_project.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

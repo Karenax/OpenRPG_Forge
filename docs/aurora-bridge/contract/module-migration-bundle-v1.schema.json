@@ -1,0 +1,420 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opennever.local/schemas/module-migration-bundle-v1.schema.json",
+  "$comment": "SPDX-License-Identifier: MIT",
+  "title": "Module Migration Bundle v1 manifest",
+  "description": "Manifeste racine d'un bundle module produit par OpenNever Forge. Les bundles area v1 imbriqués conservent leur propre manifeste et leur propre inventaire.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "exporter",
+    "source",
+    "rights",
+    "coordinateSystem",
+    "resolutionPolicy",
+    "module",
+    "areas",
+    "catalogs",
+    "dialogs",
+    "journal",
+    "factions",
+    "scripts",
+    "rules",
+    "assets",
+    "references",
+    "identityMap",
+    "dependencies",
+    "counts",
+    "readiness",
+    "files",
+    "integrityScope"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "module-migration-bundle@1.0.0" },
+    "exporter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "game",
+        "moduleResref",
+        "moduleFileName",
+        "moduleSha256",
+        "moduleSizeBytes"
+      ],
+      "properties": {
+        "game": { "const": "nwn1-ee" },
+        "moduleResref": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "moduleFileName": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "moduleSha256": { "$ref": "#/$defs/sha256" },
+        "moduleSizeBytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "redistribution"],
+      "properties": {
+        "classification": {
+          "enum": ["local_only_proprietary", "redistributable_original"]
+        },
+        "redistribution": {
+          "enum": [
+            "not_redistributable_without_separate_rights",
+            "redistributable_under_bundle_license"
+          ]
+        },
+        "license": { "type": "string", "minLength": 1, "maxLength": 256 }
+      }
+    },
+    "coordinateSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "source", "canonical", "mapping", "handedness", "basisRows"],
+      "properties": {
+        "version": { "const": "nwn-to-canonical@1" },
+        "source": { "type": "string", "minLength": 1 },
+        "canonical": { "type": "string", "minLength": 1 },
+        "mapping": { "const": "[x,y,z] -> [x,z,-y]" },
+        "handedness": { "type": "string", "minLength": 1 },
+        "basisRows": { "const": [[1, 0, 0], [0, 0, 1], [0, -1, 0]] }
+      }
+    },
+    "resolutionPolicy": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "module": { "$ref": "#/$defs/payloadRef" },
+    "areas": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "resref",
+          "name",
+          "areaSchemaVersion",
+          "path",
+          "sha256",
+          "sizeBytes",
+          "tileCount",
+          "instanceCount"
+        ],
+        "properties": {
+          "resref": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "name": { "type": "string", "maxLength": 1024 },
+          "areaSchemaVersion": { "const": "area-migration-bundle@1.0.0" },
+          "path": { "$ref": "#/$defs/relativePath" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "sizeBytes": { "type": "integer", "minimum": 0 },
+          "tileCount": { "type": "integer", "minimum": 0 },
+          "instanceCount": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "catalogs": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path", "sha256", "sizeBytes", "entryCount"],
+        "properties": {
+          "kind": { "enum": ["blueprints", "tilesets"] },
+          "path": { "$ref": "#/$defs/relativePath" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "sizeBytes": { "type": "integer", "minimum": 0 },
+          "entryCount": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "dialogs": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["resref", "path", "sha256", "sizeBytes", "nodeCount"],
+        "properties": {
+          "resref": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "path": { "$ref": "#/$defs/relativePath" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "sizeBytes": { "type": "integer", "minimum": 0 },
+          "nodeCount": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "journal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "sizeBytes", "entryCount"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 0 },
+        "entryCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "factions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "sizeBytes", "factionCount"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 0 },
+        "factionCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "scripts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inventoryPath",
+        "inventorySha256",
+        "inventorySizeBytes",
+        "ncsCount",
+        "nssCount",
+        "missingNcsCount",
+        "missingNssCount"
+      ],
+      "properties": {
+        "inventoryPath": { "$ref": "#/$defs/relativePath" },
+        "inventorySha256": { "$ref": "#/$defs/sha256" },
+        "inventorySizeBytes": { "type": "integer", "minimum": 0 },
+        "ncsCount": { "type": "integer", "minimum": 0 },
+        "nssCount": { "type": "integer", "minimum": 0 },
+        "missingNcsCount": { "type": "integer", "minimum": 0 },
+        "missingNssCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tablesPath",
+        "tablesSha256",
+        "tablesSizeBytes",
+        "tableCount",
+        "tlkPath",
+        "tlkSha256",
+        "tlkSizeBytes",
+        "stringCount"
+      ],
+      "properties": {
+        "tablesPath": { "$ref": "#/$defs/relativePath" },
+        "tablesSha256": { "$ref": "#/$defs/sha256" },
+        "tablesSizeBytes": { "type": "integer", "minimum": 0 },
+        "tableCount": { "type": "integer", "minimum": 0 },
+        "tlkPath": { "$ref": "#/$defs/relativePath" },
+        "tlkSha256": { "$ref": "#/$defs/sha256" },
+        "tlkSizeBytes": { "type": "integer", "minimum": 0 },
+        "stringCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "sizeBytes", "role"],
+        "properties": {
+          "path": { "$ref": "#/$defs/relativePath" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "sizeBytes": { "type": "integer", "minimum": 0 },
+          "role": { "enum": ["model", "texture", "audio", "other"] }
+        }
+      }
+    },
+    "references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "sizeBytes", "nodeCount", "edgeCount"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 0 },
+        "nodeCount": { "type": "integer", "minimum": 0 },
+        "edgeCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "identityMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "sizeBytes",
+        "moduleNamespace",
+        "entryCount",
+        "collisionCount"
+      ],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 0 },
+        "moduleNamespace": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "entryCount": { "type": "integer", "minimum": 0 },
+        "collisionCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "name", "status"],
+        "properties": {
+          "kind": {
+            "enum": ["hak", "tlk", "base-game", "override", "key", "bif", "other"]
+          },
+          "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "sha256": {
+            "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+          },
+          "sizeBytes": {
+            "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }]
+          },
+          "status": {
+            "enum": ["exact", "missing", "license-blocked", "unsupported", "unverified"]
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "areas",
+        "tiles",
+        "instances",
+        "blueprints",
+        "dialogs",
+        "journalEntries",
+        "factions",
+        "scriptsNcs",
+        "scriptsNss",
+        "rulesTables",
+        "tlkStrings",
+        "assets",
+        "references",
+        "missing",
+        "unsupported",
+        "licenseBlocked",
+        "diagnostics",
+        "warnings",
+        "errors"
+      ],
+      "properties": {
+        "areas": { "type": "integer", "minimum": 0 },
+        "tiles": { "type": "integer", "minimum": 0 },
+        "instances": { "type": "integer", "minimum": 0 },
+        "blueprints": { "type": "integer", "minimum": 0 },
+        "dialogs": { "type": "integer", "minimum": 0 },
+        "journalEntries": { "type": "integer", "minimum": 0 },
+        "factions": { "type": "integer", "minimum": 0 },
+        "scriptsNcs": { "type": "integer", "minimum": 0 },
+        "scriptsNss": { "type": "integer", "minimum": 0 },
+        "rulesTables": { "type": "integer", "minimum": 0 },
+        "tlkStrings": { "type": "integer", "minimum": 0 },
+        "assets": { "type": "integer", "minimum": 0 },
+        "references": { "type": "integer", "minimum": 0 },
+        "missing": { "type": "integer", "minimum": 0 },
+        "unsupported": { "type": "integer", "minimum": 0 },
+        "licenseBlocked": { "type": "integer", "minimum": 0 },
+        "diagnostics": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exportable", "complete", "playable", "blockers", "warnings"],
+      "properties": {
+        "exportable": { "type": "boolean" },
+        "complete": { "type": "boolean" },
+        "playable": {
+          "const": false,
+          "description": "Le producteur ne peut pas prouver la jouabilité. Ce statut appartient au rapport du consommateur."
+        },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 512 }
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 512 }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "maxItems": 100000,
+      "description": "Inventaire des fichiers du bundle module hors bundles area imbriqués. Chaque bundle area reste couvert par son propre manifeste.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sizeBytes", "sha256", "role"],
+        "properties": {
+          "path": { "$ref": "#/$defs/relativePath" },
+          "sizeBytes": { "type": "integer", "minimum": 0 },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "role": {
+            "enum": [
+              "module",
+              "catalog",
+              "dialog",
+              "journal",
+              "faction",
+              "script-ncs",
+              "script-nss",
+              "script-inventory",
+              "rules-table",
+              "tlk",
+              "asset-model",
+              "asset-texture",
+              "asset-audio",
+              "asset-navigation",
+              "references",
+              "identity-map",
+              "diagnostics",
+              "report"
+            ]
+          }
+        }
+      }
+    },
+    "integrityScope": {
+      "const": "module inventory covers every payload outside nested area bundles; each nested area manifest is the integrity root of its own payload"
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "payloadRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "sizeBytes"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

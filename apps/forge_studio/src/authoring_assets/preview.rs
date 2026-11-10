@@ -137,12 +137,16 @@ pub(crate) fn register(app: &mut App) {
     super::scene_wind::register(app);
     super::source_graph_physics::register(app);
     super::source_graph_preview::register(app);
+    super::source_decal_preview::register(app);
     super::placements::register(app);
 }
 
 // Asset sources must be registered before DefaultPlugins, but the particle
 // plugin needs the render sub-app to install its extraction and compute systems.
 pub(crate) fn register_rendering(app: &mut App) {
+    if !app.is_plugin_added::<forge_engine::source_decal_view::SourceDecalViewPlugin>() {
+        app.add_plugins(forge_engine::source_decal_view::SourceDecalViewPlugin);
+    }
     if !app
         .is_plugin_added::<forge_engine::source_particle_compute::SourceParticleProjectionPlugin>()
     {
@@ -200,9 +204,30 @@ fn update(
 ) {
     if let Some(request) = REQUEST.with(|request| request.borrow_mut().take()) {
         super::source_graph_preview::cancel();
+        super::source_decal_preview::cancel();
         state.clear(&mut commands);
         if let PreviewRequest::Show(id, bytes, layout, physics, particles) = request {
             let particles = particles.map(|payload| *payload);
+            match forge_assets::source_decal_glb::source_decal_declared_in_glb(
+                &bytes,
+                forge_engine::source_graph_route::carrier_budget(),
+            ) {
+                Ok(true) => {
+                    if physics.is_some() || particles.is_some() {
+                        super::preview_status(
+                            "Aperçu refusé : la toile ne peut pas porter de physique ou de particules.",
+                        );
+                    } else {
+                        super::source_decal_preview::submit(EPOCH.with(Cell::get), bytes);
+                    }
+                    return;
+                }
+                Ok(false) => {}
+                Err(reason) => {
+                    super::preview_status(&format!("Aperçu refusé : {reason}"));
+                    return;
+                }
+            }
             match forge_engine::source_graph_route::read(&bytes) {
                 Ok(Some(_)) => {
                     super::source_graph_preview::submit(id, bytes, physics, particles);
@@ -493,7 +518,7 @@ pub(super) fn collision_geometry(
                     continue;
                 }
                 let invalid =
-                    "Collision concave refusée : déclaration source absente ou incompatible.";
+                    "Surface de collision refusée : déclaration source absente ou incompatible.";
                 let raw = extras.get(entity).map_err(|_| invalid)?;
                 if raw.value.len() > 65_536 {
                     return Err(invalid);
@@ -508,16 +533,26 @@ pub(super) fn collision_geometry(
                     || declaration["source_component_id"].as_str() != Some(component)
                     || component.is_empty()
                     || shape["schema"].as_str() != Some("source-collider.v1")
-                    || shape["kind"].as_str() != Some("triangle_mesh")
-                    || shape["source_convex"].as_bool() != Some(false)
                     || hash.len() != 64
                     || !hash.bytes().all(|c| c.is_ascii_hexdigit())
                 {
                     return Err(invalid);
                 }
-                return Ok(Some(
-                    forge_engine::ManualPlacementCollisionGeometry::TriangleMesh,
-                ));
+                use forge_engine::ManualPlacementCollisionGeometry;
+                let geometry = match shape["kind"].as_str() {
+                    Some("triangle_mesh") if shape["source_convex"].as_bool() == Some(false) => {
+                        ManualPlacementCollisionGeometry::TriangleMesh
+                    }
+                    Some("flat_box")
+                        if declaration["source_collider_type"].as_str() == Some("BoxCollider")
+                            && shape["source_dimensions_m"] == serde_json::json!([1, 1, 0])
+                            && shape["target_geometry"].as_str() == Some("triangle_mesh") =>
+                    {
+                        ManualPlacementCollisionGeometry::FlatBoxSurface
+                    }
+                    _ => return Err(invalid),
+                };
+                return Ok(Some(geometry));
             }
             if name.starts_with("UCX_") || name.starts_with("UTM_") {
                 return Ok(None);

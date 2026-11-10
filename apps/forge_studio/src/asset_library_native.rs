@@ -24,7 +24,10 @@ use std::{
 };
 
 const MAX_JSON: u64 = 64 * 1024 * 1024;
-const MAX_TOTAL_JSON: u64 = 256 * 1024 * 1024;
+// The current private Vault references about 273 MiB of JSON across 46 packs.
+// Keep a bounded aggregate while allowing that library and reasonable growth;
+// individual files and the number of packs/assets remain separately bounded.
+const MAX_TOTAL_JSON: u64 = 512 * 1024 * 1024;
 const MAX_PACKS: usize = 1024;
 const MAX_ASSETS: usize = 100_000;
 const MAX_ID: usize = 512;
@@ -2876,6 +2879,78 @@ mod tests {
         }
         let _ = fs::remove_dir_all(root);
     }
+    #[test]
+    #[ignore = "Requires a private Vault and an explicit selected-model catalog"]
+    fn live_selected_converted_models() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").expect("explicit Vault");
+        let catalog = std::env::var("OPENRPG_ASSET_VERIFY_CATALOG").expect("explicit catalog");
+        let document: serde_json::Value =
+            serde_json::from_slice(&fs::read(catalog).unwrap()).unwrap();
+        let assets = document["assets"].as_array().unwrap();
+        assert!(!assets.is_empty());
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        for item in assets {
+            let id = item["id"].as_str().unwrap();
+            let expected = item["sha256"].as_str().unwrap();
+            let LibraryResponse::Page { page } = library
+                .execute(LibraryRequest::Search {
+                    query: LibraryQuery {
+                        text: id.into(),
+                        availability: "converted_model".into(),
+                        limit: MAX_LIMIT,
+                        ..LibraryQuery::default()
+                    },
+                })
+                .unwrap()
+            else {
+                panic!("model search did not return a page")
+            };
+            let card = page
+                .assets
+                .iter()
+                .find(|card| card.id == id)
+                .expect("model not indexed");
+            assert_eq!(card.availability, "converted_model");
+            assert!(!card.runtime_qualified);
+            let LibraryResponse::Details { detail } = library
+                .execute(LibraryRequest::Details {
+                    id: id.into(),
+                    revision: page.revision.clone(),
+                })
+                .unwrap()
+            else {
+                panic!("model details missing")
+            };
+            assert!(detail.model_path.is_some() && !detail.license.is_empty());
+            let LibraryResponse::Thumbnail { bytes } = library
+                .execute(LibraryRequest::Thumbnail {
+                    id: id.into(),
+                    revision: page.revision.clone(),
+                })
+                .unwrap()
+            else {
+                panic!("thumbnail missing")
+            };
+            assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+            let LibraryResponse::Model { model } = library
+                .execute(LibraryRequest::Model {
+                    id: id.into(),
+                    revision: page.revision,
+                })
+                .unwrap()
+            else {
+                panic!("model bytes missing")
+            };
+            assert_eq!(model.sha256.to_string(), expected);
+            assert_eq!(forge_core::bytes_sha256(&model.bytes).to_string(), expected);
+            assert!(model.bytes.starts_with(b"glTF"));
+        }
+        eprintln!(
+            "Verified {} indexed model bytes, details and thumbnails; runtime unqualified",
+            assets.len()
+        );
+    }
+
     #[test]
     #[ignore = "Requires an explicit private Vault and selected source IDs JSON"]
     fn live_selected_source_support() {

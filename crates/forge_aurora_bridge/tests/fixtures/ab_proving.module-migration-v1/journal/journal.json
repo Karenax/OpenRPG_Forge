@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "module-journal@1",
+  "categories": [
+    {
+      "tag": "ab_quest",
+      "name": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "Les Épreuves du Pont"
+          }
+        ]
+      },
+      "priority": 1,
+      "xp": 0,
+      "entries": [
+        {
+          "id": 10,
+          "text": {
+            "stringRef": null,
+            "values": [
+              {
+                "languageId": 0,
+                "text": "Le guide évoque un pont rompu."
+              }
+            ]
+          },
+          "finalState": false,
+          "delay": 0
+        },
+        {
+          "id": 20,
+          "text": {
+            "stringRef": null,
+            "values": [
+              {
+                "languageId": 0,
+                "text": "Rapporter la relique au guide."
+              }
+            ]
+          },
+          "finalState": false,
+          "delay": 0
+        },
+        {
+          "id": 30,
+          "text": {
+            "stringRef": null,
+            "values": [
+              {
+                "languageId": 0,
+                "text": "Le pont est réparé."
+              }
+            ]
+          },
+          "finalState": false,
+          "delay": 0
+        }
+      ]
+    }
+  ]
+}

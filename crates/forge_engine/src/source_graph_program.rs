@@ -42,7 +42,7 @@ fn source_graph_declared_texture_count(source: &str) -> Result<usize, &'static s
 pub fn register_source_graph_material(
     assets: &mut Assets<Shader>,
     registry: &mut SourceGraphShaderRegistry,
-    program: SourceGraphMaterialProgram,
+    mut program: SourceGraphMaterialProgram,
     source: SourceGraphUniforms,
     images: Vec<Handle<Image>>,
 ) -> Result<SourceGraphMaterial, &'static str> {
@@ -131,7 +131,7 @@ pub fn register_source_graph_material(
         color_write_mask: program.color_write_mask,
         forward_state: program.forward_state,
     };
-    let extension = SourceGraphExtension::from_source_bindings(
+    let mut extension = SourceGraphExtension::from_source_bindings(
         key,
         source,
         program.required_texture_count,
@@ -141,6 +141,13 @@ pub fn register_source_graph_material(
         program.original_transparent,
         program.original_alpha_test,
     );
+    if !program.original_transparent
+        && program.required_texture_count <= 8
+        && let Some(variant) = super::source_decal::forward_variant(forward)?
+    {
+        extension.source_decal_fragment = Some(uuid(&variant));
+        program.shaders.push(variant);
+    }
     register_source_graph_shaders(assets, registry, &program.shaders)?;
     Ok(source_graph_material(extension, phase))
 }

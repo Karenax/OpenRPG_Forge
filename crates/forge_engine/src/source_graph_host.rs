@@ -491,6 +491,11 @@ impl SourceSceneHost {
             } else {
                 SourceGraphShadowRouteStatus::Disabled
             };
+            if let Some(SourceGraphShadowRouteStatus::Refused(reason)) =
+                world.get::<SourceGraphShadowRouteStatus>(*draw)
+            {
+                return Err(format!("Source shadow route refused: {reason}"));
+            }
             if original.shadow_casting_mode != 1
                 || route.private_layer != layer.0
                 || world.get::<SourceGraphShadowRouteStatus>(*draw) != Some(&expected_status)

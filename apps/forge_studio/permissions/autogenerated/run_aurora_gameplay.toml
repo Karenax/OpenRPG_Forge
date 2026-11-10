@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-run-aurora-gameplay"
+description = "Enables the run_aurora_gameplay command without any pre-configured scope."
+commands.allow = ["run_aurora_gameplay"]
+
+[[permission]]
+identifier = "deny-run-aurora-gameplay"
+description = "Denies the run_aurora_gameplay command without any pre-configured scope."
+commands.deny = ["run_aurora_gameplay"]

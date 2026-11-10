@@ -1,0 +1,306 @@
+{
+  "schemaVersion": "opennever-dialogue-export@1.0.0",
+  "resref": "ab_guide_dlg",
+  "revision": "analysis",
+  "sourceResourceSha256": "ec8128094edfec86b25290b2a794e2481b6be5fce98e4f99350d3d64b44cb714",
+  "nodes": [
+    {
+      "id": "entry:0",
+      "kind": "entry",
+      "index": 0,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "Le pont de pierre ne tient plus que par un fil. Que veux-tu savoir ?"
+          }
+        ]
+      },
+      "displayText": "Le pont de pierre ne tient plus que par un fil. Que veux-tu savoir ?",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": null
+    },
+    {
+      "id": "entry:1",
+      "kind": "entry",
+      "index": 1,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "Rapporte-moi la relique de la crypte et je pourrai réparer le pont."
+          }
+        ]
+      },
+      "displayText": "Rapporte-moi la relique de la crypte et je pourrai réparer le pont.",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": null
+    },
+    {
+      "id": "entry:2",
+      "kind": "entry",
+      "index": 2,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "La crypte est au-delà de la porte. Le gardien n'aime pas les visiteurs."
+          }
+        ]
+      },
+      "displayText": "La crypte est au-delà de la porte. Le gardien n'aime pas les visiteurs.",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": null
+    },
+    {
+      "id": "entry:3",
+      "kind": "entry",
+      "index": 3,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "Tu l'as trouvée ! Le pont est sauvé. Prends cette bourse, tu l'as méritée."
+          }
+        ]
+      },
+      "displayText": "Tu l'as trouvée ! Le pont est sauvé. Prends cette bourse, tu l'as méritée.",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": null
+    },
+    {
+      "id": "entry:4",
+      "kind": "entry",
+      "index": 4,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "Le pont tient. Merci, voyageur."
+          }
+        ]
+      },
+      "displayText": "Le pont tient. Merci, voyageur.",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": null
+    },
+    {
+      "id": "reply:0",
+      "kind": "reply",
+      "index": 0,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "Parle-moi du pont."
+          }
+        ]
+      },
+      "displayText": "Parle-moi du pont.",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": "ab_act_start"
+    },
+    {
+      "id": "reply:1",
+      "kind": "reply",
+      "index": 1,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "Où se trouve la relique ?"
+          }
+        ]
+      },
+      "displayText": "Où se trouve la relique ?",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": null
+    },
+    {
+      "id": "reply:2",
+      "kind": "reply",
+      "index": 2,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "J'ai la relique."
+          }
+        ]
+      },
+      "displayText": "J'ai la relique.",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": "ab_reward"
+    },
+    {
+      "id": "reply:3",
+      "kind": "reply",
+      "index": 3,
+      "text": {
+        "stringRef": null,
+        "values": [
+          {
+            "languageId": 0,
+            "text": "Le pont est-il réparé ?"
+          }
+        ]
+      },
+      "displayText": "Le pont est-il réparé ?",
+      "speaker": null,
+      "comment": null,
+      "animation": 0,
+      "animationLoop": true,
+      "sound": null,
+      "quest": null,
+      "actionScript": null
+    }
+  ],
+  "links": [
+    {
+      "id": "start:entry:0:0",
+      "source": null,
+      "target": "entry:0",
+      "conditionScript": null,
+      "actionScript": null,
+      "comment": null,
+      "isChild": false,
+      "broken": false
+    },
+    {
+      "id": "entry:0:reply:0:0",
+      "source": "entry:0",
+      "target": "reply:0",
+      "conditionScript": "ab_cond_start",
+      "actionScript": null,
+      "comment": null,
+      "isChild": false,
+      "broken": false
+    },
+    {
+      "id": "entry:0:reply:1:1",
+      "source": "entry:0",
+      "target": "reply:1",
+      "conditionScript": "ab_cond_active",
+      "actionScript": null,
+      "comment": null,
+      "isChild": false,
+      "broken": false
+    },
+    {
+      "id": "entry:0:reply:2:2",
+      "source": "entry:0",
+      "target": "reply:2",
+      "conditionScript": "ab_cond_relic",
+      "actionScript": null,
+      "comment": null,
+      "isChild": false,
+      "broken": false
+    },
+    {
+      "id": "entry:0:reply:3:3",
+      "source": "entry:0",
+      "target": "reply:3",
+      "conditionScript": "ab_cond_done",
+      "actionScript": null,
+      "comment": null,
+      "isChild": false,
+      "broken": false
+    },
+    {
+      "id": "reply:0:entry:1:0",
+      "source": "reply:0",
+      "target": "entry:1",
+      "conditionScript": null,
+      "actionScript": null,
+      "comment": null,
+      "isChild": true,
+      "broken": false
+    },
+    {
+      "id": "reply:1:entry:2:0",
+      "source": "reply:1",
+      "target": "entry:2",
+      "conditionScript": null,
+      "actionScript": null,
+      "comment": null,
+      "isChild": true,
+      "broken": false
+    },
+    {
+      "id": "reply:2:entry:3:0",
+      "source": "reply:2",
+      "target": "entry:3",
+      "conditionScript": null,
+      "actionScript": null,
+      "comment": null,
+      "isChild": true,
+      "broken": false
+    },
+    {
+      "id": "reply:3:entry:4:0",
+      "source": "reply:3",
+      "target": "entry:4",
+      "conditionScript": null,
+      "actionScript": null,
+      "comment": null,
+      "isChild": true,
+      "broken": false
+    }
+  ],
+  "roots": [
+    "entry:0"
+  ],
+  "sharedNodes": [],
+  "unreachableNodes": [],
+  "cycles": [],
+  "diagnostics": [],
+  "references": []
+}

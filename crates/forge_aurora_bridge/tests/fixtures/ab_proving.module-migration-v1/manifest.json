@@ -1,0 +1,434 @@
+{
+  "schemaVersion": "module-migration-bundle@1.0.0",
+  "exporter": {
+    "name": "opennever-module-migration",
+    "version": "0.1.0"
+  },
+  "source": {
+    "game": "nwn1-ee",
+    "moduleResref": "ab_proving",
+    "moduleFileName": "ab_proving.mod",
+    "moduleSha256": "01fb20336bc222369c2ccd43ea31da0b8b099366d387f6f512b6092f5a36c520",
+    "moduleSizeBytes": 54746
+  },
+  "rights": {
+    "classification": "local_only_proprietary",
+    "redistribution": "not_redistributable_without_separate_rights",
+    "license": "MIT"
+  },
+  "coordinateSystem": {
+    "version": "nwn-to-canonical@1",
+    "source": "NWN right-handed Z-up [x,y,z]",
+    "canonical": "right-handed Y-up [x,y,z]",
+    "mapping": "[x,y,z] -> [x,z,-y]",
+    "handedness": "basis determinant +1; GLB indices adapt NWN front faces to glTF",
+    "basisRows": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        -1,
+        0
+      ]
+    ]
+  },
+  "resolutionPolicy": "OpenNever Resource Manager selected version; external NWN assets remain local dependencies",
+  "module": {
+    "path": "module.json",
+    "sha256": "ee3f73982dfd049c65f3faa7a7095fbf7f3c577cd376540060f8b80a379bea4e",
+    "sizeBytes": 2602
+  },
+  "areas": [
+    {
+      "resref": "ab_camp",
+      "name": "Camp du pont",
+      "areaSchemaVersion": "area-migration-bundle@1.0.0",
+      "path": "areas/ab_camp.area-migration-v1/manifest.json",
+      "sha256": "e5027a32b13c6edf14b13a48311547c37689a90d7c42cfff7f7c0b07b9f52914",
+      "sizeBytes": 5754,
+      "tileCount": 36,
+      "instanceCount": 4
+    },
+    {
+      "resref": "ab_crypt",
+      "name": "Crypte du pont",
+      "areaSchemaVersion": "area-migration-bundle@1.0.0",
+      "path": "areas/ab_crypt.area-migration-v1/manifest.json",
+      "sha256": "04e5e937e3ebd5258da33032f45fb80387b1ed2039713132fd98266a7e71f6a1",
+      "sizeBytes": 6323,
+      "tileCount": 20,
+      "instanceCount": 5
+    }
+  ],
+  "catalogs": [
+    {
+      "kind": "blueprints",
+      "path": "catalogs/blueprints.json",
+      "sha256": "b5a042ad5169a9fdb8deb86a8ad6d114496cd3fedfb5e4c3f06d1367e4ce564b",
+      "sizeBytes": 74215,
+      "entryCount": 10
+    },
+    {
+      "kind": "tilesets",
+      "path": "catalogs/tilesets.json",
+      "sha256": "bb953ccc9a4e961f2e46e1a54e87a1b7f0d229d1a3929dc61a7253aec0e30733",
+      "sizeBytes": 314,
+      "entryCount": 1
+    }
+  ],
+  "dialogs": [
+    {
+      "resref": "ab_guide_dlg",
+      "path": "dialogs/ab_guide_dlg.json",
+      "sha256": "12a2060f4c2aea094d7c3f768a57296f6f743cd8463b04006dff3258b43fadea",
+      "sizeBytes": 7115,
+      "nodeCount": 9
+    }
+  ],
+  "journal": {
+    "path": "journal/journal.json",
+    "sha256": "29063ae81b387c9522a2a0f99c87ff222859d451408467d43574065a508cbe58",
+    "sizeBytes": 1286,
+    "entryCount": 3
+  },
+  "factions": {
+    "path": "factions/factions.json",
+    "sha256": "bca4faf78f5d8155228f8a7ecd229f51628e14f817a7a32fe705c0bf20a85b89",
+    "sizeBytes": 667,
+    "factionCount": 3
+  },
+  "scripts": {
+    "inventoryPath": "scripts/inventory.json",
+    "inventorySha256": "c171f0b0961ed5214afd880bfc0a1794765af9277a4319deb36b3f536fb5aebc",
+    "inventorySizeBytes": 9267,
+    "ncsCount": 14,
+    "nssCount": 14,
+    "missingNcsCount": 0,
+    "missingNssCount": 0
+  },
+  "rules": {
+    "tablesPath": "rules/tables.json",
+    "tablesSha256": "342a52961b3839dde3914487165a7752bd463e359ee1243933659c8cd48f68f6",
+    "tablesSizeBytes": 179,
+    "tableCount": 0,
+    "tlkPath": "rules/tlk.json",
+    "tlkSha256": "9fbaf6f0fd41be0b6f73b16b0fbeaf4c1d60056daaad9e48953198d79e7c992c",
+    "tlkSizeBytes": 177,
+    "stringCount": 0
+  },
+  "assets": [],
+  "references": {
+    "path": "references.json",
+    "sha256": "44d58cf3be8f82ff35a7bc5bc822fa70882dcd4b114c89ba27e78f1d7ecf2388",
+    "sizeBytes": 16105,
+    "nodeCount": 41,
+    "edgeCount": 34
+  },
+  "identityMap": {
+    "path": "identity-map.json",
+    "sha256": "155f78edb48ee88c7777582d61b2a6a2112d2ca427a17aea2f71ffe1fa5c28df",
+    "sizeBytes": 14936,
+    "moduleNamespace": "ab_proving",
+    "entryCount": 41,
+    "collisionCount": 0
+  },
+  "dependencies": [
+    {
+      "kind": "base-game",
+      "name": "Neverwinter Nights: Enhanced Edition",
+      "sha256": null,
+      "sizeBytes": null,
+      "status": "unverified"
+    }
+  ],
+  "counts": {
+    "areas": 2,
+    "tiles": 56,
+    "instances": 9,
+    "blueprints": 10,
+    "dialogs": 1,
+    "journalEntries": 3,
+    "factions": 3,
+    "scriptsNcs": 14,
+    "scriptsNss": 14,
+    "rulesTables": 0,
+    "tlkStrings": 0,
+    "assets": 0,
+    "references": 41,
+    "missing": 0,
+    "unsupported": 0,
+    "licenseBlocked": 0,
+    "diagnostics": 6,
+    "warnings": 3,
+    "errors": 0
+  },
+  "readiness": {
+    "exportable": true,
+    "complete": false,
+    "playable": false,
+    "blockers": [],
+    "warnings": [
+      "Le modèle métier courant ne qualifie pas encore la zone comme intérieure ou extérieure ; areaKind reste unknown.",
+      "Le tileset tno01 n'est pas présent dans le bundle ; il reste une dépendance locale.",
+      "Les assets NWN résolus ne sont pas copiés dans ce bundle redistribuable ; leurs références restent explicites.",
+      "Les tables 2DA/TLK de base restent externes ; le bundle ne copie que les références explicites du module."
+    ]
+  },
+  "files": [
+    {
+      "path": "catalogs/blueprints.json",
+      "sizeBytes": 74215,
+      "sha256": "b5a042ad5169a9fdb8deb86a8ad6d114496cd3fedfb5e4c3f06d1367e4ce564b",
+      "role": "catalog"
+    },
+    {
+      "path": "catalogs/tilesets.json",
+      "sizeBytes": 314,
+      "sha256": "bb953ccc9a4e961f2e46e1a54e87a1b7f0d229d1a3929dc61a7253aec0e30733",
+      "role": "catalog"
+    },
+    {
+      "path": "diagnostics.jsonl",
+      "sizeBytes": 1723,
+      "sha256": "8c92da7bb8f41fb28ee5cd559e9cc64bd058b956061c657e3db709849b63391f",
+      "role": "diagnostics"
+    },
+    {
+      "path": "dialogs/ab_guide_dlg.json",
+      "sizeBytes": 7115,
+      "sha256": "12a2060f4c2aea094d7c3f768a57296f6f743cd8463b04006dff3258b43fadea",
+      "role": "dialog"
+    },
+    {
+      "path": "factions/factions.json",
+      "sizeBytes": 667,
+      "sha256": "bca4faf78f5d8155228f8a7ecd229f51628e14f817a7a32fe705c0bf20a85b89",
+      "role": "faction"
+    },
+    {
+      "path": "identity-map.json",
+      "sizeBytes": 14936,
+      "sha256": "155f78edb48ee88c7777582d61b2a6a2112d2ca427a17aea2f71ffe1fa5c28df",
+      "role": "identity-map"
+    },
+    {
+      "path": "journal/journal.json",
+      "sizeBytes": 1286,
+      "sha256": "29063ae81b387c9522a2a0f99c87ff222859d451408467d43574065a508cbe58",
+      "role": "journal"
+    },
+    {
+      "path": "migration-report.json",
+      "sizeBytes": 1918,
+      "sha256": "9b86bec4de31da1bc25bb36061f89dcad7c007d96ec2a79c1b091479f009348b",
+      "role": "report"
+    },
+    {
+      "path": "module.json",
+      "sizeBytes": 2602,
+      "sha256": "ee3f73982dfd049c65f3faa7a7095fbf7f3c577cd376540060f8b80a379bea4e",
+      "role": "module"
+    },
+    {
+      "path": "references.json",
+      "sizeBytes": 16105,
+      "sha256": "44d58cf3be8f82ff35a7bc5bc822fa70882dcd4b114c89ba27e78f1d7ecf2388",
+      "role": "references"
+    },
+    {
+      "path": "rules/tables.json",
+      "sizeBytes": 179,
+      "sha256": "342a52961b3839dde3914487165a7752bd463e359ee1243933659c8cd48f68f6",
+      "role": "rules-table"
+    },
+    {
+      "path": "rules/tlk.json",
+      "sizeBytes": 177,
+      "sha256": "9fbaf6f0fd41be0b6f73b16b0fbeaf4c1d60056daaad9e48953198d79e7c992c",
+      "role": "tlk"
+    },
+    {
+      "path": "scripts/ab_act_start.ncs",
+      "sizeBytes": 188,
+      "sha256": "fa2f1248ed06bfa27c45a98eeb754cb70a4173d1b1d6b0b18db902dfa160aef4",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_act_start.nss",
+      "sizeBytes": 236,
+      "sha256": "7eea11c72480707406833428eb007df13fb17d41eefa295ce3f1a11409e5e837",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_camp_enter.ncs",
+      "sizeBytes": 269,
+      "sha256": "d806e7480e7bdfd681914092c7733a43bbaefa1a873035c877fe39809cb6bc9f",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_camp_enter.nss",
+      "sizeBytes": 369,
+      "sha256": "df53f86ab0d025e994f7972309134091fe40d49867f8c4771ddc734c8ab75837",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_chest_dist.ncs",
+      "sizeBytes": 231,
+      "sha256": "9127a9e60899a52ea036733afa7025e26f9032e8bc37319b4456e9b878f17ae4",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_chest_dist.nss",
+      "sizeBytes": 308,
+      "sha256": "d4a0d714bbba134d4a96022780bbbf334df3c4f4fa2dd64455397fb299de7fe1",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_cond_active.ncs",
+      "sizeBytes": 172,
+      "sha256": "be7c5e68917b6d9d4ecec4fdc1171cc2a75682b18025cd93fa139ed68bac5b0f",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_cond_active.nss",
+      "sizeBytes": 175,
+      "sha256": "0596a7b8cd7f5db4a8aed008cabc8f39a77ff3b758bc70bdd078909793067077",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_cond_done.ncs",
+      "sizeBytes": 90,
+      "sha256": "c7b7b9bf5e97004fa1a68590e7a5bd0986d964e994da4791af71bde8799061a6",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_cond_done.nss",
+      "sizeBytes": 93,
+      "sha256": "a8cc8f3014f81c2150fa8e73703ddd66859ac8ece9e1f91ca3bcdcb67ddc3025",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_cond_relic.ncs",
+      "sizeBytes": 173,
+      "sha256": "50ac71f58309b8776ec5c89a90d4e9db0e485d3d707b78ce9d42388ff64a9933",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_cond_relic.nss",
+      "sizeBytes": 176,
+      "sha256": "02b1cd049ccfe6b92b11fa1d3005ab7d0c47f4b13ccceba7230328bc6261cafe",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_cond_start.ncs",
+      "sizeBytes": 89,
+      "sha256": "ac3658398f02285bab65ca8ee1793b74c3c3e4af0ce622e531fea9c8f5147b46",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_cond_start.nss",
+      "sizeBytes": 92,
+      "sha256": "7f8b01c3aeb10338bc6d14bb1408c77cca5825e8e213c55488a3c3b12cafc924",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_crypt_enter.ncs",
+      "sizeBytes": 124,
+      "sha256": "2ee6289994d0621ceb8e5186a1ac62583278caf323a03bdf1d1bdabbfdd7df9a",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_crypt_enter.nss",
+      "sizeBytes": 154,
+      "sha256": "196aa1f8703a3f25890a59c6588a6a0f157d1be1a81bf06228f8d92d6b3a2c7f",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_gate_used.ncs",
+      "sizeBytes": 65,
+      "sha256": "71b2ae9be4f604a24f4144c7cd805142eb4defa6299c24edea63a7bd6fa178bb",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_gate_used.nss",
+      "sizeBytes": 86,
+      "sha256": "f56651e47f6f0f450fccdf8509568f3f5489431b471737200860add02f844ccc",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_guard_death.ncs",
+      "sizeBytes": 105,
+      "sha256": "84c6bc8d8fe9123e019b2a213b40a22f15c2b891f04a7c982bae3d304b7cd99d",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_guard_death.nss",
+      "sizeBytes": 140,
+      "sha256": "1de1a116adcfeeeef0381b300643cc55bcaa0226ba0777321850a2285a2d4e39",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_guide_talk.ncs",
+      "sizeBytes": 61,
+      "sha256": "5d111562bf8d70cb0ffedfcb3c61f56c56c0ebf7173d596a08b074cc308fd444",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_guide_talk.nss",
+      "sizeBytes": 89,
+      "sha256": "5171db001a9be37f8905e32d37f66a556ced84e8a9fdd76d852c19fefadcfa81",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_mod_load.ncs",
+      "sizeBytes": 326,
+      "sha256": "a1ddc19f5e587a06149a0801ff415f2ebe96cdc4385b7d1d058eb6b3c8a86b4f",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_mod_load.nss",
+      "sizeBytes": 424,
+      "sha256": "41e099c0117146217d2327463f4db5378aefc42be78c195b30c8f8c27b6338e3",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_relic_trigger.ncs",
+      "sizeBytes": 59,
+      "sha256": "69b9600de5ac78263f6fcb0d6376cbb6cb8e5a1e8d1c7dd17ba824fb65bf7f12",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_relic_trigger.nss",
+      "sizeBytes": 84,
+      "sha256": "b98923ab3092e820b7cdd9cbf09a789cbe34ea67152981c43d799a1b149d6e6e",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/ab_reward.ncs",
+      "sizeBytes": 376,
+      "sha256": "d7c2cb03a81e0945d1edb07f3586f05273e458501a912a69ef12fa9bdbbbca41",
+      "role": "script-ncs"
+    },
+    {
+      "path": "scripts/ab_reward.nss",
+      "sizeBytes": 492,
+      "sha256": "0e43a527d9a6f9ef66373b8325079500706315f1807e41142362066800f5b071",
+      "role": "script-nss"
+    },
+    {
+      "path": "scripts/inventory.json",
+      "sizeBytes": 9267,
+      "sha256": "c171f0b0961ed5214afd880bfc0a1794765af9277a4319deb36b3f536fb5aebc",
+      "role": "script-inventory"
+    }
+  ],
+  "integrityScope": "module inventory covers every payload outside nested area bundles; each nested area manifest is the integrity root of its own payload"
+}

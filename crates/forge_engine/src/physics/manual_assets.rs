@@ -108,6 +108,9 @@ fn materialize(
             super::ManualPlacementCollisionGeometry::TriangleMesh => {
                 super::manual_triangle::triangle_collider(mesh)
             }
+            super::ManualPlacementCollisionGeometry::FlatBoxSurface => {
+                super::manual_triangle::flat_box_collider(mesh)
+            }
         };
         match prepared {
             Ok(collider) => {

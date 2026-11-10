@@ -46,6 +46,8 @@ maintenance notes identifying the actual deltas and historical qualifications.
 | Rapier 0.35.0-glamx0.2 | [Apache-2.0](third_party/rapier3d-0.35.0-glamx0.2/LICENSE) | [Contact correction](third_party/rapier-normalization-NOTICE.md) |
 | Bevy image 0.19.1 with ruzstd 0.9.1 | [MIT](third_party/bevy_image-0.19.1-ruzstd0.9.1/LICENSE-MIT), [Apache-2.0](third_party/bevy_image-0.19.1-ruzstd0.9.1/LICENSE-APACHE) | [Dependency correction](third_party/bevy-image-ruzstd-NOTICE.md) |
 | GLib 0.18.5 with upstream VariantStrIter backport | [MIT](third_party/glib-0.18.5/LICENSE) | [Backport notice](third_party/glib-variant-iter-NOTICE.md) |
+| Tachys 0.2.18 with upstream keyed-list change | [MIT](third_party/tachys-0.2.18/LICENSE) | [Backport notice](third_party/tachys-keyed-list-NOTICE.md) |
+| Leptos macro 0.8.17 with direct case checks | [MIT](third_party/leptos_macro-0.8.17/LICENSE) | [Source notice](third_party/leptos-macro-case-NOTICE.md) |
 
 This source notice is not a complete inventory of a distribution. Gate 7 still
 requires notices collected from the actual Windows/Linux application graphs,

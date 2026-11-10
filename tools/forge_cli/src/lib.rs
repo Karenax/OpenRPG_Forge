@@ -330,6 +330,8 @@ pub enum CliError {
     InvalidTerrain(#[from] forge_project::TerrainDocumentError),
     #[error(transparent)]
     InvalidVegetation(#[from] forge_project::VegetationDocumentError),
+    #[error("Aurora operation failed: {0}")]
+    Aurora(String),
 }
 
 #[cfg(test)]

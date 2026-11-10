@@ -1,0 +1,532 @@
+{
+  "schemaVersion": "module-references@1",
+  "nodes": [
+    {
+      "id": "nwn1ee:ab_proving:area:ab_camp:ab_camp:0",
+      "kind": "area",
+      "areaResref": "ab_camp",
+      "resref": "ab_camp",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:area:ab_crypt:ab_crypt:0",
+      "kind": "area",
+      "areaResref": "ab_crypt",
+      "resref": "ab_crypt",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:creature::ab_guardian:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_guardian",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:creature::ab_guide:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_guide",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:door::ab_gate:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_gate",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:door::ab_gate_back:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_gate_back",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:item::ab_relic:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_relic",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:placeable::ab_chest:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_chest",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:placeable::ab_sign:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_sign",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:trigger::ab_relic_trigger:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_relic_trigger",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:waypoint::ab_crypt_arrival:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_crypt_arrival",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:blueprint:waypoint::ab_start:0",
+      "kind": "blueprint",
+      "areaResref": null,
+      "resref": "ab_start",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:dialog::ab_guide_dlg:0",
+      "kind": "starts-dialogue",
+      "areaResref": null,
+      "resref": "ab_guide_dlg",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:faction::AB_HOSTILE:0",
+      "kind": "faction",
+      "areaResref": null,
+      "resref": "AB_HOSTILE",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:faction::AB_NEUTRAL:0",
+      "kind": "faction",
+      "areaResref": null,
+      "resref": "AB_NEUTRAL",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:faction::PC:0",
+      "kind": "faction",
+      "areaResref": null,
+      "resref": "PC",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:creature:ab_camp:ab_guide:ab_camp:Creature List:0:0",
+      "kind": "instance",
+      "areaResref": "ab_camp",
+      "resref": "ab_guide",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:creature:ab_crypt:ab_guardian:ab_crypt:Creature List:0:0",
+      "kind": "instance",
+      "areaResref": "ab_crypt",
+      "resref": "ab_guardian",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:door:ab_camp:ab_gate:ab_camp:Door List:0:0",
+      "kind": "instance",
+      "areaResref": "ab_camp",
+      "resref": "ab_gate",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:door:ab_crypt:ab_gate_back:ab_crypt:Door List:0:0",
+      "kind": "instance",
+      "areaResref": "ab_crypt",
+      "resref": "ab_gate_back",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:placeable:ab_camp:ab_sign:ab_camp:Placeable List:0:0",
+      "kind": "instance",
+      "areaResref": "ab_camp",
+      "resref": "ab_sign",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:placeable:ab_crypt:ab_chest:ab_crypt:Placeable List:0:0",
+      "kind": "instance",
+      "areaResref": "ab_crypt",
+      "resref": "ab_chest",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:trigger:ab_crypt:ab_relic_trigger:ab_crypt:TriggerList:0:0",
+      "kind": "instance",
+      "areaResref": "ab_crypt",
+      "resref": "ab_relic_trigger",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:waypoint:ab_camp:ab_start:ab_camp:WaypointList:0:0",
+      "kind": "instance",
+      "areaResref": "ab_camp",
+      "resref": "ab_start",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:instance:waypoint:ab_crypt:ab_crypt_arrival:ab_crypt:WaypointList:0:0",
+      "kind": "instance",
+      "areaResref": "ab_crypt",
+      "resref": "ab_crypt_arrival",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:journal::ab_quest:0",
+      "kind": "journal",
+      "areaResref": null,
+      "resref": "ab_quest",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:module::ab_proving:0",
+      "kind": "module",
+      "areaResref": null,
+      "resref": "ab_proving",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_act_start:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_act_start",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_camp_enter:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_camp_enter",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_chest_dist:0",
+      "kind": "uses-script",
+      "areaResref": null,
+      "resref": "ab_chest_dist",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_cond_active:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_cond_active",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_cond_done:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_cond_done",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_cond_relic:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_cond_relic",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_cond_start:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_cond_start",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_crypt_enter:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_crypt_enter",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_gate_used:0",
+      "kind": "uses-script",
+      "areaResref": null,
+      "resref": "ab_gate_used",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_guard_death:0",
+      "kind": "uses-script",
+      "areaResref": null,
+      "resref": "ab_guard_death",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_guide_talk:0",
+      "kind": "uses-script",
+      "areaResref": null,
+      "resref": "ab_guide_talk",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_mod_load:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_mod_load",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_relic_trigger:0",
+      "kind": "uses-script",
+      "areaResref": null,
+      "resref": "ab_relic_trigger",
+      "status": "exact"
+    },
+    {
+      "id": "nwn1ee:ab_proving:script::ab_reward:0",
+      "kind": "script",
+      "areaResref": null,
+      "resref": "ab_reward",
+      "status": "exact"
+    }
+  ],
+  "edges": [
+    {
+      "from": "nwn1ee:ab_proving:area:ab_camp:ab_camp:0",
+      "to": "nwn1ee:ab_proving:instance:creature:ab_camp:ab_guide:ab_camp:Creature List:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:area:ab_camp:ab_camp:0",
+      "to": "nwn1ee:ab_proving:instance:door:ab_camp:ab_gate:ab_camp:Door List:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:area:ab_camp:ab_camp:0",
+      "to": "nwn1ee:ab_proving:instance:placeable:ab_camp:ab_sign:ab_camp:Placeable List:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:area:ab_camp:ab_camp:0",
+      "to": "nwn1ee:ab_proving:instance:waypoint:ab_camp:ab_start:ab_camp:WaypointList:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:area:ab_crypt:ab_crypt:0",
+      "to": "nwn1ee:ab_proving:instance:creature:ab_crypt:ab_guardian:ab_crypt:Creature List:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:area:ab_crypt:ab_crypt:0",
+      "to": "nwn1ee:ab_proving:instance:door:ab_crypt:ab_gate_back:ab_crypt:Door List:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:area:ab_crypt:ab_crypt:0",
+      "to": "nwn1ee:ab_proving:instance:placeable:ab_crypt:ab_chest:ab_crypt:Placeable List:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:area:ab_crypt:ab_crypt:0",
+      "to": "nwn1ee:ab_proving:instance:trigger:ab_crypt:ab_relic_trigger:ab_crypt:TriggerList:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:area:ab_crypt:ab_crypt:0",
+      "to": "nwn1ee:ab_proving:instance:waypoint:ab_crypt:ab_crypt_arrival:ab_crypt:WaypointList:0:0",
+      "kind": "contains-instance",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:blueprint:creature::ab_guardian:0",
+      "to": "nwn1ee:ab_proving:script::ab_guard_death:0",
+      "kind": "uses-script",
+      "sourceField": "root.ScriptDeath",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:blueprint:creature::ab_guide:0",
+      "to": "nwn1ee:ab_proving:dialog::ab_guide_dlg:0",
+      "kind": "starts-dialogue",
+      "sourceField": "root.Conversation",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:blueprint:creature::ab_guide:0",
+      "to": "nwn1ee:ab_proving:script::ab_guide_talk:0",
+      "kind": "uses-script",
+      "sourceField": "root.ScriptDialogue",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:blueprint:door::ab_gate:0",
+      "to": "nwn1ee:ab_proving:script::ab_gate_used:0",
+      "kind": "uses-script",
+      "sourceField": "root.OnOpen",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:blueprint:placeable::ab_chest:0",
+      "to": "nwn1ee:ab_proving:script::ab_chest_dist:0",
+      "kind": "uses-script",
+      "sourceField": "root.OnInvDisturbed",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:blueprint:trigger::ab_relic_trigger:0",
+      "to": "nwn1ee:ab_proving:script::ab_relic_trigger:0",
+      "kind": "uses-script",
+      "sourceField": "root.ScriptOnEnter",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:dialog::ab_guide_dlg:0",
+      "to": "nwn1ee:ab_proving:script::ab_act_start:0",
+      "kind": "uses-script",
+      "sourceField": "Script",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:dialog::ab_guide_dlg:0",
+      "to": "nwn1ee:ab_proving:script::ab_cond_active:0",
+      "kind": "uses-script",
+      "sourceField": "Script",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:dialog::ab_guide_dlg:0",
+      "to": "nwn1ee:ab_proving:script::ab_cond_done:0",
+      "kind": "uses-script",
+      "sourceField": "Script",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:dialog::ab_guide_dlg:0",
+      "to": "nwn1ee:ab_proving:script::ab_cond_relic:0",
+      "kind": "uses-script",
+      "sourceField": "Script",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:dialog::ab_guide_dlg:0",
+      "to": "nwn1ee:ab_proving:script::ab_cond_start:0",
+      "kind": "uses-script",
+      "sourceField": "Script",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:dialog::ab_guide_dlg:0",
+      "to": "nwn1ee:ab_proving:script::ab_reward:0",
+      "kind": "uses-script",
+      "sourceField": "Script",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:creature:ab_camp:ab_guide:ab_camp:Creature List:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:creature::ab_guide:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:creature:ab_crypt:ab_guardian:ab_crypt:Creature List:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:creature::ab_guardian:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:door:ab_camp:ab_gate:ab_camp:Door List:0:0",
+      "to": "nwn1ee:ab_proving:area:ab_crypt:ab_crypt:0",
+      "kind": "transitions-to",
+      "sourceField": "TransitionDestin",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:door:ab_camp:ab_gate:ab_camp:Door List:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:door::ab_gate:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:door:ab_crypt:ab_gate_back:ab_crypt:Door List:0:0",
+      "to": "nwn1ee:ab_proving:area:ab_camp:ab_camp:0",
+      "kind": "transitions-to",
+      "sourceField": "TransitionDestin",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:door:ab_crypt:ab_gate_back:ab_crypt:Door List:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:door::ab_gate_back:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:placeable:ab_camp:ab_sign:ab_camp:Placeable List:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:placeable::ab_sign:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:placeable:ab_crypt:ab_chest:ab_crypt:Placeable List:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:placeable::ab_chest:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:trigger:ab_crypt:ab_relic_trigger:ab_crypt:TriggerList:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:trigger::ab_relic_trigger:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:waypoint:ab_camp:ab_start:ab_camp:WaypointList:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:waypoint::ab_start:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:instance:waypoint:ab_crypt:ab_crypt_arrival:ab_crypt:WaypointList:0:0",
+      "to": "nwn1ee:ab_proving:blueprint:waypoint::ab_crypt_arrival:0",
+      "kind": "uses-blueprint",
+      "sourceField": "TemplateResRef",
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:module::ab_proving:0",
+      "to": "nwn1ee:ab_proving:area:ab_camp:ab_camp:0",
+      "kind": "contains-area",
+      "sourceField": null,
+      "status": "exact"
+    },
+    {
+      "from": "nwn1ee:ab_proving:module::ab_proving:0",
+      "to": "nwn1ee:ab_proving:area:ab_crypt:ab_crypt:0",
+      "kind": "contains-area",
+      "sourceField": null,
+      "status": "exact"
+    }
+  ]
+}

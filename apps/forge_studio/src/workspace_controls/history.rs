@@ -1,8 +1,8 @@
+use crate::audit_labels::audit_label;
 use forge_project::{
     authoring::workspace::{WorkspaceHostRequest as HostRequest, WorkspaceHostState},
     workspace::session::WorkspaceAction,
 };
-use crate::audit_labels::audit_label;
 use leptos::prelude::*;
 
 #[component]

@@ -50,5 +50,9 @@ getrandom = { version = "=0.3.4", default-features = false, features = ["wasm_js
 # Validate Forge optical WGSL with the same Naga version already locked by Bevy.
 naga = { version = "=29.0.4", features = ["wgsl-in"] }
 
+[[example]]
+name = "source_static_draw_probe"
+required-features = ["native"]
+
 [lints]
 workspace = true

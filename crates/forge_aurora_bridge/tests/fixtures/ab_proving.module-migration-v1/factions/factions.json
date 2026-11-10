@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "module-factions@1",
+  "factions": [
+    {
+      "id": 0,
+      "name": "PC",
+      "parentId": 0,
+      "global": false
+    },
+    {
+      "id": 1,
+      "name": "AB_HOSTILE",
+      "parentId": 0,
+      "global": false
+    },
+    {
+      "id": 2,
+      "name": "AB_NEUTRAL",
+      "parentId": 0,
+      "global": false
+    }
+  ],
+  "reputations": [
+    {
+      "sourceId": 0,
+      "targetId": 1,
+      "value": 0
+    },
+    {
+      "sourceId": 0,
+      "targetId": 2,
+      "value": 100
+    },
+    {
+      "sourceId": 1,
+      "targetId": 0,
+      "value": 0
+    },
+    {
+      "sourceId": 2,
+      "targetId": 0,
+      "value": 100
+    }
+  ]
+}

@@ -540,7 +540,7 @@ fn animate(world: &mut World, state: &mut State, view: CascadeView) -> Result<()
         }
         frame.opaque_models = Some(parts.into_iter().map(|(_, model)| model).collect());
         frame.terrain = Some(terrain);
-        frame.plants = plants;
+        frame.plants = plants.into();
         frame.validate()?;
         if let Err(error) = graph::animation::submit_frame(world, motion, frame) {
             tracker.invalidate();

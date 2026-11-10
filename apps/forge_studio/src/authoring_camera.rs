@@ -20,6 +20,7 @@ struct Navigation {
 
 enum PreviewNavigation {
     Frame(Vec3, f32),
+    FrameFrom(Vec3, Vec3),
     Focus(Vec3, Vec3),
     Leave,
 }
@@ -35,6 +36,14 @@ pub(super) fn cancel() {
 pub(super) fn frame_preview(pivot: Vec3, distance: f32) {
     INPUT
         .with(|input| input.borrow_mut().preview = Some(PreviewNavigation::Frame(pivot, distance)));
+}
+
+pub(super) fn frame_preview_from(pivot: Vec3, eye: Vec3) {
+    if pivot.is_finite() && eye.is_finite() && (eye - pivot).xz().length_squared() > 0.0001 {
+        INPUT.with(|input| {
+            input.borrow_mut().preview = Some(PreviewNavigation::FrameFrom(pivot, eye))
+        });
+    }
 }
 
 pub(super) fn leave_preview() {
@@ -288,7 +297,9 @@ fn navigate_camera(camera: &mut Transform, state: &mut CameraState, bounds: Came
                 pivot,
                 pivot + Vec3::new(0.6, 0.3, 1.0).normalize() * distance,
             )),
-            PreviewNavigation::Focus(pivot, eye) => Some((pivot, eye)),
+            PreviewNavigation::FrameFrom(pivot, eye) | PreviewNavigation::Focus(pivot, eye) => {
+                Some((pivot, eye))
+            }
             PreviewNavigation::Leave => None,
         };
         if let Some((pivot, eye)) = framing {

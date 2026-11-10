@@ -256,6 +256,11 @@ pub mod source_graph_placement;
 #[cfg(feature = "physics-rapier")]
 pub mod source_graph_resources;
 #[cfg(feature = "physics-rapier")]
+pub mod source_decal_prepare;
+pub mod source_decal_map;
+pub mod source_decal_raster;
+pub mod source_decal_receiver;
+pub mod source_decal_view;
 pub mod source_graph_route;
 #[cfg(feature = "physics-rapier")]
 pub mod source_graph_runtime;

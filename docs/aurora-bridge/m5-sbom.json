@@ -1,0 +1,83 @@
+{
+  "schema": "forge.aurora-m5-sbom@1",
+  "generatedAt": "2026-11-08",
+  "complete": false,
+  "scope": "Aurora bridge M5 direct components; transitive SBOM and full license scan not generated",
+  "components": [
+    {
+      "name": "forge_nwn_rules",
+      "version": "0.1.0",
+      "type": "workspace-crate",
+      "license": "MIT OR Apache-2.0",
+      "source": "local workspace"
+    },
+    {
+      "name": "forge_nwn_runtime",
+      "version": "0.1.0",
+      "type": "workspace-crate",
+      "license": "MIT OR Apache-2.0",
+      "source": "local workspace"
+    },
+    {
+      "name": "forge_aurora_bridge",
+      "version": "0.1.0",
+      "type": "workspace-crate",
+      "license": "MIT OR Apache-2.0",
+      "source": "local workspace"
+    },
+    {
+      "name": "forge_aurora_runtime",
+      "version": "0.1.0",
+      "type": "workspace-crate",
+      "license": "MIT OR Apache-2.0",
+      "source": "local workspace"
+    },
+    {
+      "name": "forge_core",
+      "version": "0.1.0",
+      "type": "workspace-crate",
+      "license": "MIT OR Apache-2.0",
+      "source": "local workspace"
+    },
+    {
+      "name": "serde",
+      "version": "workspace-pinned",
+      "type": "crate",
+      "license": "MIT OR Apache-2.0",
+      "source": "crates.io"
+    },
+    {
+      "name": "serde_json",
+      "version": "workspace-pinned",
+      "type": "crate",
+      "license": "MIT OR Apache-2.0",
+      "source": "crates.io"
+    },
+    {
+      "name": "thiserror",
+      "version": "workspace-pinned",
+      "type": "crate",
+      "license": "MIT OR Apache-2.0",
+      "source": "crates.io"
+    },
+    {
+      "name": "ab_proving fixture",
+      "version": "module-migration-bundle@1.0.0",
+      "type": "test-fixture",
+      "license": "MIT",
+      "source": "OpenNever Forge, original synthetic fixture",
+      "note": "No NWN module, HAK, TLK, art or audio is redistributed."
+    }
+  ],
+  "excluded": [
+    "Neverwinter Nights:EE installation and proprietary assets",
+    "Local M2 bundle with assets (never versioned)",
+    "Transitive dependency graph and full license texts"
+  ],
+  "redistribution": {
+    "nwnModules": false,
+    "nwnAssets": false,
+    "localOnlyEvidence": true,
+    "mitOriginalFixture": true
+  }
+}

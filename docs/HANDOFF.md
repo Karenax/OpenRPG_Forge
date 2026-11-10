@@ -8,7 +8,7 @@ Cette décision ne lance pas la gate et ne change pas les verdicts de Gate 7.
 
 <a id="gate-7-etat-courant"></a>
 
-## Gate 7 — état courant au 7 novembre 2026
+## Gate 7 — état courant au 10 novembre 2026
 
 **Gate 7 reste ouverte.** R7-01 à R7-06 disposent de verdicts locaux Windows
 datés. Le Hub a été retiré du checkout au lot 048. Le produit suit le parcours
@@ -19,7 +19,9 @@ Studio → export du jeu et de son launcher → jeu autonome.
   Sandbox hors ligne sans SDK. Un invité joueur séparé a installé, lancé et
   repris les deux jeux sans Studio. Les cycles de mise à jour, restauration
   et désinstallation du Studio et de Tidewater préservent les données
-  contrôlées. Le bilan Windows 049 rapproche 43 pièces.
+  contrôlées. Le bilan Windows 049 rapproche 43 pièces. Le candidat 050
+  confirme le parcours complet sur Le Grand Plateau dans deux invités
+  hors ligne.
 - **R7-07, R7-09 et R7-10 sous Linux.** Le build privé 0837 et les essais en
   conteneur Debian 12 sans SDK couvrent l'ouverture de la fenêtre Studio
   et, avec le kit 0837, le lancement de diagnostic et la sauvegarde du
@@ -27,18 +29,143 @@ Studio → export du jeu et de son launcher → jeu autonome.
   le parcours auteur/export, la reprise via le launcher, la mise à jour,
   la restauration et le parcours complet sur un OS propre.
 - **R7-08.** Le service d'export natif a produit les crédits de la
-  référence Tidewater. L'attribution des dépendances du Studio, dont
-  `drain_filter_polyfill` identifié dans le WASM livré, et les droits de
-  redistribution des assets et composants restent à établir.
-- **Performance du moteur commun.** Dernier trajet Tidewater mesuré sur
-  l'export 049 au profil Moyen : 18,85 ms en moyenne, 31,37 ms au p95.
-  La cible moyenne de 16,67 ms et la comparaison appariée avec la
-  référence restent à vérifier. Une exécution par variante ne permet
-  pas d'attribuer l'écart mesuré à la dernière modification.
+  référence Tidewater. Le Studio privé 050 s'installe et démarre en
+  Sandbox Windows hors ligne sans SDK. Ses quatre index installés
+  correspondent aux empreintes attendues et l'audit ne relève aucune
+  identité Cargo sans texte candidat. Les droits de redistribution des
+  assets et composants restent à établir.
+- **Performance du moteur commun.** Sur le trajet Tidewater apparié,
+  le 050 mesure 17,30 à 17,42 ms en moyenne contre 22,34 à 22,71 ms
+  pour le 049 livré. La cible de 16,67 ms reste à atteindre. Le lecteur
+  historique 012 a été retrouvé à son empreinte et rejoué sur le pilote
+  courant. Ses phases fixes et en rotation restent un scénario distinct.
 
 Voir le [plan](planning/GATE7_IMPLEMENTATION_PLAN.md) et la
 [matrice d'acceptation](evidence/gate7/GATE7_PROGRESS_20261023.md#matrice-dacceptation).
 Les reçus détaillés par candidat suivent.
+
+### 10 novembre — retrait du polyfill du graphe Web
+
+Le [backport Tachys 0.2.18](../third_party/tachys-keyed-list-NOTICE.md)
+reprend le changement amont du seul appel dans la liste indexée.
+Le collecteur a relu 599 identités Cargo pour `forge_studio/web`,
+avec verrou, sans réseau ni dépendances de test du projet. Le nouveau
+graphe ne contient plus le polyfill et collecte le fichier MIT épinglé
+de Tachys. `convert_case_extras` et `erased` restent dans ce graphe.
+Reçu `R7-08-tachys-source-notices-20261110.json`, SHA-256
+`6fb35561493dc830b12a7f752672ebe31d240dae130df33c1e846bf8405a2d27`.
+Le `cargo check` Web release verrouillé et hors ligne passe. Le prochain
+paquet du Studio doit être assemblé et rapproché de son propre inventaire.
+
+### 10 novembre — frontend Web construit après les trois corrections
+
+Les deltas [Tachys](../third_party/tachys-keyed-list-NOTICE.md) et
+[Leptos macro](../third_party/leptos-macro-case-NOTICE.md) retirent aussi
+`erased` et `convert_case_extras`. Trois contrôles ciblés passent sur
+les boîtes standard, dont le transfert, la destruction unique et le
+refus de type. Le collecteur Web hors ligne confirme 597 identités et
+relit les deux textes MIT aux empreintes amont. Le reçu
+`R7-08-studio-web-notice-graph-20261110.json` a pour SHA-256
+`5243359f3f4490c1642a7b4cbc81912bc230af48534170dd300195eeee282289`.
+
+La construction Trunk release hors ligne termine avec des sources stables.
+Les 103 entrées épinglées du reçu Cargo et les 3 025 empreintes du frontend
+sont rapprochées. Le WASM Studio de 72 523 923 octets a pour SHA-256
+`9c833446b5604a048f353707c98517d83be99848bf1c93f3874dd8af60967ff2`.
+Reçu `studio-web-notice-corrections-20261110/R7-08-studio-web-notice-build-link.json`,
+SHA-256 `52b2c62b6e79242f66ead08849f95217f04641bfc40f693915bdd0608114383b`.
+Périmètre `PASS_BUILD_ONLY`. La preuve d'assemblage et le contrôle du Studio
+installé restent à produire.
+
+### 10 novembre — notices du candidat Windows 050
+
+Le nouvel index couvre 727 identités sur les cinq rôles Windows et Web.
+Les vérificateurs de livraison ont validé le dossier de 379 fichiers
+et les deux portées Studio, sans identité Cargo dépourvue de texte
+candidat. Les 65 compléments tiers réutilisés ont été rapprochés des
+identités, révisions et empreintes conservées. Le texte du propriétaire
+couvre les contributions originales des quatre crates Aurora/NWN
+ajoutées au Studio. Les données NWN privées gardent leurs propres droits.
+Reçu `studio-web-notice-corrections-20261110/notice-candidate.json`, SHA-256
+`23b244b93ca2e875cfa7f563150a5f03d4254c0d7d9298d5f967808935603e7a`.
+Audit Studio `studio-notice-scope-audit.json`, SHA-256
+`d46b973066d8183409c7382d831665de5be1329b473e7ed87348e1e7542d9ead`.
+Cette couverture d'inventaire prépare l'assemblage privé. Les droits
+applicables aux composants et médias distribués restent à qualifier.
+
+L'installateur 050 a ensuite été assemblé avec le runtime et le launcher
+du même inventaire. Son SHA-256 est
+`c2468e4ecef083753ce13bc4efbe934ebd1d621c51a047d76db99f6d34df8c21`.
+Dans un nouveau Sandbox Windows 11 hors ligne, sans Studio ni SDK,
+l'installation silencieuse s'est terminée avec le code 0. La vérification
+native relit la révision active. Les quatre index installés, le Studio
+et le CLI correspondent aux empreintes prévues. La fenêtre du Studio
+et ses processus WebView2 ont été observés. L'invité s'est arrêté après
+écriture du reçu. Ce contrôle cible l'installation, le démarrage et les
+notices. Reçu `R7-08-windows-studio-notices-050-assessment.json`,
+SHA-256 `54fa01a94264848e98a6082117af3cf481157dbee72a0e22bf228de397f430ce`.
+Les intermédiaires d'assemblage vérifiés ont été retirés d'E: pour
+360 295 793 octets et les deux copies identiques du manifeste de
+sources de F: pour 4 036 970 octets. L'installateur 050, le kit actif,
+les entrées de notices et le manifeste canonique servent à la suite.
+
+### 10 novembre — Grand Plateau exporté, installé et repris avec le 050
+
+Dans un invité Windows hors ligne, le Studio 050 installé a configuré
+et sauvegardé Le Grand Plateau à partir d'une copie du workspace 038,
+puis créé son export privé depuis l'interface. La source hôte conserve
+son empreinte. Les quatre fichiers exportés, soit 166 474 815 octets,
+ont été relus, y compris tous les payloads et les quatre index de
+notices du jeu. Reçu `editor-export/G7-D6-studio-export-050.json`,
+SHA-256 `53881591c78793911f5ad902a966aef87556919c0e24530081a32ce5ad16ae79`.
+
+Un second invité Windows 11 hors ligne avec vGPU, sans Studio, workspace
+auteur ni SDK, a installé le jeu via son assistant. Le launcher
+installé a démarré une nouvelle partie. F5 a créé une sauvegarde,
+puis « Reprendre » a rouvert la scène dans un nouveau processus.
+Les deux rapports déclarent la projection prête et la sortie réussie.
+Ils retrouvent le même SHA-256 de sauvegarde et les mêmes empreintes
+d'état et de source. Le moteur, le launcher et les quatre index
+installés correspondent au kit 050. Le contrôle des fichiers installés
+a utilisé les chemins exacts de la révision active après un échec de
+l'inventaire récursif PowerShell sur un chemin long.
+
+Reçu `player-only/G7-D6-clean-windows-grand-plateau-050.json`, SHA-256
+`4283c163b0649f57e3874b163d8de48676a74cab8758d9f1331a1ed1d48fe3fa`.
+Les deux invités sont arrêtés. L'export privé reste sur E: pour le
+rapprochement des droits et l'essai Linux. La preuve 050 couvre un jeu
+et une installation neuve. Le cycle de maintenance et les deux jeux
+restent documentés dans le périmètre du 049.
+
+### 10 novembre — cadence appariée 049/050 et référence Tidewater 012
+
+Les deux runtimes livrés ont rejoué le même export Tidewater et son
+trajet de 40,8 m, en ordre 049 → 050 → 050 → 049. Les quatre parcours
+conservent les mêmes identités, la RX 7800 XT avec Vulkan, le profil
+Moyen et le mode FIFO demandé en 1280 × 800. Les bornes du trajet
+diffèrent au plus de 5 cm. Toutes les images retenues étaient prêtes.
+Le 049 mesure 22,34 et 22,71 ms en moyenne, contre 17,30 et 17,42 ms
+pour le 050. Le p95 passe de 30,38–31,40 ms à 26,42–27,45 ms.
+Ces intervalles de boucle incluent l'ordonnancement et les diagnostics.
+La cible moyenne de 16,67 ms reste à atteindre. Reçu
+`tidewater-performance/G7-D6-tidewater-049-050-paired.json`, SHA-256
+`9703cf24eb9804a25ab7e552ff46cec394d04c293dee1e3d4d23f2ad6f6eb160`.
+
+L'archive du kit 013 contient le véritable lecteur Tidewater 012,
+SHA-256 `1d4858213e74e64ead31332a65a633e7baa1c951645616137de04b3733271d27`.
+Avec l'instantané et les préférences de la recette historique, il
+reproduit les identités de jeu, d'archive et de zone sur la même RX
+7800 XT et le même pilote 26.10.1. Les quatre phases fixes et en
+rotation sur place donnent 10,40 à 10,44 ms en moyenne et
+13,84 à 15,10 ms au p95, en 2560 × 1440. Un index auteur hors
+instantané diffère des entrées historiques. La résolution, les
+réglages et le mouvement diffèrent de l'essai 050, ce qui laisse la
+parité à qualifier. Reçu
+`tidewater-performance/G7-D6-tidewater-reference-012-current-driver.json`,
+SHA-256 `1b09844f61853062ab122ca320d9f546d61da5c905802670bde230ec9f762003`.
+Le dossier de mesure conserve les traces à comparer sur F:. Les
+1 107 521 257 octets temporaires de relecture ont été retirés d'E:
+après contrôle des empreintes.
 
 ## Historique des qualifications
 

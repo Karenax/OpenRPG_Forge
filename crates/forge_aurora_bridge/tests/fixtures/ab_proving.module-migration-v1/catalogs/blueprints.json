@@ -1,0 +1,3423 @@
+{
+  "schemaVersion": "module-blueprints@1",
+  "blueprints": [
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:creature:ab_guardian:AB_GUARDIAN",
+      "kind": "creature",
+      "resref": "ab_guardian",
+      "tag": "AB_GUARDIAN",
+      "name": "Le gardien",
+      "sourceResourceType": 2027,
+      "sourceSha256": "337bfb2aef29da47568aea240c935a8ed66eb3820e681edce4827b8caf5dad6a",
+      "fields": [
+        {
+          "label": "ScriptDeath",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_guard_death"
+          }
+        },
+        {
+          "label": "Int",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "Gender",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "FactionID",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 1
+          }
+        },
+        {
+          "label": "ScriptEndRound",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "FeatList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "fortbonus",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptDisturbed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "PerceptionRange",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 11
+          }
+        },
+        {
+          "label": "Dex",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "ScriptSpawn",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Plot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "SoundSetFile",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        },
+        {
+          "label": "NoPermDeath",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptOnBlocked",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "GoodEvil",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 50
+          }
+        },
+        {
+          "label": "CRAdjust",
+          "fieldType": 5,
+          "value": {
+            "kind": "int",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptDialogue",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Lootable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Con",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "ScriptUserDefine",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "LawfulChaotic",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 50
+          }
+        },
+        {
+          "label": "LastName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "ClassList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": [
+              {
+                "index": 1,
+                "structType": 2,
+                "fields": [
+                  {
+                    "label": "Class",
+                    "fieldType": 5,
+                    "value": {
+                      "kind": "int",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "label": "ClassLevel",
+                    "fieldType": 3,
+                    "value": {
+                      "kind": "short",
+                      "value": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "label": "ChallengeRating",
+          "fieldType": 8,
+          "value": {
+            "kind": "float",
+            "value": 0.25
+          }
+        },
+        {
+          "label": "Appearance_Type",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 175
+          }
+        },
+        {
+          "label": "WalkRate",
+          "fieldType": 5,
+          "value": {
+            "kind": "int",
+            "value": 7
+          }
+        },
+        {
+          "label": "Conversation",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "FirstName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Le gardien"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "IsImmortal",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "BodyBag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "willbonus",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 0
+          }
+        },
+        {
+          "label": "Str",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "ScriptOnNotice",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "NaturalAC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptRested",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "HitPoints",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 8
+          }
+        },
+        {
+          "label": "Race",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 6
+          }
+        },
+        {
+          "label": "ScriptHeartbeat",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "Cha",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "Subrace",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "MaxHitPoints",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 8
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_guardian"
+          }
+        },
+        {
+          "label": "Wis",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "ScriptDamaged",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "ScriptAttacked",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "SkillList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Deity",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "TemplateList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "Equip_ItemList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "SpecAbilityList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "ScriptSpellAt",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "IsPC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_GUARDIAN"
+          }
+        },
+        {
+          "label": "refbonus",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 0
+          }
+        },
+        {
+          "label": "CurrentHitPoints",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 8
+          }
+        },
+        {
+          "label": "PortraitId",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        }
+      ],
+      "references": [
+        {
+          "kind": "uses-script",
+          "target": "ab_guard_death",
+          "fieldPath": "root.ScriptDeath",
+          "status": "exact"
+        }
+      ],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:creature:ab_guide:AB_GUIDE",
+      "kind": "creature",
+      "resref": "ab_guide",
+      "tag": "AB_GUIDE",
+      "name": "Le guide",
+      "sourceResourceType": 2027,
+      "sourceSha256": "88bd823bdd565ad0e06cc1895b3c6709d75759850fb98dc129191074a5911095",
+      "fields": [
+        {
+          "label": "ScriptDeath",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Int",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "Gender",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "FactionID",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 2
+          }
+        },
+        {
+          "label": "ScriptEndRound",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "FeatList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "fortbonus",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptDisturbed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "PerceptionRange",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 11
+          }
+        },
+        {
+          "label": "Dex",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "ScriptSpawn",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Plot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "SoundSetFile",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        },
+        {
+          "label": "NoPermDeath",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptOnBlocked",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "GoodEvil",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 50
+          }
+        },
+        {
+          "label": "CRAdjust",
+          "fieldType": 5,
+          "value": {
+            "kind": "int",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptDialogue",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_guide_talk"
+          }
+        },
+        {
+          "label": "Lootable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Con",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "ScriptUserDefine",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "LawfulChaotic",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 50
+          }
+        },
+        {
+          "label": "LastName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "ClassList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": [
+              {
+                "index": 1,
+                "structType": 2,
+                "fields": [
+                  {
+                    "label": "Class",
+                    "fieldType": 5,
+                    "value": {
+                      "kind": "int",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "label": "ClassLevel",
+                    "fieldType": 3,
+                    "value": {
+                      "kind": "short",
+                      "value": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "label": "ChallengeRating",
+          "fieldType": 8,
+          "value": {
+            "kind": "float",
+            "value": 0.25
+          }
+        },
+        {
+          "label": "Appearance_Type",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 239
+          }
+        },
+        {
+          "label": "WalkRate",
+          "fieldType": 5,
+          "value": {
+            "kind": "int",
+            "value": 7
+          }
+        },
+        {
+          "label": "Conversation",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_guide_dlg"
+          }
+        },
+        {
+          "label": "FirstName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Le guide"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "IsImmortal",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "BodyBag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "willbonus",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 0
+          }
+        },
+        {
+          "label": "Str",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "ScriptOnNotice",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "NaturalAC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptRested",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "HitPoints",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 6
+          }
+        },
+        {
+          "label": "Race",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 6
+          }
+        },
+        {
+          "label": "ScriptHeartbeat",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "Cha",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "Subrace",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "MaxHitPoints",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 6
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_guide"
+          }
+        },
+        {
+          "label": "Wis",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 10
+          }
+        },
+        {
+          "label": "ScriptDamaged",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "ScriptAttacked",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "SkillList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Deity",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "TemplateList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "Equip_ItemList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "SpecAbilityList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "ScriptSpellAt",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "IsPC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_GUIDE"
+          }
+        },
+        {
+          "label": "refbonus",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 0
+          }
+        },
+        {
+          "label": "CurrentHitPoints",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 6
+          }
+        },
+        {
+          "label": "PortraitId",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        }
+      ],
+      "references": [
+        {
+          "kind": "starts-dialogue",
+          "target": "ab_guide_dlg",
+          "fieldPath": "root.Conversation",
+          "status": "exact"
+        },
+        {
+          "kind": "uses-script",
+          "target": "ab_guide_talk",
+          "fieldPath": "root.ScriptDialogue",
+          "status": "exact"
+        }
+      ],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:door:ab_gate:AB_GATE",
+      "kind": "door",
+      "resref": "ab_gate",
+      "tag": "AB_GATE",
+      "name": "Porte de la crypte",
+      "sourceResourceType": 2042,
+      "sourceSha256": "c88f4b5ca3e604eb4e8388919b693d3f088fc3a6a333c88b249e21430ca51982",
+      "fields": [
+        {
+          "label": "OnLock",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "TrapDisarmable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapDetectDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Appearance",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDamaged",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapType",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapOneShot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "HP",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 15
+          }
+        },
+        {
+          "label": "Interruptable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "TrapDetectable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Plot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "OnDisarm",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnTrapTriggered",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "LoadScreenID",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        },
+        {
+          "label": "GenericType",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Lockable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "AutoRemoveKey",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "DisarmDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 15
+          }
+        },
+        {
+          "label": "CloseLockDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDeath",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "LinkedToFlags",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LocName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Porte de la crypte"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "Ref",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnMeleeAttacked",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Locked",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnFailToOpen",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "CurrentHP",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 15
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "OnClick",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "KeyRequired",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnUserDefined",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnOpen",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_gate_used"
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_gate"
+          }
+        },
+        {
+          "label": "OnHeartbeat",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnSpellCastAt",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OpenLockDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LinkedTo",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnClosed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnUnlock",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapFlag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Hardness",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 5
+          }
+        },
+        {
+          "label": "KeyName",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_GATE"
+          }
+        },
+        {
+          "label": "Faction",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 1
+          }
+        },
+        {
+          "label": "PortraitId",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        }
+      ],
+      "references": [
+        {
+          "kind": "uses-script",
+          "target": "ab_gate_used",
+          "fieldPath": "root.OnOpen",
+          "status": "exact"
+        }
+      ],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:door:ab_gate_back:AB_GATE_BACK",
+      "kind": "door",
+      "resref": "ab_gate_back",
+      "tag": "AB_GATE_BACK",
+      "name": "Porte du camp",
+      "sourceResourceType": 2042,
+      "sourceSha256": "ca0a2f906be5cb7b8bf2099348ee80d1c4e3ad2ecdee481b31d2f663b2e1c849",
+      "fields": [
+        {
+          "label": "OnLock",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "TrapDisarmable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapDetectDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Appearance",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDamaged",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapType",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapOneShot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "HP",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 15
+          }
+        },
+        {
+          "label": "Interruptable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "TrapDetectable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Plot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "OnDisarm",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnTrapTriggered",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "LoadScreenID",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        },
+        {
+          "label": "GenericType",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Lockable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "AutoRemoveKey",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "DisarmDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 15
+          }
+        },
+        {
+          "label": "CloseLockDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDeath",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "LinkedToFlags",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LocName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Porte du camp"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "Ref",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnMeleeAttacked",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Locked",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnFailToOpen",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "CurrentHP",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 15
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "OnClick",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "KeyRequired",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnUserDefined",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnOpen",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_gate_back"
+          }
+        },
+        {
+          "label": "OnHeartbeat",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnSpellCastAt",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OpenLockDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LinkedTo",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnClosed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnUnlock",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapFlag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Hardness",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 5
+          }
+        },
+        {
+          "label": "KeyName",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_GATE_BACK"
+          }
+        },
+        {
+          "label": "Faction",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 1
+          }
+        },
+        {
+          "label": "PortraitId",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        }
+      ],
+      "references": [],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:item:ab_relic:AB_RELIC",
+      "kind": "item",
+      "resref": "ab_relic",
+      "tag": "AB_RELIC",
+      "name": "Relique du pont",
+      "sourceResourceType": 2025,
+      "sourceSha256": "cd64d60d8b935cb741d94a8b85fa31c5bee750ab1494b996a13d347edbe0a164",
+      "fields": [
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "PropertiesList",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "Charges",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Plot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "DescIdentified",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Une relique de pierre gravée, sans valeur commerciale."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "Cost",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 0
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_relic"
+          }
+        },
+        {
+          "label": "BaseItem",
+          "fieldType": 5,
+          "value": {
+            "kind": "int",
+            "value": 24
+          }
+        },
+        {
+          "label": "Identified",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LocalizedName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Relique du pont"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "StackSize",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 1
+          }
+        },
+        {
+          "label": "AddCost",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 0
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_RELIC"
+          }
+        },
+        {
+          "label": "Stolen",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "ModelPart1",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        }
+      ],
+      "references": [],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:placeable:ab_chest:AB_CHEST",
+      "kind": "placeable",
+      "resref": "ab_chest",
+      "tag": "AB_CHEST",
+      "name": "Coffre de la crypte",
+      "sourceResourceType": 2044,
+      "sourceSha256": "fc0676b387f2f5ee518772c0d46d6a069efa8be54f3267ad9c2dea2ab06c249f",
+      "fields": [
+        {
+          "label": "OnLock",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "OnInvDisturbed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_chest_dist"
+          }
+        },
+        {
+          "label": "TrapDisarmable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapDetectDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Appearance",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDamaged",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapType",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Type",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnUsed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapOneShot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "AnimationState",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "HP",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 15
+          }
+        },
+        {
+          "label": "Interruptable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "TrapDetectable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Plot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDisarm",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnTrapTriggered",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "LoadScreenID",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        },
+        {
+          "label": "Lockable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "AutoRemoveKey",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "DisarmDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 15
+          }
+        },
+        {
+          "label": "CloseLockDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "HasInventory",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "OnDeath",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "BodyBag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LocName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Coffre de la crypte"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "Ref",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnMeleeAttacked",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Static",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "Locked",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Useable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "CurrentHP",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 15
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "KeyRequired",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnUserDefined",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnOpen",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_chest"
+          }
+        },
+        {
+          "label": "OnHeartbeat",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnSpellCastAt",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OpenLockDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnClosed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnUnlock",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapFlag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Hardness",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 5
+          }
+        },
+        {
+          "label": "KeyName",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_CHEST"
+          }
+        },
+        {
+          "label": "Faction",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 1
+          }
+        },
+        {
+          "label": "PortraitId",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        }
+      ],
+      "references": [
+        {
+          "kind": "uses-script",
+          "target": "ab_chest_dist",
+          "fieldPath": "root.OnInvDisturbed",
+          "status": "exact"
+        }
+      ],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:placeable:ab_sign:AB_SIGN",
+      "kind": "placeable",
+      "resref": "ab_sign",
+      "tag": "AB_SIGN",
+      "name": "Panneau du pont",
+      "sourceResourceType": 2044,
+      "sourceSha256": "2a9c1703228cbe1b9811e3f01827a50afacc72395bd20c58aaf943d17b75fcf0",
+      "fields": [
+        {
+          "label": "OnLock",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "OnInvDisturbed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapDisarmable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapDetectDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Appearance",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDamaged",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapType",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Type",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnUsed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapOneShot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "AnimationState",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "HP",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 15
+          }
+        },
+        {
+          "label": "Interruptable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "TrapDetectable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Plot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDisarm",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnTrapTriggered",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "LoadScreenID",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        },
+        {
+          "label": "Lockable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "AutoRemoveKey",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "DisarmDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 15
+          }
+        },
+        {
+          "label": "CloseLockDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "HasInventory",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnDeath",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "BodyBag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LocName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Panneau du pont"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "Ref",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnMeleeAttacked",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Static",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "Locked",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Useable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "CurrentHP",
+          "fieldType": 3,
+          "value": {
+            "kind": "short",
+            "value": 15
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "KeyRequired",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnUserDefined",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnOpen",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_sign"
+          }
+        },
+        {
+          "label": "OnHeartbeat",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnSpellCastAt",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OpenLockDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "OnClosed",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnUnlock",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapFlag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Hardness",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 5
+          }
+        },
+        {
+          "label": "KeyName",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_SIGN"
+          }
+        },
+        {
+          "label": "Faction",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 1
+          }
+        },
+        {
+          "label": "PortraitId",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        }
+      ],
+      "references": [],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:trigger:ab_relic_trigger:AB_RELIC_TRIGGER",
+      "kind": "trigger",
+      "resref": "ab_relic_trigger",
+      "tag": "AB_RELIC_TRIGGER",
+      "name": "Détection de la relique",
+      "sourceResourceType": 2032,
+      "sourceSha256": "c42668c5eacd698d5c1da91700eda44301ac3ee3496461e8bdd6b4e744b4ec0d",
+      "fields": [
+        {
+          "label": "LinkedToFlags",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapDisarmable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapDetectDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapType",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Type",
+          "fieldType": 5,
+          "value": {
+            "kind": "int",
+            "value": 0
+          }
+        },
+        {
+          "label": "TrapOneShot",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptHeartbeat",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "Cursor",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "OnClick",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapDetectable",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptOnEnter",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_relic_trigger"
+          }
+        },
+        {
+          "label": "OnDisarm",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "OnTrapTriggered",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_relic_trigger"
+          }
+        },
+        {
+          "label": "LoadScreenID",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        },
+        {
+          "label": "LinkedTo",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "HighlightHeight",
+          "fieldType": 8,
+          "value": {
+            "kind": "float",
+            "value": 0.0
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "ScriptUserDefine",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "TrapFlag",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "AutoRemoveKey",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "Geometry",
+          "fieldType": 15,
+          "value": {
+            "kind": "list",
+            "value": []
+          }
+        },
+        {
+          "label": "ScriptOnExit",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": ""
+          }
+        },
+        {
+          "label": "DisarmDC",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 15
+          }
+        },
+        {
+          "label": "LocalizedName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Détection de la relique"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "KeyName",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_RELIC_TRIGGER"
+          }
+        },
+        {
+          "label": "Faction",
+          "fieldType": 4,
+          "value": {
+            "kind": "dword",
+            "value": 1
+          }
+        },
+        {
+          "label": "PortraitId",
+          "fieldType": 2,
+          "value": {
+            "kind": "word",
+            "value": 0
+          }
+        }
+      ],
+      "references": [
+        {
+          "kind": "uses-script",
+          "target": "ab_relic_trigger",
+          "fieldPath": "root.ScriptOnEnter",
+          "status": "exact"
+        }
+      ],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:waypoint:ab_crypt_arrival:AB_CRYPT_ARRIVAL",
+      "kind": "waypoint",
+      "resref": "ab_crypt_arrival",
+      "tag": "AB_CRYPT_ARRIVAL",
+      "name": "Arrivée dans la crypte",
+      "sourceResourceType": 2058,
+      "sourceSha256": "39e8e7dcdeb61727bb1cdecf53609f9ee8c8c06b623bd9871765dbbc65abcc1b",
+      "fields": [
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "Appearance",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "HasMapNote",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_crypt_arrival"
+          }
+        },
+        {
+          "label": "MapNoteEnabled",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LinkedTo",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "MapNote",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LocalizedName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Arrivée dans la crypte"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_CRYPT_ARRIVAL"
+          }
+        }
+      ],
+      "references": [],
+      "status": "exact",
+      "unmappedFields": []
+    },
+    {
+      "blueprintId": "nwn1ee:ab_proving:blueprint:waypoint:ab_start:AB_START",
+      "kind": "waypoint",
+      "resref": "ab_start",
+      "tag": "AB_START",
+      "name": "Départ du camp",
+      "sourceResourceType": 2058,
+      "sourceSha256": "03a54feb16e3fde4a9a77bdcd39f747c3d8c4ed95410a35b90b68d5b22ade4cd",
+      "fields": [
+        {
+          "label": "Description",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "Appearance",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 1
+          }
+        },
+        {
+          "label": "Comment",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "OpenNever ab_proving fixture"
+          }
+        },
+        {
+          "label": "HasMapNote",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "TemplateResRef",
+          "fieldType": 11,
+          "value": {
+            "kind": "res_ref",
+            "value": "ab_start"
+          }
+        },
+        {
+          "label": "MapNoteEnabled",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LinkedTo",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "MapNote",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": []
+            }
+          }
+        },
+        {
+          "label": "PaletteID",
+          "fieldType": 0,
+          "value": {
+            "kind": "byte",
+            "value": 0
+          }
+        },
+        {
+          "label": "LocalizedName",
+          "fieldType": 12,
+          "value": {
+            "kind": "localized_string",
+            "value": {
+              "stringRef": null,
+              "values": [
+                {
+                  "languageId": 0,
+                  "text": "Départ du camp"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "label": "Tag",
+          "fieldType": 10,
+          "value": {
+            "kind": "string",
+            "value": "AB_START"
+          }
+        }
+      ],
+      "references": [],
+      "status": "exact",
+      "unmappedFields": []
+    }
+  ]
+}

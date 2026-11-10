@@ -12,6 +12,32 @@ pub enum ManualPlacementCollisionGeometry {
     #[default]
     ConvexPrimitive,
     TriangleMesh,
+    /// Source BoxCollider with exact 1 x 1 x 0 local dimensions.
+    FlatBoxSurface,
+}
+
+pub(super) fn flat_box_collider(mesh: &Mesh) -> Result<Collider, &'static str> {
+    let Some(VertexAttributeValues::Float32x3(positions)) =
+        mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+    else {
+        return Err("missing_flat_box_positions");
+    };
+    let corners = [
+        [-0.5, -0.5, 0.0],
+        [0.5, -0.5, 0.0],
+        [0.5, 0.5, 0.0],
+        [-0.5, 0.5, 0.0],
+    ];
+    let expected = [0, 2, 1, 0, 3, 2];
+    let indices_match = match mesh.indices() {
+        Some(Indices::U16(indices)) => indices.iter().copied().map(u32::from).eq(expected),
+        Some(Indices::U32(indices)) => indices.as_slice() == expected,
+        None => false,
+    };
+    if positions.as_slice() != corners || !indices_match {
+        return Err("flat_box_does_not_match_source_surface");
+    }
+    triangle_collider(mesh)
 }
 
 pub(super) fn triangle_collider(mesh: &Mesh) -> Result<Collider, &'static str> {

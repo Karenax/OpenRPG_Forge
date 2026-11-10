@@ -14,6 +14,9 @@ pub const fn carrier_budget() -> SourceGraphGlbReadBudget {
 }
 
 pub fn read(bytes: &[u8]) -> Result<Option<SourceGraphGlb<'_>>, String> {
+    if forge_assets::source_decal_glb::source_decal_declared_in_glb(bytes, carrier_budget())? {
+        return Err("Ce modèle nécessite un rendu decal dédié, encore indisponible.".into());
+    }
     read_source_graph_glb_with_budget(bytes, carrier_budget())
 }
 
@@ -62,6 +65,14 @@ mod tests {
     #[test]
     fn malformed_source_program_cannot_fall_back_to_ordinary_materials() {
         assert!(require_ordinary_loader(&glb(r#"{"asset":{"version":"2.0"},"materials":[{"extensions":{"OPENRPG_source_graph":{}}}]}"#)).is_err());
+    }
+    #[test]
+    fn decal_cannot_fall_back_to_ordinary_materials() {
+        let decal = glb(
+            r#"{"asset":{"version":"2.0"},"extensionsUsed":["OPENRPG_source_decal"],"extensionsRequired":["OPENRPG_source_decal"],"materials":[{"extensions":{"OPENRPG_source_decal":{}}}]}"#,
+        );
+        let error = require_ordinary_loader(&decal).unwrap_err();
+        assert!(error.contains("decal"));
     }
     #[test]
     fn broken_carrier_cannot_reach_the_ordinary_loader() {

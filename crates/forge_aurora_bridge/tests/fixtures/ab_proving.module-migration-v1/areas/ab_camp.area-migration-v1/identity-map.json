@@ -1,0 +1,247 @@
+{
+  "schemaVersion": "area-migration-bundle@1.0.0",
+  "moduleSha256": "01fb20336bc222369c2ccd43ea31da0b8b099366d387f6f512b6092f5a36c520",
+  "areaResref": "ab_camp",
+  "entries": [
+    {
+      "stableId": "amv1-0f5cd9f5c928b79276183b5642a60340",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:3"
+    },
+    {
+      "stableId": "amv1-162fe35b55009d58c0fe1ae2b5e8b68b",
+      "sourceKind": "waypoint",
+      "resourceKey": "ab_start",
+      "instanceIdentity": "ab_camp:WaypointList:0"
+    },
+    {
+      "stableId": "amv1-1c4e03700a206a1b54bc992dbd198787",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:5:0"
+    },
+    {
+      "stableId": "amv1-1e72f1c0452e15681a98ac651442f24f",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:4"
+    },
+    {
+      "stableId": "amv1-2497a3b541b2d11a7a6bfaf09b068c68",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:5:2"
+    },
+    {
+      "stableId": "amv1-2c043e40bd84e592d2f527d5c3234775",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:3"
+    },
+    {
+      "stableId": "amv1-2cc4c6809f88a45e0451ec81f6fcbe3a",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:3"
+    },
+    {
+      "stableId": "amv1-31ac2ac06537648e5c72679355a39d21",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:1"
+    },
+    {
+      "stableId": "amv1-348bd345add0d475fd12ed42f9fef74b",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:0"
+    },
+    {
+      "stableId": "amv1-3b3ef3cb4c83a88f6bd4e4f22acd5d05",
+      "sourceKind": "creature",
+      "resourceKey": "ab_guide",
+      "instanceIdentity": "ab_camp:Creature List:0"
+    },
+    {
+      "stableId": "amv1-3da07dba4a54b1062f4d6f8cdc306afc",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:4"
+    },
+    {
+      "stableId": "amv1-3e2dabb07318d88984ff42462f9b4225",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:0"
+    },
+    {
+      "stableId": "amv1-4f60b253fcc6b13b8d4014f1230c5458",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:1"
+    },
+    {
+      "stableId": "amv1-522477e239d5b63db16f803762d48e10",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:5"
+    },
+    {
+      "stableId": "amv1-5c9b958bf372893276a92a0eacd86587",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:3"
+    },
+    {
+      "stableId": "amv1-688b0cdb6db34fc8c15fee4ee6ade450",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:2"
+    },
+    {
+      "stableId": "amv1-68ec3cc3b71a9b8592c32b8c4cb7251e",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:4"
+    },
+    {
+      "stableId": "amv1-6a4e26af2df8a8a8cedbbbbc7e88ab04",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:5:4"
+    },
+    {
+      "stableId": "amv1-77d446f7b12254a4c5fed90545347dec",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:1"
+    },
+    {
+      "stableId": "amv1-7954697e61b4250d413663b76181b226",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:1"
+    },
+    {
+      "stableId": "amv1-7fcfc0a9587e2f9d6b71c855071eb4ca",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:1"
+    },
+    {
+      "stableId": "amv1-9447420fa54468e4de3b43e1ae90af0b",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:5"
+    },
+    {
+      "stableId": "amv1-9658a14593448a90e93394d2b7c878eb",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:5:5"
+    },
+    {
+      "stableId": "amv1-99022783ec4cbf72609bd17154c20eaf",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:0"
+    },
+    {
+      "stableId": "amv1-9a3eac4648f3cb16f070393a57ee4e2c",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:5:3"
+    },
+    {
+      "stableId": "amv1-9d0e9dd96119b16b30f5f82cc68a79ef",
+      "sourceKind": "door",
+      "resourceKey": "ab_gate",
+      "instanceIdentity": "ab_camp:Door List:0"
+    },
+    {
+      "stableId": "amv1-a47689f4b79069fb3eb96ece5202811a",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:0"
+    },
+    {
+      "stableId": "amv1-ac87d6890b2d67b83190bde07fc8018c",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:2"
+    },
+    {
+      "stableId": "amv1-ae5c86220d7562614184124d476d3e5f",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:5"
+    },
+    {
+      "stableId": "amv1-aecd82979e3918bbc58379b3c1e6a180",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:2"
+    },
+    {
+      "stableId": "amv1-b5b6974ccf22838ca49dad8cac38c995",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:5:1"
+    },
+    {
+      "stableId": "amv1-bda7fc9fde3edf7b2484c5828d891cfb",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:3"
+    },
+    {
+      "stableId": "amv1-c53e60f60386790b0007130e7e92d5bb",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:5"
+    },
+    {
+      "stableId": "amv1-c577f3521d45fdb8daffed32b9d6c80f",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:2"
+    },
+    {
+      "stableId": "amv1-c6dee31d917f14cac7158cb180714274",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:2"
+    },
+    {
+      "stableId": "amv1-c89449dada271ed372d6e1b3cfd35990",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:4"
+    },
+    {
+      "stableId": "amv1-d7b7e39ecd754dbd773d755a3ca81089",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:0"
+    },
+    {
+      "stableId": "amv1-ef5f17b22c6a01f122caf43e990353ee",
+      "sourceKind": "placeable",
+      "resourceKey": "ab_sign",
+      "instanceIdentity": "ab_camp:Placeable List:0"
+    },
+    {
+      "stableId": "amv1-f50804475bc7e487f2ca3e20db496662",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:4"
+    },
+    {
+      "stableId": "amv1-f60f2c3056af1d13c8f1fa147d41d806",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:5"
+    }
+  ]
+}

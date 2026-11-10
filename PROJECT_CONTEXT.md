@@ -5039,3 +5039,51 @@ de l'espace de travail, par les commandes existantes d'aperçu, confirmation et
 sauvegarde. Trois tests natifs passent et Clippy Web est strictement validé ;
 la revue réelle de l'interface et l'export autonome restent à faire. Voir
 `studio-game-authoring-assessment-001.json`.
+
+## 7 novembre 2026 — Piste passerelle Aurora/NWN (cadrage)
+
+Une piste parallèle de compatibilité NWN:EE est cadrée. OpenRPG Forge est consommateur du contrat
+`module-migration-bundle@1.0.0` produit par OpenNever ; il ne lit pas directement les MOD/HAK/TLK.
+Le pont est une piste hors numérotation des gates : Gate 7 reste ouverte, Gate 8/9 ne sont pas
+ouvertes et aucun verdict historique n'est modifié. Aucun code d'import, aucune VM NCS et aucune
+preuve de jouabilité n'existent à cette date. Les zones NWN seront importées comme objets sources,
+le runtime natif et ses quotas restent intacts, et le ruleset NWN sera un profil séparé. Le point
+d'entrée est [`docs/aurora-bridge/README.md`](docs/aurora-bridge/README.md) ; la décision est
+consignée dans l'[ADR-0063](docs/ADR/ADR-0063-aurora-bridge-import.md). La licence des artefacts
+de contrat reste à trancher avant publication.
+
+## 8 novembre 2026 — Passerelle Aurora/NWN : M3 local
+
+M1, M2 et M3 sont terminés localement avec réserves. M3 ajoute `forge_nwn_runtime` : parseur NCS
+borné, VM déterministe pour le sous-ensemble de la fixture, registre de 11 natives supportées et
+4 déclarées non supportées, ordonnanceur différé, effets typés avec reçus et scénario `ab_proving`
+avec dialogue conditionnel, journal, objet, porte, combat et reprise idempotente. Le résultat est
+prouvé par 21 tests `forge_nwn_runtime`, 27 tests runtime/bridge/CLI et le rapport
+`Preuves-et-analyses/actives/aurora-bridge/m3/m3-report.json`. La portée reste limitée à la fixture :
+aucune compatibilité NWN générale, aucun ruleset D&D, aucune sauvegarde NWN générale et aucune
+parité visuelle. Les natives d'action, la suspension mi-VM et les événements non listés restent non
+supportés et visibles. La piste n'ouvre ni ne modifie aucune gate.
+
+## 8 novembre 2026 — Passerelle Aurora/NWN : M4 local
+
+M4 ajoute `forge_nwn_rules` : profil `forge.nwn-rules-profile@1`, RNG SplitMix64 à graine, combat
+d20 borné (initiative, AC, BAB, critiques, concealment, RD, immunités, sauvegardes), personnages,
+objets/équipement, trois sorts avec slots/repos, factions/IA et migration de quête. `M4Scenario`
+exécute le gardien, les sorts, le repos, la quête et la reprise idempotente sur `ab_proving`.
+Le ruleset natif `forge_gameplay` reste inchangé (21 tests ciblés). Le résultat est prouvé par
+40 tests `forge_nwn_rules`, 36 `forge_nwn_runtime`, 10 `forge_cli` et le rapport
+`Preuves-et-analyses/actives/aurora-bridge/m4/m4-report.json`. Les tables 2DA complètes, les
+attaques spéciales, les sorts complets, la perception/pathfinding, l'oracle NWN réel et la
+sauvegarde NWN générale restent hors preuve. La piste n'ouvre ni ne modifie aucune gate.
+
+## 8 novembre 2026 — Passerelle Aurora/NWN : M5 partiel
+
+M5 ajoute `M5Save` (`forge.aurora-m5-save@1`), la migration explicite M4 → M5, une trace
+reproductible (`forge.aurora-m5-trace@1`, 54 entrées sur `ab_proving`), `forge_cli aurora-m5` et
+`aurora-diff-oracle`. Les tests couvrent 3 cycles de transitions (6 transitions), la reprise sans
+fuite, une boucle VM bornée et la corruption de sauvegarde/profil. Le résultat est prouvé par
+46 tests `forge_nwn_rules`, 43 `forge_nwn_runtime`, 11 `forge_aurora_runtime`, 10 `forge_cli` et le
+rapport `m5-report.json` (SHA-256 `4a9d528b…`). M5 reste **partiel** : aucun module NWN hétérogène
+réel, preuve visuelle Studio, oracle NWN local, GLB du bundle, textes de licence transitifs ni
+archive finale.
+La piste n'ouvre ni ne modifie aucune gate.

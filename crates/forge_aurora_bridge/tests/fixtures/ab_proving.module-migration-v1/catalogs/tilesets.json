@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "module-tilesets@1",
+  "tilesets": [
+    {
+      "tilesetId": "nwn1ee:ab_proving:tileset:tno01:tno01:0",
+      "resref": "tno01",
+      "sourceSha256": null,
+      "tileCount": 56,
+      "modelCount": 0,
+      "status": "manual",
+      "references": [],
+      "unmappedFields": []
+    }
+  ]
+}

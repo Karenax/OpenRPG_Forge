@@ -31,6 +31,25 @@ async fn read_model(request: LibraryRequest) -> Result<LibraryModel, String> {
     Ok(model)
 }
 
+// A graph without the explicit object and world frames cannot be mounted by
+// the persistent placement renderer. Reject it before creating a map edit.
+fn check_placement_frames(bytes: &[u8]) -> Result<(), String> {
+    let Some(graph) = forge_assets::source_graph_glb::read_source_graph_glb(bytes)? else {
+        return Ok(());
+    };
+    let doc = graph.document();
+    forge_engine::source_graph_context::ObjectBasis::from_document(doc)?
+        .ok_or("Placement indisponible : repère objet source absent")?;
+    for key in [
+        "source_world_from_target_world",
+        "source_absolute_world_from_target_world",
+    ] {
+        forge_engine::source_graph_context::declared_world_mapping(doc, key)
+            .map_err(|error| format!("Placement indisponible : {error}"))?;
+    }
+    Ok(())
+}
+
 async fn read_wire(request: &impl serde::Serialize) -> Result<Vec<u8>, String> {
     read_wire_from(
         "read_asset_model",
@@ -406,6 +425,10 @@ pub(crate) fn VaultActions(
                 return;
             }
             if place {
+                if let Err(reason) = check_placement_frames(&model.bytes) {
+                    let _ = status.try_set(reason);
+                    return;
+                }
                 if physics.is_some() {
                     let _ = status.try_set("Placement avec collisions source : chargement persistant encore à qualifier.".into());
                     return;

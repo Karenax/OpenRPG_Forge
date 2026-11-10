@@ -11,6 +11,8 @@ fn main() {
             "import_module_package",
             "export_module",
             "export_game",
+            "preview_aurora_bundle",
+            "import_aurora_bundle",
             "read_asset_library",
             "read_asset_model",
             "read_asset_physics",

@@ -52,6 +52,8 @@ pub use source_sampler::{
 #[path = "source_graph_program.rs"]
 mod source_program;
 pub use source_program::{SourceGraphMaterialProgram, register_source_graph_material};
+#[path = "source_graph_decal.rs"]
+mod source_decal;
 #[path = "source_graph_scalars.rs"]
 mod source_scalars;
 pub use source_scalars::SourceGraphScalarUniforms;
@@ -223,6 +225,8 @@ pub struct SourceGraphKey {
 pub struct SourceGraphExtension {
     /// UUID identities registered in Assets<Shader>, required by packed Bevy material keys.
     pub program_key: SourceGraphKey,
+    #[reflect(ignore)]
+    pub(super) source_decal_fragment: Option<u128>,
     pub original_alpha_to_mask: bool,
     #[uniform(100)]
     pub source: SourceGraphUniforms,
@@ -321,6 +325,33 @@ impl From<&SourceGraphExtension> for SourceGraphKey {
     }
 }
 impl SourceGraphExtension {
+    pub(crate) fn bind_decal_view(&mut self, targets: [Handle<Image>; 2]) -> bool {
+        let Some(fragment) = self.source_decal_fragment else {
+            return false;
+        };
+        if self.program_key.shadow_only
+            || (self.program_key.fragment != fragment
+                && (self.program_key.fragment != self.program_key.vertex
+                    || self.texture_8.is_some()
+                    || self.texture_9.is_some()))
+        {
+            return false;
+        }
+        let [color, normal] = targets;
+        self.texture_8 = Some(color);
+        self.texture_9 = Some(normal);
+        self.program_key.fragment = fragment;
+        true
+    }
+
+    /// Restore the original stage and free the two transient texture slots.
+    pub fn unbind_decal_view(&mut self) {
+        if self.source_decal_fragment == Some(self.program_key.fragment) {
+            self.program_key.fragment = self.program_key.vertex;
+            self.texture_8 = None;
+            self.texture_9 = None;
+        }
+    }
     pub fn set_sky_cube(&mut self, binding: &SourceGraphSkyCubeBinding) {
         self.sky_cube = Some(binding.handle().clone());
         self.sky_cube_binding = Some(binding.clone());
@@ -457,6 +488,7 @@ impl SourceGraphExtension {
         }
         Ok(Self {
             program_key: key,
+            source_decal_fragment: None,
             original_alpha_to_mask: key.original_alpha_to_mask,
             scalars: SourceGraphScalarUniforms::default(),
             diffuse_probe: SourceGraphDiffuseProbeUniforms::default(),

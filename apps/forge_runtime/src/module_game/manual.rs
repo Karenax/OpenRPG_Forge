@@ -1,7 +1,7 @@
 //! Governed manual meshes use the existing authored placement and collision contracts.
 use bevy::{
     asset::{LoadState, RecursiveDependencyLoadState},
-    gltf::GltfAssetLabel,
+    gltf::{GltfAssetLabel, GltfExtras},
     prelude::*,
     world_serialization::{WorldAsset, WorldAssetRoot, WorldInstance, WorldInstanceSpawner},
 };
@@ -17,12 +17,14 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     sync::{Arc, OnceLock},
 };
+mod decals;
 
 #[derive(Resource)]
 pub struct PreparedManual {
     governed: Vec<(ManualPlacement, String)>,
     source: Vec<ManualPlacement>,
     graph: Vec<PreparedGraph>,
+    decals: Vec<(ManualPlacement, Arc<[u8]>)>,
     objects: Option<PreparedObjects>,
     fish_placements: Vec<ManualPlacement>,
     fish: Option<fish_scene::PreparedScene>,
@@ -39,14 +41,20 @@ struct PreparedObjects {
     host: forge_engine::source_surface::package::host::PreparedHost,
 }
 
-type GraphCache = BTreeMap<forge_core::ContentHash, Option<Arc<[u8]>>>;
+#[derive(Clone)]
+enum Carrier {
+    Ordinary,
+    Graph(Arc<[u8]>),
+    Decal(Arc<[u8]>),
+}
+type GraphCache = BTreeMap<forge_core::ContentHash, Carrier>;
 
 fn graph_carrier(
     loaded: &LoadedModuleZone,
     path: &str,
     pin: forge_core::ContentHash,
     cache: &mut GraphCache,
-) -> Result<Option<Arc<[u8]>>, String> {
+) -> Result<Carrier, String> {
     if let Some(cached) = cache.get(&pin) {
         return Ok(cached.clone());
     }
@@ -61,10 +69,18 @@ fn graph_carrier(
     // not inherit a smaller limit from the old diagnostic-only caller.
     forge_engine::source_graph_route::carrier_budget().validate_byte_length(length)?;
     let model = loaded.read_payload(path, length)?;
-    let is_graph = forge_engine::source_graph_route::read(&model)?.is_some();
-    let bytes = is_graph.then(|| Arc::<[u8]>::from(model));
-    cache.insert(pin, bytes.clone());
-    Ok(bytes)
+    let carrier = if forge_assets::source_decal_glb::source_decal_declared_in_glb(
+        &model,
+        forge_engine::source_graph_route::carrier_budget(),
+    )? {
+        Carrier::Decal(Arc::from(model))
+    } else if forge_engine::source_graph_route::read(&model)?.is_some() {
+        Carrier::Graph(Arc::from(model))
+    } else {
+        Carrier::Ordinary
+    };
+    cache.insert(pin, carrier.clone());
+    Ok(carrier)
 }
 
 fn prepare_objects(
@@ -147,7 +163,9 @@ impl PreparedManual {
     }
 
     pub fn non_colliding_ids(&self) -> BTreeSet<forge_core::EntityId> {
-        self.fish_ids()
+        let mut ids = self.fish_ids();
+        ids.extend(self.decals.iter().map(|(placement, _)| placement.id));
+        ids
     }
 
     pub fn accepted(&self) -> Vec<ManualPlacement> {
@@ -157,6 +175,7 @@ impl PreparedManual {
             .map(|(placement, _)| placement.clone())
             .chain(self.source.iter().cloned())
             .chain(self.graph.iter().map(|graph| graph.placement.clone()))
+            .chain(self.decals.iter().map(|(placement, _)| placement.clone()))
             .chain(self.fish_placements.iter().cloned())
             .collect::<Vec<_>>();
         placements.sort_by_key(|placement| placement.id);
@@ -244,6 +263,7 @@ pub fn prepare(
     let mut result = Vec::new();
     let mut source = Vec::new();
     let mut graph = Vec::new();
+    let mut decals = Vec::new();
     let mut graph_cache = GraphCache::new();
     let mut companion_cache = super::companions::Cache::default();
     for placement in placements {
@@ -281,19 +301,32 @@ pub fn prepare(
                     && asset.kind == GovernedAssetKind::Mesh
             })
             .ok_or("Manual placement must name a governed mesh with its exact pin")?;
-        if let Some(bytes) = graph_carrier(
+        match graph_carrier(
             loaded,
             &asset.payload.path,
             placement.asset_hash,
             &mut graph_cache,
         )? {
-            let companions = super::companions::prepare(loaded, &placement, &mut companion_cache)?;
-            graph.push(PreparedGraph {
-                placement,
-                carrier: bytes,
-                companions,
-            });
-            continue;
+            Carrier::Graph(bytes) => {
+                let companions =
+                    super::companions::prepare(loaded, &placement, &mut companion_cache)?;
+                graph.push(PreparedGraph {
+                    placement,
+                    carrier: bytes,
+                    companions,
+                });
+                continue;
+            }
+            Carrier::Decal(bytes) => {
+                if has_companions || placement.local_lights.is_some() {
+                    return Err(
+                        "Mesh decals do not admit physics, particles or local lights".into(),
+                    );
+                }
+                decals.push((placement, bytes));
+                continue;
+            }
+            Carrier::Ordinary => {}
         }
         if has_companions {
             return Err("Saved companions require the admitted source graph host".into());
@@ -305,11 +338,15 @@ pub fn prepare(
             "Source-graph qualification requires a referenced source-graph placement".into(),
         );
     }
+    if !decals.is_empty() && graph.is_empty() {
+        return Err("Mesh decals require a compatible source material in their map".into());
+    }
     let objects = prepare_objects(loaded, &source, profile)?;
     Ok(PreparedManual {
         governed: result,
         source,
         graph,
+        decals,
         objects,
         fish_placements,
         fish,
@@ -344,6 +381,9 @@ pub fn install(app: &mut App, mut prepared: PreparedManual, water: bool) -> Resu
                 .after(forge_engine::source_graph_runtime::SourceSceneSystems::Placements)
                 .after(super::graphics::ModuleGraphicsObserved),
         );
+    }
+    if !prepared.decals.is_empty() {
+        decals::register(app);
     }
     app.init_resource::<ModuleAssetFailure>()
         .insert_resource(prepared)
@@ -473,6 +513,47 @@ fn admitted_meshes(world: &World, entities: &[Entity]) -> Result<Vec<Entity>, St
     Ok(meshes)
 }
 
+/// Only the explicit, bounded zero-thickness source box changes the ordinary
+/// module mesh policy. Its invisible primitive supplies all its collision.
+fn flat_box_mesh(world: &World, root: Entity, mut entity: Entity) -> Result<bool, String> {
+    for _ in 0..128 {
+        if entity == root {
+            return Ok(false);
+        }
+        if let Some(extras) = world.get::<GltfExtras>(entity)
+            && let Ok(value) = serde_json::from_str::<serde_json::Value>(&extras.value)
+        {
+            let shape = &value["openrpg_collision"];
+            if shape["kind"].as_str() == Some("flat_box") {
+                let name = world.get::<Name>(entity).map(Name::as_str).unwrap_or("");
+                let component = value["source_component_id"].as_str().unwrap_or("");
+                let hash = value["source_prefab_sha256"].as_str().unwrap_or("");
+                if extras.value.len() > 65_536
+                    || value["source_role"].as_str() != Some("collision")
+                    || value["source_collider_type"].as_str() != Some("BoxCollider")
+                    || shape["schema"].as_str() != Some("source-collider.v1")
+                    || shape["source_dimensions_m"] != serde_json::json!([1, 1, 0])
+                    || shape["target_geometry"].as_str() != Some("triangle_mesh")
+                    || !name.starts_with("UTM_")
+                    || component.is_empty()
+                    || !component.bytes().all(|byte| byte.is_ascii_digit())
+                    || !name.ends_with(&format!("_{component}"))
+                    || hash.len() != 64
+                    || !hash.bytes().all(|byte| byte.is_ascii_hexdigit())
+                {
+                    return Err("Invalid source flat box declaration".into());
+                }
+                return Ok(true);
+            }
+        }
+        let Some(parent) = world.get::<ChildOf>(entity) else {
+            return Ok(false);
+        };
+        entity = parent.parent();
+    }
+    Err("Invalid manual collision hierarchy".into())
+}
+
 fn observe(world: &mut World) {
     if world
         .get_resource::<ModuleAssetFailure>()
@@ -558,18 +639,52 @@ fn observe(world: &mut World) {
                 return;
             }
         };
-        for entity in &meshes {
-            world.entity_mut(*entity).insert((
-                ManualPlacementPart(id),
-                ManualPlacementCollision(id),
-                ManualPlacementCollisionGeometry::TriangleMesh,
-                forge_engine::static_hlod::StaticHlodSource { object: id, source },
-            ));
+        let roles = meshes
+            .iter()
+            .map(|&entity| flat_box_mesh(world, root, entity).map(|flat| (entity, flat)))
+            .collect::<Result<Vec<_>, _>>();
+        let roles = match roles {
+            Ok(roles) => roles,
+            Err(reason) => {
+                refuse(world, format!("Module manual mesh {id} refused: {reason}"));
+                return;
+            }
+        };
+        let has_flat = roles.iter().any(|&(_, flat)| flat);
+        if has_flat && roles.iter().all(|&(_, flat)| flat) {
+            refuse(
+                world,
+                format!("Module manual mesh {id} has no visual primitive"),
+            );
+            return;
+        }
+        let mut collision = Vec::new();
+        for (entity, flat) in roles {
+            let mut node = world.entity_mut(entity);
+            if !flat {
+                node.insert((
+                    ManualPlacementPart(id),
+                    forge_engine::static_hlod::StaticHlodSource { object: id, source },
+                ));
+            } else {
+                node.insert(Visibility::Hidden);
+            }
+            if flat || !has_flat {
+                node.insert((
+                    ManualPlacementCollision(id),
+                    if flat {
+                        ManualPlacementCollisionGeometry::FlatBoxSurface
+                    } else {
+                        ManualPlacementCollisionGeometry::TriangleMesh
+                    },
+                ));
+                collision.push(entity);
+            }
         }
         world.entity_mut(root).insert((
             ManualPlacementCollisionExpected {
                 placement: id,
-                primitives: meshes,
+                primitives: collision,
             },
             Visibility::Inherited,
         ));
@@ -579,6 +694,40 @@ fn observe(world: &mut World) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn source_flat_box_is_found_on_its_node_and_refuses_changed_dimensions() {
+        let mut world = World::new();
+        let root = world.spawn_empty().id();
+        let mut extra = serde_json::json!({
+            "source_role": "collision",
+            "source_component_id": "42",
+            "source_collider_type": "BoxCollider",
+            "source_prefab_sha256": "a".repeat(64),
+            "openrpg_collision": {
+                "schema": "source-collider.v1", "kind": "flat_box",
+                "source_dimensions_m": [1, 1, 0], "target_geometry": "triangle_mesh"
+            }
+        });
+        let node = world
+            .spawn((
+                Name::new("UTM_test_42"),
+                GltfExtras {
+                    value: extra.to_string(),
+                },
+                ChildOf(root),
+            ))
+            .id();
+        let primitive = world.spawn(ChildOf(node)).id();
+        assert_eq!(flat_box_mesh(&world, root, primitive), Ok(true));
+        extra["openrpg_collision"]["source_dimensions_m"][2] = serde_json::json!(0.1);
+        world.entity_mut(node).insert(GltfExtras {
+            value: extra.to_string(),
+        });
+        assert!(flat_box_mesh(&world, root, primitive).is_err());
+        let visual = world.spawn(ChildOf(root)).id();
+        assert_eq!(flat_box_mesh(&world, root, visual), Ok(false));
+    }
 
     fn graph_with_particles(particles: bool) -> PreparedGraph {
         let carrier = forge_core::bytes_sha256(b"fixture carrier");

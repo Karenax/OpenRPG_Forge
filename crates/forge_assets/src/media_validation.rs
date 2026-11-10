@@ -115,6 +115,13 @@ pub fn validate_declared_media(
 ) -> Result<ValidatedMedia, MediaValidationError> {
     validate_input(bytes, format, limits)?;
     let has_source_graph = if format == MediaFormat::Glb {
+        let (document, _) = crate::source_graph_glb::read_glb_document(bytes, carrier_budget)
+            .map_err(|reason| error(format, reason))?;
+        if crate::source_decal_glb::source_decal_declared(&document)
+            .map_err(|reason| error(format, reason))?
+        {
+            return Err(error(format, "source decal requires its own scene renderer"));
+        }
         crate::source_graph_glb::read_source_graph_glb_with_budget(bytes, carrier_budget)
             .map_err(|reason| error(format, reason))?
             .is_some()

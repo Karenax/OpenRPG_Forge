@@ -120,22 +120,28 @@ def source_ready(root, row, protected, commands, verified_replica=None):
         raw=state.read_bytes();doc=json.loads(raw)
         if not doc.get('stages') or any(s.get('status')!='complete' for s in doc['stages'].values()):raise ValueError('Incomplete or suspended run')
         proof=dict(path=str(state),sha256=storage.sha(raw))
-    elif (root/parts[0]/parts[1]/'DELIVERY-READBACK.v1.json').exists():
+    elif (state.parent/'DELIVERY-READBACK.v1.json').exists() or any(state.parent.glob('GROUP-*-DELIVERY-READBACK.v1.json')):
         # Ad-hoc workers have no controller STATE. Require an explicit delivered
-        # payload readback pin for this exact model, never infer closure from a name.
-        state=confined(root,root/parts[0]/parts[1]/'DELIVERY-READBACK.v1.json')
-        raw=state.read_bytes();doc=json.loads(raw)
-        if not re.fullmatch(r'[A-Z0-9_]*SHA256_READBACK_PASS',doc.get('status','')):raise ValueError('No verified delivery readback')
-        matches=[f for f in doc.get('files',[])+doc.get('models',[]) if f.get('sha256')==row['sha256'] and f.get('bytes')==row['bytes']]
-        if not matches:raise ValueError('Model absent from delivered payload')
-        delivered=[]
-        for match in matches:
-            delivered_path=Path(match['path'])
-            if not delivered_path.is_absolute():
-                if not doc.get('destination'):raise ValueError('Relative delivered path without destination')
-                delivered_path=Path(doc['destination'])/delivered_path
-            delivered.append(str(delivered_path))
-        proof=dict(path=str(state),sha256=storage.sha(raw),delivered_paths=delivered)
+        # payload readback pin for this exact model. One run may deliver several
+        # groups, each with its own immutable receipt; keep the selected pin.
+        receipts=[state.parent/'DELIVERY-READBACK.v1.json',*sorted(state.parent.glob('GROUP-*-DELIVERY-READBACK.v1.json'))]
+        for receipt in receipts:
+            if not receipt.exists():continue
+            receipt=confined(root,receipt)
+            raw=receipt.read_bytes();doc=json.loads(raw)
+            if not re.fullmatch(r'[A-Z0-9_]*SHA256_READBACK_PASS',doc.get('status','')):raise ValueError('No verified delivery readback')
+            matches=[f for f in doc.get('files',[])+doc.get('models',[]) if f.get('sha256')==row['sha256'] and f.get('bytes')==row['bytes']]
+            if not matches:continue
+            delivered=[]
+            for match in matches:
+                delivered_path=Path(match['path'])
+                if not delivered_path.is_absolute():
+                    if not doc.get('destination'):raise ValueError('Relative delivered path without destination')
+                    delivered_path=Path(doc['destination'])/delivered_path
+                delivered.append(str(delivered_path))
+            proof=dict(path=str(receipt),sha256=storage.sha(raw),delivered_paths=delivered)
+            break
+        else:raise ValueError('Model absent from delivered payload')
     else:
         # A file-level replica receipt is sufficient for ad-hoc model outputs.
         # Missing STATE/READBACK filenames must not retain an unreferenced copy

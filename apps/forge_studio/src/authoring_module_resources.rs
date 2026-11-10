@@ -153,7 +153,9 @@ fn launch(scope: Scope, epoch: u64, previous: Option<Rc<Acquired>>) {
             previous,
             |request| {
                 match request {
-                    Request::Describe { .. } => report_loading("Lecture de l’inventaire du module…"),
+                    Request::Describe { .. } => {
+                        report_loading("Lecture de l’inventaire du module…")
+                    }
                     Request::Read { .. } if !reading => {
                         reading = true;
                         report_loading("Transfert des ressources du module…");

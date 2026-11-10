@@ -1,0 +1,1015 @@
+{
+  "schemaVersion": "area-migration-bundle@1.0.0",
+  "resref": "ab_crypt",
+  "name": "Crypte du pont",
+  "areaKind": "unknown",
+  "dimensions": [
+    5,
+    4
+  ],
+  "gridSizeMeters": 10.0,
+  "tileset": "tno01",
+  "tiles": [
+    {
+      "id": "amv1-b10e55161e855c72a5961933c35004db",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          5.0,
+          5.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          5.0,
+          0.0,
+          -5.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-5f7c14f13067c22ab7a90f032ef8a822",
+      "source": {
+        "x": 1,
+        "y": 0,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          15.0,
+          5.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          15.0,
+          0.0,
+          -5.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-7370f0f59d522621a471f75d129a3df4",
+      "source": {
+        "x": 2,
+        "y": 0,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          25.0,
+          5.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          25.0,
+          0.0,
+          -5.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-5aa34b722f0fa1f8eb0a1e951f5cb72b",
+      "source": {
+        "x": 3,
+        "y": 0,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          35.0,
+          5.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          35.0,
+          0.0,
+          -5.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-568c63caaea27e5b60cae4c771b3856d",
+      "source": {
+        "x": 4,
+        "y": 0,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          45.0,
+          5.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          45.0,
+          0.0,
+          -5.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-66fa48761499f04728d13ef218c822a3",
+      "source": {
+        "x": 0,
+        "y": 1,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          5.0,
+          15.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          5.0,
+          0.0,
+          -15.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-4401cbe47853d79eab3173289f808bb5",
+      "source": {
+        "x": 1,
+        "y": 1,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          15.0,
+          15.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          15.0,
+          0.0,
+          -15.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-ba25d7454eaa422791defe4bf96d4dc0",
+      "source": {
+        "x": 2,
+        "y": 1,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          25.0,
+          15.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          25.0,
+          0.0,
+          -15.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-30599812b7ed2e48a176c70e3d1d6e34",
+      "source": {
+        "x": 3,
+        "y": 1,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          35.0,
+          15.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          35.0,
+          0.0,
+          -15.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-ac9d1a5195bdbd7c5699508d70ada29b",
+      "source": {
+        "x": 4,
+        "y": 1,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          45.0,
+          15.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          45.0,
+          0.0,
+          -15.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-18f5322e26ab510329d6801591fa8829",
+      "source": {
+        "x": 0,
+        "y": 2,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          5.0,
+          25.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          5.0,
+          0.0,
+          -25.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-7b6094b0fad04a867a27eae2ba091573",
+      "source": {
+        "x": 1,
+        "y": 2,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          15.0,
+          25.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          15.0,
+          0.0,
+          -25.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-ffae5e4152d195bd21884aff7c338ef4",
+      "source": {
+        "x": 2,
+        "y": 2,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          25.0,
+          25.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          25.0,
+          0.0,
+          -25.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-8310f6e55a70175d89437976b22f6daa",
+      "source": {
+        "x": 3,
+        "y": 2,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          35.0,
+          25.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          35.0,
+          0.0,
+          -25.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-75d3f9b2490a89d4aa957d958c63deb3",
+      "source": {
+        "x": 4,
+        "y": 2,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          45.0,
+          25.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          45.0,
+          0.0,
+          -25.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-101dea0fea84d0789b1a577739b1c3c2",
+      "source": {
+        "x": 0,
+        "y": 3,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          5.0,
+          35.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          5.0,
+          0.0,
+          -35.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-506edd22d3cfd0f923bc5a1d2b8f083a",
+      "source": {
+        "x": 1,
+        "y": 3,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          15.0,
+          35.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          15.0,
+          0.0,
+          -35.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-7596beea090e4de7d5e5a068c721cbea",
+      "source": {
+        "x": 2,
+        "y": 3,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          25.0,
+          35.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          25.0,
+          0.0,
+          -35.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-75cac601ab57057600da39b746cfe696",
+      "source": {
+        "x": 3,
+        "y": 3,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          35.0,
+          35.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          35.0,
+          0.0,
+          -35.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    },
+    {
+      "id": "amv1-bf8c0ff709952e62ab566764b12fe797",
+      "source": {
+        "x": 4,
+        "y": 3,
+        "tileId": 0,
+        "orientation": 0,
+        "height": 0
+      },
+      "sourceTransform": {
+        "position": [
+          45.0,
+          35.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          45.0,
+          0.0,
+          -35.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "modelResref": null,
+      "modelAsset": null,
+      "status": "manual"
+    }
+  ],
+  "instances": [
+    {
+      "id": "amv1-070c5aafb461d0617e53bee475104f3b",
+      "sourceIdentity": "ab_crypt:Creature List:0",
+      "source": {
+        "id": "ab_crypt:Creature List:0",
+        "category": "creature",
+        "tag": "AB_GUARDIAN",
+        "templateResref": "ab_guardian",
+        "x": 3.0,
+        "y": 2.0,
+        "z": 0.0,
+        "bearing": null,
+        "xOrientation": 0.0,
+        "yOrientation": 1.0,
+        "appearance": 175,
+        "transitionDestination": null,
+        "transitionFlags": null,
+        "loadScreenId": null,
+        "geometry": [],
+        "spawnPoints": [],
+        "inventory": [],
+        "sourcePath": "ab_crypt.git::Creature List[0]"
+      },
+      "sourceTransform": {
+        "position": [
+          3.0,
+          2.0,
+          0.0
+        ],
+        "yawRadians": 1.5707964
+      },
+      "transform": {
+        "position": [
+          3.0,
+          0.0,
+          -2.0
+        ],
+        "rotation": [
+          0.0,
+          0.70710677,
+          0.0,
+          0.70710677
+        ]
+      },
+      "canonicalGeometry": [],
+      "canonicalSpawnPoints": [],
+      "modelResrefs": [],
+      "modelAssets": [],
+      "classification": "creature-placeholder",
+      "status": "manual",
+      "statusReason": "Asset ou comportement externe non inclus dans le bundle redistribuable ; référence conservée."
+    },
+    {
+      "id": "amv1-762565135e7df7085909de76d40afcd9",
+      "sourceIdentity": "ab_crypt:Door List:0",
+      "source": {
+        "id": "ab_crypt:Door List:0",
+        "category": "door",
+        "tag": "AB_GATE_BACK",
+        "templateResref": "ab_gate_back",
+        "x": 1.0,
+        "y": 1.0,
+        "z": 0.0,
+        "bearing": -1.5707963,
+        "xOrientation": null,
+        "yOrientation": null,
+        "appearance": 0,
+        "transitionDestination": "ab_camp",
+        "transitionFlags": 1,
+        "loadScreenId": 0,
+        "geometry": [],
+        "spawnPoints": [],
+        "inventory": [],
+        "sourcePath": "ab_crypt.git::Door List[0]"
+      },
+      "sourceTransform": {
+        "position": [
+          1.0,
+          1.0,
+          0.0
+        ],
+        "yawRadians": -1.5707963
+      },
+      "transform": {
+        "position": [
+          1.0,
+          0.0,
+          -1.0
+        ],
+        "rotation": [
+          0.0,
+          -0.70710677,
+          0.0,
+          0.7071068
+        ]
+      },
+      "canonicalGeometry": [],
+      "canonicalSpawnPoints": [],
+      "modelResrefs": [],
+      "modelAssets": [],
+      "classification": "door-dynamic",
+      "status": "manual",
+      "statusReason": "Asset ou comportement externe non inclus dans le bundle redistribuable ; référence conservée."
+    },
+    {
+      "id": "amv1-b7433059952f25c3a5ae83641babb893",
+      "sourceIdentity": "ab_crypt:Placeable List:0",
+      "source": {
+        "id": "ab_crypt:Placeable List:0",
+        "category": "placeable",
+        "tag": "AB_CHEST",
+        "templateResref": "ab_chest",
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0.0,
+        "bearing": 0.0,
+        "xOrientation": null,
+        "yOrientation": null,
+        "appearance": 0,
+        "transitionDestination": null,
+        "transitionFlags": null,
+        "loadScreenId": 0,
+        "geometry": [],
+        "spawnPoints": [],
+        "inventory": [
+          {
+            "resref": "ab_relic",
+            "tag": "AB_RELIC",
+            "stackSize": 1,
+            "x": 0,
+            "y": 0,
+            "infinite": false,
+            "categoryIndex": null,
+            "itemIndex": 0
+          }
+        ],
+        "sourcePath": "ab_crypt.git::Placeable List[0]"
+      },
+      "sourceTransform": {
+        "position": [
+          2.0,
+          2.0,
+          0.0
+        ],
+        "yawRadians": 0.0
+      },
+      "transform": {
+        "position": [
+          2.0,
+          0.0,
+          -2.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "canonicalGeometry": [],
+      "canonicalSpawnPoints": [],
+      "modelResrefs": [],
+      "modelAssets": [],
+      "classification": "placeable-dynamic",
+      "status": "manual",
+      "statusReason": "Asset ou comportement externe non inclus dans le bundle redistribuable ; référence conservée."
+    },
+    {
+      "id": "amv1-d7037948b3603f61ccf8eb725fd84f77",
+      "sourceIdentity": "ab_crypt:TriggerList:0",
+      "source": {
+        "id": "ab_crypt:TriggerList:0",
+        "category": "trigger",
+        "tag": "AB_RELIC_TRIGGER",
+        "templateResref": "ab_relic_trigger",
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0.0,
+        "bearing": null,
+        "xOrientation": 0.0,
+        "yOrientation": 1.0,
+        "appearance": null,
+        "transitionDestination": "",
+        "transitionFlags": 0,
+        "loadScreenId": 0,
+        "geometry": [
+          {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          {
+            "x": 1.0,
+            "y": 3.0,
+            "z": 0.0
+          },
+          {
+            "x": 3.0,
+            "y": 3.0,
+            "z": 0.0
+          },
+          {
+            "x": 3.0,
+            "y": 1.0,
+            "z": 0.0
+          }
+        ],
+        "spawnPoints": [],
+        "inventory": [],
+        "sourcePath": "ab_crypt.git::TriggerList[0]"
+      },
+      "sourceTransform": {
+        "position": [
+          2.0,
+          2.0,
+          0.0
+        ],
+        "yawRadians": 1.5707964
+      },
+      "transform": {
+        "position": [
+          2.0,
+          0.0,
+          -2.0
+        ],
+        "rotation": [
+          0.0,
+          0.70710677,
+          0.0,
+          0.70710677
+        ]
+      },
+      "canonicalGeometry": [
+        [
+          1.0,
+          0.0,
+          -1.0
+        ],
+        [
+          1.0,
+          0.0,
+          -3.0
+        ],
+        [
+          3.0,
+          0.0,
+          -3.0
+        ],
+        [
+          3.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "canonicalSpawnPoints": [],
+      "modelResrefs": [],
+      "modelAssets": [],
+      "classification": "trigger-volume",
+      "status": "approximated",
+      "statusReason": "Volume de trigger conservé ; scripts et logique de déclenchement demandent une reprise manuelle."
+    },
+    {
+      "id": "amv1-7f1402237f6f5585a2497a96e9d3bb56",
+      "sourceIdentity": "ab_crypt:WaypointList:0",
+      "source": {
+        "id": "ab_crypt:WaypointList:0",
+        "category": "waypoint",
+        "tag": "AB_CRYPT_ARRIVAL",
+        "templateResref": "ab_crypt_arrival",
+        "x": 2.0,
+        "y": 1.0,
+        "z": 0.0,
+        "bearing": null,
+        "xOrientation": 0.0,
+        "yOrientation": 1.0,
+        "appearance": 1,
+        "transitionDestination": "",
+        "transitionFlags": null,
+        "loadScreenId": null,
+        "geometry": [],
+        "spawnPoints": [],
+        "inventory": [],
+        "sourcePath": "ab_crypt.git::WaypointList[0]"
+      },
+      "sourceTransform": {
+        "position": [
+          2.0,
+          1.0,
+          0.0
+        ],
+        "yawRadians": 1.5707964
+      },
+      "transform": {
+        "position": [
+          2.0,
+          0.0,
+          -1.0
+        ],
+        "rotation": [
+          0.0,
+          0.70710677,
+          0.0,
+          0.70710677
+        ]
+      },
+      "canonicalGeometry": [],
+      "canonicalSpawnPoints": [],
+      "modelResrefs": [],
+      "modelAssets": [],
+      "classification": "waypoint-anchor",
+      "status": "exact",
+      "statusReason": "Ancre spatiale conservée ; ses consommateurs NWScript ne sont pas convertis."
+    }
+  ],
+  "assets": [],
+  "sourceFiles": [
+    "ab_crypt.are",
+    "ab_crypt.gic",
+    "ab_crypt.git"
+  ]
+}

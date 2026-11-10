@@ -10,6 +10,7 @@ mod imported_catalog;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod media_validation;
 pub mod source_collision_geometry;
+pub mod source_decal_glb;
 pub mod source_decal_lifetime;
 pub mod source_environment_package;
 pub mod source_fish_package;

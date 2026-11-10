@@ -12,6 +12,7 @@ use bevy::{
     },
 };
 use forge_core::{AssetId, ContentHash, EntityId};
+use forge_engine::source_graph::SourceGraphMaterial;
 use leptos::prelude::Update;
 use leptos::prelude::*;
 use std::{
@@ -23,6 +24,7 @@ use wasm_bindgen::JsCast;
 type Key = (AssetId, ContentHash);
 const SIZE: u32 = 192;
 const LAYER: usize = 30;
+const CAPTURE_SECONDS_PER_ANGLE: f64 = 12.0;
 #[derive(Clone, PartialEq)]
 struct Row {
     id: EntityId,
@@ -139,7 +141,12 @@ struct Capture {
     reader: Entity,
     target: Handle<Image>,
     layers: Vec<(Entity, Option<RenderLayers>)>,
+    copies: Vec<Entity>,
     started: u32,
+    started_at: f64,
+    center: Vec3,
+    radius: f32,
+    opposite: bool,
     done: bool,
     previous: Vec<u8>,
     stable: u8,
@@ -155,15 +162,10 @@ pub(super) fn install(app: &mut App) {
 
 fn retire(world: &mut World) {
     if let Some(capture) = world.remove_resource::<Capture>() {
-        let timed_out = world
-            .resource::<FrameCount>()
-            .0
-            .saturating_sub(capture.started)
-            > 300;
         CACHE.with(|cache| {
             let mut cache = cache.borrow_mut();
             if cache.head == Some(capture.head) && !cache.images.contains_key(&capture.key) {
-                if capture.done || timed_out {
+                if capture.done {
                     cache.failed.insert(capture.key);
                 } else {
                     cache.requested.remove(&capture.key);
@@ -180,6 +182,9 @@ fn retire(world: &mut World) {
                 }
             }
         }
+        for entity in capture.copies {
+            world.despawn(entity);
+        }
         world.despawn(capture.camera);
         world.despawn(capture.reader);
         world
@@ -190,12 +195,40 @@ fn retire(world: &mut World) {
 
 fn update(world: &mut World) {
     let frame = world.resource::<FrameCount>().0;
+    let now = world.resource::<Time<Real>>().elapsed_secs_f64();
     let hash = super::placements::accepted_hash();
     let retire_capture = world
         .get_resource::<Capture>()
-        .is_some_and(|c| c.done || hash != Some(c.head) || frame.saturating_sub(c.started) > 300);
+        .is_some_and(|c| c.done || hash != Some(c.head));
     if retire_capture {
         retire(world);
+    }
+    if world.get_resource::<Capture>().is_some_and(|c| {
+        frame.saturating_sub(c.started) >= 90 && now - c.started_at >= CAPTURE_SECONDS_PER_ANGLE
+    }) && let Some(mut capture) = world.remove_resource::<Capture>()
+    {
+        if capture.opposite {
+            capture.done = true;
+            world.insert_resource(capture);
+            retire(world);
+        } else {
+            capture.opposite = true;
+            world.entity_mut(capture.camera).insert(camera_pose(
+                capture.center,
+                capture.radius,
+                true,
+            ));
+            world.despawn(capture.reader);
+            capture.reader = world
+                .spawn(Readback::texture(capture.target.clone()))
+                .observe(receive)
+                .id();
+            capture.started = frame;
+            capture.started_at = now;
+            capture.stable = 0;
+            capture.previous.clear();
+            world.insert_resource(capture);
+        }
     }
     let shelf_visible = web_sys::window()
         .and_then(|w| w.document())
@@ -313,10 +346,10 @@ fn receive(event: On<ReadbackComplete>, capture: Option<ResMut<Capture>>, frame:
         0
     };
     capture.previous.clone_from(&event.data);
-    if capture.stable < 2 && frame.0.saturating_sub(capture.started) < 90 {
+    if capture.stable < 2 {
         return;
     }
-    if nonuniform && let Ok(url) = encode(&event.data) {
+    if nonuniform && let Ok(url) = encode(&event.data, SIZE) {
         CACHE.with(|cache| {
             let mut cache = cache.borrow_mut();
             if cache.head == Some(capture.head) {
@@ -327,7 +360,23 @@ fn receive(event: On<ReadbackComplete>, capture: Option<ResMut<Capture>>, frame:
     }
     capture.done = true;
 }
-fn encode(bytes: &[u8]) -> Result<String, String> {
+/// A source placement already rendered these exact bytes in its qualification
+/// view. Reuse that proof instead of capturing a second camera/material path.
+pub(super) fn record_verified_pixels(key: Key, bytes: &[u8], size: u32) {
+    if let Ok(url) = encode(bytes, size) {
+        CACHE.with(|cache| {
+            let mut cache = cache.borrow_mut();
+            cache.failed.remove(&key);
+            cache.images.insert(key, url);
+            changed(&cache);
+        });
+    }
+}
+
+fn encode(bytes: &[u8], size: u32) -> Result<String, String> {
+    if !(1..=512).contains(&size) || bytes.len() != (size * size * 4) as usize {
+        return Err("Dimensions d’aperçu invalides".into());
+    }
     let canvas = web_sys::window()
         .and_then(|w| w.document())
         .ok_or("Document absent")?
@@ -335,8 +384,8 @@ fn encode(bytes: &[u8]) -> Result<String, String> {
         .map_err(|_| "Canvas absent")?
         .dyn_into::<web_sys::HtmlCanvasElement>()
         .map_err(|_| "Canvas invalide")?;
-    canvas.set_width(SIZE);
-    canvas.set_height(SIZE);
+    canvas.set_width(size);
+    canvas.set_height(size);
     let context = canvas
         .get_context("2d")
         .map_err(|_| "Contexte absent")?
@@ -345,8 +394,8 @@ fn encode(bytes: &[u8]) -> Result<String, String> {
         .map_err(|_| "Contexte invalide")?;
     let pixels = web_sys::ImageData::new_with_u8_clamped_array_and_sh(
         wasm_bindgen::Clamped(bytes),
-        SIZE,
-        SIZE,
+        size,
+        size,
     )
     .map_err(|_| "Pixels invalides")?;
     context
@@ -364,12 +413,39 @@ fn start_capture(
     parts: &[(Entity, Vec3, Vec3)],
     frame: u32,
 ) {
+    let pinned_copies = parts
+        .iter()
+        .filter_map(|(entity, _, _)| {
+            world
+                .get::<MeshMaterial3d<SourceGraphMaterial>>(*entity)
+                .map(|_| super::source_graph_draw_probe::DrawCopy::prepare(world, *entity))
+        })
+        .collect::<Result<Vec<_>, _>>();
+    let Ok(pinned_copies) = pinned_copies else {
+        CACHE.with(|cache| {
+            let mut cache = cache.borrow_mut();
+            cache.failed.insert(row.key);
+            changed(&cache);
+        });
+        return;
+    };
+    let copies = pinned_copies
+        .into_iter()
+        .map(|copy| copy.spawn(world, LAYER))
+        .collect();
     let mut min = Vec3::splat(f32::INFINITY);
     let mut max = Vec3::splat(f32::NEG_INFINITY);
     let mut layers = Vec::new();
     for (entity, lo, hi) in parts {
         min = min.min(*lo);
         max = max.max(*hi);
+        if world
+            .get::<MeshMaterial3d<SourceGraphMaterial>>(*entity)
+            .is_some()
+        {
+            // A source graph's original layer belongs to the shadow route.
+            continue;
+        }
         let original = world.get::<RenderLayers>(*entity).cloned();
         let extended = original.clone().unwrap_or_default().with(LAYER);
         world.entity_mut(*entity).insert(extended);
@@ -403,10 +479,7 @@ fn start_capture(
             RenderTarget::Image(target.clone().into()),
             Msaa::Off,
             RenderLayers::layer(LAYER),
-            Transform::from_translation(
-                center + Vec3::new(1.0, 0.65, 1.0).normalize() * radius * 3.2,
-            )
-            .looking_at(center, Vec3::Y),
+            camera_pose(center, radius, false),
             Projection::Perspective(PerspectiveProjection {
                 fov: 45_f32.to_radians(),
                 near: 0.01,
@@ -426,9 +499,20 @@ fn start_capture(
         reader,
         target,
         layers,
+        copies,
         started: frame,
+        started_at: world.resource::<Time<Real>>().elapsed_secs_f64(),
+        center,
+        radius,
+        opposite: false,
         done: false,
         previous: Vec::new(),
         stable: 0,
     });
+}
+
+fn camera_pose(center: Vec3, radius: f32, opposite: bool) -> Transform {
+    let side = if opposite { -1.0 } else { 1.0 };
+    Transform::from_translation(center + Vec3::new(side, 0.45, side).normalize() * radius * 3.4)
+        .looking_at(center, Vec3::Y)
 }

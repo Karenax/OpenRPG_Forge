@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "area-migration-bundle@1.0.0",
+  "areaResref": "ab_crypt",
+  "complete": false,
+  "counts": {
+    "tiles": 20,
+    "instances": 5,
+    "uniqueModels": 0,
+    "textures": 0,
+    "preservedNavigation": 0,
+    "missingItems": 0,
+    "fallbacks": 24,
+    "diagnostics": 7,
+    "warnings": 1,
+    "errors": 0,
+    "byStatus": {
+      "exact": 1,
+      "approximated": 1,
+      "manual": 23
+    }
+  },
+  "navigationConverted": false,
+  "navigationStatus": "preserved-not-converted",
+  "diagnosticsFile": "diagnostics.jsonl",
+  "bundleIsLocalOnly": true,
+  "sourceModuleImmutable": true,
+  "payloadFileCount": 3,
+  "payloadSizeBytes": 26702
+}

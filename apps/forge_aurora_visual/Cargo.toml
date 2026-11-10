@@ -1,0 +1,18 @@
+[package]
+name = "forge_aurora_visual"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "Visual two-zone visit of a validated Aurora module bundle."
+
+[dependencies]
+bevy.workspace = true
+forge_aurora_bridge = { path = "../../crates/forge_aurora_bridge" }
+forge_aurora_runtime = { path = "../../crates/forge_aurora_runtime" }
+forge_core.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

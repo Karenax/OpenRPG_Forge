@@ -146,25 +146,43 @@ fn installed_legacy_reference_restores_plants_surfaces_and_environment() {
     let mut host = AuthoringHost::new(&root).unwrap();
     host.execute_workspace(WorkspaceHostRequest::Open).unwrap();
     let area = "e620dd19-ead9-5913-a6d6-0f93109148c0".parse().unwrap();
-    let state = host.execute(AuthoringRequest::OpenManaged { area_id: area }).unwrap();
+    let state = host
+        .execute(AuthoringRequest::OpenManaged { area_id: area })
+        .unwrap();
     let scope = Scope::from_state(&state).unwrap().unwrap();
     assert!(scope.origin.is_none() && scope.imported);
     let mut reader = Resources::default();
     let data = complete(acquire(
-        scope, None, |request| ready(reader.execute(&root, &mut host, request)), || true,
-    )).unwrap().unwrap();
+        scope,
+        None,
+        |request| ready(reader.execute(&root, &mut host, request)),
+        || true,
+    ))
+    .unwrap()
+    .unwrap();
     assert!(data.snapshot.legacy_reference);
     let plants = data.imported.as_ref().unwrap();
     assert_eq!(plants.decode_geometry().unwrap().groups.len(), 6);
     let surfaces = data.objects.as_ref().unwrap();
     let catalog = surfaces.catalog();
-    let current = state.zone_head.as_ref().unwrap().corrections.placements.as_deref().unwrap();
+    let current = state
+        .zone_head
+        .as_ref()
+        .unwrap()
+        .corrections
+        .placements
+        .as_deref()
+        .unwrap();
     let referenced: std::collections::BTreeSet<_> = current
         .iter()
         .filter_map(|placement| {
-            catalog.assets.iter().find(|asset| {
-                asset.id == placement.asset_id && asset.content_hash == placement.asset_hash
-            }).map(|asset| asset.id)
+            catalog
+                .assets
+                .iter()
+                .find(|asset| {
+                    asset.id == placement.asset_id && asset.content_hash == placement.asset_hash
+                })
+                .map(|asset| asset.id)
         })
         .collect();
     assert_eq!(referenced.len(), 6);
@@ -175,11 +193,19 @@ fn installed_legacy_reference_restores_plants_surfaces_and_environment() {
     assert_eq!(environment.file_count(), 266);
     #[cfg(feature = "scene-host-tests")]
     forge_engine::source_environment::package::prepare(environment).unwrap();
-    assert_eq!(data.snapshot.files.len(), plants.files().len() + package.resources.len() + environment.file_count() + 3);
+    assert_eq!(
+        data.snapshot.files.len(),
+        plants.files().len() + package.resources.len() + environment.file_count() + 3
+    );
     let bytes: u64 = data.snapshot.files.iter().map(|file| file.bytes).sum();
-    println!("legacy_reference={} head={} index={} files={} bytes={} plant_groups=6 object_pins=6 environment_frames=120",
-        data.snapshot.package_sha256, scope.head, data.imported_index.unwrap(),
-        data.snapshot.files.len(), bytes);
+    println!(
+        "legacy_reference={} head={} index={} files={} bytes={} plant_groups=6 object_pins=6 environment_frames=120",
+        data.snapshot.package_sha256,
+        scope.head,
+        data.imported_index.unwrap(),
+        data.snapshot.files.len(),
+        bytes
+    );
 }
 
 #[cfg(not(target_arch = "wasm32"))]

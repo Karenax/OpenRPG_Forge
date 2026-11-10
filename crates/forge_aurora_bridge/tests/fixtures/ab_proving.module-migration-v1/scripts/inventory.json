@@ -1,0 +1,328 @@
+{
+  "schemaVersion": "module-scripts@1",
+  "scripts": [
+    {
+      "resref": "ab_act_start",
+      "ncs": {
+        "path": "scripts/ab_act_start.ncs",
+        "sha256": "fa2f1248ed06bfa27c45a98eeb754cb70a4173d1b1d6b0b18db902dfa160aef4",
+        "sizeBytes": 188
+      },
+      "nss": {
+        "path": "scripts/ab_act_start.nss",
+        "sha256": "7eea11c72480707406833428eb007df13fb17d41eefa295ce3f1a11409e5e837",
+        "sizeBytes": 236
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_guide_dlg.dlg",
+          "fieldPath": "root.ReplyList[0].Script"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_camp_enter",
+      "ncs": {
+        "path": "scripts/ab_camp_enter.ncs",
+        "sha256": "d806e7480e7bdfd681914092c7733a43bbaefa1a873035c877fe39809cb6bc9f",
+        "sizeBytes": 269
+      },
+      "nss": {
+        "path": "scripts/ab_camp_enter.nss",
+        "sha256": "df53f86ab0d025e994f7972309134091fe40d49867f8c4771ddc734c8ab75837",
+        "sizeBytes": 369
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_camp.are",
+          "fieldPath": "root.OnEnter"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_chest_dist",
+      "ncs": {
+        "path": "scripts/ab_chest_dist.ncs",
+        "sha256": "9127a9e60899a52ea036733afa7025e26f9032e8bc37319b4456e9b878f17ae4",
+        "sizeBytes": 231
+      },
+      "nss": {
+        "path": "scripts/ab_chest_dist.nss",
+        "sha256": "d4a0d714bbba134d4a96022780bbbf334df3c4f4fa2dd64455397fb299de7fe1",
+        "sizeBytes": 308
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_chest.utp",
+          "fieldPath": "root.OnInvDisturbed"
+        },
+        {
+          "resource": "ab_crypt.git",
+          "fieldPath": "root.Placeable List[0].OnInvDisturbed"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_cond_active",
+      "ncs": {
+        "path": "scripts/ab_cond_active.ncs",
+        "sha256": "be7c5e68917b6d9d4ecec4fdc1171cc2a75682b18025cd93fa139ed68bac5b0f",
+        "sizeBytes": 172
+      },
+      "nss": {
+        "path": "scripts/ab_cond_active.nss",
+        "sha256": "0596a7b8cd7f5db4a8aed008cabc8f39a77ff3b758bc70bdd078909793067077",
+        "sizeBytes": 175
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_guide_dlg.dlg",
+          "fieldPath": "root.EntryList[0].RepliesList[1].Active"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_cond_done",
+      "ncs": {
+        "path": "scripts/ab_cond_done.ncs",
+        "sha256": "c7b7b9bf5e97004fa1a68590e7a5bd0986d964e994da4791af71bde8799061a6",
+        "sizeBytes": 90
+      },
+      "nss": {
+        "path": "scripts/ab_cond_done.nss",
+        "sha256": "a8cc8f3014f81c2150fa8e73703ddd66859ac8ece9e1f91ca3bcdcb67ddc3025",
+        "sizeBytes": 93
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_guide_dlg.dlg",
+          "fieldPath": "root.EntryList[0].RepliesList[3].Active"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_cond_relic",
+      "ncs": {
+        "path": "scripts/ab_cond_relic.ncs",
+        "sha256": "50ac71f58309b8776ec5c89a90d4e9db0e485d3d707b78ce9d42388ff64a9933",
+        "sizeBytes": 173
+      },
+      "nss": {
+        "path": "scripts/ab_cond_relic.nss",
+        "sha256": "02b1cd049ccfe6b92b11fa1d3005ab7d0c47f4b13ccceba7230328bc6261cafe",
+        "sizeBytes": 176
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_guide_dlg.dlg",
+          "fieldPath": "root.EntryList[0].RepliesList[2].Active"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_cond_start",
+      "ncs": {
+        "path": "scripts/ab_cond_start.ncs",
+        "sha256": "ac3658398f02285bab65ca8ee1793b74c3c3e4af0ce622e531fea9c8f5147b46",
+        "sizeBytes": 89
+      },
+      "nss": {
+        "path": "scripts/ab_cond_start.nss",
+        "sha256": "7f8b01c3aeb10338bc6d14bb1408c77cca5825e8e213c55488a3c3b12cafc924",
+        "sizeBytes": 92
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_guide_dlg.dlg",
+          "fieldPath": "root.EntryList[0].RepliesList[0].Active"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_crypt_enter",
+      "ncs": {
+        "path": "scripts/ab_crypt_enter.ncs",
+        "sha256": "2ee6289994d0621ceb8e5186a1ac62583278caf323a03bdf1d1bdabbfdd7df9a",
+        "sizeBytes": 124
+      },
+      "nss": {
+        "path": "scripts/ab_crypt_enter.nss",
+        "sha256": "196aa1f8703a3f25890a59c6588a6a0f157d1be1a81bf06228f8d92d6b3a2c7f",
+        "sizeBytes": 154
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_crypt.are",
+          "fieldPath": "root.OnEnter"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_gate_used",
+      "ncs": {
+        "path": "scripts/ab_gate_used.ncs",
+        "sha256": "71b2ae9be4f604a24f4144c7cd805142eb4defa6299c24edea63a7bd6fa178bb",
+        "sizeBytes": 65
+      },
+      "nss": {
+        "path": "scripts/ab_gate_used.nss",
+        "sha256": "f56651e47f6f0f450fccdf8509568f3f5489431b471737200860add02f844ccc",
+        "sizeBytes": 86
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_camp.git",
+          "fieldPath": "root.Door List[0].OnOpen"
+        },
+        {
+          "resource": "ab_gate.utd",
+          "fieldPath": "root.OnOpen"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_guard_death",
+      "ncs": {
+        "path": "scripts/ab_guard_death.ncs",
+        "sha256": "84c6bc8d8fe9123e019b2a213b40a22f15c2b891f04a7c982bae3d304b7cd99d",
+        "sizeBytes": 105
+      },
+      "nss": {
+        "path": "scripts/ab_guard_death.nss",
+        "sha256": "1de1a116adcfeeeef0381b300643cc55bcaa0226ba0777321850a2285a2d4e39",
+        "sizeBytes": 140
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_crypt.git",
+          "fieldPath": "root.Creature List[0].ScriptDeath"
+        },
+        {
+          "resource": "ab_guardian.utc",
+          "fieldPath": "root.ScriptDeath"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_guide_talk",
+      "ncs": {
+        "path": "scripts/ab_guide_talk.ncs",
+        "sha256": "5d111562bf8d70cb0ffedfcb3c61f56c56c0ebf7173d596a08b074cc308fd444",
+        "sizeBytes": 61
+      },
+      "nss": {
+        "path": "scripts/ab_guide_talk.nss",
+        "sha256": "5171db001a9be37f8905e32d37f66a556ced84e8a9fdd76d852c19fefadcfa81",
+        "sizeBytes": 89
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_camp.git",
+          "fieldPath": "root.Creature List[0].ScriptDialogue"
+        },
+        {
+          "resource": "ab_guide.utc",
+          "fieldPath": "root.ScriptDialogue"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_mod_load",
+      "ncs": {
+        "path": "scripts/ab_mod_load.ncs",
+        "sha256": "a1ddc19f5e587a06149a0801ff415f2ebe96cdc4385b7d1d058eb6b3c8a86b4f",
+        "sizeBytes": 326
+      },
+      "nss": {
+        "path": "scripts/ab_mod_load.nss",
+        "sha256": "41e099c0117146217d2327463f4db5378aefc42be78c195b30c8f8c27b6338e3",
+        "sizeBytes": 424
+      },
+      "includes": [],
+      "inboundReferences": [],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_relic_trigger",
+      "ncs": {
+        "path": "scripts/ab_relic_trigger.ncs",
+        "sha256": "69b9600de5ac78263f6fcb0d6376cbb6cb8e5a1e8d1c7dd17ba824fb65bf7f12",
+        "sizeBytes": 59
+      },
+      "nss": {
+        "path": "scripts/ab_relic_trigger.nss",
+        "sha256": "b98923ab3092e820b7cdd9cbf09a789cbe34ea67152981c43d799a1b149d6e6e",
+        "sizeBytes": 84
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_crypt.git",
+          "fieldPath": "root.TriggerList[0].ScriptOnEnter"
+        },
+        {
+          "resource": "ab_relic_trigger.utt",
+          "fieldPath": "root.ScriptOnEnter"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    },
+    {
+      "resref": "ab_reward",
+      "ncs": {
+        "path": "scripts/ab_reward.ncs",
+        "sha256": "d7c2cb03a81e0945d1edb07f3586f05273e458501a912a69ef12fa9bdbbbca41",
+        "sizeBytes": 376
+      },
+      "nss": {
+        "path": "scripts/ab_reward.nss",
+        "sha256": "0e43a527d9a6f9ef66373b8325079500706315f1807e41142362066800f5b071",
+        "sizeBytes": 492
+      },
+      "includes": [],
+      "inboundReferences": [
+        {
+          "resource": "ab_guide_dlg.dlg",
+          "fieldPath": "root.ReplyList[2].Script"
+        }
+      ],
+      "status": "exact",
+      "diagnostics": []
+    }
+  ]
+}

@@ -9,11 +9,16 @@ members = [
     "crates/forge_tidewater",
     "crates/forge_tidewater_assets",
     "crates/forge_assets",
+    "crates/forge_aurora_bridge",
+    "crates/forge_aurora_runtime",
+    "crates/forge_nwn_runtime",
+    "crates/forge_nwn_rules",
     "apps/forge_runtime",
     "apps/forge_studio",
+    "apps/forge_aurora_visual",
     "tools/forge_cli",
 ]
-exclude = ["tools/forge_delivery", "tools/forge_navigation_benchmark", "third_party/rerecast-0.4.0", "third_party/rapier3d-0.35.0-glamx0.2", "third_party/bevy_image-0.19.1-ruzstd0.9.1", "third_party/glib-0.18.5"]
+exclude = ["tools/forge_delivery", "tools/forge_navigation_benchmark", "third_party/rerecast-0.4.0", "third_party/rapier3d-0.35.0-glamx0.2", "third_party/bevy_image-0.19.1-ruzstd0.9.1", "third_party/glib-0.18.5", "third_party/tachys-0.2.18", "third_party/leptos_macro-0.8.17"]
 resolver = "3"
 
 [workspace.package]
@@ -53,6 +58,9 @@ web-sys = "=0.3.104"
 [patch.crates-io]
 # ADR-0038: official two-line VariantStrIter soundness fix; actual version retained.
 glib = { path = "third_party/glib-0.18.5" }
+# Gate 7: remove unresolved Tachys and Leptos macro dependencies from Studio Web.
+tachys = { path = "third_party/tachys-0.2.18" }
+leptos_macro = { path = "third_party/leptos_macro-0.8.17" }
 # ADR-0022: unchanged Bevy image code, official ruzstd security release.
 bevy_image = { path = "third_party/bevy_image-0.19.1-ruzstd0.9.1" }
 # Narrow KCC contact-normal fix retained from Source075; see third_party/rapier-normalization-NOTICE.md.

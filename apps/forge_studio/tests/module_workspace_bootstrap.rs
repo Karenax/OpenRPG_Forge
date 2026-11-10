@@ -976,9 +976,7 @@ fn two_modules_share_one_workspace_without_replacing_sources_or_shared_assets() 
             .unwrap();
         if key == "undo" {
             assert!(workspace.read_zone(second_area).is_err());
-            assert!(workspace
-                .read_zone(first.manifest.zones[0].area_id)
-                .is_ok());
+            assert!(workspace.read_zone(first.manifest.zones[0].area_id).is_ok());
         }
     }
     assert_eq!(workspace.session().head().projects, imported_projects);

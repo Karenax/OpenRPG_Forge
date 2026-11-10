@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "module-document@1",
+  "identity": {
+    "resref": "ab_proving",
+    "name": "Les Épreuves du Pont",
+    "description": "Module synthétique original de la passerelle Aurora/NWN.",
+    "tag": "AB_PROVING",
+    "version": "3",
+    "game": "nwn1-ee"
+  },
+  "entryAreaResref": "ab_camp",
+  "startPositions": [
+    {
+      "areaResref": "ab_camp",
+      "position": [
+        3.0,
+        3.0,
+        0.0
+      ],
+      "direction": [
+        0.0,
+        1.0
+      ]
+    }
+  ],
+  "areas": [
+    {
+      "resref": "ab_camp",
+      "name": "Camp du pont",
+      "width": 6,
+      "height": 6,
+      "tileCount": 36,
+      "instanceCount": 4,
+      "manifestPath": "areas/ab_camp.area-migration-v1/manifest.json"
+    },
+    {
+      "resref": "ab_crypt",
+      "name": "Crypte du pont",
+      "width": 5,
+      "height": 4,
+      "tileCount": 20,
+      "instanceCount": 5,
+      "manifestPath": "areas/ab_crypt.area-migration-v1/manifest.json"
+    }
+  ],
+  "properties": {
+    "minimumGameVersion": "1.69",
+    "expansionPack": 0,
+    "customTlk": null,
+    "hakFiles": [],
+    "isSaveGame": false,
+    "xpScale": 10
+  },
+  "eventScripts": {
+    "Mod_OnModLoad": "ab_mod_load"
+  },
+  "globalVariables": [],
+  "localization": {
+    "language": "english",
+    "customTlk": null,
+    "textSource": "embedded"
+  },
+  "unmappedFields": [
+    {
+      "label": "Mod_Creator_ID",
+      "fieldType": 5,
+      "reason": "champ IFO non projeté par module-document@1",
+      "status": "manual"
+    },
+    {
+      "label": "Mod_DawnHour",
+      "fieldType": 0,
+      "reason": "champ IFO non projeté par module-document@1",
+      "status": "manual"
+    },
+    {
+      "label": "Mod_DuskHour",
+      "fieldType": 0,
+      "reason": "champ IFO non projeté par module-document@1",
+      "status": "manual"
+    },
+    {
+      "label": "Mod_MinPerHour",
+      "fieldType": 0,
+      "reason": "champ IFO non projeté par module-document@1",
+      "status": "manual"
+    },
+    {
+      "label": "Mod_StartDay",
+      "fieldType": 0,
+      "reason": "champ IFO non projeté par module-document@1",
+      "status": "manual"
+    },
+    {
+      "label": "Mod_StartHour",
+      "fieldType": 0,
+      "reason": "champ IFO non projeté par module-document@1",
+      "status": "manual"
+    },
+    {
+      "label": "Mod_StartMonth",
+      "fieldType": 0,
+      "reason": "champ IFO non projeté par module-document@1",
+      "status": "manual"
+    },
+    {
+      "label": "Mod_StartYear",
+      "fieldType": 4,
+      "reason": "champ IFO non projeté par module-document@1",
+      "status": "manual"
+    }
+  ]
+}

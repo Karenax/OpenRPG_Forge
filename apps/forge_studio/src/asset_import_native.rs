@@ -210,7 +210,9 @@ impl AssetImportStore {
         receipt: &ImportReceipt,
         plan_sha256: Option<ContentHash>,
     ) -> Result<(), String> {
-        let hash = receipt.catalog_sha256.ok_or("Accepted import has no catalogue")?;
+        let hash = receipt
+            .catalog_sha256
+            .ok_or("Accepted import has no catalogue")?;
         if head.history.len() >= MAX_HISTORY
             || (!head.catalogs.contains(&hash) && head.catalogs.len() >= MAX_HISTORY)
         {

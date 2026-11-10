@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-preview-aurora-bundle"
+description = "Enables the preview_aurora_bundle command without any pre-configured scope."
+commands.allow = ["preview_aurora_bundle"]
+
+[[permission]]
+identifier = "deny-preview-aurora-bundle"
+description = "Denies the preview_aurora_bundle command without any pre-configured scope."
+commands.deny = ["preview_aurora_bundle"]

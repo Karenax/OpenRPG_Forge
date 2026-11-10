@@ -67,6 +67,7 @@ impl SourceUnlitForwardExtension {
         }
         let mut textures = images.into_iter().map(Some).chain(std::iter::repeat(None));
         let bindings = SourceGraphExtension {
+            source_decal_fragment: None,
             program_key: SourceGraphKey {
                 requires_source_state: false,
                 source_state_ready: false,

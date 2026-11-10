@@ -1,0 +1,16 @@
+[package]
+name = "forge_nwn_rules"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "Separate NWN rules profile: deterministic RNG, d20 combat, items, spells, factions and quest state."
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

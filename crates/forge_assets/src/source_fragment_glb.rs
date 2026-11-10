@@ -39,6 +39,11 @@ pub fn prepare(raw: &[u8]) -> Result<PreparedSourceFragmentGlb<'_>, String> {
             "source graph requires its own scene renderer; ordinary glTF loading is refused".into(),
         );
     }
+    if crate::source_decal_glb::source_decal_declared(&document)? {
+        return Err(
+            "source decal requires its own scene renderer; ordinary glTF loading is refused".into(),
+        );
+    }
     let required = document
         .get("extensionsRequired")
         .and_then(serde_json::Value::as_array)

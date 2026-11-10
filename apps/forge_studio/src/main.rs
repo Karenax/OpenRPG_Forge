@@ -5,6 +5,7 @@ use forge_studio_frontend::{StudioCommand, StudioResponse, decode_tauri_wire, en
 use forge_world::embedded_gate0_proof_document;
 use std::sync::{Mutex, OnceLock};
 use tauri::Manager;
+mod aurora_import;
 mod native_assistant;
 mod native_atelier;
 mod native_game;
@@ -703,6 +704,9 @@ fn main() -> Result<(), String> {
             import_module_package,
             export_module,
             export_game,
+            aurora_import::preview_aurora_bundle,
+            aurora_import::import_aurora_bundle,
+            aurora_import::run_aurora_gameplay,
             read_asset_library,
             read_asset_model,
             read_asset_physics,
@@ -1000,6 +1004,9 @@ mod tests {
             "import_module_package",
             "export_module",
             "export_game",
+            "preview_aurora_bundle",
+            "import_aurora_bundle",
+            "run_aurora_gameplay",
             "read_asset_physics",
             "read_asset_particles",
         ] {

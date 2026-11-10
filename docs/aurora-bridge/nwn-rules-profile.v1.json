@@ -1,0 +1,14 @@
+{
+  "schema": "forge.nwn-rules-profile@1",
+  "id": "nwn-ee-vanilla-m4-subset",
+  "ruleset": "vanilla",
+  "maxLevel": 40,
+  "hostileReputationMax": 0,
+  "criticalConfirmation": true,
+  "naturalOneMisses": true,
+  "naturalTwentyHits": true,
+  "maxRounds": 50,
+  "moveSpeedMPerRound": 3,
+  "meleeReachM": 2,
+  "source": "NWN:EE nwscript.nss + synthetic M4 fixture; no 2DA copied"
+}

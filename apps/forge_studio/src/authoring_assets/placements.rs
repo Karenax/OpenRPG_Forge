@@ -17,6 +17,12 @@ use std::{
 };
 
 type AssetKey = (forge_core::AssetId, forge_core::ContentHash);
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum CarrierKind {
+    Ordinary,
+    Graph,
+    Decal,
+}
 #[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(super) enum PlacementSystems {
     Projection,
@@ -35,7 +41,7 @@ mod physics_status;
 pub(crate) mod selection;
 struct Prepared {
     placements: Vec<ManualPlacement>,
-    assets: BTreeMap<AssetKey, (String, Vec<u8>, super::preview::SceneLayout, bool)>,
+    assets: PreparedAssets,
     physics: BTreeMap<forge_core::EntityId, super::source_graph_physics::SourcePhysicsPayload>,
     particles: BTreeMap<forge_core::EntityId, super::source_graph_particles::SourceParticlePayload>,
 }
@@ -53,7 +59,7 @@ thread_local! {
     static ACCEPTED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static DESIRED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static EPOCH: Cell<u64> = const { Cell::new(0) };
-    static RESIDENT: RefCell<BTreeMap<AssetKey, (usize, bool)>> = const { RefCell::new(BTreeMap::new()) };
+    static RESIDENT: RefCell<BTreeMap<AssetKey, (usize, CarrierKind)>> = const { RefCell::new(BTreeMap::new()) };
     static READY: Cell<bool> = const { Cell::new(true) };
     static FAILED: Cell<bool> = const { Cell::new(false) };
     static REQUEST: RefCell<Option<Request>> = const { RefCell::new(None) };
@@ -601,6 +607,7 @@ struct Object {
     id: forge_core::EntityId,
     root: Entity,
     handle: Option<Handle<WorldAsset>>,
+    kind: CarrierKind,
     name: String,
     layout: super::preview::SceneLayout,
     frame: Option<(Vec3, f32)>,
@@ -614,6 +621,7 @@ struct ResidentAsset {
     layout: super::preview::SceneLayout,
     handle: Option<Handle<WorldAsset>>,
     source: Option<std::sync::Arc<[u8]>>,
+    kind: CarrierKind,
     path: String,
     bytes: usize,
 }
@@ -713,7 +721,7 @@ impl Projection {
             slot.replace(
                 self.assets
                     .iter()
-                    .map(|(key, asset)| (*key, (asset.bytes, asset.source.is_some())))
+                    .map(|(key, asset)| (*key, (asset.bytes, asset.kind)))
                     .collect(),
             )
         });
@@ -735,6 +743,13 @@ impl Projection {
                     ));
                     if object.source.transform != placement.transform {
                         object.frame = None;
+                        if object.kind == CarrierKind::Graph {
+                            commands
+                                .entity(object.root)
+                                .remove::<super::source_graph_placement::DrawStatus>()
+                                .remove::<PlacementVisualReady>()
+                                .insert(Visibility::Hidden);
+                        }
                     }
                     object.source = placement;
                 }
@@ -760,18 +775,25 @@ impl Projection {
                 commands.entity(root).insert(WorldAssetRoot(handle.clone()));
             }
             if let Some(carrier) = &asset.source {
-                super::source_graph_placement::submit(
-                    commands,
-                    root,
-                    carrier.clone(),
-                    prepared.physics.remove(&placement.id),
-                    prepared.particles.remove(&placement.id),
-                );
+                if asset.kind == CarrierKind::Decal {
+                    commands
+                        .entity(root)
+                        .insert(super::source_decal_placement::Carrier(carrier.clone()));
+                } else {
+                    super::source_graph_placement::submit(
+                        commands,
+                        root,
+                        carrier.clone(),
+                        prepared.physics.remove(&placement.id),
+                        prepared.particles.remove(&placement.id),
+                    );
+                }
             }
             self.objects.push(Object {
                 id: placement.id,
                 root,
                 handle: asset.handle.clone(),
+                kind: asset.kind,
                 name: asset.name.clone(),
                 layout: asset.layout,
                 source: placement,
@@ -847,6 +869,7 @@ pub(super) fn bind_sources() -> leptos::prelude::RwSignal<u64> {
 
 pub(super) fn register(app: &mut App) {
     super::source_graph_placement::register(app);
+    super::source_decal_placement::register(app);
     app.add_plugins(forge_engine::ManualPlacementCollisionPlugin);
     app.add_systems(PostUpdate, physics_status::report_status);
     app.add_systems(
@@ -882,7 +905,9 @@ fn update(
     source_status: Query<(
         &super::source_graph_placement::Status,
         Option<&super::source_graph_runtime::SourceFrameStatus>,
+        Option<&super::source_graph_placement::DrawStatus>,
     )>,
+    decal_status: Query<&super::source_decal_placement::Status>,
     mut state: Local<Projection>,
 ) {
     if let Some(request) = REQUEST.with(|slot| slot.borrow_mut().take()) {
@@ -929,6 +954,7 @@ fn update(
         &nodes,
         &collision_extras,
         &source_status,
+        &decal_status,
     );
     match result {
         Ok(true) => {
@@ -944,16 +970,31 @@ fn update(
         }
         Ok(false)
             if time.elapsed_secs_f64() - state.started <= 30.0
-                || state
+                || (time.elapsed_secs_f64() - state.started <= 180.0
+                    && state
+                        .objects
+                        .iter()
+                        .any(|object| object.handle.is_none() && object.frame.is_none())
+                    && state
+                        .objects
+                        .iter()
+                        .all(|object| object.handle.is_none() || object.frame.is_some())) => {}
+        result => {
+            let deadline = if state.objects.iter().any(|object| object.handle.is_none())
+                && state
                     .objects
                     .iter()
-                    .all(|object| object.handle.is_none() || object.frame.is_some()) => {}
-        result => {
+                    .all(|object| object.handle.is_none() || object.frame.is_some())
+            {
+                "Délai de chargement des modèles source dépassé (180 s)"
+            } else {
+                "Délai de chargement dépassé (30 s)"
+            };
             state.clear(&mut commands);
             FAILED.with(|slot| slot.set(true));
             report(format!(
                 "Placements non projetés : {}",
-                result.err().unwrap_or("Délai de chargement dépassé (30 s)")
+                result.err().as_deref().unwrap_or(deadline)
             ));
         }
     }
@@ -961,14 +1002,26 @@ fn update(
 }
 
 fn sync_visibility(
-    mut roots: Query<(&gizmo::PlacementRoot, &mut Visibility), With<PlacementVisualReady>>,
+    mut roots: Query<
+        (
+            &gizmo::PlacementRoot,
+            &mut Visibility,
+            Option<&super::source_graph_runtime::SourceFrameStatus>,
+        ),
+        With<PlacementVisualReady>,
+    >,
 ) {
-    for (placement, mut visibility) in &mut roots {
-        let desired = if crate::authoring_vegetation::promotion_placement_visible(placement.0) {
-            Visibility::Inherited
-        } else {
-            Visibility::Hidden
-        };
+    for (placement, mut visibility, source) in &mut roots {
+        let refused = matches!(
+            source,
+            Some(super::source_graph_runtime::SourceFrameStatus::Refused(_))
+        );
+        let desired =
+            if !refused && crate::authoring_vegetation::promotion_placement_visible(placement.0) {
+                Visibility::Inherited
+            } else {
+                Visibility::Hidden
+            };
         if *visibility != desired {
             *visibility = desired;
         }
@@ -985,15 +1038,59 @@ fn qualify(
     source_status: &Query<(
         &super::source_graph_placement::Status,
         Option<&super::source_graph_runtime::SourceFrameStatus>,
+        Option<&super::source_graph_placement::DrawStatus>,
     )>,
-) -> Result<bool, &'static str> {
+    decal_status: &Query<&super::source_decal_placement::Status>,
+) -> Result<bool, String> {
     let (instances, spawner) = instance_lookup;
     for object in &mut state.objects {
-        if object.handle.is_none() {
-            if let Ok((status, frame)) = source_status.get(object.root) {
-                qualify_source(status, frame)?;
+        if object.kind == CarrierKind::Decal {
+            use super::source_decal_placement::Status;
+            match decal_status.get(object.root) {
+                Ok(Status::Refused(reason)) => {
+                    return Err(format!("Toile non projetée : {reason}"));
+                }
+                Ok(Status::Ready { center, radius }) => {
+                    let pose = forge_engine::placement_transform(&object.source);
+                    object.frame = Some((
+                        pose.transform_point(*center),
+                        (*radius * pose.scale.abs().max_element() * 3.4).max(0.2),
+                    ));
+                }
+                Err(_) => {}
             }
-            continue; // GPU pass/LOD admission is still required before reveal.
+            continue;
+        }
+        if object.handle.is_none() {
+            if let Ok((status, frame, draw)) = source_status.get(object.root) {
+                qualify_source(status, frame)?;
+                use super::source_graph_placement::DrawStatus;
+                match draw {
+                    Some(DrawStatus::Refused(reason)) => {
+                        return Err(format!("Rendu du placement source refusé : {reason}"));
+                    }
+                    Some(DrawStatus::Drawn(parts)) if object.frame.is_none() => {
+                        object.frame = super::preview::configure_layout(
+                            object.root,
+                            &object.name,
+                            super::preview::SceneLayout::AutonomousScene,
+                            parts.iter().copied(),
+                            nodes,
+                            commands,
+                        )?;
+                        if object.frame.is_some() {
+                            object.parts.clone_from(parts);
+                            for &entity in parts {
+                                commands
+                                    .entity(entity)
+                                    .insert(selection::PlacementPart(object.id));
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            continue;
         }
         if object.frame.is_some() {
             continue;
@@ -1008,7 +1105,7 @@ fn qualify(
             )
             .is_failed()
         {
-            return Err("Chargement GLB échoué");
+            return Err("Chargement GLB échoué".into());
         }
         let Ok(instance) = instances.get(object.root) else {
             continue;
@@ -1194,7 +1291,8 @@ fn publish_diagnostic(state: &Projection, nodes: &DiagnosticNodes) {
     });
 }
 
-type PreparedAssets = BTreeMap<AssetKey, (String, Vec<u8>, super::preview::SceneLayout, bool)>;
+type PreparedAssets =
+    BTreeMap<AssetKey, (String, Vec<u8>, super::preview::SceneLayout, CarrierKind)>;
 async fn prepare_geometry(
     placements: &[ManualPlacement],
     epoch: u64,
@@ -1213,9 +1311,9 @@ async fn prepare_geometry(
         if !seen.insert(key) {
             continue;
         }
-        if let Some((size, source)) = resident.get(&key) {
+        if let Some((size, kind)) = resident.get(&key) {
             total += size;
-            if *source {
+            if *kind == CarrierKind::Graph {
                 source_keys.insert(key);
             }
         } else {
@@ -1239,8 +1337,17 @@ async fn prepare_geometry(
                     .await
                     .map_err(|e| format!("Catalogue : {kit_error}; Modèle installé : {e}"))?,
             };
-            let source = forge_engine::source_graph_route::read(&bytes)?.is_some();
-            if source
+            let kind = if forge_assets::source_decal_glb::source_decal_declared_in_glb(
+                &bytes,
+                forge_engine::source_graph_route::carrier_budget(),
+            )? {
+                CarrierKind::Decal
+            } else if forge_engine::source_graph_route::read(&bytes)?.is_some() {
+                CarrierKind::Graph
+            } else {
+                CarrierKind::Ordinary
+            };
+            if kind != CarrierKind::Ordinary
                 && matches!(
                     layout,
                     super::preview::SceneLayout::ModuleStaticTriangles { .. }
@@ -1248,11 +1355,11 @@ async fn prepare_geometry(
             {
                 return Err("Le rôle statique du module ne remplace pas les rôles physiques d'un host source.".into());
             }
-            if source {
+            if kind == CarrierKind::Graph {
                 source_keys.insert(key);
             }
             total += bytes.len();
-            assets.insert(key, (name, bytes, layout, source));
+            assets.insert(key, (name, bytes, layout, kind));
         }
         if total > 256 * 1024 * 1024 {
             return Err("Budget de fichiers placements dépassé (256 Mio)".into());
@@ -1263,7 +1370,7 @@ async fn prepare_geometry(
 
 impl Projection {
     fn adopt_assets(&mut self, assets: PreparedAssets, server: &AssetServer) {
-        for (key, (name, bytes, layout, source)) in assets {
+        for (key, (name, bytes, layout, kind)) in assets {
             if self.assets.contains_key(&key) {
                 continue;
             }
@@ -1274,7 +1381,7 @@ impl Projection {
                 key.0,
                 key.1
             );
-            let (handle, source) = if source {
+            let (handle, source) = if kind != CarrierKind::Ordinary {
                 (None, Some(std::sync::Arc::<[u8]>::from(bytes)))
             } else {
                 super::preview::insert(&path, bytes);
@@ -1290,6 +1397,7 @@ impl Projection {
                     layout,
                     handle,
                     source,
+                    kind,
                     path,
                     bytes: size,
                 },
@@ -1301,14 +1409,14 @@ impl Projection {
 fn qualify_source(
     status: &super::source_graph_placement::Status,
     frame: Option<&super::source_graph_runtime::SourceFrameStatus>,
-) -> Result<(), &'static str> {
+) -> Result<(), String> {
     if let super::source_graph_placement::Status::Refused(reason) = status {
-        report(format!("Placement source refusé : {reason}"));
-        return Err("Montage du placement source refusé");
+        return Err(format!("Montage du placement source refusé : {reason}"));
     }
     if let Some(super::source_graph_runtime::SourceFrameStatus::Refused(reason)) = frame {
-        report(format!("Frame du placement source refusée : {reason}"));
-        return Err("Frame source refusée");
+        return Err(format!(
+            "Mise à jour du placement source refusée : {reason}"
+        ));
     }
     Ok(())
 }

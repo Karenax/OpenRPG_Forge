@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "module-rules-tables@1",
+  "tables": [],
+  "note": "Aucune table 2DA n'est copiée en M1 ; les règles de base restent fournies par l'installation locale."
+}

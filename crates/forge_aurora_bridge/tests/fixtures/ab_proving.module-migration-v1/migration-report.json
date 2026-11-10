@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "module-migration-report@1",
+  "moduleResref": "ab_proving",
+  "moduleName": "Les Épreuves du Pont",
+  "complete": false,
+  "playable": false,
+  "counts": {
+    "areas": 2,
+    "tiles": 56,
+    "instances": 9,
+    "blueprints": 10,
+    "dialogs": 1,
+    "journalEntries": 3,
+    "factions": 3,
+    "scriptsNcs": 14,
+    "scriptsNss": 14,
+    "rulesTables": 0,
+    "tlkStrings": 0,
+    "assets": 0,
+    "references": 41,
+    "missing": 0,
+    "unsupported": 0,
+    "licenseBlocked": 0,
+    "diagnostics": 6,
+    "warnings": 3,
+    "errors": 0
+  },
+  "areas": [
+    {
+      "resref": "ab_camp",
+      "name": "Camp du pont",
+      "manifestPath": "areas/ab_camp.area-migration-v1/manifest.json",
+      "tileCount": 36,
+      "instanceCount": 4,
+      "complete": false
+    },
+    {
+      "resref": "ab_crypt",
+      "name": "Crypte du pont",
+      "manifestPath": "areas/ab_crypt.area-migration-v1/manifest.json",
+      "tileCount": 20,
+      "instanceCount": 5,
+      "complete": false
+    }
+  ],
+  "readiness": {
+    "exportable": true,
+    "complete": false,
+    "playable": false,
+    "blockers": [],
+    "warnings": [
+      "Le modèle métier courant ne qualifie pas encore la zone comme intérieure ou extérieure ; areaKind reste unknown.",
+      "Le tileset tno01 n'est pas présent dans le bundle ; il reste une dépendance locale.",
+      "Les assets NWN résolus ne sont pas copiés dans ce bundle redistribuable ; leurs références restent explicites.",
+      "Les tables 2DA/TLK de base restent externes ; le bundle ne copie que les références explicites du module."
+    ]
+  },
+  "diagnosticsFile": "diagnostics.jsonl",
+  "sourceModuleImmutable": true,
+  "bundleIsLocalOnly": true,
+  "payloadScope": "module-level files excluding migration-report.json and manifest.json; nested area bundles have their own integrity roots",
+  "payloadFileCount": 40,
+  "payloadSizeBytes": 133832
+}

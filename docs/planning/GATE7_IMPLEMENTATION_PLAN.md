@@ -9,6 +9,15 @@ Le 049 privé couvre les volets Windows de R7-07, R7-09 et R7-10. Leurs
 volets Linux et R7-08 restent ouverts. Voir l'[état courant](../HANDOFF.md#gate-7-etat-courant)
 et la [matrice d'acceptation](../evidence/gate7/GATE7_PROGRESS_20261023.md#matrice-dacceptation).
 
+Le 10 novembre, le frontend Web release a été construit avec les deltas
+[Tachys](../../third_party/tachys-keyed-list-NOTICE.md) et
+[Leptos macro](../../third_party/leptos-macro-case-NOTICE.md). Les trois
+dépendances Cargo en réserve dans le 049 sont absentes du graphe de ce
+build. Le paquet privé 050 a passé le démarrage et la relecture des
+quatre index de notices sur Windows Sandbox hors ligne sans SDK.
+L'audit ne relève aucune identité Cargo sans texte candidat. Les droits
+de redistribution restent à établir.
+
 R7-02 : parcours natif 017 sur module de l'export
 privé 1.0.2, substitution, retour au détail et réactivation sur les profils ;
 réduction géométrique mesurée sur le cas dense séparé. Reçu
@@ -312,7 +321,14 @@ Une seule exécution par variante ne permet pas d'attribuer cet écart.
 Le relevé historique Release 012 retrouve les mêmes
 empreintes de jeu et de zone. La résolution, le pilote, les réglages et
 le scénario diffèrent. Le budget moyen de 16,67 ms et une comparaison
-appariée restent ouverts. L'inventaire R7-08
+appariée avec le lecteur historique restent ouverts. Le 10 novembre,
+deux paires en ordre inverse sur le trajet Tidewater ont mesuré
+17,30–17,42 ms avec le runtime 050 contre 22,34–22,71 ms avec le 049
+livré. Le véritable lecteur 012 a aussi été rejoué sur le pilote courant
+dans son scénario fixe et rotatif à 2560 × 1440. Les reçus et leurs
+périmètres figurent dans la [passation](../HANDOFF.md#gate-7-etat-courant).
+
+L'inventaire R7-08
 des exports 049 confirme leur portée privée et localise les quatre modèles
 Tidewater dont la redistribution est refusée par le catalogue embarqué.
 La filiation des quatre GLB est rapprochée jusqu'au pack source CC0. Le

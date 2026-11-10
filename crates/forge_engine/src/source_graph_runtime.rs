@@ -229,6 +229,28 @@ impl SourceSceneResidents {
             .map(|resident| resident.host.attached.primitives.as_slice())
     }
 
+    /// Static graph owners whose visible mesh set can be probed without an
+    /// independent LOD camera, particle frame, or source contact projection.
+    #[must_use]
+    pub fn static_primitives_for_carrier(
+        &self,
+        root: Entity,
+        carrier: forge_core::ContentHash,
+    ) -> Option<&[Entity]> {
+        self.scenes
+            .get(&root)
+            .filter(|resident| {
+                let host = &resident.host;
+                host.carrier_sha256 == carrier
+                    && host.particle_instances.is_empty()
+                    && host
+                        .original_state
+                        .as_ref()
+                        .is_none_or(|state| state.lod_groups.is_empty())
+            })
+            .map(|resident| resident.host.attached.primitives.as_slice())
+    }
+
     /// Exact resident primitives and their verified derived shadow proxies.
     pub fn owned_draws(&self, world: &World) -> Result<BTreeSet<Entity>, String> {
         let mut draws = BTreeSet::new();

@@ -167,3 +167,171 @@ fn world_sketch_commands_verify_sources_and_compile_bounded_outputs() {
 
     fs::remove_dir_all(directory).unwrap();
 }
+
+#[test]
+fn aurora_scenario_runs_the_m3_fixture_and_writes_a_report() {
+    let directory = temporary_directory();
+    let bundle = repository_root()
+        .join("crates/forge_aurora_bridge/tests/fixtures/ab_proving.module-migration-v1");
+    let report_path = directory.join("m3-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_forge_cli"))
+        .args([
+            "aurora-scenario",
+            bundle.to_str().unwrap(),
+            "--report",
+            report_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.starts_with("AURORA_SCENARIO module="));
+    assert!(stdout.contains("quest=completed"));
+    assert!(stdout.contains("journal=[10, 20, 30]"));
+    assert!(stdout.contains("resume_idempotent=true"));
+
+    let report: serde_json::Value =
+        serde_json::from_slice(&fs::read(&report_path).unwrap()).unwrap();
+    assert_eq!(report["schema"], "forge.aurora-m3-report@1");
+    assert_eq!(report["questStatus"], "completed");
+    assert_eq!(report["gold"], 50);
+    assert_eq!(report["unsupported"].as_array().unwrap().len(), 0);
+
+    fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn aurora_gameplay_runs_the_m4_fixture_and_writes_a_report() {
+    let directory = temporary_directory();
+    let bundle = repository_root()
+        .join("crates/forge_aurora_bridge/tests/fixtures/ab_proving.module-migration-v1");
+    let report_path = directory.join("m4-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_forge_cli"))
+        .args([
+            "aurora-gameplay",
+            bundle.to_str().unwrap(),
+            "--seed",
+            "2026",
+            "--profile",
+            repository_root()
+                .join("docs/aurora-bridge/nwn-rules-profile.v1.json")
+                .to_str()
+                .unwrap(),
+            "--report",
+            report_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.starts_with("AURORA_GAMEPLAY module="));
+    assert!(stdout.contains("quest=completed"));
+    assert!(stdout.contains("oracle=not-run"));
+    assert!(stdout.contains("resume_idempotent=true"));
+
+    let report: serde_json::Value =
+        serde_json::from_slice(&fs::read(&report_path).unwrap()).unwrap();
+    assert_eq!(report["schema"], "forge.aurora-m4-report@1");
+    assert_eq!(report["questStatus"], "completed");
+    assert_eq!(report["guardianHp"], 0);
+    assert!(report["rounds"].as_u64().unwrap() > 0);
+    assert!(report["unsupported"].as_array().unwrap().len() >= 4);
+
+    fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn aurora_m5_writes_a_trace_and_diff_oracle_detects_a_mutation() {
+    let directory = temporary_directory();
+    let bundle = repository_root()
+        .join("crates/forge_aurora_bridge/tests/fixtures/ab_proving.module-migration-v1");
+    let report_path = directory.join("m5-report.json");
+    let trace_path = directory.join("m5-trace.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_forge_cli"))
+        .args([
+            "aurora-m5",
+            bundle.to_str().unwrap(),
+            "--seed",
+            "2026",
+            "--report",
+            report_path.to_str().unwrap(),
+            "--trace",
+            trace_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.starts_with("AURORA_M5 module="));
+    assert!(stdout.contains("trace_entries=54"));
+    assert!(stdout.contains("accepted=true"));
+    assert!(stdout.contains("resume_idempotent=true"));
+
+    let report: serde_json::Value =
+        serde_json::from_slice(&fs::read(&report_path).unwrap()).unwrap();
+    assert_eq!(report["schema"], "forge.aurora-m5-report@1");
+    assert_eq!(report["migration"]["accepted"], true);
+    assert_eq!(report["resumeIdempotent"], true);
+    let trace: serde_json::Value = serde_json::from_slice(&fs::read(&trace_path).unwrap()).unwrap();
+    assert_eq!(trace["schema"], "forge.aurora-m5-trace@1");
+    assert_eq!(trace["redacted"], true);
+    assert_eq!(trace["entries"].as_array().unwrap().len(), 54);
+
+    let same = Command::new(env!("CARGO_BIN_EXE_forge_cli"))
+        .args([
+            "aurora-diff-oracle",
+            report_path.to_str().unwrap(),
+            report_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(same.status.success());
+    assert!(
+        String::from_utf8(same.stdout)
+            .unwrap()
+            .contains("matches=true")
+    );
+
+    let mut mutated = report;
+    mutated["m4"]["gold"] = serde_json::json!(49);
+    let mutated_path = directory.join("m5-mutated.json");
+    fs::write(&mutated_path, serde_json::to_vec_pretty(&mutated).unwrap()).unwrap();
+    let diff_path = directory.join("m5-diff.json");
+    let different = Command::new(env!("CARGO_BIN_EXE_forge_cli"))
+        .args([
+            "aurora-diff-oracle",
+            report_path.to_str().unwrap(),
+            mutated_path.to_str().unwrap(),
+            "--report",
+            diff_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(different.status.code(), Some(2));
+    let diff: serde_json::Value = serde_json::from_slice(&fs::read(&diff_path).unwrap()).unwrap();
+    assert_eq!(diff["matches"], false);
+    assert!(
+        diff["divergences"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["path"] == "gold")
+    );
+
+    fs::remove_dir_all(directory).unwrap();
+}

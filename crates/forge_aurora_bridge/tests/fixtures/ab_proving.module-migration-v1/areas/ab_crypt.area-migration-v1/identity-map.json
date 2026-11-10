@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "area-migration-bundle@1.0.0",
+  "moduleSha256": "01fb20336bc222369c2ccd43ea31da0b8b099366d387f6f512b6092f5a36c520",
+  "areaResref": "ab_crypt",
+  "entries": [
+    {
+      "stableId": "amv1-070c5aafb461d0617e53bee475104f3b",
+      "sourceKind": "creature",
+      "resourceKey": "ab_guardian",
+      "instanceIdentity": "ab_crypt:Creature List:0"
+    },
+    {
+      "stableId": "amv1-101dea0fea84d0789b1a577739b1c3c2",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:3"
+    },
+    {
+      "stableId": "amv1-18f5322e26ab510329d6801591fa8829",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:2"
+    },
+    {
+      "stableId": "amv1-30599812b7ed2e48a176c70e3d1d6e34",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:1"
+    },
+    {
+      "stableId": "amv1-4401cbe47853d79eab3173289f808bb5",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:1"
+    },
+    {
+      "stableId": "amv1-506edd22d3cfd0f923bc5a1d2b8f083a",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:3"
+    },
+    {
+      "stableId": "amv1-568c63caaea27e5b60cae4c771b3856d",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:0"
+    },
+    {
+      "stableId": "amv1-5aa34b722f0fa1f8eb0a1e951f5cb72b",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:0"
+    },
+    {
+      "stableId": "amv1-5f7c14f13067c22ab7a90f032ef8a822",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:0"
+    },
+    {
+      "stableId": "amv1-66fa48761499f04728d13ef218c822a3",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:1"
+    },
+    {
+      "stableId": "amv1-7370f0f59d522621a471f75d129a3df4",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:0"
+    },
+    {
+      "stableId": "amv1-7596beea090e4de7d5e5a068c721cbea",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:3"
+    },
+    {
+      "stableId": "amv1-75cac601ab57057600da39b746cfe696",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:3"
+    },
+    {
+      "stableId": "amv1-75d3f9b2490a89d4aa957d958c63deb3",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:2"
+    },
+    {
+      "stableId": "amv1-762565135e7df7085909de76d40afcd9",
+      "sourceKind": "door",
+      "resourceKey": "ab_gate_back",
+      "instanceIdentity": "ab_crypt:Door List:0"
+    },
+    {
+      "stableId": "amv1-7b6094b0fad04a867a27eae2ba091573",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:1:2"
+    },
+    {
+      "stableId": "amv1-7f1402237f6f5585a2497a96e9d3bb56",
+      "sourceKind": "waypoint",
+      "resourceKey": "ab_crypt_arrival",
+      "instanceIdentity": "ab_crypt:WaypointList:0"
+    },
+    {
+      "stableId": "amv1-8310f6e55a70175d89437976b22f6daa",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:3:2"
+    },
+    {
+      "stableId": "amv1-ac9d1a5195bdbd7c5699508d70ada29b",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:1"
+    },
+    {
+      "stableId": "amv1-b10e55161e855c72a5961933c35004db",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:0:0"
+    },
+    {
+      "stableId": "amv1-b7433059952f25c3a5ae83641babb893",
+      "sourceKind": "placeable",
+      "resourceKey": "ab_chest",
+      "instanceIdentity": "ab_crypt:Placeable List:0"
+    },
+    {
+      "stableId": "amv1-ba25d7454eaa422791defe4bf96d4dc0",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:1"
+    },
+    {
+      "stableId": "amv1-bf8c0ff709952e62ab566764b12fe797",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:4:3"
+    },
+    {
+      "stableId": "amv1-d7037948b3603f61ccf8eb725fd84f77",
+      "sourceKind": "trigger",
+      "resourceKey": "ab_relic_trigger",
+      "instanceIdentity": "ab_crypt:TriggerList:0"
+    },
+    {
+      "stableId": "amv1-ffae5e4152d195bd21884aff7c338ef4",
+      "sourceKind": "tile",
+      "resourceKey": "",
+      "instanceIdentity": "tile:2:2"
+    }
+  ]
+}

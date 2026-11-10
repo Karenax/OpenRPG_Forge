@@ -39,6 +39,10 @@ web = [
 [dependencies]
 forge_tidewater_assets.workspace = true
 forge_assets.workspace = true
+forge_aurora_bridge = { path = "../../crates/forge_aurora_bridge" }
+forge_aurora_runtime = { path = "../../crates/forge_aurora_runtime" }
+forge_nwn_runtime = { path = "../../crates/forge_nwn_runtime" }
+forge_nwn_rules = { path = "../../crates/forge_nwn_rules" }
 forge_core.workspace = true
 forge_gameplay.workspace = true
 forge_project.workspace = true

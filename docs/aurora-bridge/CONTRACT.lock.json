@@ -1,0 +1,22 @@
+{
+  "schema": "openrpg-aurora-contract-lock@1",
+  "contract": "module-migration-bundle",
+  "version": "1.0.0",
+  "status": "frozen",
+  "frozen": true,
+  "sourceRepository": "OpenNever_Forge",
+  "sourceBranch": "feat/aurora-bridge-module-export",
+  "sourceCommit": "6104b6f",
+  "sourceDirty": true,
+  "sourcePath": "docs/aurora-bridge/schemas/module-migration-bundle-v1.schema.json",
+  "frozenSha256": "342b331620cd8f564b7745cf6c7593ff11762bfe90293287f0ec82806fa8a999",
+  "mirroredPath": "docs/aurora-bridge/contract/module-migration-bundle-v1.schema.json",
+  "mirroredSha256": "342b331620cd8f564b7745cf6c7593ff11762bfe90293287f0ec82806fa8a999",
+  "updated": "2026-11-07",
+  "notes": [
+    "Contrat gelé pour l'import de production après AB-M1-15 et AB-M1-18.",
+    "Le miroir doit conserver exactement le SHA-256 enregistré ; toute dérive est refusée par un test.",
+    "OpenNever était en arbre de travail modifié lors du gel ; le commit source 6104b6f et le drapeau sourceDirty sont conservés pour la traçabilité.",
+    "Les données NWN restent propriétaires ; le bundle est local_only_proprietary par défaut."
+  ]
+}
