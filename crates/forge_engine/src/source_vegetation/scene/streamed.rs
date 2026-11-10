@@ -15,6 +15,7 @@ mod bounds;
 pub mod host;
 mod prepare;
 mod resident;
+mod shadow_range;
 pub use bounds::WorldEnvelopes;
 pub use resident::Resident;
 #[cfg(test)]

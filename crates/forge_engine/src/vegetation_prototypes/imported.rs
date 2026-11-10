@@ -785,7 +785,7 @@ impl ImportedTreePresentation {
             target,
             stamp,
             enabled: shadow_enabled && self.visibility == Visibility::Visible,
-            packets,
+            packets: Arc::new(packets),
             receipt: self.shadows.clone(),
             camera: Some(view_entity),
             forward,

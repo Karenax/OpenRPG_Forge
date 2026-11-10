@@ -1,5 +1,6 @@
 use super::{
     Admission, Prepared, Selection, StreamedPlantPart, StreamedPlantSelection, Vegetation,
+    WorldEnvelopes, shadow_range::PlantShadowBounds,
 };
 use crate::render_inventory::{self, RenderInventoryToken};
 use crate::source_vegetation::world::SourceMaterial;
@@ -215,8 +216,21 @@ impl<M: SourceMaterial> Resident<M> {
         selection: Selection,
         token: Option<&RenderInventoryToken>,
     ) -> Result<(), String> {
+        self.publish_with_bounds(world, selection, token, None)
+    }
+
+    pub(super) fn publish_with_bounds(
+        &mut self,
+        world: &mut World,
+        selection: Selection,
+        token: Option<&RenderInventoryToken>,
+        bounds: Option<&WorldEnvelopes>,
+    ) -> Result<(), String> {
         if selection.identity != self.prepared.identity {
             return Err("Selection belongs to another plant projection".into());
+        }
+        if bounds.is_some_and(|bounds| bounds.identity() != self.prepared.identity) {
+            return Err("Shadow bounds belong to another plant projection".into());
         }
         if self.published
             && self.parts == selection.parts
@@ -275,6 +289,11 @@ impl<M: SourceMaterial> Resident<M> {
                 representation,
                 source_lod,
             });
+            if world.get::<PlantShadowBounds>(entity).is_none()
+                && let Some(bound) = bounds.and_then(|bounds| bounds.plant_shadow_bounds(id))
+            {
+                world.entity_mut(entity).insert(bound);
+            }
         }
         // Selection changes reuse the already warmed immutable meshes/buffers.
         // The first publication fences the resource generation; readiness still

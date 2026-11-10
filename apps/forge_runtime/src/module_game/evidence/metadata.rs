@@ -102,6 +102,7 @@ fn same_graphics(a: &GraphicsObservation, b: &GraphicsObservation) -> bool {
     (
         &a.identity,
         a.requested,
+        &a.custom_settings,
         a.applied,
         a.persisted,
         a.request_sequence,
@@ -114,6 +115,7 @@ fn same_graphics(a: &GraphicsObservation, b: &GraphicsObservation) -> bool {
     ) == (
         &b.identity,
         b.requested,
+        &b.custom_settings,
         b.applied,
         b.persisted,
         b.request_sequence,

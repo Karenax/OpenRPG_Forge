@@ -312,7 +312,8 @@ pub(crate) struct Frame {
     pub target: Handle<Image>,
     pub stamp: u32,
     pub enabled: bool,
-    pub packets: Vec<Packet>,
+    // Extraction and forward preparation share the immutable input of this frame.
+    pub packets: Arc<Vec<Packet>>,
     pub receipt: Arc<Receipt>,
     pub camera: Option<Entity>,
     pub forward: Arc<Vec<ForwardRecipe>>,
@@ -655,9 +656,10 @@ pub(crate) struct Batch {
 
 impl Batch {
     pub(crate) fn matches(&self, frame: &Frame, resources: &RenderResources) -> bool {
+        let packets = frame.packets.as_slice();
         Arc::ptr_eq(&self.receipt, &frame.receipt)
-            && self.draws.len() == frame.packets.len()
-            && self.draws.iter().zip(&frame.packets).all(|(draw, packet)| {
+            && self.draws.len() == packets.len()
+            && self.draws.iter().zip(packets).all(|(draw, packet)| {
                 let texture = packet
                     .texture
                     .as_ref()
@@ -704,7 +706,7 @@ impl Batch {
         device: &RenderDevice,
         queue: &RenderQueue,
     ) {
-        for (draw, packet) in self.draws.iter_mut().zip(&frame.packets) {
+        for (draw, packet) in self.draws.iter_mut().zip(frame.packets.iter()) {
             if draw
                 .selection
                 .as_ref()
@@ -783,7 +785,7 @@ pub(crate) fn prepare(
         return Err("Source species shadows require three finite cascades".into());
     }
     let mut draws = Vec::new();
-    for packet in &frame.packets {
+    for packet in frame.packets.iter() {
         if packet.instances.len() > packet.capacity
             || packet.capacity as u64 > crate::MAX_VEGETATION_PROJECTION_ENTITIES
             || packet
@@ -1181,7 +1183,7 @@ mod tests {
             target: old,
             stamp: 10,
             enabled: true,
-            packets: vec![],
+            packets: Arc::default(),
             receipt: receipt.clone(),
             camera: None,
             forward: Arc::default(),
@@ -1219,11 +1221,12 @@ mod tests {
         use bevy::render::{ExtractSchedule, MainWorld};
         let mut main = MainWorld::default();
         main.insert_resource(bevy::diagnostic::FrameCount(10));
+        let packets = Arc::new(Vec::new());
         main.insert_resource(Frame {
             target: Handle::default(),
             stamp: 9,
             enabled: false,
-            packets: Vec::new(),
+            packets: Arc::clone(&packets),
             receipt: Arc::default(),
             camera: None,
             forward: Arc::default(),
@@ -1234,6 +1237,7 @@ mod tests {
         schedule.add_systems(extract);
         schedule.run(&mut render);
         assert_eq!(render.resource::<Frame>().stamp, 9);
+        assert!(Arc::ptr_eq(&render.resource::<Frame>().packets, &packets));
         render
             .resource_mut::<MainWorld>()
             .resource_mut::<bevy::diagnostic::FrameCount>()
@@ -1444,7 +1448,7 @@ mod tests {
             target: target.image.clone(),
             stamp: 0,
             enabled: false,
-            packets: vec![packet],
+            packets: Arc::new(vec![packet]),
             receipt: receipt.clone(),
             camera: Some(camera),
             forward: Arc::new(vec![ForwardRecipe {
@@ -1499,7 +1503,7 @@ mod tests {
             opaque.pixels > 100_000 && opaque.pixels < 4_000_000,
             "{opaque:?}"
         );
-        app.world_mut().resource_mut::<Frame>().packets[0].bounds =
+        Arc::make_mut(&mut app.world_mut().resource_mut::<Frame>().packets)[0].bounds =
             Some(Arc::new(vec![Aabb::from_min_max(
                 -Vec3::splat(0.401),
                 Vec3::splat(0.401),
@@ -1510,28 +1514,25 @@ mod tests {
             bounded.hash, opaque.hash,
             "cascade culling changed depth coverage"
         );
-        app.world_mut().resource_mut::<Frame>().packets[0].bounds = None;
-        let original_mesh = app.world().resource::<Frame>().packets[0].mesh.clone();
-        app.world_mut().resource_mut::<Frame>().packets[0].mesh = without_uv;
+        let mut frame = app.world_mut().resource_mut::<Frame>();
+        let packet = &mut Arc::make_mut(&mut frame.packets)[0];
+        packet.bounds = None;
+        let original_mesh = std::mem::replace(&mut packet.mesh, without_uv);
         advance(&mut app, 4);
         let untextured = read_coverage(&mut app, target.image.clone());
         assert_eq!(untextured.hash, opaque.hash);
-        app.world_mut().resource_mut::<Frame>().packets[0].mesh = original_mesh;
-        app.world_mut().resource_mut::<Frame>().packets[0]
-            .params
-            .alpha
-            .x = 1.0;
-        app.world_mut().resource_mut::<Frame>().packets[0]
-            .params
-            .alpha
-            .y = 0.5;
+        let mut frame = app.world_mut().resource_mut::<Frame>();
+        let packet = &mut Arc::make_mut(&mut frame.packets)[0];
+        packet.mesh = original_mesh;
+        packet.params.alpha.x = 1.0;
+        packet.params.alpha.y = 0.5;
         advance(&mut app, 4);
         let masked = read_coverage(&mut app, target.image.clone());
         assert!(
             masked.pixels > opaque.pixels / 5 && masked.pixels < opaque.pixels * 4 / 5,
             "{opaque:?} {masked:?}"
         );
-        app.world_mut().resource_mut::<Frame>().packets[0]
+        Arc::make_mut(&mut app.world_mut().resource_mut::<Frame>().packets)[0]
             .params
             .vegetation
             .wind_parameters

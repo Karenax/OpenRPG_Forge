@@ -338,8 +338,8 @@ empreintes dans une collection isolée, puis vérifié l'instantané privé.
 Le service d'export natif a ensuite intégré les crédits de la référence
 Tidewater à l'export, avec contrôle du reçu et des données du module.
 Les droits finaux des dérivés et des autres composants livrés restent à
-établir. L'attribution de `drain_filter_polyfill`, identifié dans le
-WASM Studio 049, reste ouverte.
+établir. Le 049 conserve sa réserve historique pour `drain_filter_polyfill`.
+Le 050 a été construit à partir du graphe Web corrigé, qui exclut ce paquet.
 Le Studio Windows a aussi passé le cycle 042 → 049 → 042 → 049,
 désinstallation et réinstallation du 049. Le contrôle vérifie le
 paquet Studio, son lancement et les 42 fichiers auteur conservés.

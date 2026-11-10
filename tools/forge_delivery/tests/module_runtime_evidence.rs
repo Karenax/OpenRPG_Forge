@@ -473,6 +473,7 @@ fn admit_fish_graphics(expected: &mut ExpectedProjection, observed: &mut Project
     observed.graphics = Some(GraphicsObservation {
         identity: identity.clone(),
         requested: tier,
+        custom_settings: None,
         applied: Some(tier),
         persisted: Some(tier),
         request_sequence: 1,

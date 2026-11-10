@@ -1,4 +1,5 @@
 use super::{Publication, ScopeRevision, State};
+use crate::module_game::evidence_contract::GraphicsIdentity;
 use bevy::{
     pbr::Material, platform::collections::HashSet, prelude::*, render::storage::ShaderBuffer,
 };
@@ -951,27 +952,17 @@ pub(super) fn identity(
     state: &State,
     revision: ScopeRevision,
 ) -> Result<forge_core::ContentHash, String> {
-    if let Some(settings) = state.requested_custom {
-        canonical_json_sha256(&(
-            state.source,
-            state.policy.identity,
-            state.requested,
-            "custom",
-            settings,
-            revision.generation,
-            revision.required_frame,
-        ))
-        .map_err(|e| e.to_string())
-    } else {
-        canonical_json_sha256(&(
-            state.source,
-            state.policy.identity,
-            state.requested,
-            revision.generation,
-            revision.required_frame,
-        ))
-        .map_err(|e| e.to_string())
+    GraphicsIdentity {
+        head: state.source,
+        policy: state.policy.identity,
+        water: state.water,
     }
+    .scope_hash(
+        state.requested,
+        state.requested_custom.as_ref(),
+        revision.generation,
+        Some(revision.required_frame),
+    )
 }
 
 pub(super) fn scope_token(

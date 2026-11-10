@@ -137,6 +137,24 @@ rapprochement des droits et l'essai Linux. La preuve 050 couvre un jeu
 et une installation neuve. Le cycle de maintenance et les deux jeux
 restent documentés dans le périmètre du 049.
 
+Le contrôle R7-08 du Grand Plateau 050 a relu les 420 entrées du paquet
+application et les 25 entrées du module, sans extraction. Les quatre
+index de notices correspondent au Studio 050. Le catalogue embarque les
+preuves déclarées CC0 des deux maillages procéduraux et leurs recettes.
+Les manifestes de l'application, du module et de son origine déclarent
+`private_local_only`. Les droits du jeu complet, dont le terrain source
+et les dépendances livrées, restent à établir. Reçu
+`editor-export/R7-08-grand-plateau-050-embedded-rights.json`, SHA-256
+`dc78d89cb713d72aa6cdd717c7e1565b496ee121c4de47a29f3be227be40daba`.
+
+Le raster de 4 Mio correspond exactement au générateur du Grand Plateau.
+La provenance embarquée exclut les contenus historiques de ce module.
+La police Fira Mono figure à l'octet près dans le runtime 050 du jeu,
+avec le texte OFL-1.1 épinglé dans le paquet. Le reçu
+`editor-export/R7-08-grand-plateau-050-raster-font-provenance.json`, SHA-256
+`cd27c7fe3591b9f513247382d51b7bddfc240d692e0ebfab815f58cb27983ee8`,
+borne le contrôle aux octets et notices vérifiés. Le jeu reste privé.
+
 ### 10 novembre — cadence appariée 049/050 et référence Tidewater 012
 
 Les deux runtimes livrés ont rejoué le même export Tidewater et son
@@ -166,6 +184,142 @@ SHA-256 `1b09844f61853062ab122ca320d9f546d61da5c905802670bde230ec9f762003`.
 Le dossier de mesure conserve les traces à comparer sur F:. Les
 1 107 521 257 octets temporaires de relecture ont été retirés d'E:
 après contrôle des empreintes.
+
+### 10 novembre — profil CPU séparé du 050
+
+Sur le même export et le même trajet, le 050 instrumenté a terminé les
+40,80 m avec 783 images prêtes sur 783, à 17,50 ms en moyenne et 27,84 ms
+au p95. Quatre fenêtres de cinq secondes après le premier relevé, avec
+déplacements et arrêts, donnent 15,73 à 16,10 ms par exécution de
+`render.schedule` et 12,23 à 12,53 ms pour `app.main_schedule`. Dans le
+rendu, `Prepare` prend 3,64 à 3,71 ms, `PrepareViews` 2,95 à 3,00 ms et
+le graphe caméra 4,10 à 4,24 ms. La planification des végétaux prend
+3,77 à 4,01 ms par appel, mais seulement 0,13 à 0,17 ms par boucle
+principale après prise en compte de sa fréquence.
+
+Les plages CPU se recouvrent. `PrepareViews` inclut l'acquisition de la
+surface par Bevy. Les quatre relevés GPU asynchrones du graphe caméra
+sont de 4,79 à 5,44 ms et datent de 10,70 à 12,48 ms au relevé. La
+référence 012 confirme l'intérêt d'examiner la préparation des ressources
+et le graphe caméra, avec des réglages différents. Isoler aussi l'attente
+de surface avant d'attribuer le coût de `PrepareViews` au moteur.
+
+Le reçu `tidewater-performance/050-cpu/G7-D6-tidewater-050-cpu-assessment.json`
+contient les compteurs, les âges GPU et les empreintes de la trace et des
+entrées. SHA-256 `4e70b68b6554eb5157f0c445bc262a5dac63fdde0a081a81d6dc523cd5810aa0`.
+Les 211 668 615 octets de cache et de données d'essai sur E: ont été
+retirés après vérification de la copie du journal sur F:.
+
+Le checkout partage désormais la liste immuable des paquets d'ombres
+des végétaux importés entre l'extraction et la préparation du rendu.
+Le contrôle du numéro d'image et les reçus de préparation continuent à
+s'appliquer à chaque image. `cargo check --locked --offline -p forge_engine
+--tests` passe sous Windows.
+
+Un build release du runtime seul a repris les mêmes entrées que le 050,
+avec ces deux fichiers moteur modifiés et des écarts documentaires. Le
+reçu confirme que les sources sont restées stables pendant le build.
+Une paire de trajets à points de départ et d'arrivée identiques donne
+17,07 ms en moyenne et 26,12 ms au p95 pour le 050, puis 17,27 ms et
+27,89 ms pour le nouveau runtime. Toutes les images retenues étaient
+prêtes, respectivement 803 et 794. Cette paire ne montre aucun gain et
+ne suffit pas à attribuer l'écart de 0,20 ms au changement. La cible de
+16,67 ms reste ouverte. Examiner ensuite la préparation des ressources et
+le graphe caméra. Le reçu
+`tidewater-performance/runtime-current-8ecfe753/G7-D6-tidewater-050-current-pair.json`
+porte le SHA-256 `3c76ac3ad39b8a5f43e365862d0e5ec9e65f1b3739b9e6762ac33ef6e6be9536`.
+Après vérification des traces sur F:, les deux caches et sauvegardes
+temporaires ont été retirés d'E: pour 423 202 220 octets.
+
+### 10 novembre — preuve de rendu des réglages personnalisés
+
+Le runtime commun a ouvert le même export à l'arrêt avec les 20 réglages
+du 012, sur une surface observée à 2560 × 1440 en FIFO. Le scénario a
+terminé l'attente de 840 pas, mais aucune image n'a passé le contrôle de
+projection. Le collecteur omettait la preuve graphique lorsque des
+réglages personnalisés étaient actifs. La sortie a refusé l'absence de
+preuve des surfaces et les temps de cet essai ne qualifient pas la cadence.
+Reçu `tidewater-performance/runtime-current-8ecfe753/static-012-controls/G7-D6-static-custom-graphics-refusal.json`,
+SHA-256 `039a7f9c37165692c5cd84302e01e4d47a6a72329f433f2b2bdaee2cc8c628d1`.
+
+Le collecteur produit désormais une observation pour ces réglages. Le
+runtime et le vérificateur calculent la même identité à partir des valeurs,
+de la génération et de l'image d'enregistrement. Les anciennes preuves
+sans personnalisation gardent leur format et leurs empreintes. Les 26
+tests du contrat portable passent, dont le refus d'une preuve dont les
+réglages ont changé. Le runtime release corrigé a terminé le même
+scénario avec les mêmes entrées. Les 20 valeurs correspondent au relevé
+du 012 et les preuves des surfaces et des inventaires GPU sont valides.
+
+Les 634 images retenues à l'arrêt sont prêtes. La boucle instrumentée
+mesure 18,92 ms en moyenne et 21,67 ms au p95 en 2560 × 1440, contre
+10,42 à 10,44 ms en moyenne sur les phases fixes du 012. La pose du
+lecteur historique est documentée en première personne. Les poses de
+caméra et les budgets du rendu doivent encore être appariés avant
+d'attribuer l'écart. Le reçu
+`tidewater-performance/runtime-current-8ecfe753/custom-graphics-evidence-fix/static-012-controls/G7-D6-static-custom-graphics-replay.json`
+porte le SHA-256 `3d8714c3b7d91c9b5c5a07e7d3eae8601d7b89010051d65352bd40f6c89574af`.
+Le cache d'extraction a servi aux deux essais. Après vérification des
+preuves sur F:, 211 691 706 octets de temporaires ont été retirés d'E:.
+
+### 10 novembre — mesure à l'arrêt en première personne
+
+Le même runtime release a ouvert le même export en 2560 × 1440 FIFO avec
+les 20 valeurs du 012. La commande joueur V a activé la vue à la première
+personne. La trace confirme un bras de caméra nul, un lacet et un tangage
+nuls et la position du joueur à moins de 1 mm de l'origine archivée du 012.
+Les 1 039 images stables retenues sont prêtes. La boucle mesure 16,36 ms
+en moyenne et 17,81 ms au p95. Le 012 reste à 10,42–10,44 ms sur ses
+phases fixes. Le lancement interactif, le préchauffage, les budgets de
+rendu et la transformation exacte de la caméra limitent la comparaison.
+La cadence du trajet en mouvement reste à qualifier.
+
+Dans trois fenêtres stables du runtime commun, `Prepare` mesure
+4,17–4,21 ms et le graphe caméra 5,32–5,36 ms. Les phases fixes du 012
+donnent respectivement 1,18–1,20 ms et 2,20–2,27 ms. `PrepareViews` reste
+à 0,24–0,26 ms dans ce relevé. Quatre échantillons GPU récents donnent
+une médiane de 0,79 ms pour `bin_unpacking`, contre 0,17 ms dans les
+dernières valeurs archivées du 012. Ce système traite les lots de maillages
+par vue et par phase, y compris les vues de lumière. Les relevés CPU se
+recouvrent et les échantillons GPU restent asynchrones. L'écart cible
+l'inspection des ressources préparées et des lots de maillages.
+
+Reçu `tidewater-performance/runtime-current-8ecfe753/custom-graphics-evidence-fix/first-person-012-controls/G7-D6-tidewater-first-person-static.json`,
+SHA-256 `e6b9d63e8a55c53eaeca774c95dae1301c831b8f04747bb169ef324779208858`.
+Les 211 755 533 octets temporaires ont été retirés d'E: après vérification
+des traces sur F:.
+
+### 10 novembre — préparation des maillages et vues d'ombre
+
+Le profileur commun sépare les sous-étapes de `Prepare` et compte les
+lots non vides par phase. Le trajet instrumenté de 40,80 m a terminé
+avec 737 images prêtes. Quatre relevés comptent environ 171 000 entrées
+d'instances dans 444 lots, réparties sur neuf vues d'ombre Bevy, contre
+environ 19 100 entrées dans les deux phases du rendu direct. Les entrées
+se répètent entre vues. Le rendu des ombres source est observé à part.
+
+Le regroupement et la collecte des lots prennent 2,07–2,22 ms par image,
+et les groupes de liaison 1,24–1,33 ms. Le build a compilé, mais l'ajout
+concurrent de scripts d'audit a invalidé son reçu de livraison. Une autre
+compilation était active pendant le trajet. Les durées sont indicatives.
+L'inspection doit maintenant distinguer les vues de lumière, les casters
+de végétation sans culling et les matériaux qui consomment encore ces
+ombres. La végétation déformée dispose de bornes source dans le moteur.
+Le branchement de ces bornes doit respecter les transformations GPU.
+
+Reçu `tidewater-performance/runtime-current-8ecfe753/prepare-and-mesh-bin-profile/diagnostic-with-shared-build/prepare-bins-assessment.json`,
+SHA-256 `094b57185fa37f88ba2ca41b90c9895622fd70a08ab0e065b144c191eb09effa`.
+La copie de diagnostic, son cache et ses sauvegardes ont été retirés d'E:
+après vérification des traces conservées sur F:.
+
+Le moteur commun réutilise les enveloppes de déformation des végétaux
+pour retirer des listes d'ombre des lumières ponctuelles et des spots les
+plantes entièrement hors de leur portée. Les cas tangents et les entités
+sans enveloppe restent dans ces listes. La déformation GPU, le rendu
+principal et les cascades du soleil conservent leur chemin existant.
+`cargo check --locked --offline -p forge_runtime -p forge_engine --tests`
+passe sous Windows. Le gain et la parité visuelle restent à mesurer sur
+le prochain runtime.
 
 ## Historique des qualifications
 

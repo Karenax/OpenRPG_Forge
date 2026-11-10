@@ -10,6 +10,34 @@ pub struct GraphicsIdentity {
     #[serde(default, skip_serializing_if = "is_false")]
     pub water: bool,
 }
+
+impl GraphicsIdentity {
+    pub(crate) fn scope_hash(
+        &self,
+        tier: VisualQualityTier,
+        custom: Option<&impl Serialize>,
+        generation: u64,
+        required_frame: Option<u32>,
+    ) -> Result<ContentHash, String> {
+        let result = match (custom, required_frame) {
+            (Some(settings), Some(frame)) => canonical_json_sha256(&(
+                self.head,
+                self.policy,
+                tier,
+                "custom",
+                settings,
+                generation,
+                frame,
+            )),
+            (Some(_), None) => return Err("Custom graphics scope requires a source frame".into()),
+            (None, Some(frame)) => {
+                canonical_json_sha256(&(self.head, self.policy, tier, generation, frame))
+            }
+            (None, None) => canonical_json_sha256(&(self.head, self.policy, tier, generation)),
+        };
+        result.map_err(|error| error.to_string())
+    }
+}
 #[allow(
     clippy::trivially_copy_pass_by_ref,
     reason = "Serde passes fields by reference"
@@ -21,6 +49,8 @@ const fn is_false(value: &bool) -> bool {
 pub struct GraphicsObservation {
     pub identity: GraphicsIdentity,
     pub requested: VisualQualityTier,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_settings: Option<serde_json::Value>,
     pub applied: Option<VisualQualityTier>,
     pub persisted: Option<VisualQualityTier>,
     pub request_sequence: u64,
@@ -184,18 +214,12 @@ fn verify_scopes(
         let count = |values: [usize; 2]| values[0] == values[1];
         let generation = scope.generation.ok_or("Graphics scope generation absent")?;
         let required_frame = scope.required_frame.unwrap_or(actual.application_frame);
-        let identity = if scope.required_frame.is_some() {
-            canonical_json_sha256(&(
-                expected.head,
-                expected.policy,
-                actual.requested,
-                generation,
-                required_frame,
-            ))
-        } else {
-            canonical_json_sha256(&(expected.head, expected.policy, actual.requested, generation))
-        }
-        .map_err(|error| error.to_string())?;
+        let identity = expected.scope_hash(
+            actual.requested,
+            actual.custom_settings.as_ref(),
+            generation,
+            scope.required_frame,
+        )?;
         let publication_frame = if let Some(publication) = &scope.publication {
             if scope.required_frame.is_none() {
                 return Err("Graphics publication requires its registered source frame".into());
@@ -311,6 +335,7 @@ mod tests {
         let valid = GraphicsObservation {
             identity: expected.clone(),
             requested: tier,
+            custom_settings: None,
             applied: Some(tier),
             persisted: Some(tier),
             request_sequence: 4,
@@ -355,6 +380,7 @@ mod tests {
             );
         }
         verify_independent_scope_revisions(&expected, &valid);
+        verify_custom_settings(&expected, &valid);
         verify_common_surfaces_without_plants(&expected, &valid);
         verify_source_terrain_contract(&expected, &valid);
         verify_declared_water_scope(&expected, &valid);
@@ -368,6 +394,25 @@ mod tests {
             verify(Some(&expected), Some(&save_failed), 51, true, false).is_ok(),
             "Rendering readiness is distinct from preference persistence"
         );
+    }
+
+    fn verify_custom_settings(expected: &GraphicsIdentity, valid: &GraphicsObservation) {
+        let mut custom = valid.clone();
+        let settings = serde_json::json!({"exposure_ev": 0.4_f32, "fxaa": 0.0});
+        custom.custom_settings = Some(settings.clone());
+        assert!(verify(Some(expected), Some(&custom), 51, true, false).is_err());
+        let scope = &mut custom.scopes[0];
+        scope.required_frame = Some(46);
+        scope.identity = Some(
+            expected
+                .scope_hash(custom.requested, Some(&settings), 3, Some(46))
+                .unwrap(),
+        );
+        let restored: GraphicsObservation =
+            serde_json::from_slice(&serde_json::to_vec(&custom).unwrap()).unwrap();
+        assert!(verify(Some(expected), Some(&restored), 51, true, false).is_ok());
+        custom.custom_settings = Some(serde_json::json!({"exposure_ev": 0.5, "fxaa": 0.0}));
+        assert!(verify(Some(expected), Some(&custom), 51, true, false).is_err());
     }
 
     fn verify_fish_scope(expected: &GraphicsIdentity, valid: &GraphicsObservation) {

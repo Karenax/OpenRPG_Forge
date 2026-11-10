@@ -10,13 +10,14 @@ use bevy::{
     prelude::*,
     render::{
         Render, RenderApp, RenderSystems,
+        batching::gpu_preprocessing::BinUnpackingBuffers,
         diagnostic::{
             DiagnosticsRecorder, RecordDiagnostics, RenderDiagnosticsPlugin, resolve_encoder,
         },
         renderer::{PendingCommandBuffers, RenderDevice, RenderGraph, RenderGraphSystems},
     },
 };
-use std::collections::BTreeMap;
+use std::{any::TypeId, collections::BTreeMap};
 
 #[derive(SystemSet, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum TimingSet {
@@ -74,6 +75,7 @@ pub struct RenderClock {
     graph_bands: BTreeMap<&'static str, f64>,
     schedule_span: Option<cpu_timing::Span>,
     stage_span: Option<cpu_timing::Span>,
+    prepare_span: Option<cpu_timing::Span>,
 }
 impl RenderClock {
     #[must_use]
@@ -192,6 +194,29 @@ impl Plugin for RenderTimingPlugin {
                 )
                     .chain(),
             );
+        if cpu_timing::enabled() {
+            render.add_systems(
+                Render,
+                (
+                    prepare_mark::<0>
+                        .after(render_mark::<7>)
+                        .before(RenderSystems::PrepareResources),
+                    prepare_mark::<1>
+                        .after(RenderSystems::PrepareResources)
+                        .before(RenderSystems::PrepareResourcesBatchPhases),
+                    prepare_mark::<2>
+                        .after(RenderSystems::PrepareResourcesCollectPhaseBuffers)
+                        .before(RenderSystems::PrepareResourcesFlush),
+                    prepare_mark::<3>
+                        .after(RenderSystems::PrepareResourcesFlush)
+                        .before(RenderSystems::PrepareBindGroups),
+                    prepare_end
+                        .after(RenderSystems::PrepareBindGroups)
+                        .before(render_mark::<8>),
+                    log_mesh_bins.after(render_end),
+                ),
+            );
+        }
     }
 }
 fn main_begin(mut clock: ResMut<MainClock>) {
@@ -267,13 +292,87 @@ fn render_mark<const STAGE: usize>(mut clock: ResMut<RenderClock>) {
     clock.stage_span = Some(cpu_timing::Span::new(LABELS[STAGE + 1]));
 }
 
+const PREPARE_LABELS: [&str; 4] = [
+    "render.prepare.resources",
+    "render.prepare.batch_and_collect",
+    "render.prepare.flush",
+    "render.prepare.bind_groups",
+];
+
+fn prepare_mark<const BAND: usize>(mut clock: ResMut<RenderClock>) {
+    clock.prepare_span.take();
+    clock.prepare_span = Some(cpu_timing::Span::new(PREPARE_LABELS[BAND]));
+}
+
+fn prepare_end(mut clock: ResMut<RenderClock>) {
+    clock.prepare_span.take();
+}
+
+fn mesh_bin_phase(phase: TypeId) -> &'static str {
+    use bevy::core_pipeline::{
+        core_3d::{AlphaMask3d, Opaque3d},
+        prepass::{AlphaMask3dPrepass, Opaque3dPrepass},
+    };
+    if phase == TypeId::of::<bevy::pbr::Shadow>() {
+        "shadow"
+    } else if phase == TypeId::of::<Opaque3d>() || phase == TypeId::of::<AlphaMask3d>() {
+        "forward"
+    } else if phase == TypeId::of::<Opaque3dPrepass>()
+        || phase == TypeId::of::<AlphaMask3dPrepass>()
+    {
+        "prepass"
+    } else {
+        "other"
+    }
+}
+
+fn log_mesh_bins(bins: Option<Res<BinUnpackingBuffers>>, mut last: Local<Option<Instant>>) {
+    let Some(bins) = bins else { return };
+    if last.is_some_and(|time| time.elapsed().as_secs_f64() < 5.0) {
+        return;
+    }
+    *last = Some(Instant::now());
+    let mut phases = BTreeMap::new();
+    for (key, buffers) in &bins.view_phase_buffers {
+        let jobs = buffers
+            .indexed_unpacking_jobs
+            .iter()
+            .chain(&buffers.non_indexed_unpacking_jobs);
+        let mut jobs = jobs.filter(|job| job.mesh_instance_count > 0).peekable();
+        if jobs.peek().is_none() {
+            continue;
+        }
+        let (view_phases, batches, instances) = phases
+            .entry(mesh_bin_phase(key.phase))
+            .or_insert((0_usize, 0_usize, 0_u64));
+        *view_phases += 1;
+        for job in jobs {
+            *batches += 1;
+            *instances += u64::from(job.mesh_instance_count);
+        }
+    }
+    for (phase, (view_phases, batches, instances)) in phases {
+        info!(
+            event_kind = "runtime_mesh_bins",
+            phase,
+            view_phases,
+            batches,
+            instances,
+            "Prepared nonempty mesh bin jobs across render views"
+        );
+    }
+}
+
 const GRAPH_BANDS: [(&str, &str); 6] = [
     ("atmosphere_band", "render.graph.atmosphere"),
     ("clouds_band", "render.graph.clouds"),
     ("camera_band", "render.graph.camera"),
     ("graph_tail_before_submit", "render.graph.before_submit"),
     ("graph_submit_and_finish", "render.graph.submit_and_finish"),
-    ("post_graph_render_tail", "render.graph.post_graph_render_tail"),
+    (
+        "post_graph_render_tail",
+        "render.graph.post_graph_render_tail",
+    ),
 ];
 
 fn graph_begin(mut clock: ResMut<RenderClock>) {

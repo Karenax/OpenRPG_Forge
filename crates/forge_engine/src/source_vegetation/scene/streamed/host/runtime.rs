@@ -320,7 +320,9 @@ fn refresh(world: &mut World, state: &mut State, publish: bool) -> Result<bool, 
         );
         if token.is_some() || state.render.entity_count() == 0 {
             let plan = state.pending.take().expect("checked pending plant plan");
-            state.render.publish(world, plan, token.as_ref())?;
+            state
+                .render
+                .publish_with_bounds(world, plan, token.as_ref(), Some(&state.bounds))?;
             state.published = true;
         }
     }

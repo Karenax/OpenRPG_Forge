@@ -1,5 +1,5 @@
 //! Playable raster host: one immutable projected snapshot, render selection and physics gate.
-use super::{Admission, Prepared, Resident, Selection, WorldEnvelopes};
+use super::{Admission, Prepared, Resident, Selection, WorldEnvelopes, shadow_range};
 use crate::source_lighting::frame::Frame;
 use crate::source_lighting::frame::MAX_WIND_SPEED;
 use crate::source_vegetation::Params;
@@ -240,6 +240,11 @@ impl PreparedHost {
                     .after(bevy::transform::TransformSystems::Propagate)
                     .after(crate::source_environment::host::EnvironmentHostSet)
                     .after(crate::source_lighting::surfaces::live::SurfaceHostSet),
+            )
+            .add_systems(
+                PostUpdate,
+                shadow_range::prune_local_plant_casters
+                    .after(bevy::light::SimulationLightSystems::CheckLightVisibility),
             )
             .configure_sets(
                 FixedUpdate,

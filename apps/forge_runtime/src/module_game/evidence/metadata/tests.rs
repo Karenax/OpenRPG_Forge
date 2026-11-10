@@ -14,6 +14,7 @@ fn graphics(frame: u32) -> GraphicsObservation {
             water: false,
         },
         requested: VisualQualityTier::High,
+        custom_settings: None,
         applied: Some(VisualQualityTier::High),
         persisted: Some(VisualQualityTier::High),
         request_sequence: 1,

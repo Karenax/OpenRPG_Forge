@@ -2,7 +2,7 @@
 // Source deformation bounds derived from dgreenheck/tidewater 1438b1ab, plant.wgsl.
 // Copyright 2026 DRG Software Solutions LLC; see third_party/tidewater/LICENSE.
 //! Bounds of the actual immutable prepared meshes/records, before world publication.
-use super::{Pin, Prepared, content};
+use super::{Pin, Prepared, content, shadow_range::PlantShadowBounds};
 use crate::source_lighting::frame::MAX_WIND_SPEED;
 use crate::source_vegetation::world::SourceMaterial;
 use crate::source_vegetation::world::WorldPlantMaterial;
@@ -34,6 +34,7 @@ pub struct WorldEnvelopes {
     population: ContentHash,
     pins: Arc<BTreeMap<EntityId, Pin>>,
     prototypes: BTreeMap<String, PrototypeEnvelope>,
+    shadow_bounds: BTreeMap<EntityId, PlantShadowBounds>,
 }
 
 /// Created only after exact source validation; exposes no mutable selection.
@@ -152,6 +153,10 @@ impl<'a> VerifiedSelection<'a> {
 }
 
 impl WorldEnvelopes {
+    pub(super) fn plant_shadow_bounds(&self, id: EntityId) -> Option<PlantShadowBounds> {
+        self.shadow_bounds.get(&id).copied()
+    }
+
     /// Enlarge this same authored projection with admitted replacement geometry.
     /// Called before partition admission; no source envelope is made smaller.
     pub(super) fn include_models(
@@ -312,6 +317,7 @@ impl Prepared {
             population: self.population,
             pins: self.pins.clone(),
             prototypes: BTreeMap::new(),
+            shadow_bounds: BTreeMap::new(),
         };
         let mut summaries = BTreeMap::new();
         let mut seen = std::collections::BTreeSet::new();
@@ -396,6 +402,10 @@ impl Prepared {
                     });
                 bound.radius_m = bound.radius_m.max(radius);
                 bound.deformation_m = bound.deformation_m.max(motion);
+                result.shadow_bounds.insert(
+                    entity.id,
+                    PlantShadowBounds::new(base, expanded(static_radius) + motion),
+                );
             }
         }
         if seen.len() != self.pins.len() {

@@ -27,9 +27,12 @@ pub fn expected(
     })
 }
 pub fn observe(world: &mut World) -> Option<GraphicsObservation> {
-    if !world.contains_resource::<State>() || world.resource::<State>().requested_custom.is_some() {
-        return None;
-    }
+    let custom_settings = world
+        .get_resource::<State>()?
+        .requested_custom
+        .map(serde_json::to_value)
+        .transpose()
+        .ok()?;
     Some(world.resource_scope(|world, state: Mut<State>| {
         let scopes = state
             .active_scopes
@@ -93,6 +96,7 @@ pub fn observe(world: &mut World) -> Option<GraphicsObservation> {
                 water: state.water,
             },
             requested: state.requested,
+            custom_settings,
             applied: state.applied,
             persisted: state.saved,
             request_sequence: state.request_sequence,
