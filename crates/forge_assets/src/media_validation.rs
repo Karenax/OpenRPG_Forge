@@ -22,6 +22,8 @@ pub struct MediaLimits {
     pub max_input_bytes: u64,
     pub max_image_pixels: u64,
     pub max_decoded_bytes: u64,
+    /// Additional bound for one decoded image, independent of the total budget.
+    pub max_single_image_decoded_bytes: u64,
     pub max_audio_frames: u64,
     pub max_audio_channels: u32,
     pub max_audio_sample_rate: u32,
@@ -36,6 +38,7 @@ impl Default for MediaLimits {
             max_input_bytes: 256 * 1024 * 1024,
             max_image_pixels: 64 * 1024 * 1024,
             max_decoded_bytes: 256 * 1024 * 1024,
+            max_single_image_decoded_bytes: u64::MAX,
             max_audio_frames: 28_800_000,
             max_audio_channels: 8,
             max_audio_sample_rate: 192_000,
@@ -43,6 +46,18 @@ impl Default for MediaLimits {
             max_mesh_vertices: 8_000_000,
             max_mesh_indices: 24_000_000,
             max_mesh_primitives: 65_536,
+        }
+    }
+}
+
+impl MediaLimits {
+    /// Bounded profile for private GLB import, export and package verification.
+    /// Texture decoding is sequential; the aggregate still limits total work.
+    pub fn mesh_delivery() -> Self {
+        Self {
+            max_decoded_bytes: 768 * 1024 * 1024,
+            max_single_image_decoded_bytes: 256 * 1024 * 1024,
+            ..Self::default()
         }
     }
 }

@@ -39,6 +39,44 @@ def sha(data):
 def valid_hex(value, length):
     return isinstance(value,str) and len(value)==length and all(c in '0123456789abcdef' for c in value)
 
+def windows_readonly(info):
+    """Do not replace a file whose Windows read-only attribute is set."""
+    return bool(getattr(info, 'st_file_attributes', 0) & getattr(stat, 'FILE_ATTRIBUTE_READONLY', 1))
+
+def batch_saves_allocation(before, after):
+    """A batch must have a positive conservative net allocation saving."""
+    return before > after
+
+def verify_deployed_readers(receipt, root, reader):
+    """Require deployed readers and this writer to match their qualification."""
+    if receipt.get('state')!='ready' or receipt.get('vault')!=str(root):
+        raise ValueError('Compatible deployed readers required before replacement')
+    studio_name=receipt.get('studio')
+    studio_sha=receipt.get('studio_sha256')
+    if not isinstance(studio_name,str) or not Path(studio_name).is_absolute() or not valid_hex(studio_sha,64):
+        raise ValueError('Qualified Studio path or SHA missing')
+    studio=Path(studio_name)
+    if not studio.is_file():raise ValueError('Qualified Studio missing')
+    with studio.open('rb') as stream:
+        if hashlib.file_digest(stream,'sha256').hexdigest()!=studio_sha:
+            raise ValueError('Studio differs from qualified reader receipt')
+    if not Path(reader).is_file():raise ValueError('Native verifier missing')
+    with Path(reader).open('rb') as stream:
+        if hashlib.file_digest(stream,'sha256').hexdigest()!=receipt.get('reader_cli_sha256'):
+            raise ValueError('Native verifier differs from qualified reader receipt')
+    importer_name=receipt.get('python_import_reader')
+    importer_sha=receipt.get('python_import_reader_sha256')
+    if not isinstance(importer_name,str) or not Path(importer_name).is_absolute() or not valid_hex(importer_sha,64):
+        raise ValueError('Qualified Python reader path or SHA missing')
+    importer=Path(importer_name)
+    if not importer.is_file():raise ValueError('Qualified Python reader missing')
+    with importer.open('rb') as stream:
+        if hashlib.file_digest(stream,'sha256').hexdigest()!=importer_sha:
+            raise ValueError('Python reader differs from qualified reader receipt')
+    with Path(__file__).open('rb') as stream:
+        if hashlib.file_digest(stream,'sha256').hexdigest()!=receipt.get('storage_writer_sha256'):
+            raise ValueError('Storage writer differs from qualified reader receipt')
+
 def decode_json(raw):
     def object_pairs(pairs):
         result={}
@@ -192,13 +230,24 @@ def ingest_database(root):
     db.commit()
     return db
 
+def eligible_model_storage_path(root, path):
+    """Restrict shared storage to converted models, including the Witch delivery."""
+    try:
+        parts=Path(path).relative_to(Path(root)).parts
+    except ValueError:
+        return False
+    return (Path(path).suffix.lower()=='.glb' and bool(parts)
+            and (parts[0] in ('normalized','candidates','animation')
+                 or (len(parts)>=3 and parts[:2]==('witch-house-urp-20261108-r2','models'))))
+
+
 def queue_models(root,models):
     """Minimal pending work, not conversion history. Caller supplies published pins."""
     root=Path(root);db=ingest_database(root);queued=0
     try:
         for model,expected in models:
             path=confined(root,Path(model))
-            if path.suffix.lower()!='.glb' or path.relative_to(root).parts[0] not in ('normalized','candidates','animation'):raise ValueError('Published model outside storage scope')
+            if not eligible_model_storage_path(root,path):raise ValueError('Published model outside storage scope')
             if not valid_hex(expected,64):raise ValueError('Invalid published model pin')
             info=os.stat(path)
             if not 1024**2<=info.st_size<=MAX_MODEL:continue
@@ -472,10 +521,7 @@ def main():
         atomic_json(args.output,value);print(json.dumps(dict(files=len(rows),logical_bytes=value['logical_bytes'])));return
     plan=json.loads(args.plan.read_bytes());root=Path(plan['root'])
     receipt=json.loads(args.readers_receipt.read_bytes())
-    if receipt.get('state')!='ready' or receipt.get('vault')!=str(root):raise ValueError('Compatible deployed readers required before replacement')
-    if not args.verify_cli.is_file():raise ValueError('Native verifier missing')
-    with args.verify_cli.open('rb') as stream:
-        if hashlib.file_digest(stream,'sha256').hexdigest()!=receipt.get('reader_cli_sha256'):raise ValueError('Native verifier differs from qualified reader receipt')
+    verify_deployed_readers(receipt,root,args.verify_cli)
     plan_sha=sha(args.plan.read_bytes());done_paths=set()
     if args.report.exists():
         if not args.resume:raise ValueError('Existing run: recover journal explicitly instead of blindly repeating')
@@ -527,9 +573,9 @@ def main():
         for pack_id,_ in writer.created_packs[checkpoint:]:
             rows=writer.db.execute('SELECT count(*) FROM blobs WHERE pack=?',(pack_id,)).fetchone()[0]
             after_allocation+=rows*512
-        if before_allocation-after_allocation<max(1024**2,before_allocation//100):
+        if not batch_saves_allocation(before_allocation,after_allocation):
             writer.discard_unpublished_batch(checkpoint)
-            report['skipped'].extend(dict(path=item['path'],reason='batch saves less than 1 percent or 1 MiB; original retained') for item in pending)
+            report['skipped'].extend(dict(path=item['path'],reason='batch has no positive conservative net allocation saving; original retained') for item in pending)
             for item in pending:writer.release(item)
             for item in pending:acknowledge(item)
             pending=[];pending_bytes=0;return
@@ -552,7 +598,9 @@ def main():
                 confined(root,path);info=os.stat(path)
             except FileNotFoundError:
                 report['skipped'].append(dict(path=str(path),reason='source removed since frozen inventory'));return
-            if path.suffix.lower()!='.glb' or path.relative_to(root).parts[0] not in ('normalized','candidates','animation'):raise ValueError('Frozen plan outside converted-model scope')
+            if not eligible_model_storage_path(root,path):raise ValueError('Frozen plan outside converted-model scope')
+            if windows_readonly(info):
+                report['skipped'].append(dict(path=str(path),reason='Windows read-only attribute; original preserved'));return
             if (info.st_size,info.st_mtime_ns)!=(row['bytes'],row['mtime_ns']):
                 report['skipped'].append(dict(path=str(path),reason='changed since frozen inventory'));return
             report.update(phase='preparing',current_file=str(path));progress()

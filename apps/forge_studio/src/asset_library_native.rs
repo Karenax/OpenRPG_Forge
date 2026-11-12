@@ -11,6 +11,7 @@ use serde_json::Value;
 #[cfg(test)]
 mod companion_storage_tests;
 mod history;
+mod legacy;
 mod module_export;
 mod particle_transport;
 mod physics_transport;
@@ -91,6 +92,7 @@ struct Snapshot {
     source_support_registry_raw: Option<Vec<u8>>,
     assets: Vec<StoredAsset>,
     by_id: HashMap<String, usize>,
+    legacy_sources: HashMap<String, StoredAsset>,
     #[cfg(test)]
     build_cache_stats: BuildCacheStats,
 }
@@ -294,24 +296,40 @@ impl Library {
                         .assets
                         .iter()
                         .filter(|asset| vault_asset_id(&asset.card.id) == asset_id);
-                    let asset = matches.next().ok_or("référence du Vault inconnue")?;
+                    let direct = matches.next();
                     if matches.next().is_some() {
                         return Err("référence du Vault ambiguë".to_owned());
                     }
-                    if asset.card.availability != "converted_model" {
+                    let legacy_match = find_legacy_alias(snapshot, asset_id)?;
+                    if direct.is_some() && legacy_match.is_some() {
+                        return Err("référence du Vault ambiguë".to_owned());
+                    }
+                    if direct.is_none() && legacy_match.is_none()
+                        && snapshot.legacy_sources.keys().any(|id| vault_asset_id(id) == asset_id)
+                    {
                         return Err("source conservée non plaçable".to_owned());
                     }
-                    // Check the saved pin before reading any payload.
-                    if forge_core::ContentHash::parse(required(&asset.details, "model_sha256")?)
-                        .map_err(|e| e.to_string())?
-                        == sha256
-                    {
+                    if let Some((candidate, variant)) = legacy_match {
                         LibraryResponse::Model {
-                            model: self.read_model(asset)?,
+                            model: self.read_legacy_model(candidate, variant, asset_id, sha256)?,
                         }
                     } else {
-                        LibraryResponse::Model {
-                            model: self.read_historical_model(snapshot, asset, sha256)?,
+                        let asset = direct.ok_or("référence du Vault inconnue")?;
+                        if asset.card.availability != "converted_model" {
+                            return Err("source conservée non plaçable".to_owned());
+                        }
+                        // Check the saved pin before reading any payload.
+                        if forge_core::ContentHash::parse(required(&asset.details, "model_sha256")?)
+                            .map_err(|e| e.to_string())?
+                            == sha256
+                        {
+                            LibraryResponse::Model {
+                                model: self.read_model(asset)?,
+                            }
+                        } else {
+                            LibraryResponse::Model {
+                                model: self.read_historical_model(snapshot, asset, sha256)?,
+                            }
                         }
                     }
                 }
@@ -358,6 +376,69 @@ impl Library {
             id: asset.card.id.clone(),
             asset_id: vault_asset_id(&asset.card.id),
             sha256: forge_core::ContentHash::parse(&actual).map_err(|e| e.to_string())?,
+            bytes,
+        })
+    }
+
+    fn read_legacy_model(
+        &self,
+        candidate: &StoredAsset,
+        variant: &Value,
+        asset_id: forge_core::AssetId,
+        sha256: forge_core::ContentHash,
+    ) -> Result<LibraryModel, String> {
+        let retired = required(variant, "retired_id")?;
+        let pin = required(variant, "retired_model_sha256")?;
+        if vault_asset_id(retired) != asset_id
+            || required(variant, "retired_uuid")? != asset_id.to_string()
+            || pin != sha256.to_string()
+            || variant["original_detail"]["id"].as_str() != Some(retired)
+            || variant["original_detail"]["model_sha256"].as_str() != Some(pin)
+            || variant["original_profile"]["external_id"].as_str() != Some(retired)
+        {
+            return Err("référence historique incohérente".to_owned());
+        }
+        let recipe = &variant["legacy_recipe"];
+        let bytes = if recipe.get("schema").and_then(Value::as_str)
+            == Some("openrpg.legacy-vault-descriptor.v1")
+        {
+            if recipe.get("logical_sha256").and_then(Value::as_str) != Some(pin) {
+                return Err("empreinte historique incohérente".to_owned());
+            }
+            let descriptor: forge_delivery::vault_storage::Descriptor =
+                serde_json::from_value(recipe["descriptor"].clone())
+                    .map_err(|_| "descripteur historique invalide".to_owned())?;
+            if descriptor.sha256 != pin
+                || recipe.get("logical_bytes").and_then(Value::as_u64) != Some(descriptor.bytes)
+            {
+                return Err("descripteur historique incohérent".to_owned());
+            }
+            let bytes = forge_delivery::vault_storage::read_embedded_descriptor(
+                &self.root,
+                &descriptor,
+                MAX_MODEL,
+            )?;
+            if bytes.len() < 20
+                || &bytes[..4] != b"glTF"
+                || u32::from_le_bytes(bytes[4..8].try_into().unwrap()) != 2
+                || u32::from_le_bytes(bytes[8..12].try_into().unwrap()) as usize != bytes.len()
+                || !same_hash(&bytes, pin)
+            {
+                return Err("modèle historique invalide".to_owned());
+            }
+            bytes
+        } else if recipe.get("schema").and_then(Value::as_str)
+            == Some("openrpg.legacy-inline-glb.v1")
+        {
+            legacy::reconstruct_inline(recipe, pin)?
+        } else {
+            let current = self.read_model(candidate)?;
+            legacy::reconstruct(&current.bytes, recipe, pin)?
+        };
+        Ok(LibraryModel {
+            id: retired.to_owned(),
+            asset_id,
+            sha256,
             bytes,
         })
     }
@@ -578,12 +659,48 @@ impl Library {
                 return Err("identifiant d'asset invalide ou dupliqué".to_owned());
             }
         }
+        let mut legacy_sources = HashMap::new();
+        for asset in &assets {
+            let Some(variants) = asset.details.get("consolidated_sources") else {
+                continue;
+            };
+            if asset.card.availability != "source_support" {
+                return Err("variantes source sur un modèle converti".to_owned());
+            }
+            let variants = variants.as_array().ok_or("variantes source invalides")?;
+            for variant in variants {
+                let id = required(variant, "retired_id")?;
+                let original = variant.get("original_detail").ok_or("source originale absente")?;
+                let variation = variant.get("source_variation");
+                let known_variation = variation == Some(&serde_json::json!({"kind":"lod_thresholds_only"}))
+                    || variation == Some(&serde_json::json!({"kind":"lod_collider_only"}))
+                    || variation == Some(&serde_json::json!({"kind":"pipeline_light_only"}));
+                if id.len() > MAX_ID || required(original, "id")? != id || by_id.contains_key(id)
+                    || original.get("consolidated_sources").is_some()
+                    || (original.get("source_sha256") != asset.details.get("source_sha256")
+                        && !known_variation)
+                    || (variation.is_some() && !known_variation)
+                    || original.get("source_meta_sha256") != asset.details.get("source_meta_sha256")
+                    || (original.get("preview_sha256") != asset.details.get("preview_sha256")
+                        && variant.get("preserve_distinct_preview") != Some(&Value::Bool(true)))
+                {
+                    return Err("identité ou contenu de variante source invalide".to_owned());
+                }
+                let legacy = self.make_source_support_asset(original, &mut cache)?;
+                if legacy_sources.insert(id.to_owned(), legacy).is_some()
+                    || assets.len().saturating_add(legacy_sources.len()) > MAX_ASSETS
+                {
+                    return Err("identifiant de variante source dupliqué ou limite dépassée".to_owned());
+                }
+            }
+        }
         Ok(Snapshot {
             revision,
             registry_raw: registry_raw.to_vec(),
             source_support_registry_raw: source_support_registry_raw.map(<[u8]>::to_vec),
             assets,
             by_id,
+            legacy_sources,
             #[cfg(test)]
             build_cache_stats: cache.stats,
         })
@@ -768,9 +885,13 @@ impl Library {
                 if !valid_hash(hash) {
                     return Err(format!("empreinte de vignette invalide pour {id}"));
                 }
-                Some((self.lexical_from(&asset_root, path)?, hash.to_owned()))
+                let location = match catalog_item.get("preview_vault") {
+                    Some(value) => self.lexical_from(&self.root, value.as_str().ok_or("vignette partagée invalide")?)?,
+                    None => self.lexical_from(&asset_root, path)?,
+                };
+                Some((location, hash.to_owned()))
             }
-            (None, None) => None,
+            (None, None) if catalog_item.get("preview_vault").is_none() => None,
             _ => return Err(format!("vignette incohérente pour {id}")),
         };
         let preview_reference = catalog_item
@@ -972,6 +1093,7 @@ impl Library {
             .by_id
             .get(id)
             .and_then(|index| snapshot.assets.get(*index))
+            .or_else(|| snapshot.legacy_sources.get(id))
             .ok_or_else(|| "asset inconnu".to_owned())
     }
 
@@ -1110,7 +1232,15 @@ impl Library {
             };
             let preview = match (&asset.preview_reference, &asset.preview) {
                 (Some(reference), Some((_, expected))) => {
-                    let path = self.safe_from(&base, reference)?;
+                    let path = if asset.card.availability == "converted_model" {
+                        if let Some(shared) = asset.catalog_asset.get("preview_vault") {
+                            self.safe_relative(shared.as_str().ok_or("vignette partagée invalide")?)?
+                        } else {
+                            self.safe_from(&base, reference)?
+                        }
+                    } else {
+                        self.safe_from(&base, reference)?
+                    };
                     if !regular_file_within_limit(&path, MAX_THUMBNAIL)? {
                         return Err(
                             "vignette absente, non régulière ou trop volumineuse".to_owned()
@@ -1273,12 +1403,19 @@ fn taxonomy(item: &Value, field: &str) -> String {
 }
 fn matches_query(asset: &StoredAsset, query: &LibraryQuery) -> bool {
     let eq = |left: &str, right: &str| right.is_empty() || normalized(left) == normalized(right);
-    if !eq(&asset.card.pack, &query.pack)
-        || !eq(&asset.card.family, &query.family)
-        || !eq(&asset.card.asset_type, &query.asset_type)
-        || !eq(&asset.card.subtype, &query.subtype)
-        || !eq(&asset.card.availability, &query.availability)
-    {
+    let primary = eq(&asset.card.pack, &query.pack)
+        && eq(&asset.card.family, &query.family)
+        && eq(&asset.card.asset_type, &query.asset_type)
+        && eq(&asset.card.subtype, &query.subtype);
+    let legacy = asset.details.get("consolidated_sources").and_then(Value::as_array)
+        .is_some_and(|variants| variants.iter().any(|variant| {
+            let detail = &variant["original_detail"];
+            eq(detail.get("pack_id").and_then(Value::as_str).unwrap_or_default(), &query.pack)
+                && eq(&taxonomy(detail, "family"), &query.family)
+                && eq(&taxonomy(detail, "type"), &query.asset_type)
+                && eq(&taxonomy(detail, "subtype"), &query.subtype)
+        }));
+    if !(primary || legacy) || !eq(&asset.card.availability, &query.availability) {
         return false;
     }
     let status_matches = match query.status.as_str() {
@@ -1291,7 +1428,7 @@ fn matches_query(asset: &StoredAsset, query: &LibraryQuery) -> bool {
     if !status_matches {
         return false;
     }
-    let haystack = normalized(&format!(
+    let mut text = format!(
         "{} {} {} {} {} {} {} {} {}",
         asset.card.id,
         asset.card.name,
@@ -1302,7 +1439,36 @@ fn matches_query(asset: &StoredAsset, query: &LibraryQuery) -> bool {
         asset.card.subtype,
         asset.card.availability,
         asset.card.tags.join(" ")
-    ));
+    );
+    // A consolidated card remains discoverable by the former identity, name,
+    // description and tags as well as by its current metadata.
+    if let Some(variants) = asset.details.get("consolidated_variants").and_then(Value::as_array) {
+        for variant in variants {
+            let detail = &variant["original_detail"];
+            text.push(' ');
+            text.push_str(variant.get("retired_id").and_then(Value::as_str).unwrap_or_default());
+            text.push(' ');
+            text.push_str(&localized(detail.get("names")));
+            text.push(' ');
+            text.push_str(&localized(detail.get("descriptions")));
+            text.push(' ');
+            text.push_str(&strings(detail.get("tags")).join(" "));
+        }
+    }
+    if let Some(variants) = asset.details.get("consolidated_sources").and_then(Value::as_array) {
+        for variant in variants {
+            let detail = &variant["original_detail"];
+            text.push(' ');
+            text.push_str(variant.get("retired_id").and_then(Value::as_str).unwrap_or_default());
+            text.push(' ');
+            text.push_str(&localized(detail.get("names")));
+            text.push(' ');
+            text.push_str(&localized(detail.get("descriptions")));
+            text.push(' ');
+            text.push_str(&strings(detail.get("tags")).join(" "));
+        }
+    }
+    let haystack = normalized(&text);
     normalized(&query.text)
         .split_whitespace()
         .all(|term| haystack.contains(term))
@@ -1318,13 +1484,53 @@ fn facets(items: &[&StoredAsset]) -> LibraryFacets {
             .into_iter()
             .collect()
     };
+    let with_legacy = |primary: Vec<String>, field: &str| -> Vec<String> {
+        let mut values: BTreeSet<String> = primary.into_iter().collect();
+        for asset in items {
+            if let Some(variants) = asset.details.get("consolidated_sources").and_then(Value::as_array) {
+                for variant in variants {
+                    let detail = &variant["original_detail"];
+                    let value = if field == "pack_id" {
+                        detail.get(field).and_then(Value::as_str).unwrap_or_default().to_owned()
+                    } else {
+                        taxonomy(detail, field)
+                    };
+                    if !value.is_empty() { values.insert(value); }
+                }
+            }
+        }
+        values.into_iter().collect()
+    };
     LibraryFacets {
-        packs: collect(|c| &c.pack),
-        families: collect(|c| &c.family),
-        types: collect(|c| &c.asset_type),
-        subtypes: collect(|c| &c.subtype),
+        packs: with_legacy(collect(|c| &c.pack), "pack_id"),
+        families: with_legacy(collect(|c| &c.family), "family"),
+        types: with_legacy(collect(|c| &c.asset_type), "type"),
+        subtypes: with_legacy(collect(|c| &c.subtype), "subtype"),
         availabilities: collect(|c| &c.availability),
     }
+}
+
+fn find_legacy_alias(
+    snapshot: &Snapshot,
+    asset_id: forge_core::AssetId,
+) -> Result<Option<(&StoredAsset, &Value)>, String> {
+    let mut found = None;
+    for candidate in &snapshot.assets {
+        if let Some(variants) = candidate.details.get("consolidated_variants") {
+            for variant in variants
+                .as_array()
+                .ok_or("variantes consolidées invalides")?
+            {
+                if vault_asset_id(required(variant, "retired_id")?) == asset_id {
+                    if found.is_some() {
+                        return Err("référence du Vault ambiguë".to_owned());
+                    }
+                    found = Some((candidate, variant));
+                }
+            }
+        }
+    }
+    Ok(found)
 }
 
 fn profile_index(profiles: &[Value]) -> Result<HashMap<&str, usize>, String> {
@@ -1573,6 +1779,283 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[test]
+    #[ignore = "Requires an explicitly prepared private consolidation stage"]
+    fn staged_consolidation_pack_metadata_uses_native_validation() {
+        let stage = std::env::var("OPENRPG_CONSOLIDATION_STAGE")
+            .expect("OPENRPG_CONSOLIDATION_STAGE is required");
+        let stage = Path::new(&stage);
+        let manifest: Value =
+            serde_json::from_slice(&fs::read(stage.join("transition.json")).unwrap()).unwrap();
+        assert_eq!(manifest["state"], "prepared_only");
+        let packs = manifest["packs"].as_object().unwrap();
+        let aliases = manifest["aliases_requiring_project_migration"]
+            .as_array()
+            .unwrap();
+        assert!(!packs.is_empty() && !aliases.is_empty());
+        let mut actual_ids = BTreeSet::new();
+        let mut preserved = BTreeSet::new();
+        for (pack, pins) in packs {
+            let mut parsed = Vec::new();
+            for name in ["details.v1.json", "profiles.v1.json"] {
+                let raw = fs::read(stage.join(pack).join(name)).unwrap();
+                assert_eq!(
+                    forge_core::bytes_sha256(&raw).to_string(),
+                    pins[name].as_str().unwrap()
+                );
+                parsed.push(serde_json::from_slice::<Value>(&raw).unwrap());
+            }
+            let details = parsed[0]["assets"].as_array().unwrap();
+            let profiles = parsed[1]["profiles"].as_array().unwrap();
+            assert_eq!(parsed[0]["pack_id"].as_str(), Some(pack.as_str()));
+            validate_pack_metadata(pack, details, profiles).unwrap();
+            for asset in details {
+                let id = required(asset, "id").unwrap();
+                assert!(actual_ids.insert(id.to_owned()));
+                if let Some(variants) = asset.get("consolidated_variants").and_then(Value::as_array)
+                {
+                    for variant in variants {
+                        let retired = required(variant, "retired_id").unwrap();
+                        assert_eq!(variant["original_detail"]["id"], retired);
+                        assert_eq!(variant["original_profile"]["external_id"], retired);
+                        assert!(preserved.insert((id.to_owned(), retired.to_owned())));
+                    }
+                }
+            }
+        }
+        for alias in aliases {
+            let kept = required(alias, "retained_id").unwrap();
+            let retired = required(alias, "retired_id").unwrap();
+            assert!(actual_ids.contains(kept));
+            assert!(!actual_ids.contains(retired));
+            assert!(preserved.contains(&(kept.to_owned(), retired.to_owned())));
+        }
+        eprintln!(
+            "Validated {} staged packs and {} identity pairs; no publication or rendering checked",
+            packs.len(),
+            aliases.len()
+        );
+    }
+
+    #[test]
+    #[ignore = "Requires an explicit private Vault and prepared consolidation stage"]
+    fn staged_real_consolidation_resolves_and_exports_legacy_models() {
+        let stage = std::env::var("OPENRPG_CONSOLIDATION_STAGE").unwrap();
+        let vault = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = Path::new(&stage);
+        let manifest: Value =
+            serde_json::from_slice(&fs::read(stage.join("transition.json")).unwrap()).unwrap();
+        assert_eq!(manifest["state"], "prepared_only");
+        let aliases = manifest["aliases_requiring_project_migration"]
+            .as_array()
+            .unwrap();
+        assert!(!aliases.is_empty());
+        let planned_retained: BTreeSet<_> = aliases
+            .iter()
+            .map(|a| required(a, "retained_id").unwrap().to_owned())
+            .collect();
+        let mut staged = HashMap::new();
+        for (pack, pins) in manifest["packs"].as_object().unwrap() {
+            let raw = fs::read(stage.join(pack).join("details.v1.json")).unwrap();
+            assert!(same_hash(&raw, pins["details.v1.json"].as_str().unwrap()));
+            let details: Value = serde_json::from_slice(&raw).unwrap();
+            for asset in details["assets"].as_array().unwrap() {
+                if asset.get("consolidated_variants").is_some()
+                    && planned_retained.contains(required(asset, "id").unwrap())
+                {
+                    assert!(
+                        staged
+                            .insert(required(asset, "id").unwrap().to_owned(), asset.clone())
+                            .is_none()
+                    );
+                }
+            }
+        }
+        let retired: BTreeSet<_> = aliases
+            .iter()
+            .map(|a| required(a, "retired_id").unwrap().to_owned())
+            .collect();
+        let mut library = Library::new(Path::new(&vault)).unwrap();
+        library
+            .execute(LibraryRequest::Search {
+                query: LibraryQuery {
+                    limit: 1,
+                    ..LibraryQuery::default()
+                },
+            })
+            .unwrap();
+        {
+            let snapshot = library.snapshot.as_mut().unwrap();
+            let mut replaced = 0;
+            snapshot
+                .assets
+                .retain(|asset| !retired.contains(&asset.card.id));
+            for asset in &mut snapshot.assets {
+                if let Some(detail) = staged.remove(&asset.card.id) {
+                    asset.details = Arc::new(detail);
+                    replaced += 1;
+                }
+            }
+            assert!(staged.is_empty());
+            assert_eq!(replaced, planned_retained.len());
+            snapshot.by_id = snapshot
+                .assets
+                .iter()
+                .enumerate()
+                .map(|(i, a)| (a.card.id.clone(), i))
+                .collect();
+        }
+        let mut baseline: Option<Library> = None;
+        let mut matching_export_failures = 0;
+        let mut export_baseline = serde_json::Map::new();
+        for (index, alias) in aliases.iter().enumerate() {
+            let id = required(alias, "retired_id").unwrap();
+            let pin =
+                forge_core::ContentHash::parse(required(alias, "retired_sha256").unwrap()).unwrap();
+            let LibraryResponse::Model { model } = library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: vault_asset_id(id),
+                    sha256: pin,
+                })
+                .unwrap_or_else(|error| panic!("{id}: {error}"))
+            else {
+                panic!("model expected")
+            };
+            assert_eq!(model.id, id);
+            assert_eq!(forge_core::bytes_sha256(&model.bytes), pin);
+            let exported = library.export_private_models(
+                    &[(vault_asset_id(id), pin)],
+                    "2026-11-11",
+                    crate::asset_import_native::MAX_EXPORT_BYTES,
+                );
+            match exported {
+                Ok(exported) => {
+                    assert_eq!(exported.catalog.assets[0].id, vault_asset_id(id));
+                    assert_eq!(exported.files.get(&format!("assets/{pin}.glb")), Some(&model.bytes));
+                    let original = baseline.get_or_insert_with(|| Library::new(Path::new(&vault)).unwrap());
+                    let before = original.export_private_models(
+                        &[(vault_asset_id(id), pin)], "2026-11-11",
+                        crate::asset_import_native::MAX_EXPORT_BYTES,
+                    ).unwrap_or_else(|error| panic!("{id}: staged export succeeds but original fails: {error}"));
+                    assert_eq!(before.files.get(&format!("assets/{pin}.glb")), Some(&model.bytes));
+                    export_baseline.insert(id.to_owned(), serde_json::json!({"sha256": pin.to_string(), "outcome": "success"}));
+                }
+                Err(error) => {
+                    let original = baseline.get_or_insert_with(|| Library::new(Path::new(&vault)).unwrap());
+                    let baseline_error = original.export_private_models(
+                        &[(vault_asset_id(id), pin)], "2026-11-11",
+                        crate::asset_import_native::MAX_EXPORT_BYTES,
+                    ).err().unwrap_or_else(|| panic!("{id}: staged export fails but original succeeds: {error}"));
+                    assert_eq!(error, baseline_error, "{id}: export failure changed");
+                    export_baseline.insert(id.to_owned(), serde_json::json!({"sha256": pin.to_string(), "outcome": "error", "error": error}));
+                    eprintln!("Pre-existing export failure for {id}: {error}");
+                    matching_export_failures += 1;
+                }
+            }
+            if (index + 1) % 25 == 0 {
+                eprintln!("Checked {} of {} references; {} matching pre-existing export failures", index + 1, aliases.len(), matching_export_failures);
+            }
+        }
+        if let Ok(path) = std::env::var("OPENRPG_EXPORT_BASELINE_OUTPUT") {
+            let baseline = serde_json::json!({
+                "schema": "openrpg.variant-export-baseline.v1",
+                "stage_manifest_sha256": forge_core::bytes_sha256(&fs::read(stage.join("transition.json")).unwrap()).to_string(),
+                "exports": export_baseline,
+            });
+            let file = fs::OpenOptions::new().write(true).create_new(true).open(path).unwrap();
+            serde_json::to_writer_pretty(file, &baseline).unwrap();
+        }
+        eprintln!(
+            "Verified {} real legacy references against staged snapshot; {} exports succeeded, {} reproduced existing failures; Vault unchanged",
+            aliases.len(), aliases.len() - matching_export_failures, matching_export_failures
+        );
+    }
+
+    #[test]
+    #[ignore = "Requires the published consolidation and private Vault"]
+    fn published_consolidation_resolves_and_exports_all_legacy_models() {
+        let stage = std::env::var("OPENRPG_CONSOLIDATION_STAGE").unwrap();
+        let vault = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let manifest: Value =
+            serde_json::from_slice(&fs::read(Path::new(&stage).join("transition.json")).unwrap())
+                .unwrap();
+        let registry: Value = serde_json::from_slice(
+            &fs::read(Path::new(&vault).join("metadata/asset-import-registry.v1.json")).unwrap(),
+        )
+        .unwrap();
+        for (pack, pins) in manifest["packs"].as_object().unwrap() {
+            assert_eq!(registry["packs"][pack]["revision"], pins["revision"]);
+        }
+        let aliases = manifest["aliases_requiring_project_migration"]
+            .as_array()
+            .unwrap();
+        assert!(!aliases.is_empty());
+        let baseline = std::env::var("OPENRPG_EXPORT_BASELINE").ok().map(|path| {
+            let value: Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+            assert_eq!(value["schema"], "openrpg.variant-export-baseline.v1");
+            assert_eq!(value["stage_manifest_sha256"], forge_core::bytes_sha256(&fs::read(Path::new(&stage).join("transition.json")).unwrap()).to_string());
+            assert_eq!(value["exports"].as_object().unwrap().len(), aliases.len());
+            value
+        });
+        let mut library = Library::new(Path::new(&vault)).unwrap();
+        library
+            .execute(LibraryRequest::Search {
+                query: LibraryQuery {
+                    limit: 1,
+                    ..LibraryQuery::default()
+                },
+            })
+            .unwrap();
+        for (index, alias) in aliases.iter().enumerate() {
+            let kept = required(alias, "retained_id").unwrap();
+            let retired = required(alias, "retired_id").unwrap();
+            let snapshot = library.snapshot.as_ref().unwrap();
+            assert!(snapshot.by_id.contains_key(kept));
+            assert!(!snapshot.by_id.contains_key(retired));
+            let pin =
+                forge_core::ContentHash::parse(required(alias, "retired_sha256").unwrap()).unwrap();
+            let LibraryResponse::Model { model } = library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: vault_asset_id(retired),
+                    sha256: pin,
+                })
+                .unwrap_or_else(|error| panic!("{retired}: {error}"))
+            else {
+                panic!("model expected")
+            };
+            assert_eq!(model.id, retired);
+            assert_eq!(forge_core::bytes_sha256(&model.bytes), pin);
+            let exported = library.export_private_models(
+                    &[(vault_asset_id(retired), pin)],
+                    "2026-11-11",
+                    crate::asset_import_native::MAX_EXPORT_BYTES,
+                );
+            let expectation = baseline.as_ref().map(|v| &v["exports"][retired]);
+            if let Some(expected) = expectation {
+                assert_eq!(expected["sha256"], pin.to_string());
+            }
+            match exported {
+                Ok(exported) => {
+                    if let Some(expected) = expectation { assert_eq!(expected["outcome"], "success"); }
+                    assert_eq!(exported.files.get(&format!("assets/{pin}.glb")), Some(&model.bytes));
+                }
+                Err(error) => {
+                    let expected = expectation.unwrap_or_else(|| panic!("{retired} export: {error}"));
+                    assert_eq!(expected["outcome"], "error");
+                    assert_eq!(expected["error"], error);
+                }
+            }
+            if (index + 1) % 25 == 0 {
+                eprintln!("Verified {} of {} published references and exports", index + 1, aliases.len());
+            }
+        }
+        if baseline.is_some() {
+            eprintln!("Verified {} published legacy references, baseline export outcomes and unique visible IDs; models not removed", aliases.len());
+        } else {
+            eprintln!("Verified {} published legacy references, exports and unique visible IDs; models not removed", aliases.len());
+        }
+    }
+
+    #[test]
     fn vault_model_transport_refuses_preserved_sources_and_invalid_envelopes() {
         let (root, _) = fixture();
         let support_id = add_source_support(&root);
@@ -1770,6 +2253,216 @@ mod tests {
                     sha256: model.sha256
                 })
                 .is_err()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn consolidated_legacy_reference_returns_original_bytes_without_an_extra_card() {
+        fn model(id: &str) -> Vec<u8> {
+            let mut json =
+                format!(r#"{{"asset":{{"version":"2.0"}},"extras":{{"id":"{id}"}}}}"#).into_bytes();
+            while json.len() % 4 != 0 {
+                json.push(b' ');
+            }
+            let total = 20 + json.len() + 8 + 4;
+            let mut bytes = b"glTF".to_vec();
+            for n in [2_u32, total as u32, json.len() as u32, 0x4e4f_534a] {
+                bytes.extend_from_slice(&n.to_le_bytes());
+            }
+            bytes.extend_from_slice(&json);
+            bytes.extend_from_slice(&4_u32.to_le_bytes());
+            bytes.extend_from_slice(b"BIN\0data");
+            bytes
+        }
+        let (root, _) = fixture();
+        let kept = model("kept");
+        let old = model("old");
+        set_model_fixture(&root, &kept);
+        let old_id = "demo.variant-abc.arbre-eclaire";
+        let old_sha = sha256(&old);
+        let json_len = u32::from_le_bytes(old[12..16].try_into().unwrap()) as usize;
+        let prefix = &old[..20 + json_len];
+        let tail = &old[20 + json_len..];
+        let recipe = serde_json::json!({"schema":"openrpg.legacy-glb-recipe.v1",
+            "prefix_hex":prefix.iter().map(|b| format!("{b:02x}")).collect::<String>(),
+            "shared_tail_sha256":sha256(tail),"logical_sha256":old_sha,"logical_bytes":old.len()});
+        let pack = root.join("metadata/rev/demo/one");
+        let catalog_path = root.join("normalized/demo/catalog.v1.json");
+        let mut details: Value =
+            serde_json::from_slice(&fs::read(pack.join("details.v1.json")).unwrap()).unwrap();
+        let profiles: Value =
+            serde_json::from_slice(&fs::read(pack.join("profiles.v1.json")).unwrap()).unwrap();
+        let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path).unwrap()).unwrap();
+        let mut old_detail = details["assets"][0].clone();
+        old_detail["id"] = old_id.into();
+        old_detail["names"] = serde_json::json!({"fr":"Ancienne lanterne"});
+        old_detail["tags"] = serde_json::json!(["lucioles"]);
+        old_detail["model_sha256"] = old_sha.clone().into();
+        old_detail["model_path"] = root
+            .join("normalized/demo/models/old.glb")
+            .display()
+            .to_string()
+            .into();
+        let mut old_profile = profiles["profiles"][0].clone();
+        old_profile["external_id"] = old_id.into();
+        old_profile["model_content_sha256"] = old_sha.clone().into();
+        let mut old_catalog = catalog["assets"][0].clone();
+        old_catalog["id"] = old_id.into();
+        old_catalog["sha256"] = old_sha.clone().into();
+        old_catalog["model"] = "models/old.glb".into();
+        catalog["assets"].as_array_mut().unwrap().push(old_catalog);
+        details["assets"][0]["consolidated_variants"] = serde_json::json!([{
+            "retired_id":old_id, "retired_uuid":vault_asset_id(old_id).to_string(),
+            "retired_model_sha256":old_sha,
+            "original_detail":old_detail,
+            "original_profile":old_profile, "legacy_recipe":recipe
+        }]);
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &catalog_path);
+        let mut library = Library::new(&root).unwrap();
+        let pin = forge_core::ContentHash::parse(&old_sha).unwrap();
+        let LibraryResponse::Model { model } = library
+            .execute(LibraryRequest::ModelReference {
+                asset_id: vault_asset_id(old_id),
+                sha256: pin,
+            })
+            .unwrap()
+        else {
+            panic!("legacy model expected")
+        };
+        assert_eq!(model.id, old_id);
+        assert_eq!(model.sha256, pin);
+        assert_eq!(model.bytes, old);
+        let exported = library
+            .export_private_models(
+                &[(vault_asset_id(old_id), pin)],
+                "2026-11-11",
+                8 * 1024 * 1024,
+            )
+            .unwrap();
+        assert_eq!(exported.catalog.assets[0].id, vault_asset_id(old_id));
+        assert_eq!(exported.files.get(&format!("assets/{pin}.glb")), Some(&old));
+        let canonical_pin = forge_core::bytes_sha256(&kept);
+        let canonical = library
+            .export_private_models(
+                &[(vault_asset_id("demo.arbre-eclaire"), canonical_pin)],
+                "2026-11-11",
+                8 * 1024 * 1024,
+            )
+            .unwrap();
+        let proof = canonical
+            .files
+            .iter()
+            .find(|(path, _)| path.starts_with("licenses/"))
+            .unwrap()
+            .1;
+        let proof: Value = serde_json::from_slice(proof).unwrap();
+        assert_eq!(
+            proof["metadata"]["consolidated_variants"][0]["retired_id"],
+            old_id
+        );
+        assert!(
+            proof["metadata"]["consolidated_variants"][0]
+                .get("legacy_recipe")
+                .is_none()
+        );
+        let LibraryResponse::Page { page } = library
+            .execute(LibraryRequest::Search {
+                query: LibraryQuery::default(),
+            })
+            .unwrap()
+        else {
+            panic!("page expected")
+        };
+        assert_eq!(page.assets.len(), 1);
+        for text in ["ancienne lanterne", "lucioles", old_id] {
+            let LibraryResponse::Page { page } = library
+                .execute(LibraryRequest::Search {
+                    query: LibraryQuery { text: text.to_owned(), ..LibraryQuery::default() },
+                })
+                .unwrap()
+            else {
+                panic!("page expected")
+            };
+            assert_eq!(page.assets.len(), 1, "search by former metadata: {text}");
+            assert_eq!(page.assets[0].id, "demo.arbre-eclaire");
+        }
+        assert!(
+            library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: vault_asset_id(old_id),
+                    sha256: forge_core::ContentHash::from_bytes([0; 32]),
+                })
+                .is_err()
+        );
+        // A legacy version may have a different binary payload. Its verified
+        // shared-storage descriptor remains in the registry, with no old GLB.
+        fs::create_dir_all(root.join(".forge-storage/packs")).unwrap();
+        fs::write(
+            root.join(".forge-storage/root.v1.json"),
+            br#"{"schema":1,"vault_id":"11111111111111111111111111111111"}"#,
+        )
+        .unwrap();
+        fs::write(
+            root.join(".forge-storage/packs/22222222222222222222222222222222.pack"),
+            &old,
+        )
+        .unwrap();
+        let descriptor = forge_delivery::vault_storage::Descriptor {
+            schema: 1,
+            vault_id: "1".repeat(32),
+            bytes: old.len() as u64,
+            sha256: old_sha.clone(),
+            segments: vec![forge_delivery::vault_storage::Segment {
+                pack: "2".repeat(32),
+                offset: 0,
+                stored_bytes: old.len() as u64,
+                bytes: old.len() as u64,
+                sha256: old_sha.clone(),
+                codec: "raw".to_owned(),
+            }],
+        };
+        details["assets"][0]["consolidated_variants"][0]["legacy_recipe"] = serde_json::json!({
+            "schema":"openrpg.legacy-vault-descriptor.v1", "logical_sha256":old_sha,
+            "logical_bytes":old.len(), "descriptor":descriptor
+        });
+        let second_id = "demo.variant-def.arbre-eclaire";
+        let mut second_variant = details["assets"][0]["consolidated_variants"][0].clone();
+        second_variant["retired_id"] = second_id.into();
+        second_variant["retired_uuid"] = vault_asset_id(second_id).to_string().into();
+        second_variant["original_detail"]["id"] = second_id.into();
+        second_variant["original_profile"]["external_id"] = second_id.into();
+        details["assets"][0]["consolidated_variants"].as_array_mut().unwrap().push(second_variant);
+        let mut second_catalog = catalog["assets"][1].clone();
+        second_catalog["id"] = second_id.into();
+        catalog["assets"].as_array_mut().unwrap().push(second_catalog);
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &catalog_path);
+        let mut library = Library::new(&root).unwrap();
+        for historical_id in [old_id, second_id] {
+            let LibraryResponse::Model { model } = library
+                .execute(LibraryRequest::ModelReference { asset_id: vault_asset_id(historical_id), sha256: pin })
+                .unwrap() else { panic!("embedded legacy model expected") };
+            assert_eq!(model.bytes, old);
+            let exported = library.export_private_models(
+                &[(vault_asset_id(historical_id), pin)], "2026-11-11", 8 * 1024 * 1024,
+            ).unwrap();
+            assert_eq!(exported.files.get(&format!("assets/{pin}.glb")), Some(&old));
+        }
+        let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+            query: LibraryQuery::default(),
+        }).unwrap() else { panic!("page expected") };
+        assert_eq!(page.assets.len(), 1);
+        library.before_reply_hook = Some(|root| {
+            fs::write(root.join("metadata/asset-import-registry.v1.json"), b"{}").unwrap();
+        });
+        assert!(
+            library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: vault_asset_id(old_id),
+                    sha256: pin,
+                })
+                .unwrap_err()
+                .contains("registre modifié")
         );
         fs::remove_dir_all(root).unwrap();
     }
@@ -2342,6 +3035,40 @@ mod tests {
         (root, snapshot_revision(&raw, None))
     }
 
+    #[test]
+    fn shared_model_preview_loads_from_vault_without_legacy_copy() {
+        let (root, _) = fixture();
+        let catalog = root.join("normalized/demo/catalog.v1.json");
+        let mut doc: Value = serde_json::from_slice(&fs::read(&catalog).unwrap()).unwrap();
+        let image = fs::read(root.join("normalized/demo/previews/a.png")).unwrap();
+        fs::create_dir_all(root.join("shared")).unwrap();
+        fs::write(root.join("shared/preview.png"),&image).unwrap();
+        doc["assets"][0]["preview_vault"] = Value::String("shared/preview.png".into());
+        fs::write(&catalog,serde_json::to_vec(&doc).unwrap()).unwrap();
+        fs::remove_file(root.join("normalized/demo/previews/a.png")).unwrap();
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+            query: LibraryQuery::default(),
+        }).unwrap() else { panic!("search expected") };
+        let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+            id:"demo.arbre-eclaire".into(), revision:page.revision,
+        }).unwrap() else { panic!("thumbnail expected") };
+        assert_eq!(bytes,image);
+        let _=fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn shared_model_preview_refuses_path_traversal() {
+        let (root, _) = fixture();
+        let catalog = root.join("normalized/demo/catalog.v1.json");
+        let mut doc: Value = serde_json::from_slice(&fs::read(&catalog).unwrap()).unwrap();
+        doc["assets"][0]["preview_vault"] = Value::String("../outside.png".into());
+        fs::write(&catalog,serde_json::to_vec(&doc).unwrap()).unwrap();
+        let mut library = Library::new(&root).unwrap();
+        assert!(library.execute(LibraryRequest::Search { query:LibraryQuery::default() }).is_err());
+        let _=fs::remove_dir_all(root);
+    }
+
     #[cfg(any(windows, unix))]
     #[test]
     fn configured_root_alias_keeps_reads_confined_to_canonical_vault() {
@@ -2575,6 +3302,183 @@ mod tests {
         )
         .unwrap();
         id
+    }
+
+    #[test]
+    fn consolidated_source_is_searchable_and_old_identity_keeps_its_details() {
+        let (root, _) = fixture();
+        let kept = add_source_support(&root);
+        let pointer_path = root.join(SOURCE_SUPPORT_REGISTRY);
+        let mut pointer: Value = serde_json::from_slice(&fs::read(&pointer_path).unwrap()).unwrap();
+        let catalog_path = root.join(pointer["path"].as_str().unwrap());
+        let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path).unwrap()).unwrap();
+        let card = &mut catalog["assets"][0];
+        let mut old = card.clone();
+        old["id"] = Value::String("demo.source-old".into());
+        old["names"]["fr"] = Value::String("Ancienne source".into());
+        old["taxonomy"] = serde_json::json!({"family":"legacy-family","type":"legacy-type","subtype":"legacy-subtype"});
+        card["consolidated_sources"] = serde_json::json!([{ "retired_id":"demo.source-old", "original_detail":old }]);
+        let raw = serde_json::to_vec(&catalog).unwrap();
+        let hash = sha256(&raw);
+        fs::write(&catalog_path, raw).unwrap();
+        pointer["revision"] = Value::String(hash.clone());
+        pointer["sha256"] = Value::String(hash);
+        fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+            query: LibraryQuery { text:"demo.source-old".into(), ..LibraryQuery::default() }
+        }).unwrap() else { panic!("search must return a page") };
+        assert_eq!(page.matched_assets, 1);
+        assert_eq!(page.assets[0].id, kept);
+        assert!(page.facets.families.contains(&"legacy-family".to_owned()));
+        assert!(page.facets.types.contains(&"legacy-type".to_owned()));
+        assert!(page.facets.subtypes.contains(&"legacy-subtype".to_owned()));
+        let LibraryResponse::Page { page: filtered } = library.execute(LibraryRequest::Search {
+            query: LibraryQuery { family:"legacy-family".into(), asset_type:"legacy-type".into(), subtype:"legacy-subtype".into(), ..LibraryQuery::default() }
+        }).unwrap() else { panic!("legacy filters must return a page") };
+        assert_eq!(filtered.assets.len(), 1);
+        assert_eq!(filtered.assets[0].id, kept);
+        let LibraryResponse::Page { page: mixed } = library.execute(LibraryRequest::Search {
+            query: LibraryQuery { family:"legacy-family".into(), asset_type:"helper".into(), ..LibraryQuery::default() }
+        }).unwrap() else { panic!("mixed filters must return a page") };
+        assert_eq!(mixed.matched_assets, 0);
+        let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+            id:"demo.source-old".into(), revision:page.revision,
+        }).unwrap() else { panic!("old source must retain its details") };
+        assert_eq!(detail.card.id, "demo.source-old");
+        assert_eq!(detail.card.name, "Ancienne source");
+        assert!(detail.model_path.is_none());
+        let error = library.execute(LibraryRequest::ModelReference {
+            asset_id: vault_asset_id("demo.source-old"),
+            sha256: forge_core::bytes_sha256(b"source-fbx"),
+        }).unwrap_err();
+        assert_eq!(error, "source conservée non plaçable");
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn consolidated_source_accepts_explicit_lod_variation_and_keeps_both_sources() {
+        let (root, _) = fixture();
+        let kept = add_source_support(&root);
+        let pointer_path = root.join(SOURCE_SUPPORT_REGISTRY);
+        let mut pointer: Value = serde_json::from_slice(&fs::read(&pointer_path).unwrap()).unwrap();
+        let catalog_path = root.join(pointer["path"].as_str().unwrap());
+        let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path).unwrap()).unwrap();
+        let card = &mut catalog["assets"][0];
+        let mut old = card.clone();
+        old["id"] = Value::String("demo.source-lod-old".into());
+        let old_bytes = b"old source with distinct LOD";
+        fs::write(root.join("originals/old-lod.prefab"), old_bytes).unwrap();
+        old["source_file"] = Value::String("originals/old-lod.prefab".into());
+        old["source_sha256"] = Value::String(sha256(old_bytes));
+        card["consolidated_sources"] = serde_json::json!([{
+            "retired_id":"demo.source-lod-old", "original_detail":old,
+            "source_variation":{"kind":"lod_thresholds_only"}
+        }]);
+        let raw = serde_json::to_vec(&catalog).unwrap();
+        let hash = sha256(&raw); fs::write(&catalog_path, raw).unwrap();
+        pointer["revision"] = Value::String(hash.clone()); pointer["sha256"] = Value::String(hash);
+        fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+            query: LibraryQuery { text:"demo.source-lod-old".into(), ..LibraryQuery::default() }
+        }).unwrap() else { panic!("search expected") };
+        assert!(page.assets.iter().any(|card| card.id == kept));
+        let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+            id:"demo.source-lod-old".into(), revision:page.revision,
+        }).unwrap() else { panic!("old source details expected") };
+        assert_eq!(detail.details["source_sha256"], sha256(old_bytes));
+        for kind in ["lod_collider_only", "pipeline_light_only"] {
+            catalog["assets"][0]["consolidated_sources"][0]["source_variation"] = serde_json::json!({"kind":kind});
+            let raw = serde_json::to_vec(&catalog).unwrap();
+            let hash = sha256(&raw); fs::write(&catalog_path, raw).unwrap();
+            pointer["revision"] = Value::String(hash.clone()); pointer["sha256"] = Value::String(hash);
+            fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
+            let mut library = Library::new(&root).unwrap();
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text:"demo.source-lod-old".into(), ..LibraryQuery::default() }
+            }).unwrap() else { panic!("search expected") };
+            assert!(page.assets.iter().any(|card| card.id == kept));
+            let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+                id:"demo.source-lod-old".into(), revision:page.revision,
+            }).unwrap() else { panic!("old source variation details expected") };
+            assert_eq!(detail.details["source_sha256"], sha256(old_bytes));
+        }
+        catalog["assets"][0]["consolidated_sources"][0]["source_variation"] = serde_json::json!({"kind":"unknown"});
+        let raw = serde_json::to_vec(&catalog).unwrap();
+        let hash = sha256(&raw); fs::write(&catalog_path, raw).unwrap();
+        pointer["revision"] = Value::String(hash.clone()); pointer["sha256"] = Value::String(hash);
+        fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
+        let mut invalid = Library::new(&root).unwrap();
+        assert!(invalid.execute(LibraryRequest::Search {
+            query: LibraryQuery::default(),
+        }).is_err());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn consolidated_source_preserves_distinct_legacy_thumbnail() {
+        let (root, _) = fixture();
+        let kept = add_source_support(&root);
+        let pointer_path = root.join(SOURCE_SUPPORT_REGISTRY);
+        let mut pointer: Value = serde_json::from_slice(&fs::read(&pointer_path).unwrap()).unwrap();
+        let catalog_path = root.join(pointer["path"].as_str().unwrap());
+        let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path).unwrap()).unwrap();
+        let old_png = b"\x89PNG\r\n\x1a\nold";
+        let new_png = b"\x89PNG\r\n\x1a\nnew";
+        fs::write(root.join("originals/old.png"), old_png).unwrap();
+        fs::write(root.join("originals/new.png"), new_png).unwrap();
+        let card = &mut catalog["assets"][0];
+        card["preview"] = Value::String("originals/new.png".into());
+        card["preview_sha256"] = Value::String(sha256(new_png));
+        let mut old = card.clone();
+        old["id"] = Value::String("demo.source-old".into());
+        old["preview"] = Value::String("originals/old.png".into());
+        old["preview_sha256"] = Value::String(sha256(old_png));
+        card["consolidated_sources"] = serde_json::json!([{
+            "retired_id":"demo.source-old", "original_detail":old, "preserve_distinct_preview":true
+        }]);
+        let raw = serde_json::to_vec(&catalog).unwrap();
+        let hash = sha256(&raw); fs::write(&catalog_path, raw).unwrap();
+        pointer["revision"] = Value::String(hash.clone()); pointer["sha256"] = Value::String(hash);
+        fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+            query:LibraryQuery { text:"demo.source-old".into(), ..LibraryQuery::default() }
+        }).unwrap() else { panic!("search expected") };
+        assert_eq!(page.assets[0].id, kept);
+        for (id, expected) in [("demo.source-old", old_png.as_slice()), (kept.as_str(), new_png.as_slice())] {
+            let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                id:id.into(), revision:page.revision.clone()
+            }).unwrap() else { panic!("thumbnail expected") };
+            assert_eq!(bytes, expected);
+        }
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn consolidated_source_rejects_duplicate_legacy_identity() {
+        let (root, _) = fixture();
+        add_source_support(&root);
+        let pointer_path = root.join(SOURCE_SUPPORT_REGISTRY);
+        let mut pointer: Value = serde_json::from_slice(&fs::read(&pointer_path).unwrap()).unwrap();
+        let catalog_path = root.join(pointer["path"].as_str().unwrap());
+        let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path).unwrap()).unwrap();
+        let card = &mut catalog["assets"][0];
+        let mut old = card.clone();
+        old["id"] = Value::String("demo.source-old".into());
+        let alias = serde_json::json!({"retired_id":"demo.source-old", "original_detail":old});
+        card["consolidated_sources"] = serde_json::json!([alias.clone(), alias]);
+        let raw = serde_json::to_vec(&catalog).unwrap();
+        let hash = sha256(&raw);
+        fs::write(&catalog_path, raw).unwrap();
+        pointer["revision"] = Value::String(hash.clone());
+        pointer["sha256"] = Value::String(hash);
+        fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
+        let mut library = Library::new(&root).unwrap();
+        let error = library.execute(LibraryRequest::Search { query: LibraryQuery::default() }).unwrap_err();
+        assert!(error.contains("variante source dupliqué"));
+        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
@@ -3042,6 +3946,333 @@ mod tests {
             ids.len(),
             images
         );
+    }
+
+    #[test]
+    #[ignore = "Requires an explicit private Vault and staged source aliases"]
+    fn staged_source_aliases_preserve_search_and_details() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_SOURCE_ALIAS_STAGE").unwrap();
+        let stage = Path::new(&stage);
+        let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
+        let raw = fs::read(stage.join("source-support.v1.json")).unwrap();
+        assert_eq!(plan["new_catalog_sha256"], sha256(&raw));
+        let catalog: Value = serde_json::from_slice(&raw).unwrap();
+        let rows: HashMap<_, _> = catalog["assets"].as_array().unwrap().iter()
+            .map(|row| (row["id"].as_str().unwrap(), row)).collect();
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let registry = library.read_registry().unwrap();
+        let support = library.read_source_support_registry().unwrap().unwrap();
+        assert_eq!(plan["source_registry_sha256"], sha256(&support));
+        assert_eq!(plan["asset_registry_sha256"], sha256(&registry));
+        let revision = "staged-source-alias-test".to_owned();
+        library.snapshot = Some(library.build_snapshot(&registry, Some(&raw), Some(&support), revision.clone()).unwrap());
+        let pairs = plan["pairs"].as_array().unwrap();
+        assert!(!pairs.is_empty());
+        for pair in pairs {
+            let old = pair["hdrp_id"].as_str().unwrap();
+            let kept = pair["urp_id"].as_str().unwrap();
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text:old.to_owned(), limit:MAX_LIMIT, ..LibraryQuery::default() }
+            }).unwrap() else { panic!("source search expected") };
+            assert!(page.assets.iter().any(|card| card.id == kept), "{old}");
+            assert!(!page.assets.iter().any(|card| card.id == old), "{old}");
+            let owner = rows[kept];
+            let original = owner["consolidated_sources"].as_array().unwrap().iter()
+                .find(|alias| alias["retired_id"] == old).unwrap()["original_detail"].clone();
+            if plan["preserve_taxonomy"] == true {
+                let LibraryResponse::Page { page: filtered } = library.execute(LibraryRequest::Search {
+                    query: LibraryQuery { text: old.to_owned(), pack: original["pack_id"].as_str().unwrap().to_owned(),
+                        family: taxonomy(&original, "family"), asset_type: taxonomy(&original, "type"),
+                        subtype: taxonomy(&original, "subtype"), limit: MAX_LIMIT, ..LibraryQuery::default() }
+                }).unwrap() else { panic!("legacy classification search expected") };
+                assert!(filtered.assets.iter().any(|card| card.id == kept), "legacy classification: {old}");
+            }
+            for (id, expected) in [(old, &original), (kept, owner)] {
+                let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+                    id:id.to_owned(), revision:revision.clone(),
+                }).unwrap() else { panic!("source details expected") };
+                assert_eq!(detail.card.id, id);
+                assert!(detail.source_path.is_some());
+                assert_eq!(&detail.details, expected, "all source metadata: {id}");
+                assert_eq!(detail.details.get("descriptions"), expected.get("descriptions"), "{id}");
+                assert_eq!(detail.details.get("reason"), expected.get("reason"), "{id}");
+                if detail.card.has_thumbnail {
+                    let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                        id:id.to_owned(), revision:revision.clone(),
+                    }).unwrap() else { panic!("thumbnail expected") };
+                    assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+                }
+            }
+        }
+        eprintln!("Verified {} staged source aliases and both original details; Vault unchanged", pairs.len());
+    }
+
+    #[test]
+    #[ignore = "Requires an explicit private Vault and published staged source aliases"]
+    fn published_source_aliases_preserve_search_and_thumbnails() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_SOURCE_ALIAS_STAGE").unwrap();
+        let stage = Path::new(&stage);
+        let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
+        let raw = fs::read(stage.join("source-support.v1.json")).unwrap();
+        assert_eq!(plan["new_catalog_sha256"], sha256(&raw));
+        let catalog: Value = serde_json::from_slice(&raw).unwrap();
+        let rows: HashMap<_, _> = catalog["assets"].as_array().unwrap().iter()
+            .map(|row| (row["id"].as_str().unwrap(), row)).collect();
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let registry = library.read_registry().unwrap();
+        let support = library.read_source_support_registry().unwrap().unwrap();
+        assert_eq!(plan["asset_registry_sha256"], sha256(&registry));
+        let pointer: Value = serde_json::from_slice(&support).unwrap();
+        assert_eq!(pointer["sha256"], plan["new_catalog_sha256"]);
+        let pairs = plan["pairs"].as_array().unwrap();
+        assert!(!pairs.is_empty());
+        for pair in pairs {
+            let old = pair["hdrp_id"].as_str().unwrap();
+            let kept = pair["urp_id"].as_str().unwrap();
+            let owner = rows[kept];
+            let original = owner["consolidated_sources"].as_array().unwrap().iter()
+                .find(|alias| alias["retired_id"] == old).unwrap()["original_detail"].clone();
+            if plan["preserve_taxonomy"] == true {
+                let LibraryResponse::Page { page: filtered } = library.execute(LibraryRequest::Search {
+                    query: LibraryQuery { text: old.to_owned(), pack: original["pack_id"].as_str().unwrap().to_owned(),
+                        family: taxonomy(&original, "family"), asset_type: taxonomy(&original, "type"),
+                        subtype: taxonomy(&original, "subtype"), limit: MAX_LIMIT, ..LibraryQuery::default() }
+                }).unwrap() else { panic!("legacy classification search expected") };
+                assert!(filtered.assets.iter().any(|card| card.id == kept), "legacy classification: {old}");
+            }
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text:old.to_owned(), limit:MAX_LIMIT, ..LibraryQuery::default() }
+            }).unwrap() else { panic!("source search expected") };
+            assert!(page.assets.iter().any(|card| card.id == kept), "{old}");
+            assert!(!page.assets.iter().any(|card| card.id == old), "{old}");
+            for (id, expected) in [(old, &original), (kept, owner)] {
+                let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+                    id:id.to_owned(), revision:page.revision.clone(),
+                }).unwrap() else { panic!("source details expected") };
+                assert_eq!(detail.card.id, id);
+                assert!(detail.source_path.is_some());
+                assert_eq!(&detail.details, expected, "all source metadata: {id}");
+                assert_eq!(detail.details.get("descriptions"), expected.get("descriptions"), "{id}");
+                assert_eq!(detail.details.get("reason"), expected.get("reason"), "{id}");
+                if let Some(pin) = expected.get("preview_sha256").and_then(Value::as_str) {
+                    let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                        id:id.to_owned(), revision:page.revision.clone(),
+                    }).unwrap() else { panic!("thumbnail expected") };
+                    assert_eq!(sha256(&bytes), pin, "{id}");
+                }
+            }
+        }
+        eprintln!("Verified {} published source aliases and both pinned thumbnails", pairs.len());
+    }
+
+    #[test]
+    #[ignore = "Requires an explicit private Vault and materialized preview catalogs"]
+    fn staged_model_preview_relinks_load_all_thumbnails() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_MODEL_PREVIEW_STAGE").unwrap();
+        let stage = Path::new(&stage);
+        let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
+        let cross_root = plan["schema"] == "openrpg.cross-root-preview-stage.v1";
+        assert!(cross_root || plan["schema"] == "openrpg.model-preview-relink-stage.v1");
+        assert_eq!(plan["state"], "prepared_only");
+        let id_field = if cross_root { "preview_ids" } else { "changed_ids" };
+        let ids: BTreeSet<_> = plan[id_field].as_array().unwrap().iter()
+            .map(|v| v.as_str().unwrap().to_owned()).collect();
+        let mut expected = HashMap::new();
+        for pair in plan["candidate_paths"].as_array().unwrap() {
+            for id in pair["ids"].as_array().unwrap() {
+                assert!(expected.insert(id.as_str().unwrap().to_owned(), required(pair, "sha256").unwrap().to_owned()).is_none());
+            }
+        }
+        assert_eq!(ids, expected.keys().cloned().collect());
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let registry = library.read_registry().unwrap();
+        let support = library.read_source_support_registry().unwrap().unwrap();
+        assert_eq!(plan["registry_sha256"], sha256(&registry));
+        assert_eq!(plan["source_registry_sha256"], sha256(&support));
+        let mut staged_registry: Value = serde_json::from_slice(&registry).unwrap();
+        for (pack, pins) in plan["packs"].as_object().unwrap() {
+            let details_raw = fs::read(stage.join(pack).join("details.v1.json")).unwrap();
+            let profiles_raw = fs::read(stage.join(pack).join("profiles.v1.json")).unwrap();
+            assert!(same_hash(&details_raw, required(pins,"details.v1.json").unwrap()));
+            assert!(same_hash(&profiles_raw, required(pins,"profiles.v1.json").unwrap()));
+            let revision = required(pins, "revision").unwrap();
+            let entry = &mut staged_registry["packs"][pack];
+            entry["path"] = Value::String(format!("metadata/asset-import-revisions/{pack}/{revision}"));
+            entry["revision"] = Value::String(revision.to_owned());
+            entry["files"] = serde_json::json!({
+                "details.v1.json":required(pins,"details.v1.json").unwrap(),
+                "profiles.v1.json":required(pins,"profiles.v1.json").unwrap()
+            });
+        }
+        let source = library.read_source_support_catalog(Some(&support)).unwrap();
+        let revision = "staged-model-preview-test".to_owned();
+        let mut snapshot = library.build_snapshot(&serde_json::to_vec(&staged_registry).unwrap(),
+            source.as_ref().map(|s| s.catalog_raw.as_slice()), Some(&support), revision.clone()).unwrap();
+        // Keep live registry pins for execute() while testing the synthetic snapshot.
+        snapshot.registry_raw = registry.clone();
+        library.snapshot = Some(snapshot);
+        for (id, pin) in &expected {
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text:id.clone(), limit:MAX_LIMIT, ..LibraryQuery::default() }
+            }).unwrap() else { panic!("model search expected") };
+            assert!(page.assets.iter().any(|card| card.id == *id), "{id}");
+            let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                id:id.clone(), revision:revision.clone(),
+            }).unwrap() else { panic!("model thumbnail expected") };
+            assert_eq!(sha256(&bytes), *pin, "{id}");
+        }
+        eprintln!("Verified {} staged model thumbnails and search results; registry unchanged", ids.len());
+    }
+
+    #[test]
+    #[ignore = "Requires an explicit private Vault and published preview transition"]
+    fn published_model_preview_relinks_load_all_thumbnails() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_MODEL_PREVIEW_STAGE").unwrap();
+        let stage = Path::new(&stage);
+        let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let registry = library.read_registry().unwrap();
+        let current: Value = serde_json::from_slice(&registry).unwrap();
+        for (pack, pins) in plan["packs"].as_object().unwrap() {
+            assert_eq!(current["packs"][pack]["revision"], pins["revision"]);
+        }
+        let mut expected = HashMap::new();
+        for pair in plan["candidate_paths"].as_array().unwrap() {
+            for id in pair["ids"].as_array().unwrap() {
+                assert!(expected.insert(id.as_str().unwrap().to_owned(), required(pair,"sha256").unwrap().to_owned()).is_none());
+            }
+        }
+        assert!(!expected.is_empty());
+        for (id, pin) in &expected {
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text:id.clone(), limit:MAX_LIMIT, ..LibraryQuery::default() }
+            }).unwrap() else { panic!("model search expected") };
+            assert!(page.assets.iter().any(|card| card.id == *id), "{id}");
+            let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                id:id.clone(), revision:page.revision,
+            }).unwrap() else { panic!("model thumbnail expected") };
+            assert_eq!(sha256(&bytes), *pin, "{id}");
+        }
+        eprintln!("Verified {} published model thumbnails and search results", expected.len());
+    }
+
+    #[test]
+    #[ignore = "Requires an explicit private Vault and materialized catalog redirects"]
+    fn staged_model_catalog_redirects_preserve_cards_and_thumbnails() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_MODEL_PREVIEW_STAGE").unwrap();
+        let stage = Path::new(&stage);
+        let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
+        assert!(matches!(plan["schema"].as_str(), Some("openrpg.model-catalog-redirect-stage.v1" | "openrpg.nested-archive-relink-stage.v1")));
+        let ids: BTreeSet<_> = plan["changed_ids"].as_array().unwrap().iter()
+            .map(|v| v.as_str().unwrap().to_owned()).collect();
+        assert!(!ids.is_empty());
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let registry = library.read_registry().unwrap();
+        let support = library.read_source_support_registry().unwrap().unwrap();
+        assert_eq!(plan["registry_sha256"], sha256(&registry));
+        assert_eq!(plan["source_registry_sha256"], sha256(&support));
+        library.execute(LibraryRequest::Search { query: LibraryQuery { limit:1, ..LibraryQuery::default() } }).unwrap();
+        let original = library.snapshot.as_ref().unwrap();
+        let mut expected = HashMap::new();
+        for id in &ids {
+            let asset = &original.assets[*original.by_id.get(id).unwrap()];
+            let card = serde_json::to_value(&asset.card).unwrap();
+            let pin = asset.catalog_asset.get("preview_sha256").and_then(Value::as_str).map(str::to_owned);
+            assert_eq!(asset.card.has_thumbnail, pin.is_some());
+            expected.insert(id.clone(), (card,pin));
+        }
+        let mut staged_registry: Value = serde_json::from_slice(&registry).unwrap();
+        for (pack, pins) in plan["packs"].as_object().unwrap() {
+            let revision = required(pins,"revision").unwrap();
+            let entry = &mut staged_registry["packs"][pack];
+            entry["path"] = Value::String(format!("metadata/asset-import-revisions/{pack}/{revision}"));
+            entry["revision"] = Value::String(revision.to_owned());
+            entry["files"] = serde_json::json!({
+                "details.v1.json":required(pins,"details.v1.json").unwrap(),
+                "profiles.v1.json":required(pins,"profiles.v1.json").unwrap()
+            });
+        }
+        let source = library.read_source_support_catalog(Some(&support)).unwrap();
+        let revision = "staged-model-catalog-redirect-test".to_owned();
+        let mut snapshot = library.build_snapshot(&serde_json::to_vec(&staged_registry).unwrap(),
+            source.as_ref().map(|s| s.catalog_raw.as_slice()),Some(&support),revision.clone()).unwrap();
+        snapshot.registry_raw = registry;
+        library.snapshot = Some(snapshot);
+        let mut images = 0;
+        for (id,(card,pin)) in &expected {
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text:id.clone(),limit:MAX_LIMIT,..LibraryQuery::default() }
+            }).unwrap() else { panic!("search expected") };
+            let found = page.assets.iter().find(|a| a.id == *id).unwrap_or_else(|| panic!("missing {id}"));
+            assert_eq!(&serde_json::to_value(found).unwrap(),card,"{id}");
+            if let Some(pin) = pin {
+                let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                    id:id.clone(),revision:revision.clone(),
+                }).unwrap() else { panic!("thumbnail expected") };
+                assert_eq!(sha256(&bytes),*pin,"{id}");
+                images += 1;
+            }
+        }
+        eprintln!("Verified {} staged catalog redirects and {} thumbnails; registry unchanged",ids.len(),images);
+    }
+
+    #[test]
+    #[ignore = "Requires an explicit private Vault and published model catalog redirects"]
+    fn published_model_catalog_redirects_load_all_thumbnails() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_MODEL_PREVIEW_STAGE").unwrap();
+        let stage = Path::new(&stage);
+        let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
+        assert!(matches!(plan["schema"].as_str(), Some("openrpg.model-catalog-redirect-stage.v1" | "openrpg.nested-archive-relink-stage.v1")));
+        let ids: BTreeSet<_> = plan["changed_ids"].as_array().unwrap().iter()
+            .map(|v| v.as_str().unwrap().to_owned()).collect();
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let registry: Value = serde_json::from_slice(&library.read_registry().unwrap()).unwrap();
+        for (pack, pins) in plan["packs"].as_object().unwrap() {
+            assert_eq!(registry["packs"][pack]["revision"], pins["revision"]);
+        }
+        let mut expected = HashMap::new();
+        let mut catalogs = HashMap::new();
+        for (pack, pins) in plan["packs"].as_object().unwrap() {
+            let raw = fs::read(stage.join(pack).join("details.v1.json")).unwrap();
+            assert!(same_hash(&raw,required(pins,"details.v1.json").unwrap()));
+            let details: Value = serde_json::from_slice(&raw).unwrap();
+            for item in details["assets"].as_array().unwrap() {
+                let id = required(item,"id").unwrap();
+                if !ids.contains(id) { continue; }
+                let path = required(item,"source_catalog").unwrap();
+                if !catalogs.contains_key(path) {
+                    let catalog: Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+                    catalogs.insert(path.to_owned(),catalog);
+                }
+                let catalog = catalogs.get(path).unwrap();
+                let row = catalog["assets"].as_array().unwrap().iter()
+                    .find(|x| x["id"].as_str()==Some(id)).unwrap();
+                let pin = row.get("preview_sha256").and_then(Value::as_str).map(str::to_owned);
+                assert!(expected.insert(id.to_owned(),pin).is_none());
+            }
+        }
+        assert_eq!(expected.len(),ids.len());
+        let mut images=0;
+        for (id,pin) in &expected {
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text:id.clone(),limit:MAX_LIMIT,..LibraryQuery::default() }
+            }).unwrap() else { panic!("search expected") };
+            assert!(page.assets.iter().any(|card| card.id==*id),"{id}");
+            if let Some(pin)=pin {
+                let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                    id:id.clone(),revision:page.revision,
+                }).unwrap() else { panic!("thumbnail expected") };
+                assert_eq!(sha256(&bytes),*pin,"{id}");
+                images+=1;
+            }
+        }
+        eprintln!("Verified {} published catalog redirects and {} thumbnails",ids.len(),images);
     }
 
     #[test]

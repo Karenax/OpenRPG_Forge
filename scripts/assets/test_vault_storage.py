@@ -12,6 +12,86 @@ spec=importlib.util.spec_from_file_location('vault_storage',Path(__file__).with_
 storage=importlib.util.module_from_spec(spec);spec.loader.exec_module(storage)
 
 class StorageTests(unittest.TestCase):
+    def test_only_explicit_witch_model_directory_is_eligible(self):
+        root=Path('F:/Vault')
+        self.assertTrue(storage.eligible_model_storage_path(root,root/'witch-house-urp-20261108-r2/models/a.glb'))
+        self.assertFalse(storage.eligible_model_storage_path(root,root/'witch-house-urp-20261108-r2/sources/a.glb'))
+        self.assertFalse(storage.eligible_model_storage_path(root,root/'witch-house-urp-20261108-r2/models/a.fbx'))
+        self.assertFalse(storage.eligible_model_storage_path(root,root/'witch-house-urp-20261108-r20/models/a.glb'))
+
+    def test_applied_stage_replay_refuses_changed_revision_and_snapshot(self):
+        publish_spec=importlib.util.spec_from_file_location('project_publisher_replay',Path(__file__).with_name('publish_assets.py'))
+        publisher=importlib.util.module_from_spec(publish_spec);publish_spec.loader.exec_module(publisher)
+        with tempfile.TemporaryDirectory() as work:
+            vault=Path(work).resolve(); stage=vault/'stage';stage.mkdir();rev=vault/'metadata/revision';rev.mkdir(parents=True)
+            details=b'{"pack_id":"p","assets":[]}'; profiles=b'{"profiles":[]}'
+            for folder in (stage,rev):
+                (folder/'details.v1.json').write_bytes(details);(folder/'profiles.v1.json').write_bytes(profiles)
+            files={'details.v1.json':storage.sha(details),'profiles.v1.json':storage.sha(profiles)}
+            plan={'pack_id':'p','revision':'r1','files':files,'expected_registry_sha256':storage.sha(b'old registry')}
+            (stage/'plan.json').write_text(json.dumps(plan),encoding='utf8')
+            registry={'packs':{'p':{'revision':'r1','path':'metadata/revision','files':files}}}
+            index=vault/'metadata/asset-import-registry.v1.json';index.write_text(json.dumps(registry),encoding='utf8')
+            self.assertEqual(publisher.check_consolidated_identities(vault,stage)['state'],'already_applied')
+            (rev/'profiles.v1.json').write_bytes(b'tampered')
+            with self.assertRaisesRegex(ValueError,'snapshot differs'):
+                publisher.check_consolidated_identities(vault,stage)
+            (rev/'profiles.v1.json').write_bytes(profiles)
+            registry['packs']['p']['revision']='r2';index.write_text(json.dumps(registry),encoding='utf8')
+            with self.assertRaisesRegex(ValueError,'Registry changed'):
+                publisher.check_consolidated_identities(vault,stage)
+
+    def test_positive_savings_without_arbitrary_minimum(self):
+        self.assertTrue(storage.batch_saves_allocation(1024, 1023))
+        self.assertFalse(storage.batch_saves_allocation(1024, 1024))
+        self.assertFalse(storage.batch_saves_allocation(1024, 1025))
+
+    def test_windows_readonly_attribute_is_detected_without_changing_file(self):
+        from types import SimpleNamespace
+        self.assertTrue(storage.windows_readonly(SimpleNamespace(st_file_attributes=1)))
+        self.assertTrue(storage.windows_readonly(SimpleNamespace(st_file_attributes=33)))
+        self.assertFalse(storage.windows_readonly(SimpleNamespace(st_file_attributes=32)))
+        self.assertFalse(storage.windows_readonly(SimpleNamespace()))
+
+    def test_reader_receipt_rejects_changed_studio_and_reader(self):
+        with tempfile.TemporaryDirectory(prefix='forge-receipt-test-') as work:
+            root=Path(work); studio=root/'studio.exe'; reader=root/'reader.exe'; importer=root/'importer.py'
+            studio.write_bytes(b'qualified studio');reader.write_bytes(b'qualified reader');importer.write_bytes(b'qualified importer')
+            receipt=dict(state='ready',vault=str(root),studio=str(studio),
+                         studio_sha256=storage.sha(studio.read_bytes()),reader_cli_sha256=storage.sha(reader.read_bytes()),
+                         python_import_reader=str(importer),python_import_reader_sha256=storage.sha(importer.read_bytes()),
+                         storage_writer_sha256=storage.sha(Path(storage.__file__).read_bytes()))
+            storage.verify_deployed_readers(receipt,root,reader)
+            studio.write_bytes(b'new unqualified studio')
+            with self.assertRaisesRegex(ValueError,'Studio differs'):
+                storage.verify_deployed_readers(receipt,root,reader)
+            studio.write_bytes(b'qualified studio');reader.write_bytes(b'new reader')
+            with self.assertRaisesRegex(ValueError,'Native verifier differs'):
+                storage.verify_deployed_readers(receipt,root,reader)
+            reader.write_bytes(b'qualified reader');importer.write_bytes(b'new importer')
+            with self.assertRaisesRegex(ValueError,'Python reader differs'):
+                storage.verify_deployed_readers(receipt,root,reader)
+            importer.write_bytes(b'qualified importer');receipt['storage_writer_sha256']='0'*64
+            with self.assertRaisesRegex(ValueError,'Storage writer differs'):
+                storage.verify_deployed_readers(receipt,root,reader)
+            receipt.pop('studio')
+            with self.assertRaisesRegex(ValueError,'Studio path or SHA missing'):
+                storage.verify_deployed_readers(receipt,root,reader)
+
+    def test_publication_optimization_rejects_stale_studio_before_queue(self):
+        publish_spec=importlib.util.spec_from_file_location('project_publisher_guard',Path(__file__).with_name('publish_assets.py'))
+        publisher=importlib.util.module_from_spec(publish_spec);publish_spec.loader.exec_module(publisher)
+        studio=self.root/'studio.exe';reader=self.root/'reader.exe'
+        studio.write_bytes(b'new studio');reader.write_bytes(b'reader')
+        directory=self.root/'.forge-storage';directory.mkdir()
+        receipt=dict(state='ready',vault=str(self.root),studio=str(studio),
+                     studio_sha256=storage.sha(b'old studio'),reader_cli_sha256=storage.sha(b'reader'))
+        (directory/'deployed-readers.v1.json').write_text(json.dumps(receipt),encoding='utf-8')
+        with patch.object(publisher.storage,'queue_models') as queue:
+            with self.assertRaisesRegex(ValueError,'Studio differs'):
+                publisher.optimize_published(self.root,self.root/'unused-stage',reader,self.root,{})
+            queue.assert_not_called()
+
     def test_atomic_json_retries_transient_windows_sharing_denial(self):
         with tempfile.TemporaryDirectory() as work:
             path=Path(work)/'status.json'
@@ -191,7 +271,9 @@ class StorageTests(unittest.TestCase):
         import hashlib
         with verifier.open('rb') as stream:reader_sha=hashlib.file_digest(stream,'sha256').hexdigest()
         writer=storage.Packer(self.root)
-        storage.atomic_json(self.root/'.forge-storage/deployed-readers.v1.json',dict(state='ready',vault=str(self.root),reader_cli_sha256=reader_sha,test_fixture=True))
+        studio=self.root/'test-studio.exe';studio.write_bytes(b'qualified studio fixture')
+        importer_reader=importer/'glb_inspect.py'
+        storage.atomic_json(self.root/'.forge-storage/deployed-readers.v1.json',dict(state='ready',vault=str(self.root),reader_cli_sha256=reader_sha,studio=str(studio),studio_sha256=storage.sha(studio.read_bytes()),python_import_reader=str(importer_reader),python_import_reader_sha256=storage.sha(importer_reader.read_bytes()),storage_writer_sha256=storage.sha(Path(storage.__file__).read_bytes()),test_fixture=True))
         try:
             result=publisher.publish(self.root,stage,importer,verifier,self.root)
             self.assertEqual(result['publication']['status'],'applied')

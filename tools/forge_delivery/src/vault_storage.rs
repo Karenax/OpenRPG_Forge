@@ -109,7 +109,12 @@ fn descriptor(root: &Path, path: &Path, limit: u64) -> Result<(File, Option<Desc
         return Err("Vault descriptor grew during read".into());
     }
     let value: Descriptor = serde_json::from_slice(&raw).map_err(|e| e.to_string())?;
-    validate(&value, limit)?;
+    validate_root(root, &value, limit)?;
+    Ok((file, Some(value)))
+}
+
+fn validate_root(root: &Path, value: &Descriptor, limit: u64) -> Result<(), String> {
+    validate(value, limit)?;
     let marker = confined(root, &root.join(".forge-storage/root.v1.json"))?;
     let mut marker_bytes = Vec::new();
     File::open(marker)
@@ -124,7 +129,7 @@ fn descriptor(root: &Path, path: &Path, limit: u64) -> Result<(File, Option<Desc
     if marker.schema != 1 || marker.vault_id != value.vault_id {
         return Err("Vault storage root identity mismatch".into());
     }
-    Ok((file, Some(value)))
+    Ok(())
 }
 
 fn validate(value: &Descriptor, limit: u64) -> Result<(), String> {
@@ -227,6 +232,43 @@ fn segment(
     Ok(bytes)
 }
 
+fn copy_descriptor(
+    root: &Path,
+    value: &Descriptor,
+    output: &mut impl Write,
+) -> Result<(u64, String), String> {
+    let mut hash = Sha256::new();
+    let mut handles = HashMap::new();
+    for item in &value.segments {
+        let bytes = segment(root, item, &mut handles)?;
+        hash.update(&bytes);
+        output.write_all(&bytes).map_err(|e| e.to_string())?;
+    }
+    let digest = crate::hex(&hash.finalize());
+    if digest != value.sha256 {
+        return Err("Reconstructed Vault model SHA-256 mismatch".into());
+    }
+    Ok((value.bytes, digest))
+}
+
+/// Reconstruct a registry-pinned embedded descriptor with the same Vault guards.
+pub fn read_embedded_descriptor(
+    root: &Path,
+    value: &Descriptor,
+    limit: u64,
+) -> Result<Vec<u8>, String> {
+    validate_root(root, value, limit)?;
+    let mut bytes = Vec::new();
+    bytes
+        .try_reserve_exact(usize::try_from(value.bytes).map_err(|_| "Vault allocation overflow")?)
+        .map_err(|e| e.to_string())?;
+    let (count, _) = copy_descriptor(root, value, &mut bytes)?;
+    if count != value.bytes || bytes.len() as u64 != value.bytes {
+        return Err("Vault logical size changed during read".into());
+    }
+    Ok(bytes)
+}
+
 /// Stream the logical file. A writer must publish its output only after success.
 fn copy_logical(
     root: &Path,
@@ -236,18 +278,7 @@ fn copy_logical(
 ) -> Result<(u64, String), String> {
     let (mut file, value) = descriptor(root, path, limit)?;
     if let Some(value) = value {
-        let mut hash = Sha256::new();
-        let mut handles = HashMap::new();
-        for item in &value.segments {
-            let bytes = segment(root, item, &mut handles)?;
-            hash.update(&bytes);
-            output.write_all(&bytes).map_err(|e| e.to_string())?;
-        }
-        let digest = crate::hex(&hash.finalize());
-        if digest != value.sha256 {
-            return Err("Reconstructed Vault model SHA-256 mismatch".into());
-        }
-        Ok((value.bytes, digest))
+        copy_descriptor(root, &value, output)
     } else {
         let before = file.metadata().map_err(|e| e.to_string())?;
         let mut hash = Sha256::new();

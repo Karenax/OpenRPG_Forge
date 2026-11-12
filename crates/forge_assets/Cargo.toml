@@ -16,7 +16,7 @@ serde_json = { workspace = true, features = ["float_roundtrip"] }
 thiserror.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-gltf = { version = "=1.4.1", default-features = false, features = ["utils", "names", "extras"] }
+gltf = { version = "=1.4.1", default-features = false, features = ["utils", "names", "extras", "KHR_texture_transform", "KHR_materials_emissive_strength"] }
 image = { version = "=0.25.10", default-features = false, features = ["png", "jpeg"] }
 symphonia = { version = "=0.6.1", default-features = false, features = ["flac", "ogg", "pcm", "vorbis", "wav"] }
 

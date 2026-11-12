@@ -12,9 +12,10 @@ pub(super) fn decode(
         MediaFormat::Jpeg => image::ImageFormat::Jpeg,
         _ => return Err(error(format, "not an image format")),
     };
+    let image_budget = limits.max_decoded_bytes.min(limits.max_single_image_decoded_bytes);
     let mut reader = image::ImageReader::with_format(Cursor::new(bytes), image_format);
     let mut allocation = image::Limits::default();
-    allocation.max_alloc = Some(limits.max_decoded_bytes);
+    allocation.max_alloc = Some(image_budget);
     allocation.max_image_width = Some(u32::try_from(limits.max_image_pixels).unwrap_or(u32::MAX));
     allocation.max_image_height = allocation.max_image_width;
     reader.limits(allocation);
@@ -24,7 +25,7 @@ pub(super) fn decode(
     if width == 0 || height == 0 {
         return Err(error(format, "empty image dimensions"));
     }
-    if pixels > limits.max_image_pixels || decoder.total_bytes() > limits.max_decoded_bytes {
+    if pixels > limits.max_image_pixels || decoder.total_bytes() > image_budget {
         return Err(error(format, "image pixel/allocation budget exceeded"));
     }
     let decoded_bytes = decoder.total_bytes();

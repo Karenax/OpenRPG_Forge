@@ -2,12 +2,20 @@
 from pathlib import Path
 from datetime import datetime,timezone
 from collections import Counter
-import hashlib,json,re
+import hashlib,json,re,os,sys
 V=Path('F:/OpenRPG_AssetVault');W=Path('F:/OpenRPG_ImportWork');O=W/'gladiator-mirror-lot-audit-v384'
 P=V/'originals/unity-purchased/hivemind/source-support-v1/modular-gladiator-arena-base170-v1'
+overlay=os.environ.get('OPENRPG_UNITY_OVERLAY_MANIFEST')
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'assets'))
+from unity_shared_overlay import UnitySourceResolver,configured_resolver
+resolver=UnitySourceResolver(V,Path(overlay),os.environ.get('OPENRPG_UNITY_OVERLAY_SHA256','')) if overlay else configured_resolver(V,P/'source')
+def actual(p):
+    path=Path(p).resolve(strict=False)
+    return resolver.resolve_absolute(path) if resolver else path
+def source_text(p):return actual(p).read_text('utf-8-sig')
 def read(p):return json.loads(p.read_text('utf-8-sig'))
 def sha(p):
-    with p.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
+    with actual(p).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 assert not O.exists()
 pointer=V/'metadata/asset-source-support-registry.v1.json';registry=read(pointer);catalogpath=V/registry['path'];assert sha(catalogpath)==registry['sha256']
 cards=[a for a in read(catalogpath)['assets'] if a['pack_id']=='hivemind.modular-gladiator-arena' and a['support_kind']=='source_support_hdrp_mirror_normals'];assert len(cards)==17
@@ -17,14 +25,14 @@ for name,row in payload.items():
     path=Path(name)
     if path.suffix!='.meta' or not path.is_relative_to((P/'source').resolve()):continue
     assert sha(path)==row['sha256'];pins[name]=row['sha256']
-    m=re.search(r'^guid: ([a-f0-9]{32})$',path.read_text('utf-8-sig'),re.M)
+    m=re.search(r'^guid: ([a-f0-9]{32})$',source_text(path),re.M)
     if m:assert m[1] not in guidmap;guidmap[m[1]]=Path(str(path)[:-5])
 materials={};rows=[]
 for card in cards:
     path=(V/card['source_file']).resolve();meta=(V/card['source_meta_file']).resolve()
     assert path.is_relative_to(P.resolve()) and sha(path)==card['source_sha256'] and sha(meta)==card['source_meta_sha256']
     assert card['evidence']['package_manifest_sha256']==sha(mp)
-    pins[str(path)]=sha(path);pins[str(meta)]=sha(meta);text=path.read_text('utf-8-sig')
+    pins[str(path)]=sha(path);pins[str(meta)]=sha(meta);text=source_text(path)
     components=Counter(re.findall(r'^--- !u!(\d+) ',text,re.M));refs=set(re.findall(r'guid:\s*([a-f0-9]{32})',text))
     mg=[];unresolved=[]
     for guid in sorted(refs):
@@ -36,7 +44,7 @@ for card in cards:
         if dep.suffix!='.mat':continue
         mg.append(guid)
         if guid in materials:continue
-        raw=dep.read_text('utf-8-sig');floats={k:float(v) for k,v in re.findall(r'^\s+- (_[A-Za-z0-9_]+): ([-+0-9.eE]+)\s*$',raw,re.M)}
+        raw=source_text(dep);floats={k:float(v) for k,v in re.findall(r'^\s+- (_[A-Za-z0-9_]+): ([-+0-9.eE]+)\s*$',raw,re.M)}
         shaderguid=re.search(r'm_Shader: \{fileID: -?\d+, guid: ([a-f0-9]{32}), type: \d+\}',raw)[1]
         shader=guidmap[shaderguid];assert sha(shader)==payload[str(shader)]['sha256'];pins[str(shader)]=sha(shader)
         materials[guid]=dict(path=str(dep),sha256=sha(dep),shader_guid=shaderguid,shader_sha256=sha(shader),double_sided=floats.get('_DoubleSidedEnable'),normal_mode=floats.get('_DoubleSidedNormalMode'),use_opacity=floats.get('_UseOpacity'),alpha_cutoff_enable=floats.get('_AlphaCutoffEnable'),alpha_cutoff=floats.get('_AlphaCutoff'),surface_type=floats.get('_SurfaceType'))

@@ -44,10 +44,15 @@ pub(super) fn media(upload: &ImportUpload, kind: GovernedAssetKind) -> Result<St
         (GovernedAssetKind::Audio, "flac") => MediaFormat::Flac,
         _ => return Err("File format differs from the selected media type".into()),
     };
+    let limits = if format == MediaFormat::Glb {
+        MediaLimits::mesh_delivery()
+    } else {
+        MediaLimits::default()
+    };
     validate_declared_media(
         &upload.bytes,
         format,
-        MediaLimits::default(),
+        limits,
         SourceGraphGlbReadBudget::Standard,
     )
     .map_err(|e| e.to_string())?;

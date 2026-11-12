@@ -1,6 +1,7 @@
 //! Capture exact Vault model pins into a private package, without adopting imports.
 use super::{
-    Library, LibraryModel, LibraryQuery, LibraryRequest, StoredAsset, required, vault_asset_id,
+    BuildCache, Library, LibraryModel, LibraryQuery, LibraryRequest, StoredAsset,
+    find_legacy_alias, parse_json, profile_index, read_limited, required, vault_asset_id,
 };
 use crate::asset_import_native::{ImportedExportSnapshot, MAX_EXPORT_BYTES};
 use forge_assets::{
@@ -53,18 +54,50 @@ impl Library {
         let mut remaining = maximum_bytes;
         let mut assets = Vec::new();
         for (id, pin) in pins {
-            let current = selected
-                .get(id)
-                .ok_or("Modèle épinglé absent du Vault et des imports conservés")?;
-            let asset = if ContentHash::parse(required(&current.details, "model_sha256")?)
-                .map_err(|e| e.to_string())?
-                == *pin
-            {
-                (*current).clone()
+            let legacy = find_legacy_alias(snapshot, *id)?;
+            if selected.contains_key(id) && legacy.is_some() {
+                return Err("Identité de modèle ambiguë dans le Vault.".into());
+            }
+            let (asset, payload) = if let Some((current, variant)) = legacy {
+                let model = self.read_legacy_model(current, variant, *id, *pin)?;
+                let detail = &variant["original_detail"];
+                let profile = variant["original_profile"].clone();
+                let catalog_path = self.safe_absolute(required(detail, "source_catalog")?)?;
+                let catalog_raw = read_limited(&catalog_path, super::MAX_JSON)?;
+                let catalog = parse_json(&catalog_raw, "catalogue source historique")?;
+                let pack = required(&catalog, "id")?;
+                let profiles = vec![profile];
+                let index = profile_index(&profiles)?;
+                let mut total = snapshot.registry_raw.len() as u64;
+                let historical = self.make_asset(
+                    pack,
+                    detail,
+                    &profiles,
+                    &index,
+                    &mut total,
+                    &mut BuildCache::default(),
+                )?;
+                if vault_asset_id(&historical.card.id) != *id {
+                    return Err("Identité historique incohérente pour l’export.".into());
+                }
+                let payload =
+                    capture_reconstructed_payload(model, *id, *pin, &mut files, &mut remaining)?;
+                (historical, payload)
             } else {
-                self.read_historical_asset(snapshot, current, *pin, None)?
+                let current = selected
+                    .get(id)
+                    .ok_or("Modèle épinglé absent du Vault et des imports conservés")?;
+                let asset = if ContentHash::parse(required(&current.details, "model_sha256")?)
+                    .map_err(|e| e.to_string())?
+                    == *pin
+                {
+                    (*current).clone()
+                } else {
+                    self.read_historical_asset(snapshot, current, *pin, None)?
+                };
+                let payload = capture_payload(self, &asset, *id, *pin, &mut files, &mut remaining)?;
+                (asset, payload)
             };
-            let payload = capture_payload(self, &asset, *id, *pin, &mut files, &mut remaining)?;
             let (entry, proof) =
                 capture_metadata(&asset, payload.clone(), &snapshot.revision, captured_on)?;
             insert_file(
@@ -96,6 +129,58 @@ impl Library {
             })
             .map_err(|e| e.to_string())?;
         Ok(ImportedExportSnapshot { catalog, files })
+    }
+}
+
+fn capture_reconstructed_payload(
+    model: LibraryModel,
+    id: AssetId,
+    pin: ContentHash,
+    files: &mut BTreeMap<String, Vec<u8>>,
+    remaining: &mut u64,
+) -> Result<GovernedAssetFile, String> {
+    if model.asset_id != id || model.sha256 != pin || bytes_sha256(&model.bytes) != pin {
+        return Err("Le modèle reconstruit ne correspond pas au pin demandé.".into());
+    }
+    // Apply the same budget check as a non-historical Vault asset, before
+    // media validation. Reused payloads have already consumed their budget.
+    let path = format!("assets/{pin}.glb");
+    if !files.contains_key(&path) && model.bytes.len() as u64 > *remaining {
+        return Err("L’export du Vault dépasse son budget de fichiers.".into());
+    }
+    validate_declared_media(
+        &model.bytes,
+        MediaFormat::Glb,
+        MediaLimits::mesh_delivery(),
+        SourceGraphGlbReadBudget::Standard,
+    )
+    .map_err(|e| e.to_string())?;
+    let payload = GovernedAssetFile {
+        path,
+        sha256: pin,
+        bytes: model.bytes.len() as u64,
+    };
+    insert_file(files, payload.path.clone(), model.bytes, remaining)?;
+    Ok(payload)
+}
+
+#[cfg(test)]
+mod reconstructed_budget_tests {
+    use super::*;
+
+    #[test]
+    fn rejects_over_budget_historical_payload_before_media_validation() {
+        let bytes = vec![1, 2, 3, 4];
+        let id = vault_asset_id("demo.historical");
+        let pin = bytes_sha256(&bytes);
+        let model = LibraryModel { id: "demo.historical".into(), asset_id: id, sha256: pin, bytes };
+        let mut files = BTreeMap::new();
+        let mut remaining = 3;
+        let error = capture_reconstructed_payload(model, id, pin, &mut files, &mut remaining)
+            .unwrap_err();
+        assert_eq!(error, "L’export du Vault dépasse son budget de fichiers.");
+        assert!(files.is_empty());
+        assert_eq!(remaining, 3);
     }
 }
 
@@ -133,7 +218,7 @@ fn capture_payload(
         validate_declared_media(
             &model.bytes,
             MediaFormat::Glb,
-            MediaLimits::default(),
+            MediaLimits::mesh_delivery(),
             SourceGraphGlbReadBudget::Standard,
         )
         .map_err(|e| e.to_string())?;
@@ -174,6 +259,17 @@ fn capture_metadata(
         .and_then(serde_json::Value::as_str)
         .filter(|value| !value.trim().is_empty())
         .unwrap_or("Auteur non renseigné par le catalogue");
+    let mut metadata = asset.details.as_ref().clone();
+    if let Some(variants) = metadata
+        .get_mut("consolidated_variants")
+        .and_then(serde_json::Value::as_array_mut)
+    {
+        for variant in variants {
+            if let Some(object) = variant.as_object_mut() {
+                object.remove("legacy_recipe");
+            }
+        }
+    }
     let proof = serde_json::to_vec_pretty(&serde_json::json!({
         "schema":"forge.private-vault-package-proof.v1", "library_id":asset.card.id,
         "library_revision":revision, "model_sha256":payload.sha256,
@@ -182,7 +278,7 @@ fn capture_metadata(
         "original_acquisition_date":asset.details.get("acquired_on").or_else(||asset.details.pointer("/provenance/acquired_on")),
         "date_semantics":"Admission of this exact copy into the private package; not an original purchase date.",
         "rights_semantics":"Local authoring use only. No ownership or redistribution permission established by this capture.",
-        "metadata":asset.details.as_ref(), "source_catalog_entry":asset.catalog_asset.as_ref(),
+        "metadata":metadata, "source_catalog_entry":asset.catalog_asset.as_ref(),
         "functional_profile":asset.profile
     })).map_err(|e| e.to_string())?;
     if proof.len() > 65536 || proof.windows(3).any(|bytes| bytes == [0xef, 0xbf, 0xbd]) {

@@ -56,7 +56,28 @@ les modèles publiés et leurs pins dans une seule file SQLite. Si un migrateur
 travaille, la publication reste accessible et le travail attend dans cette
 file. Sinon le pilote la traite avec le lecteur natif qualifié. Un échec de
 stockage est explicitement distinct d'une publication déjà appliquée.
+Avant l'application, le pilote refuse une étape qui réintroduit un identifiant
+historique consolidé ou qui retire ses métadonnées du modèle conservé. L'étape
+doit être préparée de nouveau avec ses références préservées. L'importeur
+canonique installé effectue également ce contrôle sous son verrou, y compris
+lors d'un appel direct de `asset_import.py apply`.
+Lors de la préparation, les entrées déjà consolidées sont ignorées et leurs
+identifiants sont consignés dans `superseded_asset_ids` du plan. Pour une fiche
+conservée et réimportée avec le même SHA, ses références historiques sont
+reprises. Si son modèle a changé, la préparation demande une migration explicite.
+Un catalogue composé uniquement d'identifiants déjà consolidés ne produit pas
+de nouvelle étape. Les contrats source restent vérifiés sur le catalogue original.
+Le retour arrière refuse désormais une révision qui supprimerait des références
+consolidées, recréerait une ancienne identité ou désignerait un modèle absent.
+Une restauration ou migration explicite est nécessaire avant un tel retour ; les
+révisions et leurs données restent intactes.
 Sans reçu de déploiement, aucune compaction n'est lancée.
+Le reçu doit épingler les chemins et SHA-256 du Studio, du lecteur CLI et du
+lecteur Python, ainsi que le SHA-256 du migrateur : leur remplacement rend le
+reçu précédent périmé jusqu'à une nouvelle qualification des lecteurs.
+La publication canonique reste distincte ; son optimisation est différée si
+le reçu est absent ou périmé. Ne pas réécrire un reçu historique pour le faire
+correspondre au nouveau binaire.
 Le résultat expose `work_retirement=required` et `closure=open` même après une
 publication réussie : contrôler et justifier les copies de travail avant de
 clôturer le lot selon le contrat. La publication ne purgera jamais implicitement
@@ -117,3 +138,43 @@ publication pendant migration, restauration et exports autonomes.
 
 Rapports : `Preuves-et-analyses/rapports/mutualisation-vault-20261027`.
 Journaux de gestion : `Preuves-et-analyses/rapports/mutualisation-vault-20261027`.
+
+## Sources Unity partagées
+
+Le registre `F:/OpenRPG_AssetVault/metadata/unity-shared-overlay-registry.v1.json`
+référence les manifests épinglés des arbres Unity partagés. Les outils compatibles
+utilisent `UnitySourceResolver` pour lire les chemins logiques et vérifier les SHA.
+Pour un outil externe ou un projet Unity exigeant des fichiers ordinaires,
+`unity_shared_overlay.py materialize` reconstruit l'arbre décrit par un manifest
+dans un nouveau répertoire directement sous `.build/asset-conversion` ; `cleanup`
+retire ensuite uniquement l'export inchangé. Cette reconstruction concerne
+l'extraction décrite dans le manifest, pas nécessairement un projet Unity complet.
+
+## Dépendances partagées des lots candidats
+
+Les lots candidats enregistrés utilisent le même registre d'overlays. Le lecteur
+Python `CandidateSharedReader.from_package(vault, package)` résout un chemin
+logique depuis le manifeste épinglé et vérifie le SHA avant lecture. Il peut
+également vérifier un catalogue `files`, un catalogue Viking et une portion
+bornée de ressource binaire. Exemple de contrôle d'un catalogue enregistré :
+
+```powershell
+python -X utf8 -B scripts/assets/candidate_shared_reader.py `
+  --vault F:/OpenRPG_AssetVault `
+  --package candidates/hivemind/rural-town-hdrp-lantern-assembly-v1
+```
+
+Pour un outil qui exige un dossier autonome, `materialize_candidate_overlay.py`
+accepte `--vault`, `--package`, `--work-root`, `--destination` et `--receipt`.
+Il reconstruit les dépendances à leurs chemins logiques et exporte les modèles
+en vrais GLB sur le disque de travail. La même commande avec `--cleanup` et le
+reçu d'export vérifie chaque fichier avant de retirer cet export temporaire.
+Lorsque le catalogue mentionne un modèle historique déjà retiré, l'exporteur
+le reconstruit uniquement si le registre actif contient une identité historique
+et une recette de blocs correspondant au SHA du catalogue. Chaque bloc et le
+GLB reconstitué sont vérifiés ; une recette absente ou incohérente est refusée.
+
+Ces points d'entrée sont explicites : un ancien outil qui ouvre directement un
+chemin dans un lot n'utilise pas automatiquement l'overlay. L'enregistrement
+d'un manifeste ne prouve pas la migration de ces consommateurs et n'autorise
+pas, à lui seul, le retrait de leurs fichiers physiques.

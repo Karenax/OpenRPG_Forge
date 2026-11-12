@@ -838,7 +838,11 @@ fn media(
         (GovernedAssetKind::Audio, "flac") => MediaFormat::Flac,
         _ => return Err(format!("Unsupported or mismatched media format: {path}")),
     };
-    let limits = MediaLimits::default();
+    let limits = if format == MediaFormat::Glb {
+        MediaLimits::mesh_delivery()
+    } else {
+        MediaLimits::default()
+    };
     if length > limits.max_input_bytes || length < count as u64 {
         return Err(format!("Media input budget or length exceeded: {path}"));
     }
@@ -864,6 +868,16 @@ fn media(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[ignore = "Requires an explicitly selected private GLB and SHA-256"]
+    fn private_large_mesh_passes_package_media_validation() {
+        let path = std::env::var("OPENRPG_TEST_GLB").expect("OPENRPG_TEST_GLB is required");
+        let expected = std::env::var("OPENRPG_TEST_GLB_SHA256").expect("OPENRPG_TEST_GLB_SHA256 is required");
+        let bytes = std::fs::read(path).unwrap();
+        assert_eq!(forge_core::bytes_sha256(&bytes).to_string(), expected);
+        validate_payload_bytes("model.glb", &bytes, Some(GovernedAssetKind::Mesh)).unwrap();
+    }
 
     #[test]
     fn source_scripts_and_executable_magic_remain_forbidden_in_modules() {

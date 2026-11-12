@@ -7,13 +7,44 @@ O=W/'gladiator-native-geometry-v380'; PROJECT=O/'project'
 BASE=W/'unity-library-source-thumbnail-pirate-bench-v2/project'
 PACKAGE=Path('F:/OpenRPG_AssetVault/originals/unity-purchased/hivemind/source-support-v1/modular-gladiator-arena-base170-v1')
 PS='C:/Users/karen/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe'
+overlay=os.environ.get('OPENRPG_UNITY_OVERLAY_MANIFEST')
+sys.path.insert(0,str(S.parent/'assets'))
+from unity_shared_overlay import UnitySourceResolver,configured_resolver
+resolver=None
+def configure_resolver():
+    global resolver
+    if overlay:
+        resolver=UnitySourceResolver(Path('F:/OpenRPG_AssetVault'),Path(overlay),os.environ.get('OPENRPG_UNITY_OVERLAY_SHA256',''))
+    else:resolver=configured_resolver(Path('F:/OpenRPG_AssetVault'),PACKAGE/'source')
+def actual(p):
+    path=Path(p).resolve(strict=False)
+    return resolver.resolve_absolute(path) if resolver else path
+def exists(p):
+    path=Path(p).resolve(strict=False)
+    return resolver.contains_absolute(path) if resolver else path.is_file()
 def read(p): return json.loads(Path(p).read_text('utf-8-sig'))
 def sha(p):
-    with Path(p).open('rb') as f: return hashlib.file_digest(f,'sha256').hexdigest()
+    with actual(p).open('rb') as f: return hashlib.file_digest(f,'sha256').hexdigest()
+def copy_audited_sources(audit, package, project):
+    """Copy verified logical source paths while preserving their Unity layout."""
+    pins={};copies=[];source_root=(package/'source').resolve(strict=True)
+    for row in audit['resolved_files']:
+        source=Path(row['path']).resolve(strict=False)
+        if not source.is_relative_to(source_root) or source.suffix not in {'.prefab','.fbx','.mat','.shadergraph','.png'}:
+            raise ValueError('source outside package or unsupported format')
+        for p in [source,Path(str(source)+'.meta')]:
+            if not exists(p) or sha(p)!=audit['input_pins'][str(p)]:
+                raise ValueError('source missing or changed: '+str(p))
+            target=project/p.relative_to(source_root);target.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copyfile(actual(p),target)
+            if sha(target)!=sha(p):raise ValueError('copied source differs: '+str(p))
+            pins[str(p)]=sha(p);copies.append(dict(source=str(p),copy=str(target),sha256=sha(target)))
+    return pins,copies
 def save(v):
     v.update(updated_utc=datetime.now(timezone.utc).isoformat(),full_import=False,converted=False)
     p=O/'RUN-RESULT.tmp'; p.write_text(json.dumps(v,indent=2),'utf-8'); p.replace(O/'RUN-RESULT.v1.json')
 def prepare():
+    configure_resolver()
     assert not O.exists(), 'Never replace an existing proof'
     assert subprocess.check_output([PS,'-NoProfile','-Command','@(Get-Process -Name Unity -ErrorAction SilentlyContinue).Count'],text=True).strip()=='0'
     auditpath=W/'gladiator-mirror-source-case-v379/RESULT.v1.json'; audit=read(auditpath)
@@ -22,15 +53,8 @@ def prepare():
     for p,h in audit['input_pins'].items(): assert sha(p)==h,p
     O.mkdir(); (O/'temp').mkdir(); (PROJECT/'Assets/Editor').mkdir(parents=True)
     pins={str(auditpath):sha(auditpath),str(Path(__file__)):sha(__file__)}
-    copies=[]
-    for row in audit['resolved_files']:
-        source=Path(row['path']); assert source.is_relative_to(PACKAGE/'source')
-        assert source.suffix in {'.prefab','.fbx','.mat','.shadergraph','.png'},source
-        for p in [source,Path(str(source)+'.meta')]:
-            assert p.is_file() and sha(p)==audit['input_pins'][str(p)]
-            target=PROJECT/p.relative_to(PACKAGE/'source');target.parent.mkdir(parents=True,exist_ok=True)
-            shutil.copyfile(p,target); assert sha(target)==sha(p)
-            pins[str(p)]=sha(p);copies.append(dict(source=str(p),copy=str(target),sha256=sha(target)))
+    source_pins,copies=copy_audited_sources(audit,PACKAGE,PROJECT)
+    pins.update(source_pins)
     for name in ['Packages','ProjectSettings']:
         shutil.copytree(BASE/name,PROJECT/name)
         for p in (BASE/name).rglob('*'):
@@ -44,7 +68,7 @@ def prepare():
     helper=PROJECT/'Assets/Editor/GladiatorGeometryV380.cs';helper.write_text(code,'utf-8')
     pins[str(original)]=sha(original);pins[str(helper)]=sha(helper)
     source=Path(audit['resolved_files'][0]['path']); assert source.suffix=='.prefab'
-    guid=re.search(r'^guid: ([a-f0-9]{32})$',Path(str(source)+'.meta').read_text('utf-8-sig'),re.M)[1]
+    guid=re.search(r'^guid: ([a-f0-9]{32})$',actual(Path(str(source)+'.meta')).read_text('utf-8-sig'),re.M)[1]
     request=dict(prefab_path=source.relative_to(PACKAGE/'source').as_posix(),prefab_guid=guid,output=str(O/'NATIVE-RESULT.v1.json'))
     (O/'REQUEST.v1.json').write_text(json.dumps(request,indent=2),'utf-8')
     pins[str(O/'REQUEST.v1.json')]=sha(O/'REQUEST.v1.json')
@@ -56,6 +80,7 @@ def prepare():
     (O/'JOB.v1.json').write_text(json.dumps(dict(controller_pid=proc.pid,one_shot=True)),'utf-8')
     print(json.dumps(dict(controller_pid=proc.pid,private_files=len(copies),project=str(PROJECT))))
 def run():
+    configure_resolver()
     state=read(O/'RUN-RESULT.v1.json'); broker=None; namespace=None
     try:
         assert subprocess.check_output([PS,'-NoProfile','-Command','@(Get-Process -Name Unity -ErrorAction SilentlyContinue).Count'],text=True).strip()=='0','Preserve live Unity'

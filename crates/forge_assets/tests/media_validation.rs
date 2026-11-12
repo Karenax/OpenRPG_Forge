@@ -125,6 +125,122 @@ fn triangle() -> Vec<u8> {
     glb(br#"{"asset":{"version":"2.0"},"buffers":[{"byteLength":36}],"bufferViews":[{"buffer":0,"byteOffset":0,"byteLength":36}],"accessors":[{"bufferView":0,"componentType":5126,"count":3,"type":"VEC3","min":[0,0,0],"max":[1,1,0]}],"meshes":[{"primitives":[{"attributes":{"POSITION":0}}]}],"nodes":[{"mesh":0}],"scenes":[{"nodes":[0]}],"scene":0}"#,Some(&bin))
 }
 
+#[test]
+fn glb_texture_transform_is_validated_without_accepting_unknown_extensions() {
+    let mut bin = Vec::new();
+    for value in [0_f32, 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 1.] {
+        bin.extend(value.to_le_bytes());
+    }
+    let image = png();
+    bin.extend(&image);
+    let mut document = serde_json::json!({
+        "asset": {"version": "2.0"},
+        "extensionsUsed": ["KHR_texture_transform"],
+        "extensionsRequired": ["KHR_texture_transform"],
+        "buffers": [{"byteLength": bin.len()}],
+        "bufferViews": [
+            {"buffer": 0, "byteOffset": 0, "byteLength": 36},
+            {"buffer": 0, "byteOffset": 36, "byteLength": 24},
+            {"buffer": 0, "byteOffset": 60, "byteLength": image.len()}
+        ],
+        "accessors": [
+            {"bufferView": 0, "componentType": 5126, "count": 3, "type": "VEC3", "min": [0,0,0], "max": [1,1,0]},
+            {"bufferView": 1, "componentType": 5126, "count": 3, "type": "VEC2"}
+        ],
+        "images": [{"bufferView": 2, "mimeType": "image/png"}],
+        "textures": [{"source": 0}],
+        "materials": [{"pbrMetallicRoughness": {"baseColorTexture": {"index": 0,
+            "extensions": {"KHR_texture_transform": {"offset": [0.2, 0.3], "scale": [0.5, 0.5]}}}}}],
+        "meshes": [{"primitives": [{"attributes": {"POSITION": 0, "TEXCOORD_0": 1}, "material": 0}]}],
+        "nodes": [{"mesh": 0}], "scenes": [{"nodes": [0]}], "scene": 0
+    });
+    let encode = |document: &serde_json::Value| glb(&serde_json::to_vec(document).unwrap(), Some(&bin));
+    assert!(validate_media(&encode(&document), MediaFormat::Glb, MediaLimits::default()).is_ok());
+    document["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"]["extensions"]
+        ["KHR_texture_transform"]["scale"] = serde_json::json!("invalid");
+    assert!(validate_media(&encode(&document), MediaFormat::Glb, MediaLimits::default()).is_err());
+    document["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"]["extensions"]
+        ["KHR_texture_transform"]["scale"] = serde_json::json!([0.5, 0.5]);
+    document["extensionsUsed"] = serde_json::json!(["UNKNOWN_required"]);
+    document["extensionsRequired"] = serde_json::json!(["UNKNOWN_required"]);
+    assert!(validate_media(&encode(&document), MediaFormat::Glb, MediaLimits::default()).is_err());
+}
+
+#[test]
+fn image_and_aggregate_decoding_budgets_are_independent() {
+    let image = png();
+    let mut bin = Vec::new();
+    for value in [0_f32, 0., 0., 1., 0., 0., 0., 1., 0.] {
+        bin.extend(value.to_le_bytes());
+    }
+    let first_offset = bin.len();
+    bin.extend(&image);
+    while bin.len() % 4 != 0 { bin.push(0); }
+    let second_offset = bin.len();
+    bin.extend(&image);
+    let document = serde_json::json!({
+        "asset":{"version":"2.0"}, "buffers":[{"byteLength":bin.len()}],
+        "bufferViews":[{"buffer":0,"byteOffset":0,"byteLength":36},
+            {"buffer":0,"byteOffset":first_offset,"byteLength":image.len()},
+            {"buffer":0,"byteOffset":second_offset,"byteLength":image.len()}],
+        "accessors":[{"bufferView":0,"componentType":5126,"count":3,"type":"VEC3","min":[0,0,0],"max":[1,1,0]}],
+        "images":[{"bufferView":1,"mimeType":"image/png"},{"bufferView":2,"mimeType":"image/png"}],
+        "meshes":[{"primitives":[{"attributes":{"POSITION":0}}]}],
+        "nodes":[{"mesh":0}],"scenes":[{"nodes":[0]}],"scene":0
+    });
+    let bytes = glb(&serde_json::to_vec(&document).unwrap(), Some(&bin));
+    let limits = MediaLimits { max_decoded_bytes: 44, max_single_image_decoded_bytes: 4,
+        ..MediaLimits::default() };
+    assert!(validate_media(&bytes, MediaFormat::Glb, limits).is_ok());
+    assert!(validate_media(&bytes, MediaFormat::Glb, MediaLimits { max_decoded_bytes: 43, ..limits }).is_err());
+    assert!(validate_media(&bytes, MediaFormat::Glb, MediaLimits { max_single_image_decoded_bytes: 3, ..limits }).is_err());
+}
+
+#[test]
+fn glb_emissive_strength_is_checked_as_a_standard_extension() {
+    let original = triangle();
+    let json_len = u32::from_le_bytes(original[12..16].try_into().unwrap()) as usize;
+    let mut document: serde_json::Value = serde_json::from_slice(&original[20..20 + json_len]).unwrap();
+    let bin = &original[20 + json_len + 8..];
+    document["extensionsUsed"] = serde_json::json!(["KHR_materials_emissive_strength"]);
+    document["extensionsRequired"] = serde_json::json!(["KHR_materials_emissive_strength"]);
+    document["materials"] = serde_json::json!([{"emissiveFactor":[1,0,0],
+        "extensions":{"KHR_materials_emissive_strength":{"emissiveStrength":4.0}}}]);
+    document["meshes"][0]["primitives"][0]["material"] = serde_json::json!(0);
+    let encode = |value: &serde_json::Value| glb(&serde_json::to_vec(value).unwrap(), Some(bin));
+    assert!(validate_media(&encode(&document), MediaFormat::Glb, MediaLimits::default()).is_ok());
+    document["materials"][0]["extensions"]["KHR_materials_emissive_strength"]["emissiveStrength"] = serde_json::json!("invalid");
+    assert!(validate_media(&encode(&document), MediaFormat::Glb, MediaLimits::default()).is_err());
+}
+
+#[test]
+#[ignore = "Requires an explicitly selected private GLB and SHA-256"]
+fn private_glb_passes_governed_media_validation() {
+    let path = std::env::var("OPENRPG_TEST_GLB").expect("OPENRPG_TEST_GLB is required");
+    let expected = std::env::var("OPENRPG_TEST_GLB_SHA256").expect("OPENRPG_TEST_GLB_SHA256 is required");
+    let bytes = std::fs::read(path).unwrap();
+    assert_eq!(forge_core::bytes_sha256(&bytes).to_string(), expected);
+    let validated = validate_declared_media(
+        &bytes,
+        MediaFormat::Glb,
+        MediaLimits::default(),
+        forge_assets::source_graph_glb::SourceGraphGlbReadBudget::Standard,
+    ).unwrap();
+    assert_eq!(validated.route, MediaRoute::Standard);
+}
+
+#[test]
+#[ignore = "Requires an explicitly selected private GLB and SHA-256"]
+fn private_large_mesh_passes_bounded_media_validation() {
+    let path = std::env::var("OPENRPG_TEST_GLB").expect("OPENRPG_TEST_GLB is required");
+    let expected = std::env::var("OPENRPG_TEST_GLB_SHA256").expect("OPENRPG_TEST_GLB_SHA256 is required");
+    let bytes = std::fs::read(path).unwrap();
+    assert_eq!(forge_core::bytes_sha256(&bytes).to_string(), expected);
+    let limits = MediaLimits::mesh_delivery();
+    validate_declared_media(&bytes, MediaFormat::Glb, limits,
+        forge_assets::source_graph_glb::SourceGraphGlbReadBudget::Standard).unwrap();
+}
+
 fn source_fragment_triangle(image: &[u8], pin: &str, mutation: &str) -> Vec<u8> {
     let mut bin = Vec::new();
     for value in [0_f32, 0., 0., 1., 0., 0., 0., 1., 0.] {

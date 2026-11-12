@@ -91,6 +91,22 @@ fn plain_and_compressed_bytes_keep_the_same_hash_and_export() {
 }
 
 #[test]
+fn embedded_descriptor_reconstructs_and_enforces_identity_and_budget() {
+    let f = Fixture::new();
+    let data = b"embedded legacy payload".repeat(128);
+    let (path, descriptor) = f.packed(&data, "zlib");
+    fs::remove_file(path).unwrap();
+    assert_eq!(read_embedded_descriptor(&f.0, &descriptor, data.len() as u64).unwrap(), data);
+    assert!(read_embedded_descriptor(&f.0, &descriptor, data.len() as u64 - 1).is_err());
+    let mut bad = descriptor.clone();
+    bad.vault_id = "0".repeat(32);
+    assert!(read_embedded_descriptor(&f.0, &bad, data.len() as u64).is_err());
+    bad = descriptor.clone();
+    bad.segments[0].sha256 = "0".repeat(64);
+    assert!(read_embedded_descriptor(&f.0, &bad, data.len() as u64).is_err());
+}
+
+#[test]
 fn corruption_wrong_root_truncation_and_logical_hash_are_refused() {
     let f = Fixture::new();
     let bytes = b"shared payload".repeat(100);
