@@ -9,6 +9,7 @@
 //! See ADR-0024 for the rationale, native prototype evidence and limitations.
 
 use std::{
+    borrow::Cow,
     cell::UnsafeCell,
     ffi::{OsString, c_void},
     fmt, fs, io,
@@ -28,6 +29,7 @@ const STATUS_OBJECT_NAME_NOT_FOUND: i32 = 0xc0000034_u32 as i32;
 const STATUS_OBJECT_PATH_NOT_FOUND: i32 = 0xc000003a_u32 as i32;
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
 const MAX_NT_UNITS: usize = u16::MAX as usize / 2;
+const MAX_DOS_PATH: usize = 260;
 const NT_PREFIX: &[u16] = &[92, 63, 63, 92]; // \??\
 const VERBATIM_PREFIX: &[u16] = &[92, 92, 63, 92]; // \\?\
 
@@ -230,6 +232,11 @@ struct IoStatusBlock {
     information: usize,
 }
 
+#[link(name = "kernel32")]
+unsafe extern "system" {
+    fn GetShortPathNameW(path: *const u16, short_path: *mut u16, capacity: u32) -> u32;
+}
+
 #[link(name = "ntdll")]
 unsafe extern "system" {
     fn NtCreateFile(
@@ -424,6 +431,51 @@ fn check_chain(
 pub(super) fn safe_chain(path: &Path) -> crate::Result<()> {
     check_chain(path, probe)
         .map_err(|error| format!("Inspect Windows package path {}: {error}", path.display()))
+}
+
+pub(super) fn executable_path(path: &Path) -> crate::Result<Cow<'_, Path>> {
+    if fits_dos_path(path) {
+        return Ok(Cow::Borrowed(path));
+    }
+    let literal = LiteralDiskPath::new(path).map_err(|error| {
+        format!(
+            "Prepare Windows executable path {}: {error}",
+            path.display()
+        )
+    })?;
+    let mut executable = OsString::from_wide(VERBATIM_PREFIX);
+    executable.push(literal.dos);
+    let executable = PathBuf::from(executable);
+    // Win32 can start an extended path that a child library such as WebView2
+    // cannot use. Keep the executable's name for code that uses current_exe().
+    Ok(Cow::Owned(
+        short_executable_path(&executable).unwrap_or(executable),
+    ))
+}
+
+fn fits_dos_path(path: &Path) -> bool {
+    path.as_os_str().encode_wide().take(MAX_DOS_PATH).count() < MAX_DOS_PATH
+}
+
+fn short_executable_path(executable: &Path) -> Option<PathBuf> {
+    let parent = executable.parent()?;
+    let input: Vec<_> = parent.as_os_str().encode_wide().chain([0]).collect();
+    let mut output = [0; MAX_DOS_PATH + VERBATIM_PREFIX.len()];
+    let capacity = u32::try_from(output.len()).expect("fixed DOS path buffer fits a DWORD");
+    // SAFETY: input is NUL-terminated and output has capacity writable UTF-16 units.
+    let len = unsafe { GetShortPathNameW(input.as_ptr(), output.as_mut_ptr(), capacity) } as usize;
+    if len == 0 || len >= output.len() {
+        return None;
+    }
+    let output = &output[..len];
+    let short_parent = OsString::from_wide(output.strip_prefix(VERBATIM_PREFIX).unwrap_or(output));
+    let candidate = PathBuf::from(short_parent).join(executable.file_name()?);
+    if fits_dos_path(&candidate)
+        && fs::canonicalize(&candidate).ok()? == fs::canonicalize(executable).ok()?
+    {
+        return Some(candidate);
+    }
+    None
 }
 
 #[cfg(test)]

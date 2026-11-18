@@ -45,7 +45,7 @@ impl ModulePackageManifest {
         &self,
         head: &crate::zone_authoring::ZoneAuthoringHead,
     ) -> Result<(), ModulePackageError> {
-        if (MODULE_VEGETATION_API_VERSION..=super::MODULE_HISTORICAL_MODELS_API_VERSION)
+        if (MODULE_VEGETATION_API_VERSION..=super::MAX_SUPPORTED_MODULE_API_VERSION)
             .contains(&self.compatibility.module_api_version)
         {
             return self.validate_zone_vegetation(head);
@@ -151,7 +151,7 @@ impl ModulePackageManifest {
         used: &mut BTreeSet<&'a str>,
     ) -> Result<(), ModulePackageError> {
         if !self.vegetation.is_empty()
-            && !(MODULE_VEGETATION_API_VERSION..=super::MODULE_HISTORICAL_MODELS_API_VERSION)
+            && !(MODULE_VEGETATION_API_VERSION..=super::MAX_SUPPORTED_MODULE_API_VERSION)
                 .contains(&self.compatibility.module_api_version)
         {
             return Err(ModulePackageError::Compatibility);

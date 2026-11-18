@@ -36,9 +36,8 @@ pub fn install_shader(
     if !corrections.supports_fixed_source_profile() {
         return Err("Source terrain LOD shader requires its admitted fixed raster profile".into());
     }
-    let source = super::sampling::prepare_shader(source, document)?;
-    let source = super::sampling::clip_vertex_shader(&source, document)?;
-    let source = corrections.shader(&source, "#{MATERIAL_BIND_GROUP}", 102)?;
+    let source = prepare_vertex_shader(source, document)?;
+    let source = corrections.material_shader(&source, 102)?;
     app.world_mut()
         .get_resource_mut::<Assets<Shader>>()
         .ok_or("Renderer shader assets unavailable")?
@@ -47,6 +46,42 @@ pub fn install_shader(
             Shader::from_wgsl(source, "source-edited-terrain.wgsl"),
         )?;
     Ok(())
+}
+
+pub(super) fn prepare_vertex_shader(
+    program: &str,
+    document: &forge_project::TerrainDocument,
+) -> Result<String, String> {
+    const MORPH: &str = "let cv=terrainLodMorph(v.node,v.position.xz,view.world_position,terrainHeightAt(snapped));";
+    const MORPH_WITH_HEIGHT: &str = "let snappedHeight=terrainHeightAt(snapped);\n    let cv=terrainLodMorph(v.node,v.position.xz,view.world_position,snappedHeight);";
+    let source = super::sampling::prepare_shader(program, document)?;
+    let source = super::sampling::clip_vertex_shader(&source, document)?;
+    // Only the known engine program guarantees a pure height lookup across the morph.
+    if program != super::programs::LOD {
+        return Ok(source);
+    }
+
+    let position = if source.contains("fn forgeTerrainClip(") {
+        "forgeClippedXZ"
+    } else {
+        "cv.worldXZ"
+    };
+    let final_sample = format!("terrainHeightAt({position})");
+    if source.matches(MORPH).count() != 1 || source.matches(&final_sample).count() != 1 {
+        return Ok(source);
+    }
+    let reuse = format!("forgeTerrainVertexHeight({position},snapped,snappedHeight)");
+    let source = source.replacen(MORPH, MORPH_WITH_HEIGHT, 1);
+    let source = source.replacen(&final_sample, &reuse, 1);
+    Ok(format!(
+        "{source}\n{}",
+        r"fn forgeTerrainVertexHeight(position:vec2f,snapped:vec2f,snappedHeight:f32)->f32 {
+    if all(bitcast<vec2u>(position) == bitcast<vec2u>(snapped)) {
+        return snappedHeight;
+    }
+    return terrainHeightAt(position);
+}"
+    ))
 }
 
 const NODE: MeshVertexAttribute =
@@ -387,6 +422,57 @@ mod tests {
             samples_sha256: forge_core::bytes_sha256(&bytes),
         });
         SampledTerrainPlan::from_document(&document, &bytes).unwrap()
+    }
+
+    #[test]
+    fn shared_lod_reuses_the_height_only_at_the_final_sample_position() {
+        const BEVY_INTERFACE: &str = r"
+struct VertexOutput {
+    @builtin(position) position:vec4f,
+    @location(0) world_position:vec4f,
+    @location(1) world_normal:vec3f,
+    @location(2) @interpolate(flat) instance_index:u32,
+};
+struct View { world_position:vec3f };
+@group(0) @binding(0) var<uniform> view:View;
+fn position_world_to_clip(p:vec3f)->vec4f { return vec4f(p,1.0); }
+";
+        let program = super::super::programs::LOD;
+        let reference = plan(2048, 2048);
+        let mut rectangle = plan(11, 19).document().clone();
+        rectangle.height_sampling.base_elevation_m = 3.0;
+        for (document, position) in [
+            (reference.document(), "cv.worldXZ"),
+            (&rectangle, "forgeClippedXZ"),
+        ] {
+            let source = prepare_vertex_shader(program, document).unwrap();
+            let vertex = crate::sampled_terrain_corrections::Corrections::from_document(document)
+                .unwrap()
+                .material_shader(&source, 102)
+                .unwrap();
+            assert!(vertex.contains(&format!(
+                "forgeTerrainVertexHeight({position},snapped,snappedHeight)"
+            )));
+            assert_eq!(vertex.matches("terrainHeightAt(snapped)").count(), 1);
+            let vertex = vertex[vertex.find("struct TerrainLodParams").unwrap()..]
+                .replace("#{MATERIAL_BIND_GROUP}", "0")
+                .replace("#ifdef VERTEX_OUTPUT_INSTANCE_INDEX", "")
+                .replace("#endif", "");
+            let wgsl = format!("{BEVY_INTERFACE}\n{vertex}");
+            let module = naga::front::wgsl::parse_str(&wgsl).unwrap();
+            naga::valid::Validator::new(
+                naga::valid::ValidationFlags::all(),
+                naga::valid::Capabilities::all(),
+            )
+            .validate(&module)
+            .unwrap();
+        }
+
+        let legacy = format!("// Alternate legacy program\n{program}");
+        assert_eq!(
+            prepare_vertex_shader(&legacy, reference.document()).unwrap(),
+            legacy
+        );
     }
 
     #[test]

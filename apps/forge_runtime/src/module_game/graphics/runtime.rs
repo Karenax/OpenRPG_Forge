@@ -1,9 +1,16 @@
 use super::{Publication, ScopeRevision, State};
 use crate::module_game::evidence_contract::GraphicsIdentity;
 use bevy::{
-    pbr::Material, platform::collections::HashSet, prelude::*, render::storage::ShaderBuffer,
+    asset::{AssetId, UntypedAssetId},
+    pbr::Material,
+    platform::collections::HashSet,
+    prelude::*,
+    render::storage::ShaderBuffer,
 };
 use forge_core::canonical_json_sha256;
+use forge_engine::source_surface::{
+    scanned_host, scanned_material::ScannedMaterial, stall_material::FullMaterial, stall_scene,
+};
 use forge_engine::source_vegetation::scene::streamed::host::HostStatus;
 use forge_engine::source_vegetation::world::WorldPlantMaterial;
 use forge_engine::{
@@ -17,11 +24,20 @@ mod staging_probe;
 mod surface_prefetch;
 
 #[derive(PartialEq)]
-pub(super) struct Signature(BTreeMap<&'static str, Vec<String>>);
+pub(super) struct Signature(BTreeMap<&'static str, Vec<InventoryKey>>);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum InventoryKey {
+    MaterialType(&'static str),
+    Mesh(AssetId<Mesh>),
+    Material(UntypedAssetId),
+    Dependency(UntypedAssetId),
+}
+
 struct Family<M: Material> {
     meshes: Vec<Handle<Mesh>>,
     materials: Vec<Handle<M>>,
-    keys: Vec<String>,
+    keys: Vec<InventoryKey>,
 }
 
 pub(super) fn commands(mut input: MessageReader<NativeGraphicsCommand>, mut state: ResMut<State>) {
@@ -176,7 +192,7 @@ fn family<M: Material>(world: &mut World) -> Result<Option<Family<M>>, String> {
     let mut result = Family {
         meshes: Vec::new(),
         materials: Vec::new(),
-        keys: vec![format!("material-type:{}", std::any::type_name::<M>())],
+        keys: vec![InventoryKey::MaterialType(std::any::type_name::<M>())],
     };
     let mut seen_meshes = HashSet::new();
     let mut seen_materials = HashSet::new();
@@ -192,11 +208,13 @@ fn family<M: Material>(world: &mut World) -> Result<Option<Family<M>>, String> {
         }
         if seen_meshes.insert(mesh.id()) {
             result.meshes.push(mesh.0.clone());
-            result.keys.push(format!("mesh:{:?}", mesh.id()));
+            result.keys.push(InventoryKey::Mesh(mesh.id()));
         }
         if seen_materials.insert(material.id()) {
             result.materials.push(material.0.clone());
-            result.keys.push(format!("material:{:?}", material.id()));
+            result
+                .keys
+                .push(InventoryKey::Material(material.id().untyped()));
         }
     }
     // Keep admitted sources for hidden resident tiles too. Revisiting one can
@@ -220,7 +238,7 @@ fn family<M: Material>(world: &mut World) -> Result<Option<Family<M>>, String> {
         None
     };
     if let Some(retained) = retained {
-        include_retained(&mut result, retained);
+        include_retained(&mut result, retained, &seen_meshes);
     }
     let Some(materials) = world.get_resource::<Assets<M>>() else {
         return Ok(result.meshes.is_empty().then_some(result));
@@ -232,7 +250,7 @@ fn family<M: Material>(world: &mut World) -> Result<Option<Family<M>>, String> {
         let mut pending = false;
         let mut unsupported = false;
         render_inventory::visit_material_dependencies(material, &mut |id| {
-            result.keys.push(format!("dependency:{id:?}"));
+            result.keys.push(InventoryKey::Dependency(id));
             if let Ok(id) = id.try_typed::<Image>() {
                 pending |= !world
                     .get_resource::<Assets<Image>>()
@@ -252,14 +270,18 @@ fn family<M: Material>(world: &mut World) -> Result<Option<Family<M>>, String> {
             return Ok(None);
         }
     }
-    result.keys.sort();
+    result.keys.sort_unstable();
     Ok(Some(result))
 }
 
-fn include_retained<M: Material>(family: &mut Family<M>, retained: Vec<Handle<Mesh>>) {
+fn include_retained<M: Material>(
+    family: &mut Family<M>,
+    retained: Vec<Handle<Mesh>>,
+    visible: &HashSet<AssetId<Mesh>>,
+) {
     let extra: Vec<_> = retained
         .into_iter()
-        .filter(|mesh| !family.meshes.contains(mesh))
+        .filter(|mesh| !visible.contains(&mesh.id()))
         .collect();
     if family.meshes.len() + extra.len() <= render_inventory::MAX_SCOPED_MESHES {
         // `keys` describe the visible selection, not the larger GPU inventory.
@@ -268,88 +290,119 @@ fn include_retained<M: Material>(family: &mut Family<M>, retained: Vec<Handle<Me
     }
 }
 
-pub(super) fn coverage(world: &mut World) -> Result<(), String> {
+#[derive(Clone, Copy)]
+enum CoverageOwner {
+    MaterialOnly,
+    Host(fn(&World, Entity) -> bool),
+    SourceGraph,
+}
+
+fn material_family<M: Material>(
+    world: &World,
+    owner: CoverageOwner,
+) -> (Option<bevy::ecs::component::ComponentId>, CoverageOwner) {
+    (world.component_id::<MeshMaterial3d<M>>(), owner)
+}
+
+pub(super) fn coverage(world: &World) -> Result<(), String> {
+    use CoverageOwner::{Host, MaterialOnly, SourceGraph};
     let source_draws = world
         .get_resource::<forge_engine::source_graph_runtime::SourceSceneResidents>()
         .map(|residents| residents.owned_draws(world))
         .transpose()?;
-    for (
-        entity,
-        a,
-        b,
-        c,
-        d,
-        sky,
-        source_model,
-        source_terrain,
-        source_object,
-        source_fragment,
-        acquired_terrain,
-        water,
-        lip,
-        spray,
-        (fish, graph, unlit, source_vegetation),
-    ) in world
-        .query_filtered::<(
-            Entity,
-            Has<MeshMaterial3d<StandardMaterial>>,
-            Has<MeshMaterial3d<forge_engine::VisualValleyTerrainMaterial>>,
-            Has<MeshMaterial3d<forge_engine::VisualValleyVegetationMaterial>>,
-            Has<MeshMaterial3d<WorldPlantMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_sky::SkyMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_lighting::surfaces::ModelMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_lighting::surfaces::TerrainMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_surface::SourceSurfaceMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_fragment::SourceFragmentMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_terrain::lod::LodMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_water_optics::OpticalMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_breaker_render::LipMaterial>>,
-            Has<MeshMaterial3d<forge_engine::source_spray_render::SprayMaterial>>,
-            (
-                Has<MeshMaterial3d<forge_engine::source_fish::material::FishMaterial>>,
-                Has<MeshMaterial3d<forge_engine::source_graph::SourceGraphMaterial>>,
-                Has<MeshMaterial3d<forge_engine::source_graph::SourceUnlitForwardMaterial>>,
-                Has<MeshMaterial3d<forge_engine::source_lighting::surfaces::VegetationMaterial>>,
-            ),
-        ), With<Mesh3d>>()
-        .iter(world)
+    let Some(mesh) = world.component_id::<Mesh3d>() else {
+        return Ok(());
+    };
+    let families = [
+        material_family::<StandardMaterial>(world, MaterialOnly),
+        material_family::<forge_engine::VisualValleyTerrainMaterial>(world, MaterialOnly),
+        material_family::<forge_engine::VisualValleyVegetationMaterial>(world, MaterialOnly),
+        material_family::<WorldPlantMaterial>(world, MaterialOnly),
+        material_family::<forge_engine::source_sky::SkyMaterial>(
+            world,
+            Host(forge_engine::source_environment::host::owns_sky),
+        ),
+        material_family::<forge_engine::source_lighting::surfaces::ModelMaterial>(
+            world,
+            Host(forge_engine::source_lighting::surfaces::host::owns),
+        ),
+        material_family::<forge_engine::source_lighting::surfaces::TerrainMaterial>(
+            world,
+            Host(forge_engine::source_lighting::surfaces::host::owns),
+        ),
+        material_family::<forge_engine::source_surface::SourceSurfaceMaterial>(
+            world,
+            Host(forge_engine::source_surface::package::host::owns),
+        ),
+        material_family::<forge_engine::source_fragment::SourceFragmentMaterial>(
+            world,
+            MaterialOnly,
+        ),
+        material_family::<forge_engine::source_terrain::lod::LodMaterial>(
+            world,
+            Host(forge_engine::source_terrain::host::owns),
+        ),
+        material_family::<forge_engine::source_water_optics::OpticalMaterial>(
+            world,
+            Host(forge_engine::source_water_host::owns),
+        ),
+        material_family::<forge_engine::source_breaker_render::LipMaterial>(
+            world,
+            Host(forge_engine::source_breaker_resident::owns_lip),
+        ),
+        material_family::<forge_engine::source_spray_render::SprayMaterial>(
+            world,
+            Host(forge_engine::source_breaker_resident::owns_spray),
+        ),
+        material_family::<forge_engine::source_fish::material::FishMaterial>(
+            world,
+            Host(forge_engine::source_fish::host::live::owns),
+        ),
+        material_family::<forge_engine::source_graph::SourceGraphMaterial>(world, SourceGraph),
+        material_family::<forge_engine::source_graph::SourceUnlitForwardMaterial>(
+            world,
+            SourceGraph,
+        ),
+        material_family::<forge_engine::source_lighting::surfaces::VegetationMaterial>(
+            world,
+            Host(forge_engine::source_lighting::surfaces::host::owns),
+        ),
+        material_family::<ScannedMaterial>(world, Host(scanned_host::owns)),
+        material_family::<FullMaterial>(world, Host(stall_scene::live::owns)),
+    ];
+    for archetype in world
+        .archetypes()
+        .iter()
+        .filter(|archetype| !archetype.is_empty() && archetype.contains(mesh))
     {
-        if forge_engine::source_refraction_capture::owns_mirror(world, entity) {
-            continue;
-        }
-        if u8::from(a)
-            + u8::from(b)
-            + u8::from(c)
-            + u8::from(d)
-            + u8::from(sky)
-            + u8::from(source_model)
-            + u8::from(source_terrain)
-            + u8::from(source_object)
-            + u8::from(source_fragment)
-            + u8::from(acquired_terrain)
-            + u8::from(water)
-            + u8::from(lip)
-            + u8::from(spray)
-            + u8::from(fish)
-            + u8::from(graph)
-            + u8::from(unlit)
-            + u8::from(source_vegetation)
-            != 1
-            || (sky && !forge_engine::source_environment::host::owns_sky(world, entity))
-            || ((source_model || source_terrain || source_vegetation)
-                && !forge_engine::source_lighting::surfaces::host::owns(world, entity))
-            || (source_object && !forge_engine::source_surface::package::host::owns(world, entity))
-            || (acquired_terrain && !forge_engine::source_terrain::host::owns(world, entity))
-            || (water && !forge_engine::source_water_host::owns(world, entity))
-            || (lip && !forge_engine::source_breaker_resident::owns_lip(world, entity))
-            || (spray && !forge_engine::source_breaker_resident::owns_spray(world, entity))
-            || (fish && !forge_engine::source_fish::host::live::owns(world, entity))
-            || ((graph || unlit)
-                && source_draws
+        let mut matching = families.iter().filter_map(|(component, owner)| {
+            component
+                .filter(|id| archetype.contains(*id))
+                .map(|_| *owner)
+        });
+        let owner = match (matching.next(), matching.next()) {
+            (Some(MaterialOnly), None) => continue,
+            (Some(owner), None) => Some(owner),
+            _ => None,
+        };
+        // A family's presence is common to the whole archetype. Only the
+        // ownership checks and the refraction exception depend on the entity.
+        for entity in archetype.entities().iter().map(|record| record.id()) {
+            if forge_engine::source_refraction_capture::owns_mirror(world, entity) {
+                continue;
+            }
+            let owned = match owner {
+                Some(Host(owns)) => owns(world, entity),
+                Some(SourceGraph) => source_draws
                     .as_ref()
-                    .is_none_or(|draws| !draws.contains(&entity)))
-        {
-            return Err("A module mesh uses an unsupported or ambiguous graphics material".into());
+                    .is_some_and(|draws| draws.contains(&entity)),
+                _ => false,
+            };
+            if !owned {
+                return Err(
+                    "A module mesh uses an unsupported or ambiguous graphics material".into(),
+                );
+            }
         }
     }
     Ok(())
@@ -542,6 +595,12 @@ fn observe_families<T: Material, M: Material>(
     let Some(mut fish) = family::<forge_engine::source_fish::material::FishMaterial>(world)? else {
         return Ok(false);
     };
+    let Some(mut scans) = family::<ScannedMaterial>(world)? else {
+        return Ok(false);
+    };
+    let Some(mut stalls) = family::<FullMaterial>(world)? else {
+        return Ok(false);
+    };
     let graph_enabled = world
         .contains_resource::<forge_engine::source_graph_runtime::SourceSceneResidents>()
         || state.scope_revisions.contains_key("source_graphs")
@@ -582,6 +641,8 @@ fn observe_families<T: Material, M: Material>(
             ("breaker_lip", &mut lip.keys),
             ("spray", &mut spray.keys),
             ("fish", &mut fish.keys),
+            ("scanned_debris", &mut scans.keys),
+            ("source_stalls", &mut stalls.keys),
         ]
         .into_iter()
         .chain(
@@ -607,6 +668,8 @@ fn observe_families<T: Material, M: Material>(
         ("breaker_lip", !lip.meshes.is_empty()),
         ("spray", !spray.meshes.is_empty()),
         ("fish", !fish.meshes.is_empty()),
+        ("scanned_debris", !scans.meshes.is_empty()),
+        ("source_stalls", !stalls.meshes.is_empty()),
         (
             "source_graphs",
             source_graphs
@@ -620,8 +683,8 @@ fn observe_families<T: Material, M: Material>(
                 .is_some_and(|family| !family.meshes.is_empty()),
         ),
     ];
-    let families = &families[..if graph_enabled { 11 } else { 9 }];
-    let changed: [bool; 11] = std::array::from_fn(|index| {
+    let families = &families[..if graph_enabled { 13 } else { 11 }];
+    let changed: [bool; 13] = std::array::from_fn(|index| {
         families.get(index).is_some_and(|(name, _)| {
             state.inventory.as_ref().is_none_or(|previous| {
                 signature_family(previous, name) != signature_family(&signature, name)
@@ -644,14 +707,16 @@ fn observe_families<T: Material, M: Material>(
         reusable_family(world, state, "breaker_lip", &lip, changed[6]),
         reusable_family(world, state, "spray", &spray, changed[7]),
         reusable_family(world, state, "fish", &fish, changed[8]),
+        reusable_family(world, state, "scanned_debris", &scans, changed[9]),
+        reusable_family(world, state, "source_stalls", &stalls, changed[10]),
         source_graphs.as_ref().is_some_and(|family| {
-            reusable_family(world, state, "source_graphs", family, changed[9])
+            reusable_family(world, state, "source_graphs", family, changed[11])
         }),
         source_graph_unlit.as_ref().is_some_and(|family| {
-            reusable_family(world, state, "source_graph_unlit", family, changed[10])
+            reusable_family(world, state, "source_graph_unlit", family, changed[12])
         }),
     ];
-    let mut dirty = [false; 11];
+    let mut dirty = [false; 13];
     for (index, (name, present)) in families.iter().enumerate() {
         dirty[index] = scope_needs_refresh(
             state.inventory.as_ref(),
@@ -764,6 +829,24 @@ fn observe_families<T: Material, M: Material>(
             &fish,
             dirty[8],
         )?;
+        update_family(
+            world,
+            state,
+            "scanned_debris",
+            request_identity,
+            revision,
+            &scans,
+            dirty[9],
+        )?;
+        update_family(
+            world,
+            state,
+            "source_stalls",
+            request_identity,
+            revision,
+            &stalls,
+            dirty[10],
+        )?;
         if let Some(graphs) = &source_graphs {
             update_family(
                 world,
@@ -772,7 +855,7 @@ fn observe_families<T: Material, M: Material>(
                 request_identity,
                 revision,
                 graphs,
-                dirty[9],
+                dirty[11],
             )?;
         }
         if let Some(unlit) = &source_graph_unlit {
@@ -783,7 +866,7 @@ fn observe_families<T: Material, M: Material>(
                 request_identity,
                 revision,
                 unlit,
-                dirty[10],
+                dirty[12],
             )?;
         }
         for (index, (name, present)) in families.iter().enumerate() {
@@ -795,8 +878,7 @@ fn observe_families<T: Material, M: Material>(
                     .get(name)
                     .ok_or("Graphics scope absent after registration")?;
                 let scope_identity = identity(state, current)?;
-                let sources = canonical_json_sha256(&signature_family(&signature, name))
-                    .map_err(|error| error.to_string())?;
+                let sources = inventory_sources_hash(signature_family(&signature, name))?;
                 let frame = revision.required_frame;
                 let seal = canonical_json_sha256(&(scope_identity, frame, sources))
                     .map_err(|error| error.to_string())?;
@@ -901,8 +983,14 @@ fn scope_needs_refresh(
             && !availability.contained)
 }
 
-fn signature_family<'a>(signature: &'a Signature, name: &str) -> &'a [String] {
+fn signature_family<'a>(signature: &'a Signature, name: &str) -> &'a [InventoryKey] {
     signature.0.get(name).map_or(&[], Vec::as_slice)
+}
+
+fn inventory_sources_hash(keys: &[InventoryKey]) -> Result<forge_core::ContentHash, String> {
+    // Only a publication or its handoff needs a serialized seal.
+    let labels: Vec<_> = keys.iter().map(|key| format!("{key:?}")).collect();
+    canonical_json_sha256(&labels).map_err(|error| error.to_string())
 }
 
 #[allow(
@@ -972,16 +1060,17 @@ pub(super) fn scope_token(
 ) -> Option<render_inventory::RenderInventoryToken> {
     let revision = state.scope_revisions.get(name)?;
     let publication = state.publications.get(name)?;
-    let token = render_inventory::acquire_scoped(
+    let required_frame = revision
+        .required_frame
+        .max(publication.frame)
+        .max(state.applied_frame);
+    render_inventory::acquire_scoped_at_frame(
         world,
         state.scope_owner(name),
         identity(state, *revision).ok()?,
         revision.generation,
-    )?;
-    (token.covers_frame(world, revision.required_frame)
-        && token.covers_frame(world, publication.frame)
-        && token.covers_frame(world, state.applied_frame))
-    .then_some(token)
+        required_frame,
+    )
 }
 
 fn water_cpu_ready(world: &World, terrain: forge_core::ContentHash) -> Result<bool, String> {
@@ -1139,7 +1228,7 @@ fn gpu_ready(world: &World, state: &State) -> bool {
         return false;
     }
     for name in &state.active_scopes {
-        if scope_token(world, state, name).is_none() {
+        if *name != "terrain" && scope_token(world, state, name).is_none() {
             return false;
         }
     }
@@ -1174,9 +1263,13 @@ fn gpu_ready(world: &World, state: &State) -> bool {
             else {
                 return false;
             };
-            if !render_inventory::acquire(world, owner, identity, generation)
-                .is_some_and(|token| token.covers_frame(world, state.applied_frame))
-            {
+            if !render_inventory::primary_covers_frame(
+                world,
+                owner,
+                identity,
+                generation,
+                state.applied_frame,
+            ) {
                 return false;
             }
         }
@@ -1248,30 +1341,36 @@ mod diagnostic_tests {
         let mut assets = Assets::<Mesh>::default();
         let visible = assets.add(Cuboid::default());
         let cached = assets.add(Cuboid::default());
+        let visible_id = visible.id();
+        let active = HashSet::from_iter([visible_id]);
         let mut family = Family::<StandardMaterial> {
             meshes: vec![visible.clone()],
             materials: vec![],
-            keys: vec!["visible-mesh".into()],
+            keys: vec![InventoryKey::Mesh(visible_id)],
         };
-        include_retained(&mut family, vec![visible.clone(), cached.clone()]);
+        include_retained(&mut family, vec![visible.clone(), cached.clone()], &active);
         assert_eq!(family.meshes, vec![visible, cached]);
-        assert_eq!(family.keys, vec!["visible-mesh"]);
+        assert_eq!(family.keys, vec![InventoryKey::Mesh(visible_id)]);
         let too_many: Vec<_> = (0..render_inventory::MAX_SCOPED_MESHES)
             .map(|_| assets.add(Cuboid::default()))
             .collect();
-        include_retained(&mut family, too_many);
+        include_retained(&mut family, too_many, &active);
         assert_eq!(family.meshes.len(), 2);
-        assert_eq!(family.keys, vec!["visible-mesh"]);
+        assert_eq!(family.keys, vec![InventoryKey::Mesh(visible_id)]);
     }
     #[test]
     fn changing_water_refreshes_only_water_unless_other_sources_are_stale() {
+        let mut meshes = Assets::<Mesh>::default();
+        let terrain = meshes.add(Cuboid::default()).id();
+        let water = meshes.add(Cuboid::default()).id();
+        let replacement = meshes.add(Cuboid::default()).id();
         let old = Signature(BTreeMap::from([
-            ("terrain", vec!["mesh:t".into()]),
-            ("water", vec!["mesh:a".into()]),
+            ("terrain", vec![InventoryKey::Mesh(terrain)]),
+            ("water", vec![InventoryKey::Mesh(water)]),
         ]));
         let new = Signature(BTreeMap::from([
-            ("terrain", vec!["mesh:t".into()]),
-            ("water", vec!["mesh:b".into()]),
+            ("terrain", vec![InventoryKey::Mesh(terrain)]),
+            ("water", vec![InventoryKey::Mesh(replacement)]),
         ]));
         let ready = ScopeAvailability {
             present: true,
@@ -1340,14 +1439,24 @@ mod diagnostic_tests {
 
     #[test]
     fn diagnostic_separates_resource_families_without_exposing_asset_contents() {
+        let mut meshes = Assets::<Mesh>::default();
+        let terrain = meshes.add(Cuboid::default()).id();
+        let water = meshes.add(Cuboid::default()).id();
+        let material = AssetId::<StandardMaterial>::default().untyped();
         let signature = Signature(BTreeMap::from([
-            ("terrain", vec!["mesh:a".into()]),
-            ("water", vec!["mesh:b".into(), "material:c".into()]),
+            ("terrain", vec![InventoryKey::Mesh(terrain)]),
+            (
+                "water",
+                vec![InventoryKey::Mesh(water), InventoryKey::Material(material)],
+            ),
         ]));
-        assert_eq!(signature_family(&signature, "terrain"), &["mesh:a"]);
+        assert_eq!(
+            signature_family(&signature, "terrain"),
+            &[InventoryKey::Mesh(terrain)]
+        );
         assert_eq!(
             signature_family(&signature, "water"),
-            &["mesh:b", "material:c"]
+            &[InventoryKey::Mesh(water), InventoryKey::Material(material)]
         );
         assert!(signature_family(&signature, "models").is_empty());
     }

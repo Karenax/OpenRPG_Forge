@@ -1,6 +1,7 @@
 use super::super::evidence_contract::{
-    ExpectedManual, ObservedManual, ObservedSceneWind, ObservedSourceParticles,
-    ObservedSourcePhysics, ObservedVisual, ProjectionObservation, verify,
+    ExpectedManual, ObservedManual, ObservedSceneLighting, ObservedSceneWind,
+    ObservedSourceParticles, ObservedSourcePhysics, ObservedVisual, ProjectionObservation,
+    RendererObservation, verify,
 };
 use super::{Context, FrameTiming, MAX_FRAME_TIMINGS};
 use bevy::{
@@ -29,39 +30,7 @@ pub(super) fn observe(world: &mut World) {
         world.write_message(AppExit::error());
         return;
     };
-    let mut observation = ProjectionObservation {
-        wind: scene_wind(world),
-        local_lights: super::super::lights::observe(world),
-        environment: super::super::environment::observe(world),
-        graphics: super::super::graphics::observe(world),
-        imported: super::super::imported::observe(world),
-        species: super::super::species::observe(world),
-        pid: std::process::id(),
-        frame,
-        module_id: None,
-        area_id: None,
-        source_hash: None,
-        functional_hash: None,
-        gameplay_ready: false,
-        tick: 0,
-        simulation_error: None,
-        visual_error: None,
-        visual_expected: 0,
-        visual_spawned: 0,
-        visual_ready: 0,
-        manual_projection_ready: false,
-        visuals: vec![],
-        manual: vec![],
-        building_source_hash: None,
-        building_count: 0,
-        building_parts: 0,
-        registered_building_parts: 0,
-        building_projection_ready: false,
-        streamed_terrain: None,
-        procedural_streaming: None,
-        static_hlod: static_hlod(world),
-        renderer,
-    };
+    let mut observation = projection_observation(world, frame, renderer);
     observation.streamed_terrain = streamed_terrain(world);
     observation.procedural_streaming = procedural_streaming(world);
     if let Some(buildings) = forge_engine::runtime_buildings::observe(world) {
@@ -72,6 +41,18 @@ pub(super) fn observe(world: &mut World) {
         observation.building_projection_ready = buildings.ready;
     }
     observe_gameplay(world, &mut observation, cached, &context.manual);
+    if context.expected.attached_fish > 0 {
+        let expected = context.expected.attached_fish
+            + context
+                .expected
+                .manual
+                .iter()
+                .filter(|placement| placement.fish)
+                .count();
+        observation.manual_projection_ready &= world
+            .get_resource::<forge_engine::source_fish::host::live::Status>()
+            .is_some_and(|status| status.placements == expected);
+    }
     let asset_failure = world
         .get_resource::<super::super::manual::ModuleAssetFailure>()
         .and_then(super::super::manual::ModuleAssetFailure::reason)
@@ -120,6 +101,59 @@ pub(super) fn observe(world: &mut World) {
     if fatal || (bounded_end && !ready) {
         world.write_message(AppExit::error());
     }
+}
+
+fn projection_observation(
+    world: &mut World,
+    frame: u32,
+    renderer: RendererObservation,
+) -> ProjectionObservation {
+    ProjectionObservation {
+        scene_lighting_readback: lighting_readback(world),
+        wind: scene_wind(world),
+        local_lights: super::super::lights::observe(world),
+        environment: super::super::environment::observe(world),
+        graphics: super::super::graphics::observe(world),
+        imported: super::super::imported::observe(world),
+        species: super::super::species::observe(world),
+        pid: std::process::id(),
+        frame,
+        module_id: None,
+        area_id: None,
+        source_hash: None,
+        functional_hash: None,
+        gameplay_ready: false,
+        tick: 0,
+        simulation_error: None,
+        visual_error: None,
+        visual_expected: 0,
+        visual_spawned: 0,
+        visual_ready: 0,
+        manual_projection_ready: false,
+        visuals: vec![],
+        manual: vec![],
+        building_source_hash: None,
+        building_count: 0,
+        building_parts: 0,
+        registered_building_parts: 0,
+        building_projection_ready: false,
+        streamed_terrain: None,
+        procedural_streaming: None,
+        static_hlod: static_hlod(world),
+        renderer,
+    }
+}
+
+fn lighting_readback(world: &World) -> Option<ObservedSceneLighting> {
+    world
+        .get_resource::<forge_engine::source_lighting::scene_buffer::observation::GpuObservation>()
+        .and_then(|observation| observation.0.as_ref())
+        .map(|sample| ObservedSceneLighting {
+            readback_bytes: sample.readback_bytes,
+            payload_sha256: sample.payload_sha256,
+            direction_color_sh_vec4: sample.direction_color_sh_vec4,
+            received_frame: sample.received_frame,
+        })
 }
 
 fn scene_wind(world: &World) -> Option<ObservedSceneWind> {
@@ -235,6 +269,7 @@ fn streamed_terrain(
             maximum_cpu_mesh_bytes: identity.policy.max_resident_bytes,
             pending: cells.pending,
             physics_ready: physics.ready,
+            physics_hold_reason: physics.hold_reason.map(str::to_owned),
             error: cells.last_error.clone().or_else(|| physics.error.clone()),
             source_synchronized: forge_engine::cell_streaming::source_is_synchronized(
                 world,
@@ -286,6 +321,7 @@ fn procedural_streaming(
         committed_transitions: cells.committed_transitions,
         pending: cells.pending,
         physics_ready: physics.ready,
+        physics_hold_reason: physics.hold_reason.map(str::to_owned),
         error: cells.last_error.clone().or_else(|| physics.error.clone()),
         source_synchronized: selection_matches
             && forge_engine::cell_streaming::source_is_synchronized(world, identity.document_hash),
@@ -368,6 +404,14 @@ fn observe_gameplay(
             observation.visual_error.clone_from(&status.error);
         }
     }
+    if let Some(status) =
+        world.get_resource::<forge_engine::source_surface::stall_scene::live::Status>()
+    {
+        observation.manual_projection_ready &= status.ready && status.error.is_none();
+        if observation.visual_error.is_none() {
+            observation.visual_error.clone_from(&status.error);
+        }
+    }
     observation.manual = manual(world);
     if observation.visual_error.is_none() {
         observation.visual_error = observation.manual.iter().find_map(|row| {
@@ -444,60 +488,49 @@ fn manual(world: &mut World) -> Vec<ObservedManual> {
             Option<&ManualPlacementCollisionStatus>,
             Option<&ManualPlacementCollisionNotRequired>,
             Option<&Children>,
+            Option<&forge_engine::source_surface::scanned_host::ScannedPlacement>,
         )>()
         .iter(world)
         .map(
-            |(root, placement, transform, expected, status, marker, children)| {
+            |(root, placement, transform, expected, status, marker, children, scan)| {
+                let stall = world
+                    .get::<super::super::manual::SourceStallProjection>(root)
+                    .is_some();
                 let non_colliding = placement.0.particles.is_none()
                     && marker.is_some_and(|marker| marker.0 == placement.0.id);
-                // The host's owned-part lookup is indexed; avoid rebuilding a
-                // map of all fish roots on every gameplay observation frame.
-                let fish = non_colliding
-                    && children.is_some_and(|children| {
-                        children.iter().any(|child| {
-                            world
-                                .get::<ManualPlacementPart>(child)
-                                .is_some_and(|part| part.0 == placement.0.id)
-                                && forge_engine::source_fish::host::live::owns(world, child)
-                        })
-                    });
-                let mesh_primitives =
-                    if placement.0.physics.is_some() || placement.0.particles.is_some() {
-                        world
-                        .get_resource::<forge_engine::source_graph_runtime::SourceSceneResidents>()
-                        .and_then(|residents| {
-                            residents.primitives_for_carrier(root, placement.0.asset_hash)
-                        })
-                        .map_or(0, |primitives| {
-                            primitives
-                                .iter()
-                                .filter(|&&entity| {
-                                    world.get::<Mesh3d>(entity).is_some()
-                                        && world
-                                            .get::<ManualPlacementPart>(entity)
-                                            .is_some_and(|part| part.0 == placement.0.id)
-                                })
-                                .count()
-                        })
-                    } else if non_colliding {
-                        children.map_or(0, |children| {
-                            children
-                                .iter()
-                                .filter(|child| {
-                                    world.get::<Mesh3d>(*child).is_some()
-                                        && world
-                                            .get::<ManualPlacementPart>(*child)
-                                            .is_some_and(|part| part.0 == placement.0.id)
-                                        && (!fish
-                                            || forge_engine::source_fish::host::live::owns(
-                                                world, *child,
-                                            ))
-                                })
-                                .count()
-                        })
-                    } else {
-                        expected.map_or(0, |expected| expected.primitives.len())
-                    };
+                let fish = non_colliding && has_resident_fish(world, children, placement.0.id);
+                let mesh_primitives = if stall {
+                    children.map_or(0, |children| {
+                        children
+                            .iter()
+                            .filter(|&draw| {
+                                forge_engine::source_surface::stall_scene::live::owns(world, draw)
+                            })
+                            .count()
+                    })
+                } else if placement.0.physics.is_some() || placement.0.particles.is_some() {
+                    source_graph_mesh_primitives(world, root, &placement.0)
+                } else if scan.is_some() {
+                    scanned_mesh_primitives(world, children, placement.0.id)
+                } else if non_colliding {
+                    children.map_or(0, |children| {
+                        children
+                            .iter()
+                            .filter(|child| {
+                                world.get::<Mesh3d>(*child).is_some()
+                                    && world
+                                        .get::<ManualPlacementPart>(*child)
+                                        .is_some_and(|part| part.0 == placement.0.id)
+                                    && (!fish
+                                        || forge_engine::source_fish::host::live::owns(
+                                            world, *child,
+                                        ))
+                            })
+                            .count()
+                    })
+                } else {
+                    expected.map_or(0, |expected| expected.primitives.len())
+                };
                 ObservedManual {
                     identity: ExpectedManual {
                         entity_id: placement.0.id,
@@ -507,11 +540,16 @@ fn manual(world: &mut World) -> Vec<ObservedManual> {
                         },
                         transform: domain_transform(*transform),
                         non_colliding,
+                        scanned_collision_primitives: scan.map(|scan| scan.collision_primitives),
+                        stall_colliders: expected
+                            .filter(|_| stall)
+                            .map(|expected| expected.primitives.len()),
                         fish,
                         source_physics: placement.0.physics.clone(),
                         source_particles: placement.0.particles.clone(),
                     },
                     mesh_primitives,
+                    scanned_prototypes: scan.map(|scan| scan.resident_prototypes(world)),
                     registered_primitives: match status {
                         Some(ManualPlacementCollisionStatus::Registered { primitives }) => {
                             *primitives
@@ -535,6 +573,66 @@ fn manual(world: &mut World) -> Vec<ObservedManual> {
             },
         )
         .collect()
+}
+
+fn has_resident_fish(
+    world: &World,
+    children: Option<&Children>,
+    placement: forge_core::EntityId,
+) -> bool {
+    // The host's indexed lookup avoids rebuilding a map of fish roots per frame.
+    children.is_some_and(|children| {
+        children.iter().any(|child| {
+            world
+                .get::<ManualPlacementPart>(child)
+                .is_some_and(|part| part.0 == placement)
+                && forge_engine::source_fish::host::live::owns(world, child)
+        })
+    })
+}
+
+fn scanned_mesh_primitives(
+    world: &World,
+    children: Option<&Children>,
+    placement: forge_core::EntityId,
+) -> usize {
+    use forge_engine::source_surface::scanned_material::ScannedMaterial;
+
+    children.map_or(0, |children| {
+        children
+            .iter()
+            .filter(|child| {
+                world.get::<Mesh3d>(*child).is_some()
+                    && world
+                        .get::<ManualPlacementPart>(*child)
+                        .is_some_and(|part| part.0 == placement)
+                    && world
+                        .get::<MeshMaterial3d<ScannedMaterial>>(*child)
+                        .is_some()
+            })
+            .count()
+    })
+}
+
+fn source_graph_mesh_primitives(
+    world: &World,
+    root: Entity,
+    placement: &forge_project::zone_authoring::placements::ManualPlacement,
+) -> usize {
+    world
+        .get_resource::<forge_engine::source_graph_runtime::SourceSceneResidents>()
+        .and_then(|residents| residents.primitives_for_carrier(root, placement.asset_hash))
+        .map_or(0, |primitives| {
+            primitives
+                .iter()
+                .filter(|&&entity| {
+                    world.get::<Mesh3d>(entity).is_some()
+                        && world
+                            .get::<ManualPlacementPart>(entity)
+                            .is_some_and(|part| part.0 == placement.id)
+                })
+                .count()
+        })
 }
 
 fn source_physics(world: &World, root: Entity) -> ObservedSourcePhysics {

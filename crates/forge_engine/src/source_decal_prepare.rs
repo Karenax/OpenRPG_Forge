@@ -222,6 +222,10 @@ fn stream<'a>(
         .ok_or_else(|| "Decal accessor outside its buffer view".into())
 }
 
+#[allow(
+    clippy::chunks_exact_to_as_chunks,
+    reason = "Stable Rust cannot use N * 4 as a const generic argument."
+)]
 fn floats<const N: usize>(bytes: &[u8]) -> Result<Vec<[f32; N]>, String> {
     bytes
         .chunks_exact(N * 4)
@@ -240,6 +244,10 @@ fn floats<const N: usize>(bytes: &[u8]) -> Result<Vec<[f32; N]>, String> {
 
 /// Prepare the flat, explicitly selected mesh-decal carrier accepted by the
 /// URP reference pass. This performs no draw or receiver substitution.
+#[allow(
+    clippy::float_cmp,
+    reason = "GLB node matrices must have the exact affine last row."
+)]
 pub fn prepare_source_decal_draws(
     carrier: &SourceDecalGlb<'_>,
 ) -> Result<Vec<SourceDecalDraw>, String> {

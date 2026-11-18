@@ -53,6 +53,7 @@ impl Default for MediaLimits {
 impl MediaLimits {
     /// Bounded profile for private GLB import, export and package verification.
     /// Texture decoding is sequential; the aggregate still limits total work.
+    #[must_use]
     pub fn mesh_delivery() -> Self {
         Self {
             max_decoded_bytes: 768 * 1024 * 1024,
@@ -135,7 +136,10 @@ pub fn validate_declared_media(
         if crate::source_decal_glb::source_decal_declared(&document)
             .map_err(|reason| error(format, reason))?
         {
-            return Err(error(format, "source decal requires its own scene renderer"));
+            return Err(error(
+                format,
+                "source decal requires its own scene renderer",
+            ));
         }
         crate::source_graph_glb::read_source_graph_glb_with_budget(bytes, carrier_budget)
             .map_err(|reason| error(format, reason))?

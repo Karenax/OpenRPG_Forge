@@ -1682,16 +1682,7 @@ impl Options {
                 "--exit-after-frames must be at least six frames after --capture-frame".to_owned(),
             );
         }
-        match (self.resize_at_frame, self.resize_width, self.resize_height) {
-            (None, None, None) => {}
-            (Some(_), Some(width), Some(height)) if width > 0 && height > 0 => {}
-            (Some(_), Some(_), Some(_)) => {
-                return Err("automated resize dimensions must be greater than zero".to_owned());
-            }
-            _ => {
-                return Err("--resize-at-frame, --resize-width and --resize-height must be provided together".to_owned());
-            }
-        }
+        self.window_resize_request()?;
         if self.metrics_path.is_some()
             && self
                 .exit_after_frames
@@ -1921,16 +1912,17 @@ impl Options {
             metrics_path: self.metrics_path.clone(),
             metrics_warmup_frames: self.metrics_warmup_frames,
             exit_after_frames: self.exit_after_frames,
-            resize_request: match (self.resize_at_frame, self.resize_width, self.resize_height) {
-                (Some(frame), Some(width), Some(height)) => Some(WindowResizeRequest {
-                    frame,
-                    width,
-                    height,
-                }),
-                _ => None,
-            },
+            resize_request: self.window_resize_request().ok().flatten(),
             close_at_frame: self.close_at_frame,
         }
+    }
+
+    fn window_resize_request(&self) -> Result<Option<WindowResizeRequest>, &'static str> {
+        WindowResizeRequest::from_optional_parts(
+            self.resize_at_frame,
+            self.resize_width,
+            self.resize_height,
+        )
     }
 
     fn validate_weather_cycle_proof(&self) -> Result<(), String> {

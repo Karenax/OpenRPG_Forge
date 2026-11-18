@@ -1,5 +1,5 @@
 //! Explicit renderer-resource barrier for an owning projection. Not proof of pixels or timing.
-//! One exclusive primary owner and at most fourteen independent bounded scoped inventories.
+//! One exclusive primary owner and at most fifteen independent bounded scoped inventories.
 //! A scoped request never replaces the primary projection's acknowledgement.
 use crate::gpu_readiness::assets::Requirements;
 pub use crate::gpu_readiness::effects::Requirements as RenderEffectRequirements;
@@ -9,23 +9,26 @@ use bevy::{
     prelude::*,
 };
 use forge_core::{ContentHash, EntityId};
-use std::{any::TypeId, collections::BTreeMap};
+use std::{any::TypeId, collections::BTreeMap, sync::Arc};
 
 #[cfg(feature = "physics-rapier")]
 pub(crate) mod audit;
 mod gpu;
 mod staging;
+#[cfg(feature = "physics-rapier")]
+pub(crate) use gpu::acquire_with_completed_frame;
+pub(crate) use gpu::scoped_covers_frame;
 pub use gpu::{
     GraphicsContextReceipt, RenderInventoryEvidence, RenderInventoryPlugin, RenderInventoryToken,
-    acquire, acquire_scoped, scoped_evidence,
+    acquire, acquire_scoped, acquire_scoped_at_frame, primary_covers_frame, scoped_evidence,
 };
 pub(crate) use gpu::{PreparedGraphicsContext, prepared_graphics_context};
 pub use staging::{ActivatedScopedInventory, StagedScopedInventory};
 
-// Eleven display material families, independently owned sky and grass, and one
+// Twelve display material families, independently owned sky and grass, and one
 // spare scope for a single prepared replacement. Its receipt is independent.
 // Each retains its own resource limits, generation and queue-completion token.
-const MAX_SCOPED_INVENTORIES: usize = 14;
+const MAX_SCOPED_INVENTORIES: usize = 15;
 
 /// The source budget applied by every typed custom renderer inventory.
 pub const MAX_SCOPED_MESHES: usize = crate::gpu_readiness::assets::MAX_CUSTOM_MESHES;
@@ -53,6 +56,7 @@ pub fn visit_material_dependencies<M: Material>(
     composite!(crate::VisualValleyWaterMaterial);
     composite!(crate::VisualValleyRainMaterial);
     composite!(crate::source_surface::nature::NatureMaterial);
+    composite!(crate::source_surface::scanned_material::ScannedMaterial);
     #[cfg(feature = "physics-rapier")]
     {
         composite!(crate::source_graph::SourceGraphMaterial);
@@ -76,7 +80,7 @@ struct Request {
     generation: u64,
     serial: u64,
     material_type: TypeId,
-    required: Requirements,
+    required: Arc<Requirements>,
     effects: Option<RenderEffectRequirements>,
     sources_exist: fn(&Requirements, &World) -> bool,
 }
@@ -177,18 +181,15 @@ fn prepare_request<M: Material>(
         }
     }
     let required = Requirements::custom(world, meshes, materials)?;
-    if let Some(current) = current
-        && current.generation == generation
-        && (current.identity != identity
-            || current.required != required
-            || current.material_type != TypeId::of::<M>())
-    {
-        return Err("Changed render sources need a new generation".into());
-    }
-    let serial = if let Some(current) = current
-        && current.generation == generation
-    {
-        current.serial
+    let previous = current.filter(|request| request.generation == generation);
+    let (serial, required) = if let Some(current) = previous {
+        if current.identity != identity
+            || current.required.as_ref() != &required
+            || current.material_type != TypeId::of::<M>()
+        {
+            return Err("Changed render sources need a new generation".into());
+        }
+        (current.serial, Arc::clone(&current.required))
     } else {
         let next = world
             .get_resource::<RequestSerial>()
@@ -196,7 +197,7 @@ fn prepare_request<M: Material>(
             .checked_add(1)
             .ok_or("Render inventory request lifetime overflow")?;
         world.insert_resource(RequestSerial(next));
-        next
+        (next, Arc::new(required))
     };
     Ok(Request {
         owner,
@@ -205,9 +206,7 @@ fn prepare_request<M: Material>(
         serial,
         material_type: TypeId::of::<M>(),
         required,
-        effects: current
-            .filter(|request| request.generation == generation)
-            .and_then(|request| request.effects.clone()),
+        effects: previous.and_then(|request| request.effects.clone()),
         sources_exist: Requirements::sources_exist::<M>,
     })
 }

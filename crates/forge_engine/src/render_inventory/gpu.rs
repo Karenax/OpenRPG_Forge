@@ -196,7 +196,7 @@ pub struct RenderInventoryEvidence {
     #[serde(skip)]
     key: Option<Key>,
     #[serde(skip)]
-    required: crate::gpu_readiness::assets::Requirements,
+    required: Arc<crate::gpu_readiness::assets::Requirements>,
     #[serde(skip)]
     context: Option<PreparedGraphicsContext>,
     pub owner: Option<EntityId>,
@@ -220,7 +220,7 @@ pub struct RenderInventoryToken {
     slot: Slot,
     key: Key,
     epoch: u64,
-    required: crate::gpu_readiness::assets::Requirements,
+    required: Arc<crate::gpu_readiness::assets::Requirements>,
 }
 impl RenderInventoryToken {
     /// Capture context only from a real, still-current completed inventory.
@@ -257,7 +257,7 @@ impl RenderInventoryToken {
             self.key.identity,
             self.key.generation,
         ) && crate::gpu_readiness::assets::Requirements::custom(world, meshes, materials)
-            .is_ok_and(|required| required == self.required)
+            .is_ok_and(|required| &required == self.required.as_ref())
     }
 
     /// Check a typed subset of this still-current renderer inventory. The
@@ -284,14 +284,25 @@ impl RenderInventoryToken {
     /// Completion of this still-current typed inventory, including scoped consumers.
     #[must_use]
     pub fn completed_frame(&self, world: &World) -> Option<u32> {
-        self.is_current(
+        self.completed_frame_for(
             world,
             self.key.owner,
             self.key.identity,
             self.key.generation,
         )
-        .then(|| evidence_at(world, self.slot, self.key.owner).and_then(|e| e.completed))
-        .flatten()
+    }
+
+    pub(crate) fn completed_frame_for(
+        &self,
+        world: &World,
+        owner: EntityId,
+        identity: ContentHash,
+        generation: u64,
+    ) -> Option<u32> {
+        if !self.is_current(world, owner, identity, generation) {
+            return None;
+        }
+        evidence_at(world, self.slot, self.key.owner)?.completed
     }
 
     #[must_use]
@@ -311,10 +322,9 @@ impl RenderInventoryToken {
             && self.key.identity == identity
             && self.key.generation == generation
             && current_at(world, self.slot, self.key.owner).is_some_and(|(key, request)| {
-                ready(world, &key, request, self.slot)
-                    && key == self.key
+                key == self.key
                     && request.required == self.required
-                    && evidence_at(world, self.slot, self.key.owner)
+                    && ready_evidence(world, &key, request, self.slot)
                         .is_some_and(|evidence| evidence.epoch == self.epoch)
             })
     }
@@ -328,7 +338,17 @@ pub fn acquire(
     identity: ContentHash,
     generation: u64,
 ) -> Option<RenderInventoryToken> {
-    acquire_at(world, owner, identity, generation, Slot::Primary)
+    acquire_with_completed_frame(world, owner, identity, generation).map(|(token, _)| token)
+}
+
+/// Observe the completed frame and obtain a token from the same live check.
+pub(crate) fn acquire_with_completed_frame(
+    world: &World,
+    owner: EntityId,
+    identity: ContentHash,
+    generation: u64,
+) -> Option<(RenderInventoryToken, u32)> {
+    acquire_at(world, owner, identity, generation, Slot::Primary, 0)
 }
 
 #[derive(Clone, Copy)]
@@ -360,7 +380,55 @@ pub fn acquire_scoped(
     identity: ContentHash,
     generation: u64,
 ) -> Option<RenderInventoryToken> {
-    acquire_at(world, owner, identity, generation, Slot::Scoped)
+    acquire_scoped_at_frame(world, owner, identity, generation, 0)
+}
+
+/// Obtain a live scoped inventory token whose completion covers this frame.
+#[must_use]
+pub fn acquire_scoped_at_frame(
+    world: &World,
+    owner: EntityId,
+    identity: ContentHash,
+    generation: u64,
+    frame: u32,
+) -> Option<RenderInventoryToken> {
+    acquire_at(world, owner, identity, generation, Slot::Scoped, frame).map(|(token, _)| token)
+}
+
+/// Check a scoped publication without producing a retained inventory token.
+pub(crate) fn scoped_covers_frame(
+    world: &World,
+    owner: EntityId,
+    identity: ContentHash,
+    generation: u64,
+    frame: u32,
+) -> bool {
+    covers_frame_at(world, owner, identity, generation, Slot::Scoped, frame)
+}
+
+/// Check the current primary publication without cloning its inventory.
+#[must_use]
+pub fn primary_covers_frame(
+    world: &World,
+    owner: EntityId,
+    identity: ContentHash,
+    generation: u64,
+    frame: u32,
+) -> bool {
+    covers_frame_at(world, owner, identity, generation, Slot::Primary, frame)
+}
+
+fn covers_frame_at(
+    world: &World,
+    owner: EntityId,
+    identity: ContentHash,
+    generation: u64,
+    slot: Slot,
+    frame: u32,
+) -> bool {
+    current_ready_at(world, owner, identity, generation, slot)
+        .and_then(|(_, _, evidence)| evidence.completed)
+        .is_some_and(|completed| completed >= frame)
 }
 
 fn acquire_at(
@@ -369,28 +437,48 @@ fn acquire_at(
     identity: ContentHash,
     generation: u64,
     slot: Slot,
-) -> Option<RenderInventoryToken> {
-    let (key, request) = current_at(world, slot, owner)?;
-    (key.owner == owner
-        && key.identity == identity
-        && key.generation == generation
-        && ready(world, &key, request, slot))
-    .then(|| RenderInventoryToken {
+    frame: u32,
+) -> Option<(RenderInventoryToken, u32)> {
+    let (key, request, evidence) = current_ready_at(world, owner, identity, generation, slot)?;
+    let completed = evidence.completed?;
+    if completed < frame {
+        return None;
+    }
+    let token = RenderInventoryToken {
         slot,
         key,
-        epoch: evidence_at(world, slot, owner).map_or(0, |evidence| evidence.epoch),
+        epoch: evidence.epoch,
         required: request.required.clone(),
-    })
+    };
+    Some((token, completed))
 }
 
-fn ready(world: &World, key: &Key, request: &Request, slot: Slot) -> bool {
-    let Some(evidence) = evidence_at(world, slot, key.owner) else {
-        return false;
-    };
+fn current_ready_at(
+    world: &World,
+    owner: EntityId,
+    identity: ContentHash,
+    generation: u64,
+    slot: Slot,
+) -> Option<(Key, &Request, &RenderInventoryEvidence)> {
+    let (key, request) = current_at(world, slot, owner)?;
+    if key.owner != owner || key.identity != identity || key.generation != generation {
+        return None;
+    }
+    let evidence = ready_evidence(world, &key, request, slot)?;
+    Some((key, request, evidence))
+}
+
+fn ready_evidence<'w>(
+    world: &'w World,
+    key: &Key,
+    request: &Request,
+    slot: Slot,
+) -> Option<&'w RenderInventoryEvidence> {
+    let evidence = evidence_at(world, slot, key.owner)?;
     let frame = world
         .get_resource::<FrameCount>()
         .map_or(0, |frame| frame.0);
-    evidence.ready
+    (evidence.ready
         && evidence.epoch > 0
         && evidence.key.as_ref() == Some(key)
         && evidence.required == request.required
@@ -409,7 +497,8 @@ fn ready(world: &World, key: &Key, request: &Request, slot: Slot) -> bool {
                 .observed
                 .checked_sub(completed)
                 .is_some_and(|age| age <= 64)
-        })
+        }))
+    .then_some(evidence)
 }
 
 #[derive(Resource, Default)]
@@ -510,26 +599,27 @@ fn current_at(world: &World, slot: Slot, owner: EntityId) -> Option<(Key, &Reque
 }
 
 fn current_request<'a>(world: &World, request: &'a Request) -> Option<(Key, &'a Request)> {
+    let view = graphics_view(world)?;
+    current_key(world, request, &view).map(|key| (key, request))
+}
+
+fn current_key(world: &World, request: &Request, view: &GraphicsView) -> Option<Key> {
     if !(request.sources_exist)(&request.required, world) {
         return None;
     }
-    let view = graphics_view(world)?;
-    Some((
-        Key {
-            owner: request.owner,
-            identity: request.identity,
-            generation: request.generation,
-            serial: request.serial,
-            effects: request.effects.clone(),
-            camera: view.camera,
-            viewport: view.viewport,
-            origin: view.origin,
-            target: view.target,
-            msaa: view.msaa,
-            prepass: view.prepass,
-        },
-        request,
-    ))
+    Some(Key {
+        owner: request.owner,
+        identity: request.identity,
+        generation: request.generation,
+        serial: request.serial,
+        effects: request.effects.clone(),
+        camera: view.camera,
+        viewport: view.viewport,
+        origin: view.origin,
+        target: view.target.clone(),
+        msaa: view.msaa,
+        prepass: view.prepass,
+    })
 }
 
 fn graphics_view(world: &World) -> Option<GraphicsView> {
@@ -591,10 +681,15 @@ fn extract(
     context: Res<GraphicsContextState>,
     mut context_input: ResMut<GraphicsContextInput>,
 ) {
-    context_input.view = graphics_view(&main);
-    context_input.frame = main.get_resource::<FrameCount>().map_or(0, |frame| frame.0);
+    let view = graphics_view(&main);
+    let frame = main.get_resource::<FrameCount>().map_or(0, |frame| frame.0);
+    context_input.view.clone_from(&view);
+    context_input.frame = frame;
     main.insert_resource((*context).clone());
-    let candidate = current(&main).map(|(key, request)| (key, request.clone()));
+    let candidate = view.as_ref().and_then(|view| {
+        let request = main.get_resource::<Request>()?;
+        current_key(&main, request, view).map(|key| (key, request.clone()))
+    });
     let key = candidate.as_ref().map(|(key, _)| key.clone());
     let changed = probe.key != key
         || candidate.as_ref().map(|(_, request)| &request.required)
@@ -605,17 +700,16 @@ fn extract(
     probe.key = key;
     probe.request = candidate.map(|(_, request)| request);
     main.insert_resource(probe.evidence.clone());
-    probe.frame = main.get_resource::<FrameCount>().map_or(0, |frame| frame.0);
-    let requests = main
-        .get_resource::<ScopedRequests>()
-        .map(|requests| requests.0.clone())
-        .unwrap_or_default();
+    probe.frame = frame;
+    let requests = main.get_resource::<ScopedRequests>();
     scoped
         .probes
-        .retain(|owner, _| requests.contains_key(owner));
+        .retain(|owner, _| requests.is_some_and(|requests| requests.0.contains_key(owner)));
     let epoch = scoped.epoch;
-    for (owner, request) in &requests {
-        let next = current_request(&main, request).map(|(key, _)| key);
+    for (owner, request) in requests.into_iter().flat_map(|requests| &requests.0) {
+        let next = view
+            .as_ref()
+            .and_then(|view| current_key(&main, request, view));
         let probe = scoped
             .probes
             .entry(*owner)
@@ -627,7 +721,7 @@ fn extract(
         }
         probe.key = next;
         probe.request = probe.key.as_ref().map(|_| request.clone());
-        probe.frame = main.get_resource::<FrameCount>().map_or(0, |frame| frame.0);
+        probe.frame = frame;
     }
     main.insert_resource(ScopedEvidence(
         scoped

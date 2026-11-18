@@ -1,4 +1,4 @@
-//! GPU DBuffer generation for the admitted flat source mesh-decal profile.
+//! GPU `DBuffer` generation for the admitted flat source mesh-decal profile.
 //! Does not modify the view depth or the final color target. Opaque receivers
 //! must consume the returned attachments before lighting.
 use crate::source_decal_prepare::{PreparedSourceDecal, SourceDecalDraw, SourceDecalTextureFormat};
@@ -74,6 +74,10 @@ impl Raster {
 
     /// Validate the checked shader and its real pipeline before admitting a draw.
     /// This profile requires device BC support; the caller must surface refusal.
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Texture, shaders and bindings share a single GPU validation scope."
+    )]
     pub async fn prepare(
         device: &RenderDevice,
         queue: &RenderQueue,
@@ -84,6 +88,8 @@ impl Raster {
     ) -> Result<Self, String> {
         let device = device.wgpu_device();
         let texture = &material.texture;
+        let mip_count =
+            u32::try_from(texture.mips.len()).map_err(|_| "Decal mip count overflow")?;
         if draw.material_index != material.material_index
             || texture.format != SourceDecalTextureFormat::Bc3RgbaUnormSrgb
             || !device
@@ -94,8 +100,8 @@ impl Raster {
                     && size.is_multiple_of(4)
                     && size <= device.limits().max_texture_dimension_2d
             })
-            || texture.mips.is_empty()
-            || texture.mips.len() as u32 > texture.width.max(texture.height).ilog2() + 1
+            || mip_count == 0
+            || mip_count > texture.width.max(texture.height).ilog2() + 1
         {
             return Err("Unsupported source decal GPU profile".into());
         }
@@ -131,7 +137,7 @@ impl Raster {
         let storage = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("source decal captured BC3"),
             size: extent(texture.width, texture.height),
-            mip_level_count: uploads.len() as u32,
+            mip_level_count: mip_count,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: match sampling {
@@ -141,11 +147,11 @@ impl Raster {
             usage: wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING,
             view_formats: &[],
         });
-        for (level, (cols, rows, bytes)) in uploads.into_iter().enumerate() {
+        for (level, (cols, rows, bytes)) in (0..mip_count).zip(uploads) {
             queue.write_texture(
                 wgpu::TexelCopyTextureInfo {
                     texture: &storage,
-                    mip_level: level as u32,
+                    mip_level: level,
                     origin: wgpu::Origin3d::ZERO,
                     aspect: wgpu::TextureAspect::All,
                 },
@@ -234,7 +240,7 @@ impl Raster {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: Some("vert"),
-                compilation_options: Default::default(),
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
                 buffers: &[wgpu::VertexBufferLayout {
                     array_stride: 24,
                     step_mode: wgpu::VertexStepMode::Vertex,
@@ -250,14 +256,14 @@ impl Raster {
                 format: DEPTH_FORMAT,
                 depth_write_enabled: Some(false),
                 depth_compare: Some(wgpu::CompareFunction::GreaterEqual),
-                stencil: Default::default(),
-                bias: Default::default(),
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
             }),
-            multisample: Default::default(),
+            multisample: wgpu::MultisampleState::default(),
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
                 entry_point: Some("frag"),
-                compilation_options: Default::default(),
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
                 targets: &[target.clone(), target],
             }),
             multiview_mask: None,
@@ -275,7 +281,7 @@ impl Raster {
         Ok(Self {
             pipeline,
             layout,
-            image: storage.create_view(&Default::default()),
+            image: storage.create_view(&wgpu::TextureViewDescriptor::default()),
             sampler,
             indices,
             count,
@@ -344,6 +350,10 @@ fn init_buffer(
     })
 }
 
+#[allow(
+    clippy::float_cmp,
+    reason = "Decal placements must have the exact affine last row."
+)]
 fn project(
     draw: &SourceDecalDraw,
     world_from_root: Mat4,
@@ -379,10 +389,12 @@ fn project(
     }
     let mut normal_bytes = [0; 16];
     for (chunk, value) in normal_bytes
-        .chunks_exact_mut(4)
+        .as_chunks_mut::<4>()
+        .0
+        .iter_mut()
         .zip(normal.extend(0.).to_array())
     {
-        chunk.copy_from_slice(&value.to_le_bytes());
+        *chunk = value.to_le_bytes();
     }
     let matrix = clip_from_world * world_from_mesh;
     let mut bytes = Vec::with_capacity(draw.positions.len() * 24);
@@ -476,8 +488,8 @@ impl Targets {
         };
         let color = make("source decal color target");
         let normal = make("source decal normal target");
-        let color_view = color.create_view(&Default::default());
-        let normal_view = normal.create_view(&Default::default());
+        let color_view = color.create_view(&wgpu::TextureViewDescriptor::default());
+        let normal_view = normal.create_view(&wgpu::TextureViewDescriptor::default());
         Ok(Self {
             size,
             color,

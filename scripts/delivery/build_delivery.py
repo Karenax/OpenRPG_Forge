@@ -81,7 +81,8 @@ def package(cli, staging, delivery, d):
                 bytes=output.stat().st_size, rights=d["rights"], status="local_preview")
 
 
-def verify_package_stream(path, expected_descriptor, manifest_sha256, archive_sha256):
+def verify_package_stream(path, expected_descriptor, manifest_sha256, archive_sha256, *,
+                          expected_studio_review=None):
     """Read every payload byte; the CLI's inspect operation checks only its header."""
     path = Path(path)
     application_sources.ordinary(path)
@@ -114,7 +115,16 @@ def verify_package_stream(path, expected_descriptor, manifest_sha256, archive_sh
             if (name <= previous or type(length) is not int or not 0 <= length <= 16 * 1024**3 or
                     not isinstance(pin, str) or not re.fullmatch(r'[0-9a-f]{64}', pin)):
                 raise ValueError('Invalid or unordered package entry')
-            previous, remaining, hasher = name, length, hashlib.sha256()
+            previous = name
+            if expected_studio_review is not None and name == STUDIO_RIGHTS_REVIEW:
+                if length > runtime_notices.MAX_FILE:
+                    raise ValueError('Studio redistribution review exceeds its size limit')
+                review = stream.read(length)
+                if (len(review) != length or hashlib.sha256(review).hexdigest() != pin or
+                        runtime_notices.document(review, 'Studio redistribution review') != expected_studio_review):
+                    raise ValueError('Studio redistribution review differs from its receipt')
+                continue
+            remaining, hasher = length, hashlib.sha256()
             while remaining:
                 block = stream.read(min(1024 * 1024, remaining))
                 if not block:
@@ -307,12 +317,45 @@ def studio_product(platform='windows-x64'):
             'required_packs':[], 'optional_packs':['asset-library', 'reference-assets'], 'authoring_seed':None}
 
 
+STUDIO_RIGHTS_REVIEW = 'STUDIO-RIGHTS-REVIEW.json'
+STUDIO_SCOPES = {
+    'private_local_only': ('private', 'PRIVATE_STAGED_ONLY'),
+    'redistributable': ('reviewed', 'REVIEWED_STAGED_ONLY'),
+}
+
+
+def verify_studio_redistribution_review(review, files, source_revision, cli_sha256, version):
+    inventory_text = ''.join(f"{item['path']}\t{item['bytes']}\t{item['sha256']}\n"
+                             for item in sorted(files, key=lambda item: item['path'])
+                             if item['path'] != STUDIO_RIGHTS_REVIEW)
+    expected = {
+        'schema': 'forge.delivery.studio-rights-review.v1',
+        'platform': 'windows-x64',
+        'source_revision': source_revision,
+        'version': version,
+        'files_sha256': hashlib.sha256(inventory_text.encode('utf-8')).hexdigest(),
+        'delivery_cli_sha256': cli_sha256,
+    }
+    evidence = review.get('evidence_sha256')
+    if (review != {**expected, 'evidence_sha256': evidence} or not isinstance(evidence, str)
+            or not re.fullmatch(r'[0-9a-f]{64}', evidence)):
+        raise ValueError('Redistribution review does not cover this Studio package and delivery CLI')
+
+
 def assemble_studio_only(args, *, repo=None):
-    """Stage a private editor package from platform-matched build receipts."""
+    """Stage an editor package from platform-matched build receipts."""
     import game_kit
     platform=getattr(args,'platform','windows-x64')
     if platform not in ('windows-x64','linux-x64'):
         raise ValueError('Unsupported Studio platform')
+    review_path = getattr(args, 'redistribution_review', None)
+    review_pin = getattr(args, 'redistribution_review_sha256', None)
+    if (review_path is None) != (review_pin is None) or (review_path is not None and (
+            platform != 'windows-x64' or not isinstance(review_pin, str)
+            or not re.fullmatch(r'[0-9a-f]{64}', review_pin))):
+        raise ValueError('Studio redistribution requires a pinned Windows review')
+    rights = 'redistributable' if review_path is not None else 'private_local_only'
+    scope, status = STUDIO_SCOPES[rights]
     repo = (repo or Path(__file__).resolve().parents[2]).resolve(strict=True)
     output = Path(args.output)
     if (not output.is_absolute() or '..' in output.parts or not output.parent.is_dir() or
@@ -400,6 +443,10 @@ def assemble_studio_only(args, *, repo=None):
         if not isinstance(built_home, str) or Path(built_home).resolve() != Path(replay['cargo_home']):
             raise ValueError('Windows delivery notice registry differs from its build Cargo home')
         audit['windows_delivery_cli_offline_replay'] = replay
+        if review_path is not None and (audit['unresolved_identity_cases'] or
+                game_kit.read_document(studio_proof).get('without_local_assets') is not True or
+                verified.manifest.get('rights') != 'redistributable'):
+            raise ValueError('Reviewed Studio requires complete notices, no local assets and a reviewed game kit')
         return source_hash, proof['executable_sha256'], verified, audit
 
     before = check_inputs()
@@ -415,16 +462,27 @@ def assemble_studio_only(args, *, repo=None):
                     args.kit_receipt_sha256, args.studio_proof_sha256, bins, repo=repo,
                     expected_platform=platform,linux_context=linux_context)
         (work / 'PROVENANCE.md').write_text(
-            'Private local preparation. Runtime, installation, asset rights and redistribution are not qualified.\n',
+            'See the package manifest for distribution rights and the included files for notices.\n',
             encoding='utf-8')
         description = descriptor('forge-studio', 'OpenRPG Forge Studio', 'applications', args.version,
                                  before[0], studio_product(platform),platform=platform)
         description['license_paths'] += ['bin/game-export-kit/' + name for name in before[2].manifest['license_paths']]
+        description['rights'] = rights
+        review = None
+        if review_path is not None:
+            review_bytes = application_sources.read_regular(
+                game_kit.physical_file(review_path), runtime_notices.MAX_FILE, 'Studio redistribution review')
+            if hashlib.sha256(review_bytes).hexdigest() != review_pin:
+                raise ValueError('Studio redistribution review pin differs')
+            review = runtime_notices.document(review_bytes, 'Studio redistribution review')
+            verify_studio_redistribution_review(review, game_kit.inventory(work), before[0], before[1], args.version)
+            (work / STUDIO_RIGHTS_REVIEW).write_bytes(review_bytes)
+            description['license_paths'].append(STUDIO_RIGHTS_REVIEW)
         package_entry = package(cli, work, payload, description)
         packed = game_kit.read_document(payload / 'forge-studio.manifest.json')
         expected = {**description, 'files': game_kit.inventory(work)}
         verify_package_stream(payload / package_entry['file'], expected, package_entry['manifest_sha256'],
-                              package_entry['archive_sha256'])
+                              package_entry['archive_sha256'], expected_studio_review=review)
         if packed != expected:
             raise ValueError('Reported package descriptor differs from staged Studio')
         delivery_path=payload / ('forge-delivery'+suffix)
@@ -435,7 +493,7 @@ def assemble_studio_only(args, *, repo=None):
             raise ValueError('Staged delivery CLI differs')
         write(payload / 'delivery.json', {'schema':'forge.delivery.index.v1', 'packages':[package_entry]})
         assembly_receipt={
-            'schema':'forge.delivery.private-studio-assembly.v1', 'status':'PRIVATE_STAGED_ONLY',
+            'schema':f'forge.delivery.{scope}-studio-assembly.v1', 'status':status,
             'source_manifest_sha256':before[0], 'delivery_cli_sha256':before[1],
             'delivery_cli_proof_sha256':args.delivery_cli_proof_sha256,
             'studio_proof_sha256':args.studio_proof_sha256, 'kit_assembly_receipt_sha256':args.kit_receipt_sha256,
@@ -443,13 +501,15 @@ def assemble_studio_only(args, *, repo=None):
             'runtime_verified':False, 'installation_verified':False, 'distribution_qualified':False}
         if platform == 'linux-x64':
             assembly_receipt['platform']=platform
+        if review is not None:
+            assembly_receipt.update(redistribution_review=review, redistribution_review_sha256=review_pin)
         write(payload / 'studio-assembly-receipt.json', assembly_receipt)
         if check_inputs() != before or game_kit.inventory(work) != expected['files']:
             raise ValueError('Inputs changed during Studio package preparation')
         if output.exists() or output.is_symlink():
             raise ValueError('Studio package output appeared during assembly')
         os.rename(payload, output)
-        return {'schema':'forge.delivery.private-studio-assembly-result.v1',
+        return {'schema':f'forge.delivery.{scope}-studio-assembly-result.v1',
                 'receipt_sha256':digest(output / 'studio-assembly-receipt.json'),
                 'package_sha256':package_entry['archive_sha256'], 'distribution_qualified':False}
     finally:
@@ -478,7 +538,7 @@ def validate_shared_native_application(repo, executable, proof, manifest_hash):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Assemble the private Forge Studio package')
+    parser = argparse.ArgumentParser(description='Assemble the Forge Studio package')
     parser.add_argument('mode', choices=('studio-only',))
     for name in ('delivery-cli', 'delivery-cli-proof', 'studio', 'studio-proof', 'source-manifest',
                  'kit-root', 'studio-notice-audit', 'output'):
@@ -488,6 +548,8 @@ def main():
         parser.add_argument('--'+name, required=True)
     parser.add_argument('--platform', choices=('windows-x64','linux-x64'),default='windows-x64')
     parser.add_argument('--cargo-cache', type=Path, help='Cargo registry used for the Windows delivery build')
+    parser.add_argument('--redistribution-review', type=Path)
+    parser.add_argument('--redistribution-review-sha256')
     for name in ('linux-source-zip','linux-started','linux-capture-receipt'):
         parser.add_argument('--'+name,type=Path)
     for name in ('linux-started-sha256','linux-capture-sha256'):

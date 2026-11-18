@@ -1,7 +1,7 @@
 //! Source-profile geometry sharing the canonical terrain partition. No map-name condition.
 //! GPU inventory publication is separate from host physics and final visual qualification.
 use super::Vegetation;
-use bevy::prelude::Component;
+use bevy::{platform::collections::HashMap, prelude::Component};
 use forge_assets::source_vegetation_package::{PlantPackage, geometry::PlantGeometry};
 use forge_core::{ContentHash, EntityId, bytes_sha256};
 use forge_project::zone_authoring::ZoneAuthoringHead;
@@ -16,6 +16,7 @@ pub mod host;
 mod prepare;
 mod resident;
 mod shadow_range;
+pub(super) use shadow_range::plant_culling_intact;
 pub use bounds::WorldEnvelopes;
 pub use resident::Resident;
 #[cfg(test)]
@@ -42,6 +43,7 @@ pub struct Prepared {
     shader: Option<ContentHash>,
     population: ContentHash,
     pins: Arc<BTreeMap<EntityId, Pin>>,
+    group_sizes: Vec<usize>,
     levels: Vec<usize>,
     triangles: Vec<Vec<usize>>,
 }
@@ -49,20 +51,22 @@ pub struct Prepared {
 /// Complete immutable CPU selection; no partial application occurs for a bad pose or identity.
 pub struct Admission {
     identity: ContentHash,
-    instances: BTreeMap<(usize, usize), (EntityId, PlantRepresentation)>,
+    // Match the dense group and record indices used by source LOD selection.
+    instances: Vec<Vec<Option<(EntityId, PlantRepresentation)>>>,
 }
 
 /// Source-selected render instances; one source can overlap two fading levels.
 pub struct Selection {
     identity: ContentHash,
     indices: Vec<Vec<Vec<usize>>>,
-    parts: BTreeMap<(EntityId, u8), PlantRepresentation>,
+    // The lists above own publication order. Parts are only looked up by identity and LOD.
+    parts: HashMap<(EntityId, u8), PlantRepresentation>,
     pub detail_instances: usize,
     pub group_instances: usize,
     pub cpu_selected_triangles: usize,
 }
 
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct StreamedPlantPart {
     pub id: EntityId,
     pub representation: PlantRepresentation,
@@ -134,12 +138,25 @@ impl Prepared {
         {
             return Err("Plant selection differs from its prepared authored/terrain inputs".into());
         }
-        let mut instances = BTreeMap::new();
+        let mut instances: Vec<_> = self
+            .group_sizes
+            .iter()
+            .map(|&size| vec![None; size])
+            .collect();
+        let mut ordered_pins = self.pins.iter();
         for plant in &selection.plants {
-            let pin = self
-                .pins
-                .get(&plant.entity.id)
-                .ok_or("Unknown selected plant identity")?;
+            let id = plant.entity.id;
+            let pin = if check_sources {
+                self.pins.get(&id)
+            } else {
+                // A verified selection comes from streaming::select, in the
+                // same canonical ID order as the prepared pins.
+                ordered_pins
+                    .next()
+                    .filter(|(expected, _)| **expected == id)
+                    .map(|(_, pin)| pin)
+            }
+            .ok_or("Unknown selected plant identity")?;
             if check_sources
                 && (pin.layer.layer != plant.layer_id
                     || pin.layer.prototype != plant.prototype_key
@@ -154,13 +171,11 @@ impl Prepared {
             {
                 return Err("Unsupported streamed vegetation band".into());
             }
-            if instances
-                .insert(
-                    (pin.group, pin.index),
-                    (plant.entity.id, plant.representation),
-                )
-                .is_some()
-            {
+            let slot = instances
+                .get_mut(pin.group)
+                .and_then(|group| group.get_mut(pin.index))
+                .ok_or("Prepared plant index is out of bounds")?;
+            if slot.replace((id, plant.representation)).is_some() {
                 return Err("Duplicate selected plant identity".into());
             }
         }
@@ -184,29 +199,31 @@ impl Prepared {
         indices: Vec<Vec<Vec<usize>>>,
     ) -> Result<Selection, String> {
         if admitted.identity != self.identity
-            || admitted.instances.len() != self.pins.len()
+            || admitted.instances.len() != self.group_sizes.len()
             || indices.len() != self.levels.len()
         {
             return Err("Plant source admission/selection belongs to another projection".into());
         }
+        let part_count = indices.iter().flatten().map(Vec::len).sum();
         let mut result = Selection {
             identity: self.identity,
             indices,
-            parts: BTreeMap::new(),
+            parts: HashMap::with_capacity(part_count),
             detail_instances: 0,
             group_instances: 0,
             cpu_selected_triangles: 0,
         };
-        for (group, levels) in result.indices.iter().enumerate() {
+        for (group, (levels, records)) in result.indices.iter().zip(&admitted.instances).enumerate()
+        {
             if levels.len() != self.levels[group] {
                 return Err("Plant source selection omits a level".into());
             }
             for (lod, ids) in levels.iter().enumerate() {
                 let source_lod = u8::try_from(lod).map_err(|_| "LOD index overflow")?;
                 for &index in ids {
-                    let &(id, representation) = admitted
-                        .instances
-                        .get(&(group, index))
+                    let &(id, representation) = records
+                        .get(index)
+                        .and_then(Option::as_ref)
                         .ok_or("Source-selected plant is not admitted")?;
                     if result
                         .parts

@@ -319,9 +319,21 @@ fn poll(navigation: &mut NavigationRuntime) {
         }
     }
     for (index, result) in finished.into_iter().rev() {
-        let job = navigation.jobs.swap_remove(index);
+        let mut job = navigation.jobs.swap_remove(index);
         let build_ms = job.started.elapsed().as_secs_f64() * 1000.0;
-        let (result, generation) = result;
+        let (source_hash, result, generation) = result;
+        job.input.source_hash = source_hash;
+        // Refresh has rechecked the live source stamp before polling. Seal only
+        // the request that still owns this tile, so a cancelled job cannot write
+        // its identity over a newer request.
+        if !job.cancelled.load(std::sync::atomic::Ordering::Relaxed)
+            && let Some(tile) = navigation.tiles.get_mut(&job.input.key)
+            && tile.stamp.is_some()
+            && tile.observation.token == job.input.token
+            && tile.observation.revision == job.input.revision
+        {
+            tile.observation.source_hash.clone_from(&job.input.source_hash);
+        }
         navigation.publish(&job.input, result, build_ms);
         if let Some(capture) = job.timing_capture {
             navigation.record_job(crate::playtest_timing::TimingJobObservation {
@@ -344,16 +356,26 @@ fn dispatch(navigation: &mut NavigationRuntime) {
     use super::cache::{MAX_NATIVE_JOBS, NativeJob};
     use bevy::tasks::AsyncComputeTaskPool;
     while navigation.jobs.len() < MAX_NATIVE_JOBS {
-        let Some(mut input) = navigation.pending.pop_front() else {
+        let Some(mut work) = navigation.pending.pop_front() else {
             break;
         };
-        if let Some(tile) = navigation.tiles.get_mut(&input.key) {
+        if let Some(tile) = navigation.tiles.get_mut(&work.key) {
             tile.observation.status = NavigationStatus::Generating;
         }
-        let work = input.clone();
-        input.vertices = Vec::new();
-        input.triangles = Vec::new();
-        input.areas = Vec::new();
+        // Transfer large buffers to the worker. Publication only needs the
+        // request identity and the receipts of its curved obstacles.
+        let input = TileInput {
+            key: work.key,
+            profile: work.profile,
+            revision: work.revision,
+            source_hash: String::new(),
+            token: work.token,
+            vertices: Vec::new(),
+            triangles: Vec::new(),
+            areas: Vec::new(),
+            policy_source_hash: None,
+            curved_obstacles: work.curved_obstacles.clone(),
+        };
         let cancelled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
         let flag = cancelled.clone();
         let started = std::time::Instant::now();
@@ -365,11 +387,25 @@ fn dispatch(navigation: &mut NavigationRuntime) {
             timing_capture: Some(navigation.timing_capture.unwrap_or(0)),
             task: AsyncComputeTaskPool::get().spawn(async move {
                 let timer = crate::playtest_timing::ElapsedTimer::start(observe_timing);
-                let result = forge_navigation::generate_tile_cancellable(work, || {
+                let cancelled = || {
                     flag.load(std::sync::atomic::Ordering::Relaxed)
                         || started.elapsed() >= std::time::Duration::from_secs(30)
-                });
-                (result, timer.finish())
+                };
+                if cancelled() {
+                    return (
+                        String::new(),
+                        Err("navigation generation cancelled".into()),
+                        timer.finish(),
+                    );
+                }
+                geometry::order_triangles(&mut work.vertices);
+                let hash = match forge_navigation::source_hash(&work) {
+                    Ok(hash) => hash,
+                    Err(error) => return (String::new(), Err(error), timer.finish()),
+                };
+                work.source_hash.clone_from(&hash);
+                let result = forge_navigation::generate_tile_cancellable(work, cancelled);
+                (hash, result, timer.finish())
             }),
         });
     }

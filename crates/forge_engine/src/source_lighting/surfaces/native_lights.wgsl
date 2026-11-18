@@ -17,6 +17,15 @@
 #endif
 
 fn nativeLocalLighting(input:NativePbrInput)->vec3f {
+    let view_z=dot(vec4f(nativeView::view.view_from_world[0].z,nativeView::view.view_from_world[1].z,
+        nativeView::view.view_from_world[2].z,nativeView::view.view_from_world[3].z),input.world_position);
+    let cluster=nativeClusters::view_fragment_cluster_index(input.frag_coord.xy,view_z,input.is_orthographic);
+    let ranges=nativeClusters::unpack_clusterable_object_index_ranges(cluster);
+    // An empty point/spot range has no native lighting contribution.
+    if ranges.first_point_light_index_offset == ranges.first_reflection_probe_index_offset {
+        return vec3f(0.0);
+    }
+
     var surface:lighting::LightingInput;
     let roughness=input.material.perceptual_roughness;
     let NdotV=max(dot(input.N,input.V),0.0001);
@@ -46,10 +55,6 @@ fn nativeLocalLighting(input:NativePbrInput)->vec3f {
     surface.Ta=input.anisotropy_T;
     surface.Ba=input.anisotropy_B;
 #endif
-    let view_z=dot(vec4f(nativeView::view.view_from_world[0].z,nativeView::view.view_from_world[1].z,
-        nativeView::view.view_from_world[2].z,nativeView::view.view_from_world[3].z),input.world_position);
-    let cluster=nativeClusters::view_fragment_cluster_index(input.frag_coord.xy,view_z,input.is_orthographic);
-    let ranges=nativeClusters::unpack_clusterable_object_index_ranges(cluster);
     var result=vec3f(0.0);
     for(var i=ranges.first_point_light_index_offset;i<ranges.first_reflection_probe_index_offset;i++) {
         let id=nativeClusters::get_clusterable_object_id(i);

@@ -1,4 +1,4 @@
-"""Assemble a private platform game kit from pinned native build receipts.
+"""Assemble a platform game kit from pinned native build receipts.
 
 This is a preparation candidate, not a build, install, licence or release verdict.
 The output contains an embedded-manifest input and a separate adjacent kit tree;
@@ -51,6 +51,13 @@ MAX_RECEIPT = 64 * 1024 * 1024
 MAX_FILES = 250_000
 MAX_FILE_BYTES = 16 * 1024 * 1024 * 1024
 MAX_TOTAL_BYTES = 256 * 1024 * 1024 * 1024
+KIT_RIGHTS_REVIEW = 'licenses/redistribution-review.json'
+PRIVATE_KIT = ('forge.delivery.game-kit.v1', 'forge.delivery.private-game-kit-assembly.v1',
+               'PRIVATE_STAGED_ONLY')
+REVIEWED_KIT = ('forge.delivery.game-kit.v2', 'forge.delivery.redistributable-game-kit-assembly.v1',
+                'REDISTRIBUTABLE_STAGED_ONLY')
+KIT_SCOPES = {'private_local_only': PRIVATE_KIT, 'redistributable': REVIEWED_KIT}
+KIT_STAGE_STATUSES = tuple(scope[2] for scope in KIT_SCOPES.values())
 NOTICE_SCHEMAS = {
     'INDEX.json': 'forge.rust-dependency-notices.v2',
     'SUPPLEMENT-NOTICES.json': 'forge.rust-notice-supplements.v1',
@@ -80,7 +87,11 @@ def standalone_tauri_config(frontend, repo=SOURCE):
     # path such as E:\\... parses as an `e:` URL and silently embeds no assets.
     # Resolve the admitted temporary directory from the launcher config instead.
     relative = os.path.relpath(frontend, Path(repo) / 'apps/forge_launcher').replace('\\', '/')
-    return {**STANDALONE_TAURI_CONFIG, 'build': {'frontendDist': relative}}
+    return {
+        **STANDALONE_TAURI_CONFIG,
+        'build': {'frontendDist': relative},
+        'bundle': {'icon': ['../forge_studio/icons/icon.ico']},
+    }
 
 
 def read_document(path):
@@ -452,8 +463,22 @@ def verify_staged_notices(kit_root, files):
             'Staged notice index chain differs')
 
 
+def verify_redistribution_review(data, files, platform, source_revision):
+    review = runtime_notices.document(data, 'game kit redistribution review')
+    inventory_text = ''.join(f"{item['path']}\t{item['bytes']}\t{item['sha256']}\n"
+                             for item in sorted(files, key=lambda item: item['path'])
+                             if item['path'] != KIT_RIGHTS_REVIEW)
+    evidence = review.get('evidence_sha256')
+    require(set(review) == {'schema', 'platform', 'source_revision', 'files_sha256', 'evidence_sha256'} and
+            review['schema'] == 'forge.delivery.game-kit-rights-review.v1' and
+            review['platform'] == platform and review['source_revision'] == source_revision and
+            review['files_sha256'] == runtime_notices.sha(inventory_text.encode('utf-8')) and
+            isinstance(evidence, str) and re.fullmatch(r'[0-9a-f]{64}', evidence) is not None,
+            'Redistribution review does not cover this game kit')
+
+
 def read_assembled(root, expected_receipt_sha256, expected_source_manifest_sha256, *, expected_platform=PLATFORM):
-    """Revalidate an assembled private kit against externally pinned receipts.
+    """Revalidate an assembled kit against externally pinned receipts.
 
     The hashes authenticate byte identity for staging; only the native reader and
     real product runs can validate their own behavior or a distribution verdict.
@@ -474,12 +499,11 @@ def read_assembled(root, expected_receipt_sha256, expected_source_manifest_sha25
                                                     'game kit assembly receipt')
     require(runtime_notices.sha(receipt_data) == expected_receipt_sha256, 'Game kit assembly receipt pin differs')
     receipt = runtime_notices.document(receipt_data, 'game kit assembly receipt')
-    require(receipt.get('schema') == 'forge.delivery.private-game-kit-assembly.v1' and
-            receipt.get('status') == 'PRIVATE_STAGED_ONLY' and receipt.get('platform') == expected_platform and
+    require(receipt.get('status') in KIT_STAGE_STATUSES and receipt.get('platform') == expected_platform and
             receipt.get('source_revision') == expected_source_manifest_sha256 and
             receipt.get('source_manifest_sha256') == expected_source_manifest_sha256 and
             all(receipt.get(key) is False for key in ('runtime_verified', 'installation_verified', 'distribution_qualified')),
-            'Game kit receipt is not a current private build-only candidate')
+            'Game kit receipt is not a current build-only candidate')
     require(all(isinstance(receipt.get(key), str) and re.fullmatch(r'[0-9a-f]{64}', receipt[key])
                 for key in ('launcher_proof_sha256', 'runtime_proof_sha256', 'kit_manifest_sha256',
                             'launcher_sha256', 'runtime_sha256')), 'Game kit receipt pins are incomplete')
@@ -494,12 +518,15 @@ def read_assembled(root, expected_receipt_sha256, expected_source_manifest_sha25
     manifest = runtime_notices.document(manifest_data, 'game kit manifest')
     expected_fields = {'schema', 'platform', 'version', 'source_revision', 'launcher_contract',
                        'launcher', 'module_runtime', 'rights', 'license_paths', 'files'}
-    require(set(manifest) == expected_fields and manifest.get('schema') == 'forge.delivery.game-kit.v1' and
+    rights = manifest.get('rights')
+    require(isinstance(rights, str) and rights in KIT_SCOPES and
+            (manifest.get('schema'), receipt.get('schema'), receipt.get('status')) == KIT_SCOPES[rights] and
+            set(manifest) == expected_fields and
             manifest.get('platform') == expected_platform and manifest.get('source_revision') == expected_source_manifest_sha256 and
-            manifest.get('launcher_contract') == 'forge.game-launcher.v2' and manifest.get('rights') == 'private_local_only' and
+            manifest.get('launcher_contract') == 'forge.game-launcher.v2' and
             manifest.get('launcher') == launcher_name and manifest.get('module_runtime') == runtime_name and
             isinstance(manifest.get('version'), str) and bool(manifest['version'].strip()) and
-            len(manifest['version'].encode('utf-8')) <= 128, 'Game kit manifest is not a supported private candidate')
+            len(manifest['version'].encode('utf-8')) <= 128, 'Game kit manifest is not a supported candidate')
     kit_root = root / 'game-export-kit'
     application_sources.ordinary(kit_root)
     require(kit_root.is_dir(), 'Game kit content must be a physical directory')
@@ -510,6 +537,14 @@ def read_assembled(root, expected_receipt_sha256, expected_source_manifest_sha25
     required = {'licenses/THIRD_PARTY_NOTICES.md', *('licenses/rust-runtime-candidate/' + name
                 for name in runtime_notices.INDEX_NAMES)}
     require(manifest.get('license_paths') == licenses and required.issubset(licenses), 'Game kit notices are incomplete')
+    if rights == 'redistributable':
+        data = application_sources.read_regular(kit_root / KIT_RIGHTS_REVIEW, 64 * 1024, 'redistribution review')
+        require(runtime_notices.sha(data) == lookup.get(KIT_RIGHTS_REVIEW, {}).get('sha256') ==
+                receipt.get('rights_review_sha256'), 'Game kit redistribution review pin differs')
+        verify_redistribution_review(data, files, expected_platform, expected_source_manifest_sha256)
+    else:
+        require(KIT_RIGHTS_REVIEW not in lookup and 'rights_review_sha256' not in receipt,
+                'Private game kit has an unexpected redistribution review')
     require(launcher_name in lookup and runtime_name in lookup and lookup[launcher_name]['sha256'] == receipt['launcher_sha256'] and
             lookup[runtime_name]['sha256'] == receipt['runtime_sha256'] and
             type(receipt.get('kit_file_count')) is int and receipt['kit_file_count'] == len(files) and
@@ -670,7 +705,7 @@ def stage_studio_adjacent(assembled_root, studio_executable, studio_proof_path, 
         require(not destination.exists() and not destination.is_symlink(), 'Adjacent game kit destination appeared')
         os.rename(staging, destination)
         require(inventory(destination) == before[2].manifest['files'], 'Adjacent game kit changed after staging')
-        return {'schema':'forge.delivery.studio-adjacent-kit.v1', 'status':'PRIVATE_STAGED_ONLY',
+        return {'schema':'forge.delivery.studio-adjacent-kit.v1', 'status':before[2].receipt['status'],
                 'source_manifest_sha256':before[0], 'studio_sha256':before[1]['executable_sha256'],
                 'studio_proof_sha256':expected_studio_proof_sha256,
                 'kit_assembly_receipt_sha256':expected_assembly_receipt_sha256,
@@ -705,6 +740,17 @@ def assemble(args, *, repo=None, launcher_verifier=verify_launcher):
         require(linux_build_evidence.physical(repo), 'Linux snapshot root must be physical')
     repo = repo.resolve(strict=True)
     launcher_name, runtime_name = PLATFORM_BINARIES[args.platform]
+    review_path = getattr(args, 'redistribution_review', None)
+    review_pin = getattr(args, 'redistribution_review_sha256', None)
+    require((review_path is None and review_pin is None) or
+            (review_path is not None and isinstance(review_pin, str) and re.fullmatch(r'[0-9a-f]{64}', review_pin)),
+            'An explicit redistribution review and its SHA-256 pin are required together')
+    review = None
+    if review_path is not None:
+        review = application_sources.read_regular(review_path, 64 * 1024, 'redistribution review')
+        require(runtime_notices.sha(review) == review_pin, 'Game kit redistribution review pin differs')
+    rights = 'redistributable' if review is not None else 'private_local_only'
+    manifest_schema, receipt_schema, staging_status = KIT_SCOPES[rights]
     require(isinstance(args.version, str) and bool(args.version.strip()) and
             len(args.version.encode('utf-8')) <= 128, 'Game kit version is invalid')
     output = Path(args.output)
@@ -770,6 +816,11 @@ def assemble(args, *, repo=None, launcher_verifier=verify_launcher):
         require(notice_receipt['project_notice_path'] == 'licenses/THIRD_PARTY_NOTICES.md',
                 'Project notices are not at the required game kit path')
         files = inventory(kit)
+        if review is not None:
+            verify_redistribution_review(review, files, args.platform, manifest_hash)
+            with (kit / KIT_RIGHTS_REVIEW).open('xb') as stream:
+                stream.write(review)
+            files = inventory(kit)
         lookup = {entry['path']: entry for entry in files}
         require(lookup[launcher_name]['sha256'] == verification['executable_sha256'] and
                 lookup[runtime_name]['sha256'] == runtime_sha, 'Staged binary differs')
@@ -777,9 +828,9 @@ def assemble(args, *, repo=None, launcher_verifier=verify_launcher):
         required = {'licenses/THIRD_PARTY_NOTICES.md', *('licenses/rust-runtime-candidate/'+name
                     for name in runtime_notices.INDEX_NAMES)}
         require(required.issubset(licenses), 'Required notices are missing')
-        manifest = {'schema':'forge.delivery.game-kit.v1','platform':args.platform,'version':args.version,
+        manifest = {'schema':manifest_schema,'platform':args.platform,'version':args.version,
                     'source_revision':manifest_hash,'launcher_contract':'forge.game-launcher.v2',
-                    'launcher':launcher_name,'module_runtime':runtime_name,'rights':'private_local_only',
+                    'launcher':launcher_name,'module_runtime':runtime_name,'rights':rights,
                     'license_paths':licenses,'files':files}
         encoded = (json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2)+'\n').encode('utf-8')
         require(len(encoded) <= 8 * 1024 * 1024, 'Game kit manifest exceeds Studio budget')
@@ -807,14 +858,16 @@ def assemble(args, *, repo=None, launcher_verifier=verify_launcher):
                     application_sources.prepare_sources(repo,args.cargo_cache,
                         inventory_path=repo/'scripts/delivery/application_sources.json') == sources,
                     'Linux sources, executables or notice closure changed during staging')
-        proof = {'schema':'forge.delivery.private-game-kit-assembly.v1','utc':datetime.now(timezone.utc).isoformat(),
-                 'status':'PRIVATE_STAGED_ONLY','platform':args.platform,'source_revision':manifest_hash,
+        proof = {'schema':receipt_schema,'utc':datetime.now(timezone.utc).isoformat(),
+                 'status':staging_status,'platform':args.platform,'source_revision':manifest_hash,
                  **pins,'launcher_sha256':verification['executable_sha256'],
                  'runtime_sha256':runtime_sha,
                  'kit_manifest_sha256':runtime_notices.sha(encoded),'launcher_verification':verification,
                  'launcher_notices':launcher_notices,'runtime_notices':notice_receipt,'application_sources':source_receipt,
                  'kit_file_count':len(files),'kit_file_bytes':sum(entry['bytes'] for entry in files),
                  'runtime_verified':False,'installation_verified':False,'distribution_qualified':False}
+        if review is not None:
+            proof['rights_review_sha256'] = review_pin
         if linux_build is not None:
             proof['linux_provenance'] = {key:linux_build[key] for key in
                 ('source_zip_sha256','started_sha256','capture_sha256','core_proof_sha256','cargo_home','cargo_target')}
@@ -842,6 +895,8 @@ def main():
         parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--version',required=True)
     parser.add_argument('--platform',choices=tuple(PLATFORM_BINARIES),default=PLATFORM)
+    parser.add_argument('--redistribution-review',type=Path)
+    parser.add_argument('--redistribution-review-sha256')
     for name in ('linux-source-zip','linux-capture-receipt','linux-started'):
         parser.add_argument('--'+name,type=Path)
     for name in ('linux-capture-sha256','linux-started-sha256','linux-core-proof-sha256'):

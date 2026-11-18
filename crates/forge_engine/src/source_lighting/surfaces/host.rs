@@ -266,6 +266,10 @@ pub fn sync(world: &mut World, frame: &Handle<ShaderBuffer>) -> Result<(), Strin
 
 impl State {
     fn convert(&mut self, world: &mut World, base: &Receiver) -> Result<(), String> {
+        let native_terrain = crate::source_terrain::host::active_source_shadow_receivers(world) > 0;
+        if native_terrain && !self.terrains.is_empty() {
+            self.restore_physics_terrain_materials(world);
+        }
         let models: Vec<_> = world
             .query::<(Entity, &MeshMaterial3d<StandardMaterial>)>()
             .iter(world)
@@ -274,6 +278,7 @@ impl State {
         let terrains: Vec<_> = world
             .query::<(Entity, &MeshMaterial3d<crate::VisualValleyTerrainMaterial>)>()
             .iter(world)
+            .filter(|(entity, _)| !native_terrain || !physics_terrain(world, *entity))
             .map(|(entity, material)| (entity, material.0.clone()))
             .collect();
         for (entity, source) in models {
@@ -338,6 +343,11 @@ impl State {
                 .insert((MeshMaterial3d(handle), Origin::Terrain(source)));
         }
         self.convert_vegetation(world);
+        self.retain_live_materials(world);
+        Ok(())
+    }
+
+    fn retain_live_materials(&mut self, world: &mut World) {
         // A retired scene primitive must not keep a dead original material in
         // this projection's cache. Live HLOD outputs also retain their route.
         let live_models: HashSet<_> = world
@@ -364,8 +374,31 @@ impl State {
             live_vegetation.contains(&projected.id())
                 || originals.is_some_and(|assets| assets.contains(*source))
         });
-        Ok(())
     }
+
+    // The generic surface host can start before the terrain host. Once CDLOD
+    // owns the view, release any receivers prepared for its hidden physics cells.
+    fn restore_physics_terrain_materials(&self, world: &mut World) {
+        let retired: Vec<_> = world
+            .query::<(Entity, &Origin, &MeshMaterial3d<TerrainMaterial>)>()
+            .iter(world)
+            .filter_map(|(entity, origin, projected)| {
+                let Origin::Terrain(original) = origin else {
+                    return None;
+                };
+                (self.terrains.get(&original.id()) == Some(&projected.0)
+                    && physics_terrain(world, entity))
+                .then(|| (entity, original.clone()))
+            })
+            .collect();
+        for (entity, original) in retired {
+            world
+                .entity_mut(entity)
+                .remove::<(MeshMaterial3d<TerrainMaterial>, Origin)>()
+                .insert(MeshMaterial3d(original));
+        }
+    }
+
     fn convert_vegetation(&self, world: &mut World) {
         // Only the governed imported-model owner participates here. Procedural
         // vegetation retains its existing material/lifecycle until admitted.
@@ -437,6 +470,7 @@ impl State {
         Ok(())
     }
     fn observe(&mut self, world: &mut World) -> Result<(), String> {
+        let native_terrain = crate::source_terrain::host::active_source_shadow_receivers(world) > 0;
         self.entities.clear();
         let model_handles: HashSet<_> = self.models.values().map(Handle::id).collect();
         let terrain_handles: HashSet<_> = self.terrains.values().map(Handle::id).collect();
@@ -477,8 +511,10 @@ impl State {
             .iter(world)
             .count()
             + world
-                .query::<&MeshMaterial3d<crate::VisualValleyTerrainMaterial>>()
+                .query_filtered::<Entity, With<MeshMaterial3d<crate::VisualValleyTerrainMaterial>>>(
+                )
                 .iter(world)
+                .filter(|entity| !native_terrain || !physics_terrain(world, *entity))
                 .count();
         world.insert_resource(Status {
             models,
@@ -489,6 +525,16 @@ impl State {
         });
         Ok(())
     }
+}
+
+#[cfg(feature = "physics-rapier")]
+fn physics_terrain(world: &World, entity: Entity) -> bool {
+    crate::source_terrain::host::owns_physics_projection(world, entity)
+}
+
+#[cfg(not(feature = "physics-rapier"))]
+fn physics_terrain(_world: &World, _entity: Entity) -> bool {
+    false
 }
 
 #[cfg(test)]

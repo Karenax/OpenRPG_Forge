@@ -131,6 +131,10 @@ fn view(world: &World, camera: Entity) -> Result<CascadeView, String> {
 /// Eligibility follows real scene visibility and opaque material semantics.
 /// Alpha-cutout and skinned standard meshes require their appropriate caster;
 /// they cannot silently become solid or undeformed shadows.
+#[allow(
+    clippy::too_many_lines,
+    reason = "Review scene eligibility and material admission together."
+)]
 fn collect(world: &mut World) -> Result<Option<Vec<Part>>, String> {
     let mut candidates: Vec<_> = world
         .query_filtered::<(
@@ -152,19 +156,6 @@ fn collect(world: &mut World) -> Result<Option<Vec<Part>>, String> {
                     || source_object.is_some()
             },
         )
-        .map(
-            |(entity, mesh, standard, terrain, source_model, source_terrain, source_object)| {
-                (
-                    entity,
-                    mesh.0.clone(),
-                    standard.map(|v| v.0.clone()),
-                    terrain.map(|v| v.0.clone()),
-                    source_model.map(|v| v.0.clone()),
-                    source_terrain.map(|v| v.0.clone()),
-                    source_object.map(|v| v.0.clone()),
-                )
-            },
-        )
         .collect();
     candidates.sort_by_key(|part| part.0);
     let mut parts = Vec::with_capacity(candidates.len());
@@ -180,30 +171,37 @@ fn collect(world: &mut World) -> Result<Option<Vec<Part>>, String> {
         if !visible {
             continue;
         }
+        let skinned = world
+            .get::<bevy::mesh::skinning::SkinnedMesh>(entity)
+            .is_some();
+        // Preserve the native skin deformation. The source opaque pass has no joints.
+        if skinned && scene::uses_native_skin_shadows(world, entity) {
+            continue;
+        }
         let alpha = if let Some(material) = standard {
             world
                 .resource::<Assets<StandardMaterial>>()
-                .get(&material)
+                .get(&material.0)
                 .map(|v| v.alpha_mode)
         } else if let Some(material) = terrain {
             world
                 .resource::<Assets<crate::VisualValleyTerrainMaterial>>()
-                .get(&material)
+                .get(&material.0)
                 .map(|v| v.base.alpha_mode)
         } else if let Some(material) = source_model {
             world
                 .resource::<Assets<crate::source_lighting::surfaces::ModelMaterial>>()
-                .get(&material)
+                .get(&material.0)
                 .map(|v| v.base.alpha_mode)
         } else if let Some(material) = source_terrain {
             world
                 .resource::<Assets<crate::source_lighting::surfaces::TerrainMaterial>>()
-                .get(&material)
+                .get(&material.0)
                 .map(|v| v.base.base.alpha_mode)
         } else if let Some(material) = source_object {
             world
                 .resource::<Assets<crate::source_surface::SourceSurfaceMaterial>>()
-                .get(&material)
+                .get(&material.0)
                 .map(Material::alpha_mode)
         } else {
             None
@@ -218,18 +216,15 @@ fn collect(world: &mut World) -> Result<Option<Vec<Part>>, String> {
             }
             _ => return Err("Source opaque caster refuses an alpha-cutout standard mesh".into()),
         }
-        if world
-            .get::<bevy::mesh::skinning::SkinnedMesh>(entity)
-            .is_some()
-        {
+        if skinned {
             return Err("Source opaque caster refuses an undeformed skinned mesh".into());
         }
-        if !world.resource::<Assets<Mesh>>().contains(&mesh) {
+        if !world.resource::<Assets<Mesh>>().contains(&mesh.0) {
             return Ok(None);
         }
         parts.push(Part {
             entity,
-            mesh,
+            mesh: mesh.0.clone(),
             model: scene::world_pose(world, entity)?,
         });
     }
@@ -397,12 +392,13 @@ impl Resident {
         let completed = token.and_then(|token| token.completed_frame(world));
         let statistics = world.resource::<graph::animation::State>().statistics();
         let receivers = world.get_resource::<crate::source_lighting::surfaces::host::Status>();
+        let native_terrain = crate::source_terrain::host::active_source_shadow_receivers(world);
         Status {
             world_receivers: receivers
                 .filter(|status| status.pending == 0)
-                .map_or(0, |status| status.models + status.terrain),
+                .map_or(0, |status| status.models + status.terrain + native_terrain),
             model_receivers: receivers.map_or(0, |status| status.models),
-            terrain_receivers: receivers.map_or(0, |status| status.terrain),
+            terrain_receivers: receivers.map_or(0, |status| status.terrain + native_terrain),
             active: current,
             generation: self.generation,
             opaque_casters: self.parts.len(),
@@ -413,9 +409,9 @@ impl Resident {
             gpu_completed: completed,
             ready: current
                 && receivers.is_some_and(|status| status.pending == 0)
-                && self.encoded_frame.is_some_and(|frame| {
-                    token.is_some_and(|token| token.covers_frame(world, frame))
-                })
+                && completed
+                    .zip(self.encoded_frame)
+                    .is_some_and(|(completed, frame)| completed >= frame)
                 && statistics.submissions > 0,
             motion_matches: world
                 .resource::<graph::animation::State>()

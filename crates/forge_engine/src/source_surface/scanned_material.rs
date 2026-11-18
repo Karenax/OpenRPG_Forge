@@ -1,11 +1,14 @@
 //! Acquired scanned surface on the existing Village light and shadow receivers.
+use super::SourceSurfaceMaterial;
 use bevy::{
     pbr::{ExtendedMaterial, MaterialExtension},
     prelude::*,
-    render::{render_resource::AsBindGroup, storage::ShaderBuffer},
+    render::{
+        render_resource::{AsBindGroup, TextureFormat},
+        storage::ShaderBuffer,
+    },
     shader::ShaderRef,
 };
-use forge_engine::source_surface::SourceSurfaceMaterial;
 
 pub const SHADER: Handle<Shader> =
     bevy::asset::uuid_handle!("c6262aed-a1c4-4cf7-bf27-de02f8c76485");
@@ -13,6 +16,7 @@ pub const SHADER: Handle<Shader> =
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 pub struct ScannedExtension {
     #[texture(100, filterable = false)]
+    #[dependency]
     pub heights: Handle<Image>,
     #[uniform(101)]
     pub terrain_domain: Vec4,
@@ -20,12 +24,16 @@ pub struct ScannedExtension {
     pub terrain_sun: Vec4,
     #[texture(102)]
     #[sampler(105)]
+    #[dependency]
     pub albedo: Handle<Image>,
     #[texture(103)]
+    #[dependency]
     pub normal: Handle<Image>,
     #[texture(104)]
+    #[dependency]
     pub arm: Handle<Image>,
     #[storage(106, read_only)]
+    #[dependency]
     pub instances: Handle<ShaderBuffer>,
 }
 
@@ -45,6 +53,72 @@ impl MaterialExtension for ScannedExtension {
 }
 
 pub type ScannedMaterial = ExtendedMaterial<SourceSurfaceMaterial, ScannedExtension>;
+
+/// Resources published by the area's resident terrain.
+pub struct TerrainBindings {
+    pub heights: Handle<Image>,
+    pub domain: Vec4,
+    pub sun: Vec4,
+}
+
+/// Stage the verified albedo, normal and ARM maps against the resident area lighting.
+///
+/// # Errors
+/// Rejects a missing heightfield, incompatible terrain, shader or asset stores.
+pub fn stage_material(
+    world: &mut World,
+    source: &str,
+    base: SourceSurfaceMaterial,
+    terrain: TerrainBindings,
+    images: [Image; 3],
+) -> Result<Handle<ScannedMaterial>, String> {
+    let heights = world
+        .get_resource::<Assets<Image>>()
+        .and_then(|assets| assets.get(&terrain.heights))
+        .ok_or("Scanned height image absent")?;
+    if heights.texture_descriptor.format != TextureFormat::R32Float
+        || heights.width() != heights.height()
+        || heights.width() < 2
+    {
+        return Err("Scanned terrain image contract differs".into());
+    }
+    let resolution =
+        u16::try_from(heights.width()).map_err(|_| "Scanned height texture too large")?;
+    if !world.contains_resource::<Assets<ShaderBuffer>>()
+        || !world.contains_resource::<Assets<ScannedMaterial>>()
+    {
+        return Err("Scanned material or instance-buffer store unavailable".into());
+    }
+    let mut material = prepare_material(
+        base,
+        ScannedExtension {
+            heights: terrain.heights,
+            terrain_domain: Vec4::new(
+                terrain.domain.x,
+                terrain.domain.y,
+                f32::from(resolution),
+                1.0,
+            ),
+            terrain_sun: terrain.sun,
+            albedo: Handle::default(),
+            normal: Handle::default(),
+            arm: Handle::default(),
+            instances: Handle::default(),
+        },
+    )?;
+    stage_shader(world, source)?;
+    let [albedo, normal, arm] =
+        images.map(|image| world.resource_mut::<Assets<Image>>().add(image));
+    material.extension.albedo = albedo;
+    material.extension.normal = normal;
+    material.extension.arm = arm;
+    material.extension.instances = world
+        .resource_mut::<Assets<ShaderBuffer>>()
+        .add(ShaderBuffer::new(&[0; 16], default()));
+    Ok(world
+        .resource_mut::<Assets<ScannedMaterial>>()
+        .add(material))
+}
 
 /// Apply source opaque/front material defaults while retaining live scene resources.
 ///
@@ -97,7 +171,7 @@ pub fn shader_source(source: &str) -> Result<String, String> {
             return Err("Scanned shader interface differs".into());
         }
     }
-    forge_engine::source_surface::receivers::scene_shader_source(source)
+    super::receivers::scene_shader_source(source)
 }
 
 /// Install into the existing renderer; never fall back to a fixture shader.
@@ -106,7 +180,7 @@ pub fn shader_source(source: &str) -> Result<String, String> {
 /// Propagates interface and resident asset-store errors.
 pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
     let source = shader_source(source)?;
-    forge_engine::source_surface::receivers::install_scene_receivers(world)?;
+    super::receivers::install_scene_receivers(world)?;
     world
         .get_resource_mut::<Assets<Shader>>()
         .ok_or("Scanned shader assets unavailable")?

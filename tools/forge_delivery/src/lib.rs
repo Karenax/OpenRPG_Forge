@@ -22,6 +22,8 @@ pub mod module_environment;
 pub mod module_fish;
 pub mod module_local_lights;
 pub mod module_objects;
+pub mod module_scanned_debris;
+pub mod module_source_stall;
 pub mod module_ocean;
 pub mod module_placement_companions;
 pub mod module_runtime;

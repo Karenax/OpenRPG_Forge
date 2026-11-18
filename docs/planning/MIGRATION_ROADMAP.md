@@ -1,14 +1,19 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-## État courant — Gate 7 ouverte le 23 octobre 2026
+## État courant — Gate 7 clôturée localement le 18 novembre 2026
 
 Gates 5 et 6 clôturées localement. Le propriétaire ouvre Gate 7 avec objectif
 de clôture documentée sur preuves. Voir son
 [plan](GATE7_IMPLEMENTATION_PLAN.md) et son
 [suivi](../evidence/gate7/GATE7_PROGRESS_20261023.md).
-R7-01 à R7-06 sont qualifiés localement sous Windows sur leurs preuves datées ;
-les quatre autres critères restent ouverts et Gate 7 n'est pas clôturée. GitHub n'est plus
-un critère selon ADR-0034.
+R7-01 à R7-06 sont qualifiés localement sous Windows sur leurs preuves datées.
+Le [candidat Windows 063](../HANDOFF.md#gate-7-windows-063) couvre les builds,
+les licences, la mise à jour du Studio et l’export, l’installation et la
+reprise du Grand Plateau sur l’hôte. Son moteur passe le trajet Tidewater
+à 1080p sans à-coup de plus de 33,33 ms. La preuve Windows sans SDK couvre
+le 060. Les autres conditions de cadence et les droits du contenu Tidewater
+privé restent ouverts. Linux et le rejeu du 063 sur Windows propre sont reportés
+par décision du propriétaire. [Rapport de clôture](../evidence/gate7/GATE7_CLOSURE_20261118.md).
 
 La clarification propriétaire des 24–25 octobre, rappelée le 2 novembre,
 actualise [ADR-0026](../ADR/ADR-0026-strict-engine-map-separation.md) : les
@@ -4244,12 +4249,13 @@ déduit. Les gates suivantes restent non ouvertes.
 # Gate 7 — Monde étendu et distribution
 
 **Ouverte le 23 octobre 2026** par le propriétaire avec objectif de clôture
-documentée sur preuves, après la clôture locale de Gate 6.
+documentée sur preuves, après la clôture locale de Gate 6. **Clôturée
+localement le 18 novembre 2026** selon le [rapport final](../evidence/gate7/GATE7_CLOSURE_20261118.md).
 Suivi : [plan de réalisation](GATE7_IMPLEMENTATION_PLAN.md) et
 [matrice et progression](../evidence/gate7/GATE7_PROGRESS_20261023.md).
 Les acquis précédents sont réutilisables sur entrées vérifiées ; ils ne cochent
 pas automatiquement les critères ci-dessous. ADR-0034 s'applique aux contrôles
-GitHub ; builds Linux et qualification sur machine propre restent exigés.
+GitHub. Le propriétaire reporte Linux et le rejeu du 063 sur Windows propre.
 
 **Découpage obligatoire du 2 novembre :** la distribution visée est celle du jeu
 créé dans le Studio, avec son propre launcher et sans Hub séparé. Les critères
@@ -4281,18 +4287,31 @@ ne valent pas qualification du nouveau parcours sans rejeu des parties affectée
   `cf9dc52a2f100dc62fa3284e60183307d59c4050d728801c47a6729c97e83b38`.
   Les mesures courtes ne qualifient pas un benchmark FPS ou la parité Tidewater ;
 - [x] lanceur du jeu exporté, configuré depuis le projet et autonome sans Hub — PASS local Windows, reçu R7-06 015 ; parcours réel 011 et sources/frontend rapprochés, 32 tests actuels ;
-- [ ] builds Windows/Linux. Volet Windows constaté sur les quatre binaires
-  du candidat privé 049, issus du même inventaire de sources ;
-- [ ] licences agrégées ;
-- [ ] installateur. Volet Windows constaté sur le candidat privé 049 :
-  cycles jeu et Studio avec conservation des données ;
-- [ ] qualification sur machine propre. Volet Windows constaté sur le 049 :
-  Studio installé et deux exports installés et repris dans un invité joueur
-  sans Studio ni outils de développement.
-
-Le [rapprochement des preuves Windows 049](../HANDOFF.md) précise les
-conditions, limites et empreintes des parcours. Les trois critères
-conservent leur volet Linux.
+- [x] R7-07 — builds Windows vérifiés sur le [candidat 063](../HANDOFF.md#gate-7-windows-063).
+  La qualification Linux reste reportée.
+- [x] R7-08 — licences agrégées. Verdict local Windows pour le [Studio 063 et
+  l’export exact du Grand Plateau](../HANDOFF.md#gate-7-windows-063).
+  Les notices et sources sont relues dans les paquets livrés par rôle.
+  Le module Tidewater de comparaison reste privé. Le volet Linux est reporté.
+- [x] R7-09 — maintenance locale Windows. Le [063](../HANDOFF.md#gate-7-windows-063)
+  couvre la mise à jour, le retour 063 → 062 → 063, l’installation et la reprise
+  du jeu ainsi que la conservation de la sauvegarde à la désinstallation. Le [Studio](../HANDOFF.md#gate-7-studio-060-maintenance)
+  et le [jeu](../HANDOFF.md#gate-7-jeu-060-maintenance) ont préservé leurs données
+  dans le cycle 059 → 060 → 059 sur l’hôte. Le 060 a aussi installé le jeu et
+  préservé sa sauvegarde à la désinstallation dans un invité propre.
+  La [désinstallation native du Studio 060](../HANDOFF.md#gate-7-studio-060-desinstallation)
+  conserve aussi le workspace et les quatre fichiers de l’export Evergreen.
+  Le Setup 060 a aussi passé l’[installation standard Evergreen](../HANDOFF.md#gate-7-studio-060-evergreen-ltsc)
+  sur Windows LTSC. Le volet Linux reste reporté.
+- [x] R7-10 — preuves Windows propre acquises au 060, rejeu du 063 reporté.
+  Deux invités Windows sans SDK ont couvert le
+  [parcours auteur](../HANDOFF.md#gate-7-studio-060-export-grand-plateau) et le
+  [parcours joueur](../HANDOFF.md#gate-7-joueur-060-grand-plateau) avec WebView2
+  Fixed Version géré. Le [Windows LTSC sans SDK](../HANDOFF.md#gate-7-studio-060-evergreen-ltsc)
+  couvre l’installation et l’ouverture du Studio 060 avec Evergreen signé.
+  L’[export Evergreen sur l’hôte](../HANDOFF.md#gate-7-studio-060-evergreen-hote)
+  reproduit à l’octet près les quatre fichiers du parcours Fixed Version.
+  La qualification Linux reste reportée.
 
 Extension maritime possible, différée et non requise pour fermer Gate 7 : de grands lacs et des mers
 pourront utiliser un rendu spectral inspiré de

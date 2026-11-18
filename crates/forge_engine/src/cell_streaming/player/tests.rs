@@ -51,6 +51,41 @@ fn ready(app: &mut App) {
 }
 
 #[test]
+fn dropping_redundant_protection_keeps_already_admitted_physics_ready() {
+    let (mut app, body) = player_app();
+    app.world_mut()
+        .get_mut::<Transform>(body)
+        .unwrap()
+        .translation = Vec3::new(-80.0, 2.0, -80.0);
+    ready(&mut app);
+
+    // A previous body envelope also protected the corner. Its neighbourhood
+    // is already covered by the still protected cell one step inward.
+    let world = app.world();
+    let state = world.resource::<State>();
+    let current = super::super::requested(world, state).unwrap();
+    let corner = CellKey { x: 0, z: 0 };
+    assert!(current.protected.contains(&CellKey { x: 1, z: 1 }));
+    assert!(!current.protected.contains(&corner));
+    let mut previous = current.clone();
+    previous.protected.push(corner);
+    previous.protected.sort_unstable();
+    let position = world.resource::<CellStreamingObserver>().position_xz_m;
+    let plan = state
+        .stream
+        .prepare_with_protected_cells(position, &previous.protected)
+        .unwrap();
+    assert!(plan.acquisitions().is_empty() && plan.retirements().is_empty());
+    app.world_mut().resource_mut::<State>().last_request = Some(previous);
+
+    guard(app.world_mut());
+
+    let status = app.world().resource::<PlayerCellStreamingStatus>();
+    assert!(status.ready && status.error.is_none(), "{status:?}");
+    assert!(app.world().resource::<PlayerSimulationReady>().0);
+}
+
+#[test]
 fn shared_hold_stops_every_controller_and_physics_context_without_releasing_itself() {
     let mut world = World::new();
     world.insert_resource(PlayerSimulationReady(true));
@@ -735,7 +770,7 @@ fn failed_admission_keeps_physics_held_until_an_explicit_retry() {
     // The failed job recorded its request. Without checking the admitted plan,
     // its remaining old and intact colliders alone falsely make refresh ready.
     let state = app.world().resource::<State>();
-    let request = requested(app.world(), state).unwrap();
+    let request = super::super::requested(app.world(), state).unwrap();
     assert_eq!(state.last_request.as_ref(), Some(&request));
     let plan = state
         .stream
@@ -755,7 +790,10 @@ fn failed_admission_keeps_physics_held_until_an_explicit_retry() {
         .last_error
         .take()
         .unwrap();
-    assert!(!refresh(app.world_mut()).unwrap());
+    assert_eq!(
+        refresh(app.world_mut()).unwrap(),
+        Some("terrain_resident_cell_change")
+    );
     app.world_mut()
         .resource_mut::<super::super::CellStreamingStats>()
         .last_error = Some(error);

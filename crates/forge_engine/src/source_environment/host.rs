@@ -12,10 +12,11 @@ use bevy::{
     tasks::{AsyncComputeTaskPool, Task, futures::check_ready},
 };
 use forge_core::{ContentHash, EntityId};
+use forge_project::module_package::{ModuleDiffuseLighting, ModuleSolarClock};
 use std::sync::atomic::Ordering;
 
 pub struct PreparedHost {
-    pub solar_clock: Option<forge_project::module_package::ModuleSolarClock>,
+    pub solar_clock: Option<ModuleSolarClock>,
     pub input: PreparedEnvironment,
     pub programs: Option<programs::Input>,
     pub identity: ContentHash,
@@ -54,6 +55,7 @@ struct Pending(Option<PreparedHost>);
 #[derive(Resource)]
 struct State {
     solar_clock: Option<source_sky::publication::Clock>,
+    captured_lighting: Option<CapturedLighting>,
     owner: EntityId,
     identity: ContentHash,
     entity: Entity,
@@ -64,6 +66,12 @@ struct State {
     previous_time: Option<f64>,
     bootstrap_frame: Option<u32>,
     hdr_frame: Option<u32>,
+}
+
+struct CapturedLighting {
+    reference: crate::source_lighting::SceneLighting,
+    irradiance: Option<[f64; 3]>,
+    publication_frame: Option<u32>,
 }
 
 /// Identify the sky owned by this admitted environment, without admitting an
@@ -81,8 +89,7 @@ pub fn covers_frame(world: &World, frame: u32) -> bool {
         .get_resource::<Status>()
         .is_some_and(|status| status.ready)
         && world.get_resource::<State>().is_some_and(|state| {
-            render_inventory::acquire_scoped(world, state.owner, state.identity, 1)
-                .is_some_and(|token| token.covers_frame(world, frame))
+            render_inventory::scoped_covers_frame(world, state.owner, state.identity, 1, frame)
         })
 }
 
@@ -90,7 +97,7 @@ impl PreparedHost {
     pub fn install(self, app: &mut App) -> Result<(), String> {
         if let Some(clock) = self.solar_clock {
             clock.validate().map_err(|e| e.to_string())?;
-            if self.programs.is_none() {
+            if self.programs.is_none() && clock.requires_live_environment() {
                 return Err("Solar clock requires the live environment graph".into());
             }
         }
@@ -151,6 +158,16 @@ fn stage(world: &mut World, prepared: PreparedHost) -> Result<(), String> {
     .map_err(|_| "Environment bootstrap frame count overflow")?;
     let resident = prepared.input.stage(world)?;
     let solar_clock = prepare_solar(prepared.solar_clock, &resident)?;
+    let captured_lighting = prepared
+        .solar_clock
+        .and_then(|clock| clock.diffuse_lighting)
+        .map(
+            |ModuleDiffuseLighting::CapturedIrradiance| CapturedLighting {
+                reference: resident.scene_lighting.clone(),
+                irradiance: None,
+                publication_frame: None,
+            },
+        );
     world.resource_mut::<Status>().solar_start_minutes =
         prepared.solar_clock.map(|c| c.start_minutes);
     let sun = resident.atmosphere.params[3].truncate();
@@ -190,6 +207,7 @@ fn stage(world: &mut World, prepared: PreparedHost) -> Result<(), String> {
             Transform::default(),
             bevy::camera::visibility::NoFrustumCulling,
             bevy::light::NotShadowCaster,
+            bevy::light::NotShadowReceiver,
         ))
         .id();
     render_inventory::request_scoped(
@@ -204,6 +222,7 @@ fn stage(world: &mut World, prepared: PreparedHost) -> Result<(), String> {
     world.insert_resource(resident);
     world.insert_resource(State {
         solar_clock,
+        captured_lighting,
         owner: prepared.owner,
         identity: prepared.identity,
         entity,
@@ -371,7 +390,7 @@ fn publish_frame(
 }
 
 fn prepare_solar(
-    settings: Option<forge_project::module_package::ModuleSolarClock>,
+    settings: Option<ModuleSolarClock>,
     environment: &ResidentEnvironment,
 ) -> Result<Option<source_sky::publication::Clock>, String> {
     settings
@@ -433,7 +452,21 @@ fn advance_solar(
                         publication.params,
                     )?;
                 }
-                publication.publish_direct(&mut environment);
+                if let Some(captured) = &mut state.captured_lighting {
+                    // The clock waits for this first readback at the acquired hour.
+                    let irradiance = *captured
+                        .irradiance
+                        .get_or_insert(publication.lighting.sky_irradiance);
+                    let lighting = source_sky::publication::scaled_reference(
+                        &captured.reference,
+                        irradiance,
+                        publication,
+                    );
+                    crate::source_lighting::scene_buffer::publish(world, &lighting)?;
+                    environment.scene_lighting = lighting;
+                } else {
+                    publication.publish_direct(&mut environment);
+                }
             }
             Ok::<_, String>(publication)
         })?;
@@ -445,12 +478,20 @@ fn advance_solar(
             .resource::<ResidentEnvironment>()
             .scene_lighting
             .clone();
-        source_sky::publication::sync_directional_lights(world, &scene, publication.frame);
+        source_sky::publication::sync_directional_lights_with::<
+            With<crate::visual_valley::VisualValleySun>,
+        >(world, &scene, publication.frame);
+    }
+    let solar_ready = clock.ready() && publication.is_some();
+    if solar_ready && let Some(captured) = &mut state.captured_lighting {
+        captured
+            .publication_frame
+            .get_or_insert(world.resource::<FrameCount>().0);
     }
     let mut status = world.resource_mut::<Status>();
     status.solar_hours_bits = Some(step.frame.hours.to_bits());
     status.solar_night_bits = Some((step.frame.night as f32).to_bits());
-    status.solar_ready = clock.ready() && publication.is_some();
+    status.solar_ready = solar_ready;
     Ok(publication.map(|p| p.frame))
 }
 
@@ -469,6 +510,11 @@ fn observe(world: &mut World, state: &mut State) -> bool {
     }
     let fence_frame = if world.resource::<Status>().programs_expected {
         state.hdr_frame
+    } else if let Some(captured) = &state.captured_lighting {
+        state
+            .bootstrap_frame
+            .zip(captured.publication_frame)
+            .map(|(cloud_frame, light_frame)| cloud_frame.max(light_frame))
     } else {
         state.bootstrap_frame
     };
@@ -477,8 +523,7 @@ fn observe(world: &mut World, state: &mut State) -> bool {
         && steps > world.resource::<Status>().bootstrap_steps
         && cloud_ready
         && fence_frame.is_some_and(|frame| {
-            render_inventory::acquire_scoped(world, state.owner, state.identity, 1)
-                .is_some_and(|token| token.covers_frame(world, frame))
+            render_inventory::scoped_covers_frame(world, state.owner, state.identity, 1, frame)
         });
     let evidence = render_inventory::scoped_evidence(world, state.owner).cloned();
     let mut status = world.resource_mut::<Status>();
@@ -522,7 +567,9 @@ fn prepare_programs(world: &mut World, state: &mut State) -> Result<(), String> 
         resident.clouds.clone(),
     );
     live::stage(world, prepared, targets, atmosphere, clouds)?;
-    live::bind_lighting(world, crate::source_lighting::scene_buffer::HANDLE)?;
+    if state.captured_lighting.is_none() {
+        live::bind_lighting(world, crate::source_lighting::scene_buffer::HANDLE)?;
+    }
     world.resource_mut::<Status>().programs_prepared = count;
     Ok(())
 }
@@ -589,6 +636,7 @@ mod tests {
         let entity = world.spawn_empty().id();
         let mut state = State {
             solar_clock: None,
+            captured_lighting: None,
             owner: EntityId::deterministic("environment-test"),
             identity: forge_core::bytes_sha256(b"env"),
             entity,

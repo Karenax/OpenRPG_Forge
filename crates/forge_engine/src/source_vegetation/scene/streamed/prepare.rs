@@ -39,6 +39,7 @@ pub(super) fn prepare(
         .collect();
     let mut groups = Vec::new();
     let mut pins = BTreeMap::new();
+    let mut group_sizes = Vec::new();
     let mut levels = Vec::new();
     let mut triangles = Vec::new();
     for (name, ids) in packed.identities {
@@ -59,6 +60,7 @@ pub(super) fn prepare(
             .identities
             .as_ref()
             .ok_or("Missing packed identities")?;
+        group_sizes.push(ids.len());
         levels.push(if ids.is_empty() {
             0
         } else {
@@ -105,6 +107,7 @@ pub(super) fn prepare(
             .content_hash()
             .map_err(|error| error.to_string())?,
         pins: Arc::new(pins),
+        group_sizes,
         levels,
         triangles,
     })

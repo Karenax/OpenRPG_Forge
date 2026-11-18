@@ -39,11 +39,11 @@ le couple launcher Aube / Hub comme deux applications de distribution.
 Le retrait 048 enlève la cible Hub et ses recettes d'assemblage du checkout
 commun. Le Studio conserve la reprise des installations et données historiques.
 
-**Gate 7 reste en cours.** La transition s'intègre à ses critères de packaging,
-lanceur et installation, avec les validations de plateforme, licences et machine
-propre ; elle ne crée aucune nouvelle gate et ne clôt aucun critère par ce texte.
-R7-01 à R7-06 disposent de verdicts locaux Windows datés. R7-07 à R7-10
-restent ouverts sur leur périmètre complet. Le [plan unique de transition dans Gate 7](docs/planning/GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher)
+**Gate 7 est clôturée localement le 18 novembre 2026 par décision du propriétaire.**
+Le candidat Windows 063 et les validations datées constituent la base du verdict.
+Linux et le rejeu du 063 sur Windows propre sont reportés.
+[Rapport de clôture](docs/evidence/gate7/GATE7_CLOSURE_20261118.md).
+Le [plan unique de transition dans Gate 7](docs/planning/GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher)
 fixe les lots, leurs dépendances et la requalification des parcours affectés.
 
 Stockage des assets, décision propriétaire du 27 octobre : les modèles livrés
@@ -54,7 +54,69 @@ vérification du contenu conservé et des références encore utiles. Le
 nouveaux lots, leur publication et leur bilan résiduel ; aucune qualification
 visuelle ou fin de migration n'est déduite de cette organisation.
 
-## Gate 7 ouverte — 23 octobre 2026
+## Gate 7 clôturée localement — 18 novembre 2026
+
+**Priorité du 17 novembre.** Le propriétaire reporte les travaux et
+essais Linux. La clôture s'appuie d'abord sur les preuves Windows,
+la comparaison Tidewater et la revue des droits. Les résultats Linux
+déjà obtenus sont conservés avec leur périmètre.
+[Rapprochement des preuves Windows](docs/HANDOFF.md#gate-7-etat-courant).
+
+Le [comparatif Tidewater à 1080p](docs/HANDOFF.md#gate-7-tidewater-navigation-tri-worker)
+mesure zéro intervalle au-delà de 33,33 ms après transfert du tri vers
+le travailleur de navigation, contre trois pour le 062 et un pour le
+lecteur 012. Le p99 du moteur commun passe de 27,78 à 20,83 ms sur ce trajet.
+Le [candidat Windows 063](docs/HANDOFF.md#gate-7-windows-063) embarque ce
+binaire. Sur l’hôte, le Studio mis à jour exporte Le Grand Plateau, dont
+le jeu reprend la sauvegarde 061 et la préserve à la désinstallation.
+Les licences des paquets Studio, jeu et module passent la relecture.
+La qualification sur Windows propre couvre le 060.
+
+**État de qualification au 17 novembre.** Le Setup privé Windows 058
+couvre sur l'hôte l'export de Tidewater solaire, l'installation du jeu,
+le lancement et la reprise depuis son launcher. Le Studio Windows 060
+a été installé sur Windows sans SDK avec Visual C++ externe et WebView2
+Fixed Version géré. Il a exporté le Grand Plateau avec le kit Windows
+060 revu pour redistribution. Un second invité sans SDK ni Studio a
+installé ce jeu, sauvegardé et repris via son lanceur. La désinstallation
+du jeu a conservé la sauvegarde. Le
+[Setup 060 en mode standard](docs/HANDOFF.md#gate-7-studio-060-evergreen-ltsc)
+passe sur Windows LTSC sans SDK et ouvre le Studio avec Evergreen signé.
+Le [rejeu Evergreen sur l’hôte](docs/HANDOFF.md#gate-7-studio-060-evergreen-hote)
+produit les quatre fichiers du Grand Plateau à l’octet près du parcours
+Fixed Version sur Windows propre. Les deux VM Windows de qualification
+ont été supprimées à la demande du propriétaire le 18 novembre.
+[Parcours 060](docs/HANDOFF.md#gate-7-joueur-060-grand-plateau).
+
+Lors du parcours précédent 059, le CLI et
+`Jouer.exe` reconstruit ont ensuite
+[ouvert le lanceur et démarré WebView2](docs/HANDOFF.md#gate-7-windows-chemins-longs)
+depuis le chemin de 261 caractères via un alias DOS vérifié.
+Sous Ubuntu sans SDK, le Studio 011 a importé et exporté Le Grand Plateau
+avec le kit joueur Linux 011 examiné pour redistribution. Un invité
+joueur distinct a installé le jeu, sauvegardé et repris via son launcher,
+avec la même empreinte de sauvegarde. Le rendu joueur utilise llvmpipe.
+La vue 3D du Studio reste à qualifier et la reprise a perdu l'état prêt
+sur sa dernière image, après la demande de fermeture.
+[Rejeu Linux 011](docs/HANDOFF.md#17-novembre--candidat-linux-011).
+La relecture exacte du 060 relie les licences et notices du kit Windows
+et du Grand Plateau livré. Le module conserve le CC0 du contenu original.
+Les droits de redistribution du contenu Tidewater privé restent ouverts.
+[Reçu de licences](docs/HANDOFF.md#gate-7-windows-060-licences-chaine).
+
+Au village de Tidewater, le jeu exporté avec l'étal, les 83 poissons et
+Joe animé a rejoué la pose du lecteur 012 à 2560 × 1440. La correction
+du routage des ombres a ramené les entrées directionnelles Bevy de 9 426
+à zéro. Le rejeu avec éclairage diffus et reflets acquis retrouve les
+teintes historiques du sol et du chemin sur les zones mesurées. La paire
+sans profilage à pose rapprochée donne 20,14 ms entre présentations pour
+le 012 et 17,96 ms pour le moteur commun dans la fenêtre composée commune.
+Le moteur commun termine aussi le trajet de sprint aux cinq points à
+1440p et à 1080p. Le [comparatif 1080p au premier plan](docs/HANDOFF.md#gate-7-tidewater-sprint-1080p-premier-plan)
+donne 16,88 ms entre présentations pour le 012 archivé et 41,53 ms pour
+le moteur commun. Le GPU actif médian est respectivement de 11,30 et
+11,12 ms. La parité de cadence sur le trajet reste ouverte.
+[Comparatif Tidewater](docs/HANDOFF.md#gate-7-tidewater-paire-sans-profilage).
 
 **Candidat privé Windows 049 — 7 novembre.** Le Studio installé sur un
 Windows Sandbox hors ligne et sans SDK a exporté Tidewater et Le Grand
@@ -68,13 +130,16 @@ des 43 pièces établit les volets Windows de R7-07, R7-09 et R7-10 pour ce
 candidat privé. Les critères R7-07/08/09/10 restent ouverts sur leur
 périmètre complet.
 
-Les essais Linux du kit 0837 en conteneur sans SDK couvrent l'ouverture de
-la fenêtre Studio et un lancement de diagnostic du Grand Plateau suivi
-d'une sauvegarde. Le build des sources courantes et le parcours complet
-sur OS propre restent à qualifier. Les exports 049 restent privés pendant
-l'établissement des droits et notices. Sur le trajet Tidewater du 049
-au profil Moyen, la dernière mesure moyenne est de 18,85 ms pour un
-budget de 16,67 ms. La comparaison appariée avec la référence reste à faire.
+Les premiers essais Linux du kit 0837 en conteneur sans SDK couvraient
+l'ouverture de la fenêtre Studio et un lancement de diagnostic du Grand
+Plateau suivi d'une sauvegarde. Les jeux exportés restent privés pendant
+l'établissement des droits et notices. Le Grand Plateau a une variante source
+CC0-1.0 pour le terrain et le gameplay originaux, réexportée en module depuis
+Studio. Sur le même trajet Tidewater, le candidat 050 mesure 17,30 à 17,42 ms
+en moyenne contre 22,34 à 22,71 ms pour le 049, pour un budget de 16,67 ms.
+En immobile à 2560 × 1440, le moteur commun reste en retrait du lecteur
+historique 012. Les conditions et mesures sont détaillées dans le
+[suivi de qualification](docs/HANDOFF.md#gate-7-etat-courant).
 
 **R7-06 qualifié localement Windows — 5 novembre.** Identité du projet,
 lancement/reprise et retour réels 008/011 rapprochés du frontend et des sources
@@ -5055,35 +5120,40 @@ de contrat reste à trancher avant publication.
 ## 8 novembre 2026 — Passerelle Aurora/NWN : M3 local
 
 M1, M2 et M3 sont terminés localement avec réserves. M3 ajoute `forge_nwn_runtime` : parseur NCS
-borné, VM déterministe pour le sous-ensemble de la fixture, registre de 11 natives supportées et
-4 déclarées non supportées, ordonnanceur différé, effets typés avec reçus et scénario `ab_proving`
-avec dialogue conditionnel, journal, objet, porte, combat et reprise idempotente. Le résultat est
-prouvé par 21 tests `forge_nwn_runtime`, 27 tests runtime/bridge/CLI et le rapport
-`Preuves-et-analyses/actives/aurora-bridge/m3/m3-report.json`. La portée reste limitée à la fixture :
-aucune compatibilité NWN générale, aucun ruleset D&D, aucune sauvegarde NWN générale et aucune
-parité visuelle. Les natives d'action, la suspension mi-VM et les événements non listés restent non
-supportés et visibles. La piste n'ouvre ni ne modifie aucune gate.
+borné, VM déterministe pour le sous-ensemble de la fixture, registre de 15 natives supportées
+(actions `StartConversation`/`ExecuteScript` via `AssignCommand`, `DelayCommand`,
+`ActionDoCommand`, `ExecuteScript`), ordonnanceur différé, effets typés avec politique de permission
+et reçus, états de quête et de porte, scénario `ab_proving` avec dialogue conditionnel, journal,
+objet, porte, combat et reprise idempotente. Le résultat est prouvé par 43 tests
+`forge_nwn_runtime`, 30 tests consumer (bridge, aurora-runtime, CLI) et le rapport
+`Preuves-et-analyses/actives/aurora-bridge/m3/m3-report.json` (SHA-256 `8eb0ad51…`). La portée reste
+limitée à la fixture : aucune compatibilité NWN générale, aucun ruleset D&D, aucune sauvegarde NWN
+générale et aucune parité visuelle. Les actions NWScript de déplacement/attaque/sorts, le mapping
+JRL/TLK complet et les événements non listés restent non couverts ; la continuation VM est
+sérialisable mais non suspendue au milieu du scénario. La piste n'ouvre ni ne modifie aucune gate.
 
 ## 8 novembre 2026 — Passerelle Aurora/NWN : M4 local
 
 M4 ajoute `forge_nwn_rules` : profil `forge.nwn-rules-profile@1`, RNG SplitMix64 à graine, combat
-d20 borné (initiative, AC, BAB, critiques, concealment, RD, immunités, sauvegardes), personnages,
-objets/équipement, trois sorts avec slots/repos, factions/IA et migration de quête. `M4Scenario`
-exécute le gardien, les sorts, le repos, la quête et la reprise idempotente sur `ab_proving`.
-Le ruleset natif `forge_gameplay` reste inchangé (21 tests ciblés). Le résultat est prouvé par
-40 tests `forge_nwn_rules`, 36 `forge_nwn_runtime`, 10 `forge_cli` et le rapport
-`Preuves-et-analyses/actives/aurora-bridge/m4/m4-report.json`. Les tables 2DA complètes, les
-attaques spéciales, les sorts complets, la perception/pathfinding, l'oracle NWN réel et la
-sauvegarde NWN générale restent hors preuve. La piste n'ouvre ni ne modifie aucune gate.
+d20 borné (initiative, AC, BAB, critiques, concealment, RD, immunités, sauvegardes, attaques
+spéciales), personnages, objets/équipement, magasin transactionnel, quatre sorts dont le sort de
+zone `sleep`, factions/IA avec garde de perception, et migration de quête. `M4Scenario` exécute le
+gardien, les sorts, le repos, la quête et la reprise idempotente sur `ab_proving`. Le ruleset natif
+`forge_gameplay` reste inchangé (21 tests ciblés). Le résultat est prouvé par 46 tests
+`forge_nwn_rules`, 43 `forge_nwn_runtime`, 10 `forge_cli` et le rapport
+`Preuves-et-analyses/actives/aurora-bridge/m4/m4-report.json`. Les tables 2DA complètes, les sorts
+complets, le pathfinding, l'oracle NWN réel et la sauvegarde NWN générale restent hors preuve. La
+piste n'ouvre ni ne modifie aucune gate.
 
 ## 8 novembre 2026 — Passerelle Aurora/NWN : M5 partiel
 
 M5 ajoute `M5Save` (`forge.aurora-m5-save@1`), la migration explicite M4 → M5, une trace
-reproductible (`forge.aurora-m5-trace@1`, 54 entrées sur `ab_proving`), `forge_cli aurora-m5` et
-`aurora-diff-oracle`. Les tests couvrent 3 cycles de transitions (6 transitions), la reprise sans
-fuite, une boucle VM bornée et la corruption de sauvegarde/profil. Le résultat est prouvé par
-46 tests `forge_nwn_rules`, 43 `forge_nwn_runtime`, 11 `forge_aurora_runtime`, 10 `forge_cli` et le
-rapport `m5-report.json` (SHA-256 `4a9d528b…`). M5 reste **partiel** : aucun module NWN hétérogène
-réel, preuve visuelle Studio, oracle NWN local, GLB du bundle, textes de licence transitifs ni
-archive finale.
+reproductible (`forge.aurora-m5-trace@1`, 54 entrées sur `ab_proving`), `forge_cli aurora-m5`,
+`aurora-diff-oracle`, `aurora-oracle-log` et le panneau Studio `AuroraM5Panel`. Les tests couvrent
+3 cycles de transitions (6 transitions), la reprise sans fuite, une boucle VM bornée, la corruption
+de sauvegarde/profil, un audit structurel de 3 modules réels (42/25/29 zones) et une empreinte
+headless de 9,2 Mo. Le résultat est prouvé par 46 tests `forge_nwn_rules`, 43
+`forge_nwn_runtime`, 11 `forge_aurora_runtime`, 10 `forge_cli` et le rapport `m5-report.json`
+(SHA-256 `4a9d528b…`). M5 reste **partiel** : aucun module NWN hétérogène réel, preuve visuelle
+Studio, oracle NWN local, GLB du bundle, textes de licence transitifs ni archive finale.
 La piste n'ouvre ni ne modifie aucune gate.

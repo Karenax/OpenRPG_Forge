@@ -19,6 +19,8 @@ fn fixture() -> (ExpectedProjection, ProjectionObservation) {
         asset,
         transform: Transform::IDENTITY,
         non_colliding: false,
+        scanned_collision_primitives: None,
+        stall_colliders: None,
         fish: false,
         source_physics: None,
         source_particles: None,
@@ -42,9 +44,12 @@ fn fixture() -> (ExpectedProjection, ProjectionObservation) {
             local_transform: Transform::IDENTITY,
         }],
         manual: vec![manual.clone()],
+        attached_fish: 0,
+        source_stall: false,
         building_count: 0,
     };
     let observed = ProjectionObservation {
+        scene_lighting_readback: None,
         wind: None,
         local_lights: None,
         environment: None,
@@ -81,6 +86,7 @@ fn fixture() -> (ExpectedProjection, ProjectionObservation) {
         manual: vec![ObservedManual {
             identity: manual,
             mesh_primitives: 2,
+            scanned_prototypes: None,
             registered_primitives: 2,
             source_physics: None,
             source_particles: None,
@@ -202,6 +208,7 @@ fn procedural_fixture() -> (ExpectedProceduralTerrain, ObservedProceduralTerrain
         committed_transitions: 0,
         pending: true,
         physics_ready: false,
+        physics_hold_reason: None,
         error: None,
         source_synchronized: false,
         hlod: ObservedTerrainHlod {
@@ -717,6 +724,7 @@ fn a_streamed_module_needs_its_exact_raster_residency_and_physics_observations()
         maximum_cpu_mesh_bytes: 12_100_000,
         pending: false,
         physics_ready: true,
+        physics_hold_reason: None,
         error: None,
         source_synchronized: true,
         hlod: ObservedTerrainHlod {
@@ -761,6 +769,7 @@ fn a_streamed_module_needs_its_exact_raster_residency_and_physics_observations()
     observed.manual.push(ObservedManual {
         identity: animated,
         mesh_primitives: 2,
+        scanned_prototypes: None,
         registered_primitives: 0,
         source_physics: None,
         source_particles: None,

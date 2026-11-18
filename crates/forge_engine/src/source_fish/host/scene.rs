@@ -7,7 +7,7 @@ use crate::{
 };
 use bevy::{prelude::*, render::storage::ShaderBuffer};
 use forge_assets::source_fish_payload::{OwnedFishProfile, SourceFishPayload, SourceFishProfile};
-use forge_core::AssetId;
+use forge_core::{AssetId, EntityId};
 use forge_project::zone_authoring::placements::{ManualPlacement, PlacementChanges};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -21,6 +21,7 @@ pub struct PreparedScene {
     profiles: Vec<PreparedProfile>,
     placements: Vec<ManualPlacement>,
     policies: BTreeMap<AssetId, Policy>,
+    parents: BTreeMap<EntityId, EntityId>,
 }
 
 /// Resources owned by one fish scene; shared lighting remains caller-owned.
@@ -39,19 +40,25 @@ pub struct Scene {
 pub fn profile_policy(profile: &impl SourceFishProfile) -> Result<Policy, String> {
     #[derive(serde::Deserialize)]
     struct Ranges {
-        draw_range_m: f64,
-        shadow_range_m: f64,
+        schema: Option<String>,
+        version: Option<u32>,
+        draw_range_m: Option<f64>,
+        shadow_range_m: Option<f64>,
     }
     let ranges: Ranges =
         serde_json::from_slice(profile.description()).map_err(|error| error.to_string())?;
-    Policy::new(
-        ranges.draw_range_m,
-        ranges.draw_range_m * 0.9,
-        ranges.shadow_range_m,
-        28.0,
-        0.88,
-    )
-    .map_err(str::to_owned)
+    match (ranges.draw_range_m, ranges.shadow_range_m) {
+        (Some(draw), Some(shadow)) => {
+            Policy::new(draw, draw * 0.9, shadow, 28.0, 0.88).map_err(str::to_owned)
+        }
+        (None, None)
+            if ranges.schema.as_deref() == Some("forge.tidewater.game-fish-source")
+                && ranges.version == Some(1) =>
+        {
+            Ok(crate::source_fish::SOURCE_PROP_POLICY)
+        }
+        _ => Err("Fish profile draw and shadow ranges are absent".into()),
+    }
 }
 
 /// Select this scene's fish placements without inventing a fallback resource.
@@ -215,7 +222,60 @@ impl PreparedScene {
             profiles: profiles.into_iter().map(|(profile, _)| profile).collect(),
             placements,
             policies,
+            parents: BTreeMap::new(),
         })
+    }
+
+    /// Interpret selected fish poses relative to an authored placement root.
+    pub fn with_attachments(
+        mut self,
+        parents: BTreeMap<EntityId, EntityId>,
+    ) -> Result<Self, String> {
+        if parents.is_empty() {
+            return Ok(self);
+        }
+        let fish: BTreeSet<_> = self
+            .placements
+            .iter()
+            .map(|placement| placement.id)
+            .collect();
+        if parents
+            .iter()
+            .any(|(child, parent)| !fish.contains(child) || fish.contains(parent))
+        {
+            return Err("Fish attachment identities do not match the scene".into());
+        }
+        self.parents = parents;
+        Ok(self)
+    }
+
+    pub(super) fn attachment_count(&self) -> usize {
+        self.parents.len()
+    }
+
+    fn attachment_entities(&self, world: &mut World) -> Result<BTreeMap<EntityId, Entity>, String> {
+        if self.parents.is_empty() {
+            return Ok(BTreeMap::new());
+        }
+        let required: BTreeSet<_> = self.parents.values().copied().collect();
+        let mut roots = BTreeMap::new();
+        for (entity, projection) in world
+            .query::<(Entity, &crate::ManualPlacementProjection)>()
+            .iter(world)
+        {
+            let id = projection.0.id;
+            if required.contains(&id) && roots.insert(id, entity).is_some() {
+                return Err("Fish attachment parent has more than one projected root".into());
+            }
+        }
+        if roots.len() != required.len() {
+            return Err("Fish attachment parent is missing from the scene".into());
+        }
+        Ok(self
+            .parents
+            .iter()
+            .map(|(&child, parent)| (child, roots[parent]))
+            .collect())
     }
 
     /// Install only the selected templates and materials into the existing world.
@@ -236,6 +296,7 @@ impl PreparedScene {
         {
             return Err("Fish scene asset stores are unavailable".into());
         }
+        let parents = self.attachment_entities(world)?;
         let wanted: BTreeSet<_> = self.placements.iter().map(|item| item.asset_id).collect();
         for profile in &self.profiles {
             for template in &profile.templates {
@@ -270,11 +331,12 @@ impl PreparedScene {
                     templates.extend(prepare::resident_templates(vec![template], hash));
                 }
             }
-            resident::stage_authored_with_policies(
+            resident::stage_with_parents(
                 templates,
                 world,
                 &materials,
                 &self.placements,
+                &parents,
                 &self.policies,
             )
         })();

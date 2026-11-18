@@ -49,7 +49,7 @@ def regular_input(source, path):
 def shared_source_inputs(source):
     """Use the common build map; retain the complete checkout inventory as evidence.
 
-    Hivemind orchestration/acquisition is outside the compiled-input map. The
+    Non-product orchestration is outside the compiled-input map. The
     common validator refuses Rust includes and Cargo paths back into that directory.
     Git state and informative checkout changes do not alter compiled source bytes.
     """
@@ -70,7 +70,7 @@ def shared_source_inputs(source):
             'tracked': tracked, 'modified': modified, 'untracked': untracked,
             'ignored_local_inputs': local, 'deleted': deleted, 'files': pins,
             'working_tree_files': checkout_files,
-            'source_scope_exclusions': ['scripts/hivemind/** (orchestration/acquisition only; product includes refused)']}
+            'source_scope_exclusions': list(validator.SOURCE_SCOPE_EXCLUSIONS)}
 
 
 def frontend_inputs(frontend):
@@ -158,19 +158,22 @@ def gate3_validator(source):
     return validator
 
 
-def shared_frontend(frontend, source_files, validator):
+def shared_frontend(frontend, source_files, validator, *, without_local_assets=False):
     closed = validator.validate_frontend(
-        frontend, source_files, require_assets=True,
-        expected_asset_manifest_sha256=validator.LOCAL_ASSET_MANIFEST_SHA256)
+        frontend, source_files, require_assets=not without_local_assets,
+        expected_asset_manifest_sha256=(None if without_local_assets else validator.LOCAL_ASSET_MANIFEST_SHA256))
+    if without_local_assets and closed['assets_present']:
+        raise ValueError('The requested Studio build unexpectedly contains local reference assets')
     return [{'path': name, **pin} for name, pin in sorted(closed['files'].items())]
 
 
 def studio_game_kit_state(root, frontend, receipt_sha256, source_manifest_sha256):
     """Recheck the staged kit and the two explicit Studio frontend inputs."""
+    import game_kit
     import stage_studio_game_kit
     staged = stage_studio_game_kit.verify_staged(root, frontend, receipt_sha256, source_manifest_sha256)
     if (not isinstance(staged, dict) or staged.get('schema') != 'forge.studio.game-kit-stage.v1' or
-            staged.get('status') != 'PRIVATE_STAGED_ONLY' or
+            staged.get('status') not in game_kit.KIT_STAGE_STATUSES or
             staged.get('kit_assembly_receipt_sha256') != receipt_sha256 or
             staged.get('source_manifest_sha256') != source_manifest_sha256 or
             staged.get('manifest_file') != 'forge-game-export-v1.json'):
@@ -341,6 +344,14 @@ def shared_rebuild(args):
     if bool(studio_kit_root) != bool(studio_kit_receipt) or (studio_kit_root and args.stage != 'studio'):
         raise ValueError('Studio game kit root and assembly receipt SHA must be supplied together for the Studio stage')
     validated_evidence = getattr(args, 'validated_gate3_evidence', None)
+    without_local_assets = getattr(args, 'without_local_assets', False)
+    if without_local_assets and (args.stage not in ('prepare-frontend', 'studio') or validated_evidence):
+        raise ValueError('--without-local-assets requires a new frontend or Studio build')
+    external_crt = getattr(args, 'windows_external_crt', False)
+    windows_native_stage = os.name == 'nt' and args.stage in (
+        'studio', 'module-game', 'delivery-cli', 'standalone-launcher')
+    if external_crt and (not windows_native_stage or validated_evidence):
+        raise ValueError('External Windows CRT requires a new native Windows build')
     shared_jobs = getattr(args, 'shared_jobs', None)
     if shared_jobs is not None:
         if type(shared_jobs) is not int or not 1 <= shared_jobs <= MAX_VALIDATED_CARGO_BUILD_JOBS:
@@ -399,13 +410,16 @@ def shared_rebuild(args):
                                      for scope in SOURCE_SCOPES):
             raise ValueError('Evidence and Cargo cache must stay outside build input scopes')
     env = shared_build_environment(cache)
+    env.pop('FORGE_STUDIO_WITHOUT_LOCAL_ASSETS', None)
+    if without_local_assets:
+        env['FORGE_STUDIO_WITHOUT_LOCAL_ASSETS'] = '1'
     release = cache / 'release'
-    if os.name == 'nt' and args.stage in ('studio', 'module-game', 'delivery-cli', 'standalone-launcher'):
+    if windows_native_stage:
         # Use an explicit Cargo target so the host proc macros keep their own CRT.
-        # All shipped entry points must start on Windows before any installer can run.
         target = 'x86_64-pc-windows-msvc'
         env.pop('CARGO_ENCODED_RUSTFLAGS', None)
-        env.update(CARGO_BUILD_TARGET=target, RUSTFLAGS='-C debuginfo=0 -C target-feature=+crt-static')
+        linkage = '-crt-static' if external_crt else '+crt-static'
+        env.update(CARGO_BUILD_TARGET=target, RUSTFLAGS=f'-C debuginfo=0 -C target-feature={linkage}')
         release = cache / target / 'release'
     if shared_jobs is not None:
         env['CARGO_BUILD_JOBS'] = str(shared_jobs)
@@ -479,8 +493,10 @@ def shared_rebuild(args):
                 shell = frontend_tools['pwsh']['path'] if frontend_tools else 'pwsh'
                 run([shell, '-NoProfile', '-File', source / 'scripts/Invoke-StudioTrunk.ps1',
                      '-Action', 'build'], source / 'apps/forge_studio', 'shared-frontend-build')
-                pins = shared_frontend(frontend, source_files, validator)
+                pins = shared_frontend(frontend, source_files, validator,
+                                       without_local_assets=without_local_assets)
             extra.update({'frontend': str(frontend), 'frontend_pins': pins,
+                          'without_local_assets': without_local_assets,
                           'cargo_build_jobs': env['CARGO_BUILD_JOBS'],
                           'configuration': 'canonical Trunk release and common post-build hooks'})
             if frontend_tools:
@@ -489,7 +505,8 @@ def shared_rebuild(args):
                                   'system linkers, toolchain libraries and OS dependencies are not inventoried'})
         elif args.stage == 'studio':
             prepared = json.loads((base / 'prepare-frontend-build-proof.json').read_bytes())
-            pins = adopted[1] if adopted else shared_frontend(frontend, source_files, validator)
+            pins = adopted[1] if adopted else shared_frontend(
+                frontend, source_files, validator, without_local_assets=without_local_assets)
             base_pins = pins
             overlay = {'forge-game-export-v1.json', 'forge-game-export-staging-receipt.json'}
             present_overlay = {pin['path'] for pin in pins if pin['path'] in overlay}
@@ -504,13 +521,15 @@ def shared_rebuild(args):
                     prepared.get('source_root') != str(source) or
                     prepared.get('source_manifest_sha256') != sha(manifest) or
                     not prepared.get('source_stable_during_build') or
+                    prepared.get('without_local_assets', False) is not without_local_assets or
                     prepared.get('frontend_pins') != base_pins):
                 raise ValueError('Shared frontend differs from its completed build receipt')
             if studio_kit_root:
                 if not present_overlay:
                     import stage_studio_game_kit
                     stage_studio_game_kit.stage(studio_kit_root, frontend, studio_kit_receipt, manifest_hash)
-                    pins = shared_frontend(frontend, source_files, validator)
+                    pins = shared_frontend(frontend, source_files, validator,
+                                           without_local_assets=without_local_assets)
                     if ({pin['path'] for pin in pins if pin['path'] in overlay} != overlay or
                             [pin for pin in pins if pin['path'] not in overlay] != base_pins):
                         raise ValueError('Studio base frontend changed while staging the game kit')
@@ -536,6 +555,7 @@ def shared_rebuild(args):
             if studio_kit and studio_game_kit_state(studio_kit_root, frontend, studio_kit_receipt, manifest_hash) != studio_kit:
                 raise ValueError('Studio game kit changed during native embedding')
             extra.update({'frontend': str(frontend), 'frontend_pins': pins,
+                          'without_local_assets': without_local_assets,
                      'entry_url': main_window['url'], 'authoring': True,
                      'cargo_build_jobs': env['CARGO_BUILD_JOBS'],
                      'tauri_config_sha256': sha(config),
@@ -746,11 +766,15 @@ def main():
     parser.add_argument('--temp-dir', type=Path, help='Explicit build temporary directory for standalone launcher')
     parser.add_argument('--launcher-jobs', type=int, default=1)
     parser.add_argument('--delivery-jobs', type=int, default=1)
+    parser.add_argument('--windows-external-crt', action='store_true',
+                        help='Build with the Windows MSVC runtime supplied by Microsoft separately')
     parser.add_argument('--shared-jobs', type=int,
                         help='Cargo jobs for a new shared frontend, Studio or module-game build '
                              '(defaults: 1, or 4 for module-game)')
     parser.add_argument('--frontend-offline', action='store_true',
                         help='Use only explicitly verified local tools for a fresh frontend build')
+    parser.add_argument('--without-local-assets', action='store_true',
+                        help='Exclude local reference assets from a shared frontend and Studio build')
     parser.add_argument('--frontend-trunk-version', help='Expected local Trunk version')
     parser.add_argument('--frontend-wasm-opt', type=Path, help='Absolute path to the local wasm-opt executable')
     parser.add_argument('--frontend-wasm-opt-sha256', help='Expected lowercase wasm-opt SHA-256')
@@ -773,6 +797,10 @@ def main():
         return
     if args.validated_gate3_evidence:
         parser.error('--validated-gate3-evidence requires --shared-working-tree')
+    if args.without_local_assets:
+        parser.error('--without-local-assets requires --shared-working-tree')
+    if args.windows_external_crt:
+        parser.error('--windows-external-crt requires --shared-working-tree')
     if args.shared_jobs is not None:
         parser.error('--shared-jobs requires --shared-working-tree')
     if args.frontend_offline or any(value is not None for value in (

@@ -184,13 +184,15 @@ fn verify_source_terrain(actual: &GraphicsObservation) -> Result<(), String> {
     Ok(())
 }
 
-const GRAPHICS_SCOPE_NAMES: [&str; 11] = [
+const GRAPHICS_SCOPE_NAMES: [&str; 13] = [
     "terrain",
     "models",
     "vegetation",
     "objects",
     "source_fragments",
     "fish",
+    "scanned_debris",
+    "source_stalls",
     "water",
     "breaker_lip",
     "spray",

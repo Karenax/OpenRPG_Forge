@@ -61,7 +61,8 @@ class StudioKitStageTests(unittest.TestCase):
         self.patches.enter_context(mock.patch.object(rebuild, '__file__', str(self.script)))
         self.patches.enter_context(mock.patch.object(rebuild, 'shared_source_inputs', return_value=self.source))
         self.patches.enter_context(mock.patch.object(rebuild, 'gate3_validator', return_value=validator))
-        self.patches.enter_context(mock.patch.object(rebuild, 'shared_frontend', side_effect=lambda path, *args: rebuild.frontend_inputs(path)))
+        self.patches.enter_context(mock.patch.object(rebuild, 'shared_frontend',
+            side_effect=lambda path, *args, without_local_assets=False: rebuild.frontend_inputs(path)))
         self.patches.enter_context(mock.patch.object(rebuild, 'release_stage_command',
             return_value=(['cargo','build','--release'], self.repo/'apps/forge_studio')))
         self.patches.enter_context(mock.patch.object(rebuild.subprocess, 'check_output', side_effect=self.fake_check_output))
@@ -148,6 +149,12 @@ class StudioKitStageTests(unittest.TestCase):
         for key, value in environment.items():
             self.assertEqual(self.environments[0][key], value)
             self.assertEqual(proof['build_environment'][key], value)
+
+    def test_studio_requires_same_local_asset_mode_as_prepared_frontend(self):
+        self.args.without_local_assets = True
+        with self.assertRaisesRegex(ValueError, 'Shared frontend differs'):
+            rebuild.shared_rebuild(self.args)
+        self.assertEqual(self.commands, [])
 
     def setup_module_game(self):
         self.args.stage = 'module-game'

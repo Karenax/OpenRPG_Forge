@@ -324,6 +324,41 @@ class LinuxStudioEvidenceTests(unittest.TestCase):
         self.assertEqual(proof['studio_sha256'],evidence.sha(self.core.output/'forge-studio'))
         self.assertEqual(proof['delivery_cli_sha256'],evidence.sha(self.core.output/'forge_delivery'))
 
+    def test_accepts_reviewed_overlay_and_binds_the_review_to_the_embedded_inventory(self):
+        out=self.core.output
+        kit=self.result['linux_game_kit']
+        status='REDISTRIBUTABLE_STAGED_ONLY'
+        source_revision=self.core.started['source_manifest_sha256']
+        review_path='licenses/redistribution-review.json'
+        review_pin='f'*64
+        manifest_path=out/'linux-game-kit-overlay-manifest.json'
+        save(manifest_path,{'schema':'forge.delivery.game-kit.v2','platform':'linux-x64',
+            'rights':'redistributable','source_revision':source_revision,'license_paths':[review_path],
+            'files':[{'path':review_path,'sha256':review_pin}]})
+        assembly_path=out/'linux-game-kit-assembly-receipt.json'
+        assembly={'schema':'forge.delivery.redistributable-game-kit-assembly.v1','status':status,
+            'platform':'linux-x64','source_revision':source_revision,
+            'kit_manifest_sha256':evidence.sha(manifest_path),'rights_review_sha256':review_pin}
+        stage_path=out/'linux-game-kit-overlay-stage.json'
+        stage=evidence.read_json(stage_path)
+
+        def save_overlay():
+            save(assembly_path,assembly)
+            stage.update(status=status,manifest_sha256=evidence.sha(manifest_path),
+                kit_assembly_receipt_sha256=evidence.sha(assembly_path))
+            save(stage_path,stage)
+            kit.update(status=status,manifest_sha256=stage['manifest_sha256'],
+                assembly_receipt_sha256=stage['kit_assembly_receipt_sha256'],
+                overlay_stage_sha256=evidence.sha(stage_path))
+            self.save_result()
+
+        save_overlay()
+        self.assertEqual(self.verify()['kit_manifest_sha256'],evidence.sha(manifest_path))
+        assembly['rights_review_sha256']='e'*64
+        save_overlay()
+        with self.assertRaisesRegex(ValueError,'redistribution review does not match'):
+            self.verify()
+
     def test_refuses_changed_binary_or_build_command(self):
         binary=self.core.output/'forge_delivery'; old=binary.read_bytes(); binary.write_bytes(old+b'changed')
         with self.assertRaisesRegex(ValueError,'executable or SDK dependency'): self.verify()

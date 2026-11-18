@@ -61,6 +61,10 @@ pub(crate) async fn fetch(path: &str, limit: usize) -> Result<Vec<u8>, String> {
     fetch_relative(&format!("./forge-kit/{path}"), limit).await
 }
 
+pub(crate) async fn fetch_game_export_kit() -> Result<Option<Vec<u8>>, String> {
+    fetch_relative_inner("./forge-game-export-v1.json", 8 * 1024 * 1024, true).await
+}
+
 pub(crate) async fn fetch_weather_candidate() -> Result<Vec<u8>, String> {
     fetch_relative("./forge-weather/candidate.json", 64 * 1024).await
 }

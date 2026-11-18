@@ -12,7 +12,7 @@ pub enum ManualPlacementCollisionGeometry {
     #[default]
     ConvexPrimitive,
     TriangleMesh,
-    /// Source BoxCollider with exact 1 x 1 x 0 local dimensions.
+    /// Source `BoxCollider` with exact 1 x 1 x 0 local dimensions.
     FlatBoxSurface,
 }
 

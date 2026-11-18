@@ -12,8 +12,12 @@ prepare_module_workspace --module MODULE.orpmod --area UUID \
 
 Le producteur désigne une seule zone du module et fournit le hash de l’archive
 reçue, calculé indépendamment. L’admission et la copie originale utilisent les
-mêmes octets immuables. La taille de cette archive est bornée à 256 Mio ; cette
+mêmes octets immuables. La taille de cette archive est bornée à 512 Mio ; cette
 borne ne constitue pas une mesure de la mémoire totale du décodage.
+
+Dans le Studio, le sélecteur lit le fichier par blocs de 8 Mio au plus. Il
+transmet les octets par IPC et l’hôte vérifie l’ordre et la taille annoncée
+avant d’admettre l’archive entière et de créer la révision du workspace.
 
 Le profil est limité à 128 assets du catalogue complet, incluant les textures et
 sons non placés et les parents des variantes. Il réserve ainsi au moins 128

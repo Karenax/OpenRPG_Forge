@@ -486,6 +486,9 @@ fn validate(source: &Source, publication: bool) -> Result<ModulePackageManifest>
             | forge_project::module_package::MODULE_FISH_API_VERSION
             | forge_project::module_package::MODULE_PLACEMENT_COMPANIONS_API_VERSION
             | forge_project::module_package::MODULE_HISTORICAL_MODELS_API_VERSION
+            | forge_project::module_package::MODULE_SCANNED_DEBRIS_API_VERSION
+            | forge_project::module_package::MODULE_SOURCE_STALL_API_VERSION
+            | forge_project::module_package::MODULE_CAPTURED_DIFFUSE_API_VERSION
     ) {
         return Err("Unsupported module API version".into());
     }
@@ -645,6 +648,22 @@ fn validate(source: &Source, publication: bool) -> Result<ModulePackageManifest>
     for binding in &module.ocean_inputs {
         crate::module_ocean::resolve(&module, binding.area_id, |path, maximum| {
             let file = actual_index.get(path).ok_or("Missing ocean resource")?;
+            source.document(file, maximum)
+        })?;
+    }
+    for binding in &module.scanned_debris {
+        crate::module_scanned_debris::resolve(&module, binding.area_id, |path, maximum| {
+            let file = actual_index
+                .get(path)
+                .ok_or("Missing scanned debris resource")?;
+            source.document(file, maximum)
+        })?;
+    }
+    for binding in &module.source_stalls {
+        crate::module_source_stall::read_layout(&module, binding, |path, maximum| {
+            let file = actual_index
+                .get(path)
+                .ok_or("Missing source stall resource")?;
             source.document(file, maximum)
         })?;
     }
@@ -873,7 +892,8 @@ mod tests {
     #[ignore = "Requires an explicitly selected private GLB and SHA-256"]
     fn private_large_mesh_passes_package_media_validation() {
         let path = std::env::var("OPENRPG_TEST_GLB").expect("OPENRPG_TEST_GLB is required");
-        let expected = std::env::var("OPENRPG_TEST_GLB_SHA256").expect("OPENRPG_TEST_GLB_SHA256 is required");
+        let expected =
+            std::env::var("OPENRPG_TEST_GLB_SHA256").expect("OPENRPG_TEST_GLB_SHA256 is required");
         let bytes = std::fs::read(path).unwrap();
         assert_eq!(forge_core::bytes_sha256(&bytes).to_string(), expected);
         validate_payload_bytes("model.glb", &bytes, Some(GovernedAssetKind::Mesh)).unwrap();

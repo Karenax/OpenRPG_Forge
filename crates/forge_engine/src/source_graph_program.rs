@@ -35,9 +35,9 @@ fn source_graph_declared_texture_count(source: &str) -> Result<usize, &'static s
 /// Construct every binding and validate shader ownership before registration.
 /// Any error leaves Assets<Shader> and registry unchanged. Forward and prepass
 /// sources each contain their vertex and fragment entry points.
-#[expect(
-    clippy::needless_pass_by_value,
-    reason = "Public admission consumes the source program bundle so it cannot be reused after shader registration"
+#[allow(
+    clippy::too_many_lines,
+    reason = "Validate both source stages and build the bindings before registering any shader."
 )]
 pub fn register_source_graph_material(
     assets: &mut Assets<Shader>,

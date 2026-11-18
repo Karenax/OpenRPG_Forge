@@ -18,6 +18,7 @@ use forge_delivery::{
 };
 use forge_project::{
     VisualQualityTier,
+    module_package::ModuleRights,
     workspace::{
         WorkspaceHead, ZoneReference,
         launcher::{
@@ -26,7 +27,10 @@ use forge_project::{
         },
     },
 };
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 fn put(root: &Path, path: &str, bytes: &[u8]) -> Entry {
     let destination = root.join(path);
@@ -94,16 +98,11 @@ fn kit(root: &Path) -> (GameKitManifest, Vec<u8>) {
         "licenses/rust-runtime-candidate/ASSET-NOTICES.json",
         &assets,
     ));
-    let license_paths = [
-        "licenses/THIRD_PARTY_NOTICES.md",
-        "licenses/rust-runtime-candidate/INDEX.json",
-        "licenses/rust-runtime-candidate/SUPPLEMENT-NOTICES.json",
-        "licenses/rust-runtime-candidate/FORGE-ORIGINAL-NOTICES.json",
-        "licenses/rust-runtime-candidate/ASSET-NOTICES.json",
-    ]
-    .into_iter()
-    .map(str::to_owned)
-    .collect();
+    let license_paths = files
+        .iter()
+        .filter(|entry| entry.path.starts_with("licenses/"))
+        .map(|entry| entry.path.clone())
+        .collect();
     let manifest = GameKitManifest {
         schema: "forge.delivery.game-kit.v1".into(),
         platform: if cfg!(target_os = "windows") {
@@ -197,6 +196,140 @@ fn inputs_with_image(
     (derived, hash, module)
 }
 
+fn redistributable_application(root: &Path, original: &Path) -> PathBuf {
+    let (mut descriptor, revision) = archive::inspect(original).unwrap();
+    let source = root.join("repack-application");
+    archive::extract(original, &source, &revision).unwrap();
+    let files: Vec<_> = descriptor
+        .files
+        .iter()
+        .map(|entry| entry.path.clone())
+        .collect();
+    descriptor.rights = Rights::Redistributable;
+    let output = root.join("redistributable-game.forgepack");
+    archive::pack_selected(&source, descriptor, &output, &files).unwrap();
+    output
+}
+
+#[test]
+fn redistributable_update_rejects_a_private_module_and_preserves_the_active_game() {
+    let fixture = fixture::Fixture::new();
+    let game = &fixture.first;
+    let private = fixture.application(game, "private", "Jeu privé", false);
+    let publishing = redistributable_application(fixture.root(), &private);
+    let root = fixture.installation("private-rights");
+    let mut plan = install::prepare(&root, &[private, game.archive.clone()]).unwrap();
+    plan.user_root = fixture.user.to_str().unwrap().into();
+    plan.command_id.clear();
+    plan.command_id = forge_delivery::hash(&forge_delivery::json(&plan).unwrap());
+    install::apply(&plan).unwrap();
+    let active = fs::read(root.join("installation.json")).unwrap();
+
+    let update = install::prepare(&root, &[publishing]).unwrap();
+    assert!(matches!(
+        install::apply(&update),
+        Err(error) if error.contains("Redistributable game includes private module")
+    ));
+    assert_eq!(fs::read(root.join("installation.json")).unwrap(), active);
+    assert_eq!(standalone::game_view(&root).unwrap().game_id, game.project);
+}
+
+#[test]
+fn reviewed_kit_builds_a_redistributable_candidate_with_public_modules() {
+    use std::fmt::Write as _;
+
+    let fixture = fixture::Fixture::new();
+    let kit_root = fixture.root().join("reviewed-kit");
+    let (mut manifest, _) = kit(&kit_root);
+    manifest.schema = "forge.delivery.game-kit.v2".into();
+    manifest.rights = Rights::Redistributable;
+    assert!(VerifiedGameKit::read(&kit_root, &serde_json::to_vec(&manifest).unwrap()).is_err());
+    manifest.files.sort_unstable_by(|a, b| a.path.cmp(&b.path));
+    let mut inventory = String::new();
+    for entry in &manifest.files {
+        writeln!(
+            inventory,
+            "{}\t{}\t{}",
+            entry.path, entry.bytes, entry.sha256
+        )
+        .unwrap();
+    }
+    let review = serde_json::json!({
+        "schema":"forge.delivery.game-kit-rights-review.v1",
+        "platform":manifest.platform,
+        "source_revision":manifest.source_revision,
+        "files_sha256":bytes_sha256(inventory.as_bytes()),
+        "evidence_sha256":bytes_sha256(b"Review of original test fixture files"),
+    });
+    let review_path = "licenses/redistribution-review.json";
+    manifest.files.push(put(
+        &kit_root,
+        review_path,
+        &serde_json::to_vec(&review).unwrap(),
+    ));
+    manifest.license_paths.push(review_path.into());
+    let kit = VerifiedGameKit::read(&kit_root, &serde_json::to_vec(&manifest).unwrap()).unwrap();
+
+    let (game, workspace, mut module) = inputs(&fixture.first);
+    let output = fixture.root().join("redistributable-candidates");
+    assert!(matches!(
+        build_candidate(&output, &kit, &game, workspace, std::slice::from_ref(&module)),
+        Err(error) if error.contains("Module is private")
+    ));
+    assert!(!output.exists());
+    let (mut descriptor, revision) = archive::inspect(&module.package_path).unwrap();
+    let module_source = fixture.root().join("public-module-source");
+    archive::extract(&module.package_path, &module_source, &revision).unwrap();
+    fs::remove_file(module_source.join("package-manifest.json")).unwrap();
+    let mut module_manifest =
+        forge_delivery::orpmod::validate_directory(&module_source, false).unwrap();
+    module_manifest.provenance.rights = ModuleRights::Redistributable;
+    fs::write(
+        module_source.join("module.json"),
+        module_manifest.to_bytes().unwrap(),
+    )
+    .unwrap();
+    descriptor.rights = Rights::Redistributable;
+    let public_module = fixture.root().join("public-module.orpmod");
+    let (_, revision) =
+        forge_delivery::orpmod::pack(&module_source, descriptor, &public_module, true).unwrap();
+    module.package_path = public_module;
+    module.transport_manifest_sha256 = revision;
+    module.package_sha256 =
+        ContentHash::parse(&forge_delivery::file_hash(&module.package_path).unwrap()).unwrap();
+
+    let candidate = build_candidate(&output, &kit, &game, workspace, &[module]).unwrap();
+    assert_eq!(candidate.rights, Rights::Redistributable);
+    assert_eq!(
+        archive::inspect(&candidate.directory.join(candidate.application_file))
+            .unwrap()
+            .0
+            .rights,
+        Rights::Redistributable
+    );
+    let installer = candidate.directory.join(candidate.installer_file);
+    let destination = fixture.installation("reviewed-candidate");
+    let install =
+        prepare_candidate_install(&candidate.directory, &installer, &destination).unwrap();
+    apply_candidate_install(&install).unwrap();
+    assert_eq!(
+        standalone::game_view(&destination).unwrap().game_id,
+        fixture.first.project
+    );
+
+    let replacement = put(&kit_root, "bin/runtime", b"different reviewed runtime");
+    let entry = manifest
+        .files
+        .iter_mut()
+        .find(|entry| entry.path == replacement.path)
+        .unwrap();
+    *entry = replacement;
+    assert!(matches!(
+        VerifiedGameKit::read(&kit_root, &serde_json::to_vec(&manifest).unwrap()),
+        Err(error) if error == "Redistribution review does not cover this game kit"
+    ));
+}
+
 #[test]
 #[allow(
     clippy::too_many_lines,
@@ -206,6 +339,14 @@ fn private_candidate_checks_kit_notices_module_closure_and_installation() {
     let fixture = fixture::Fixture::new();
     let kit_root = fixture.root().join("game-kit");
     let (manifest, manifest_bytes) = kit(&kit_root);
+    let mut incomplete = manifest.clone();
+    incomplete
+        .license_paths
+        .retain(|path| path != "licenses/third_party/example/LICENSE");
+    assert!(matches!(
+        VerifiedGameKit::read(&kit_root, &serde_json::to_vec(&incomplete).unwrap()),
+        Err(error) if error == "Game kit licence inventory is incomplete or duplicated"
+    ));
     let verified = VerifiedGameKit::read(&kit_root, &manifest_bytes).unwrap();
     let (game, workspace, module) = inputs(&fixture.first);
     let output = fixture.root().join("game-candidates");
@@ -257,6 +398,10 @@ fn private_candidate_checks_kit_notices_module_closure_and_installation() {
     }
     assert!(!candidate.directory.join(".application-source").exists());
     let mut archives = vec![candidate.directory.join(candidate.application_file)];
+    assert_eq!(
+        archive::inspect(&archives[0]).unwrap().0.license_paths,
+        manifest.license_paths
+    );
     archives.extend(
         candidate
             .modules

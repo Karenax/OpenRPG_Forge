@@ -19,6 +19,9 @@ Unicode true
 !include "LogicLib.nsh"
 !include "FileFunc.nsh"
 !include "x64.nsh"
+!ifdef STUDIO_EXTERNAL_CRT_MIN_VERSION
+  !include "WordFunc.nsh"
+!endif
 
 !ifndef PAYLOAD_DIR
   !error "PAYLOAD_DIR must point to the frozen installer payload"
@@ -38,8 +41,14 @@ Unicode true
 !ifndef STUDIO_DELIVERY_INDEX
   !error "STUDIO_DELIVERY_INDEX must name the verified delivery index"
 !endif
-!ifndef STUDIO_WEBVIEW2
-  !error "STUDIO_WEBVIEW2 must name the pinned offline prerequisite"
+!ifdef STUDIO_EXTERNAL_WEBVIEW2
+  !ifdef STUDIO_WEBVIEW2
+    !error "Choose either STUDIO_EXTERNAL_WEBVIEW2 or STUDIO_WEBVIEW2"
+  !endif
+!else
+  !ifndef STUDIO_WEBVIEW2
+    !error "STUDIO_WEBVIEW2 must name the pinned offline prerequisite"
+  !endif
 !endif
 !define APPLICATION_PACKAGE "forge-studio.forgepack"
 
@@ -55,7 +64,6 @@ Unicode true
 !define INTEGRATION_MARKER ".studio-classic-installer-integrated"
 !define OWNERSHIP_MARKER ".studio-classic-installer-owned"
 !define START_MENU_FOLDER "OpenRPG Forge Studio"
-!define WEBVIEW2_GUID "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
 
 Name "${PRODUCT_NAME}"
 OutFile "${OUTPUT_FILE}"
@@ -109,8 +117,9 @@ Var ErrorMessage
 Var PackageCount
 Var FindHandle
 Var FindName
-Var WebViewVersion
+!ifndef STUDIO_EXTERNAL_WEBVIEW2
 Var SignaturePath
+!endif
 Var LegacyInstallRoot
 
 Function .onInit
@@ -219,31 +228,19 @@ FunctionEnd
 !insertmacro DefineCommandFunctions "un."
 
 Function DetectWebView2
-  StrCpy $WebViewVersion ""
-  ; EdgeUpdate registers the Evergreen WebView2 runtime in both views. The
-  ; 32-bit view is the WOW6432Node registration on this Windows installation.
-  ; EdgeUpdate can also register 0.0.0.0 for an absent runtime.
-  SetRegView 32
-  ReadRegStr $WebViewVersion HKLM "SOFTWARE\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_GUID}" "pv"
-  ${If} $WebViewVersion == ""
-  ${OrIf} $WebViewVersion == "0.0.0.0"
-    ReadRegStr $WebViewVersion HKCU "Software\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_GUID}" "pv"
+  ; The SDK resolves Evergreen and per-application policies under this account.
+  nsExec::ExecToStack /TIMEOUT=15000 '"$PLUGINSDIR\payload\forge-delivery.exe" check-webview2'
+  Pop $CommandResult
+  Pop $CommandOutput
+  ${If} $CommandResult == 0
+    Push "WebView2 résolu par le chargeur : $CommandOutput"
+  ${Else}
+    Push "WebView2 non résolu par le chargeur ($CommandResult) : $CommandOutput"
   ${EndIf}
-  SetRegView 64
-  ${If} $WebViewVersion == ""
-  ${OrIf} $WebViewVersion == "0.0.0.0"
-    ReadRegStr $WebViewVersion HKLM "SOFTWARE\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_GUID}" "pv"
-  ${EndIf}
-  ${If} $WebViewVersion == ""
-  ${OrIf} $WebViewVersion == "0.0.0.0"
-    ReadRegStr $WebViewVersion HKCU "Software\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_GUID}" "pv"
-  ${EndIf}
-  ${If} $WebViewVersion == "0.0.0.0"
-    StrCpy $WebViewVersion ""
-  ${EndIf}
-  SetRegView 32
+  Call AppendLog
 FunctionEnd
 
+!ifndef STUDIO_EXTERNAL_WEBVIEW2
 Function VerifyWebView2Signature
   StrCpy $SignaturePath "$PLUGINSDIR\payload\${WEBVIEW2_PACKAGE}"
   IfFileExists "$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" verify_webview_signature_present
@@ -263,6 +260,7 @@ Function VerifyWebView2Signature
   Call RunCommand
   System::Call 'kernel32::SetEnvironmentVariableW(w "FORGE_WEBVIEW2_INSTALLER", w "")i.r0'
 FunctionEnd
+!endif
 
 Function CollectPackages
   StrCpy $PackageCount "0"
@@ -294,11 +292,13 @@ FunctionEnd
 
 Function InstallWebView2IfMissing
   Call DetectWebView2
-  ${If} $WebViewVersion != ""
-    Push "WebView2 déjà enregistré : $WebViewVersion"
-    Call AppendLog
+  ${If} $CommandResult == 0
     Return
   ${EndIf}
+!ifdef STUDIO_EXTERNAL_WEBVIEW2
+  Push "Microsoft Edge WebView2 Runtime est requis. Installez ou réparez le runtime Evergreen x64 depuis https://developer.microsoft.com/microsoft-edge/webview2/ puis relancez le programme d'installation du Studio."
+  Call InstallerFailure
+!else
   Push "WebView2 absent : vérification de l'installeur Microsoft hors ligne."
   Call AppendLog
   IfFileExists "$PLUGINSDIR\payload\${WEBVIEW2_PACKAGE}" install_webview_signature
@@ -310,12 +310,11 @@ Function InstallWebView2IfMissing
   Push $Command
   Call RunCommand
   Call DetectWebView2
-  ${If} $WebViewVersion == ""
-    Push "WebView2 a retourné un succès mais reste absent du registre."
+  ${If} $CommandResult != 0
+    Push "L’installeur Microsoft s’est terminé, mais le chargeur ne trouve pas WebView2. Réparez WebView2 puis relancez l’installation du Studio."
     Call InstallerFailure
   ${EndIf}
-  Push "WebView2 installé : $WebViewVersion"
-  Call AppendLog
+!endif
 FunctionEnd
 
 Function CopyRootBootstrap
@@ -431,14 +430,52 @@ Function LaunchForge
   Exec '"$INSTDIR\forge-delivery.exe" launch "$INSTDIR" editor'
 FunctionEnd
 
+!ifdef STUDIO_EXTERNAL_CRT_MIN_VERSION
+Function RequireExternalCrtDll
+  Pop $6
+  ClearErrors
+  ${DisableX64FSRedirection}
+  GetDLLVersion "$SYSDIR\$6" $0 $1
+  ${EnableX64FSRedirection}
+  ${IfNot} ${Errors}
+    IntOp $2 $0 >> 16
+    IntOp $3 $0 & 0xffff
+    IntOp $4 $1 >> 16
+    IntOp $5 $1 & 0xffff
+    IntOp $2 $2 & 0xffff
+    IntOp $4 $4 & 0xffff
+    ${VersionCompare} "$2.$3.$4.$5" "${STUDIO_EXTERNAL_CRT_MIN_VERSION}" $0
+    ${If} $0 != 2
+      Return
+    ${EndIf}
+  ${EndIf}
+  Push "Le runtime Microsoft Visual C++ v14 x64 (${STUDIO_EXTERNAL_CRT_MIN_VERSION} ou ultérieur) est requis. Installez-le depuis https://aka.ms/vc14/vc_redist.x64.exe puis relancez le programme d'installation du Studio."
+  Call InstallerFailure
+FunctionEnd
+
+Function RequireExternalCrt
+  Push "vcruntime140.dll"
+  Call RequireExternalCrtDll
+  Push "vcruntime140_1.dll"
+  Call RequireExternalCrtDll
+FunctionEnd
+!endif
+
 Section "OpenRPG Forge"
   Call EnsureLog
   Push "Début de l'installation dans $INSTDIR"
   Call AppendLog
 
+!ifdef STUDIO_EXTERNAL_CRT_MIN_VERSION
+  Call RequireExternalCrt
+!endif
   SetOutPath "$PLUGINSDIR\payload"
   DetailPrint "Extraction des composants hors ligne..."
   File /oname=forge-delivery.exe "${STUDIO_DELIVERY_CLI}"
+!ifdef STUDIO_EXTERNAL_WEBVIEW2
+  DetailPrint "Vérification du runtime Microsoft Edge WebView2..."
+  Call InstallWebView2IfMissing
+!endif
   File /oname=${APPLICATION_PACKAGE} "${STUDIO_PACKAGE}"
   ; Refuse foreign roots and recover an interruption after the first
   ; activation only when the active Studio package matches this installer.
@@ -448,10 +485,11 @@ Section "OpenRPG Forge"
   Call RunCommand
   studio_root_ready:
   File /oname=delivery.json "${STUDIO_DELIVERY_INDEX}"
+!ifndef STUDIO_EXTERNAL_WEBVIEW2
   File /oname=${WEBVIEW2_PACKAGE} "${STUDIO_WEBVIEW2}"
-
   DetailPrint "Vérification et installation de WebView2 si nécessaire..."
   Call InstallWebView2IfMissing
+!endif
   DetailPrint "Vérification des packages Forge..."
   Call VerifyFixedPackages
   Call CollectPackages

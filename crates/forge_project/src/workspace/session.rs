@@ -140,11 +140,9 @@ impl WorkspaceSession {
             .iter()
             .find(|r| r.request.command_id == request.command_id)
         {
-            return if receipt.request == *request {
-                Ok(receipt.clone())
-            } else {
-                Err(SessionError::CommandReuse)
-            };
+            return (receipt.request == *request)
+                .then(|| receipt.clone())
+                .ok_or(SessionError::CommandReuse);
         }
         if request.base_revision != self.head.revision
             || request.base_hash != self.head.content_hash()?

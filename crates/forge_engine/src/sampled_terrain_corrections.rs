@@ -101,6 +101,18 @@ impl Corrections {
         ))
     }
 
+    /// The Bevy material supplies its own binding layout, including the neutral
+    /// texture slot. A terrain with no corrections can use the source evaluator.
+    pub(crate) fn material_shader(&self, source: &str, binding: u32) -> Result<String, String> {
+        if [self.width, self.height] == [1, 1]
+            && self.elevation.to_bits() == 0.0_f32.to_bits()
+            && source.matches("fn terrainHeightAt(").count() == 1
+        {
+            return Ok(source.to_owned());
+        }
+        self.shader(source, "#{MATERIAL_BIND_GROUP}", binding)
+    }
+
     fn functions(&self) -> String {
         let Some(domain) = &self.domain else {
             // Preserve the exact source program for the established reference path.
@@ -273,5 +285,12 @@ mod tests {
         let empty = Corrections::from_document(&doc).unwrap();
         assert_eq!((empty.width, empty.height, empty.bytes.len()), (1, 1, 4));
         assert!(empty.functions().contains("vec2f(11.0, 19.0)"));
+        let source = "fn terrainHeightAt(xz:vec2f)->f32 { return xz.x; }";
+        let elevated = empty.material_shader(source, 102).unwrap();
+        assert!(elevated.contains("const forgeBaseElevation:f32=3.0;"));
+        doc.height_sampling.base_elevation_m = 0.0;
+        let neutral = Corrections::from_document(&doc).unwrap();
+        assert_eq!(neutral.material_shader(source, 102).unwrap(), source);
+        assert!(neutral.material_shader("", 102).is_err());
     }
 }

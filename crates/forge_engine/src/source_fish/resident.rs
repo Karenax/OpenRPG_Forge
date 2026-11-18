@@ -98,7 +98,15 @@ pub fn stage_authored(
         .iter()
         .map(|placement| (placement.asset_id, policy))
         .collect();
-    stage_authored_impl(templates, world, materials, placements, &policies, policy)
+    stage_authored_impl(
+        templates,
+        world,
+        materials,
+        placements,
+        &BTreeMap::new(),
+        &policies,
+        policy,
+    )
 }
 
 /// Stage authored fish using the explicitly supplied policy for each asset.
@@ -114,12 +122,32 @@ pub fn stage_authored_with_policies(
     placements: &[ManualPlacement],
     policies: &BTreeMap<AssetId, Policy>,
 ) -> Result<ResidentFishProps, String> {
+    stage_with_parents(
+        templates,
+        world,
+        materials,
+        placements,
+        &BTreeMap::new(),
+        policies,
+    )
+}
+
+pub(super) fn stage_with_parents(
+    templates: Vec<Template>,
+    world: &mut World,
+    materials: &BTreeMap<AssetId, Handle<FishMaterial>>,
+    placements: &[ManualPlacement],
+    parents: &BTreeMap<EntityId, Entity>,
+    policies: &BTreeMap<AssetId, Policy>,
+) -> Result<ResidentFishProps, String> {
     let fallback = policies
         .values()
         .next()
         .copied()
         .ok_or("Fish policies absent")?;
-    stage_authored_impl(templates, world, materials, placements, policies, fallback)
+    stage_authored_impl(
+        templates, world, materials, placements, parents, policies, fallback,
+    )
 }
 
 // Keep preflight and publication together so rejected batches never publish roots.
@@ -129,6 +157,7 @@ fn stage_authored_impl(
     world: &mut World,
     materials: &BTreeMap<AssetId, Handle<FishMaterial>>,
     placements: &[ManualPlacement],
+    parents: &BTreeMap<EntityId, Entity>,
     policies: &BTreeMap<AssetId, Policy>,
     fallback: Policy,
 ) -> Result<ResidentFishProps, String> {
@@ -230,21 +259,31 @@ fn stage_authored_impl(
                     GlobalTransform::default(),
                     Visibility::Inherited,
                     group::Member,
+                ))
+                .id();
+            let parent = parents.get(&placement.id);
+            if let Some(&parent) = parent {
+                world.entity_mut(root).insert(ChildOf(parent));
+            } else {
+                world.entity_mut(root).insert((
                     ManualPlacementProjection(placement.clone()),
                     ManualPlacementCollisionNotRequired(placement.id),
                     ManualPlacementCollisionExpected {
                         placement: placement.id,
                         primitives: Vec::new(),
                     },
-                ))
-                .id();
+                ));
+                resident
+                    .authored
+                    .push((root, placement.id, placement.transform));
+            }
             let handles: [_; 2] = std::array::from_fn(|_| {
                 let mut material = prepared[&asset].clone();
                 material.clock = instance_clock.clone();
                 world.resource_mut::<Assets<FishMaterial>>().add(material)
             });
             let parts = std::array::from_fn(|lod| {
-                world
+                let part = world
                     .spawn((
                         Mesh3d(meshes[lod].clone()),
                         MeshMaterial3d(handles[lod].clone()),
@@ -252,9 +291,14 @@ fn stage_authored_impl(
                         GlobalTransform::default(),
                         Visibility::Hidden,
                         ChildOf(root),
-                        ManualPlacementPart(placement.id),
                     ))
-                    .id()
+                    .id();
+                if parent.is_none() {
+                    world
+                        .entity_mut(part)
+                        .insert(ManualPlacementPart(placement.id));
+                }
+                part
             });
             for lod in 0..2 {
                 resident
@@ -262,9 +306,6 @@ fn stage_authored_impl(
                     .insert(parts[lod], (root, meshes[lod].id(), handles[lod].id()));
             }
             resident.materials.extend(handles.iter().cloned());
-            resident
-                .authored
-                .push((root, placement.id, placement.transform));
             resident.instances.push(Instance {
                 root,
                 parts,
@@ -447,6 +488,26 @@ pub fn stage_instances(
 }
 
 impl ResidentFishProps {
+    pub(super) fn attachments_ready(&self, world: &World, expected: usize) -> bool {
+        let mut found = 0;
+        for instance in &self.instances {
+            if let Some(parent) = world.get::<ChildOf>(instance.root) {
+                found += 1;
+                let pose = world
+                    .get::<GlobalTransform>(parent.parent())
+                    .zip(world.get::<Transform>(instance.root));
+                let global = world.get::<GlobalTransform>(instance.root);
+                if !pose.zip(global).is_some_and(|((parent, local), global)| {
+                    global
+                        .to_matrix()
+                        .abs_diff_eq(parent.to_matrix() * local.to_matrix(), 1e-4)
+                }) {
+                    return false;
+                }
+            }
+        }
+        found == expected
+    }
     /// Confirm that this resident still owns the exact root, mesh and material.
     #[must_use]
     pub fn owns_part(&self, world: &World, entity: Entity) -> bool {

@@ -1,6 +1,7 @@
 use crate::Result;
 use serde::{Deserialize, Serialize};
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
 };
@@ -209,6 +210,25 @@ pub fn confined(root: &Path, value: &str) -> Result<PathBuf> {
         check_existing(&result)?;
     }
     Ok(result)
+}
+
+/// Prepare an already admitted executable path for native process creation.
+#[cfg_attr(
+    not(windows),
+    allow(
+        clippy::unnecessary_wraps,
+        reason = "Windows path preparation can fail"
+    )
+)]
+pub(crate) fn executable_path(path: &Path) -> Result<Cow<'_, Path>> {
+    #[cfg(windows)]
+    {
+        windows_path_guard::executable_path(path)
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(Cow::Borrowed(path))
+    }
 }
 
 fn check_existing(path: &Path) -> Result<()> {

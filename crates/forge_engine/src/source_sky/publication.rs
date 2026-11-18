@@ -4,7 +4,7 @@
 //! Shared solar publication, preserving the existing clock, atmosphere cadence and ABI.
 use super::{SkyMaterial, frame_lighting::FrameLighting, solar, solar_lighting};
 use crate::{source_atmosphere as atmosphere, source_environment::scene::ResidentEnvironment};
-use bevy::prelude::*;
+use bevy::{ecs::query::QueryFilter, prelude::*};
 
 /// One clock. A requested starting pose waits for the acquired atmosphere's first
 /// completed readback; a new pose then primes its own readback before advancing.
@@ -223,21 +223,34 @@ pub fn sync_directional_lights(
     scene: &crate::source_lighting::SceneLighting,
     frame: solar::Frame,
 ) {
+    sync_directional_lights_with::<()>(world, scene, frame);
+}
+
+pub(crate) fn sync_directional_lights_with<F: QueryFilter>(
+    world: &mut World,
+    scene: &crate::source_lighting::SceneLighting,
+    frame: solar::Frame,
+) {
     let color = scene.sun_color.truncate();
     let strength = color.max_element().max(0.00001);
+    let color = Color::linear_rgb(color.x / strength, color.y / strength, color.z / strength);
+    let illuminance = 10000.0 * strength / 11.0;
     let direction = -frame.key.as_vec3();
     let up = if direction.dot(Vec3::Y).abs() > 0.999 {
         Vec3::Z
     } else {
         Vec3::Y
     };
+    let transform = Transform::default().looking_to(direction, up);
     for (mut light, mut pose) in world
-        .query::<(&mut DirectionalLight, &mut Transform)>()
+        .query_filtered::<(&mut DirectionalLight, &mut Transform), F>()
         .iter_mut(world)
     {
-        light.color = Color::linear_rgb(color.x / strength, color.y / strength, color.z / strength);
-        light.illuminance = 10000.0 * strength / 11.0;
-        *pose = Transform::default().looking_to(direction, up);
+        if light.color != color || light.illuminance.to_bits() != illuminance.to_bits() {
+            light.color = color;
+            light.illuminance = illuminance;
+        }
+        pose.set_if_neq(transform);
     }
 }
 
@@ -251,6 +264,53 @@ pub fn validate_camera_height(camera_y: f64) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{source_lighting::SceneLighting, visual_valley::VisualValleySun};
+
+    #[test]
+    fn solar_sync_only_changes_its_sun_and_skips_identical_frames() {
+        let mut world = World::new();
+        let sun = world
+            .spawn((
+                VisualValleySun,
+                DirectionalLight::default(),
+                Transform::default(),
+            ))
+            .id();
+        let authored_light = DirectionalLight {
+            color: Color::linear_rgb(0.1, 0.2, 0.7),
+            illuminance: 1234.0,
+            ..default()
+        };
+        let authored_pose = Transform::from_translation(Vec3::new(1.0, 2.0, 3.0));
+        let authored = world.spawn((authored_light.clone(), authored_pose)).id();
+        let frame = *solar::Clock::new(default()).unwrap().frame();
+        let scene = SceneLighting::new([0.0, 1.0, 0.0], [11.0, 5.5, 0.0], [[0.0; 3]; 9]).unwrap();
+
+        world.clear_trackers();
+        sync_directional_lights_with::<With<VisualValleySun>>(&mut world, &scene, frame);
+        let sun_light = world.entity(sun).get_ref::<DirectionalLight>().unwrap();
+        assert_eq!(sun_light.color, Color::linear_rgb(1.0, 0.5, 0.0));
+        assert_eq!(sun_light.illuminance.to_bits(), 10000.0_f32.to_bits());
+        assert!(sun_light.is_changed());
+        let light = world
+            .entity(authored)
+            .get_ref::<DirectionalLight>()
+            .unwrap();
+        assert_eq!(light.color, authored_light.color);
+        assert_eq!(
+            light.illuminance.to_bits(),
+            authored_light.illuminance.to_bits()
+        );
+        assert_eq!(world.get::<Transform>(authored), Some(&authored_pose));
+        assert!(!light.is_changed());
+
+        world.clear_trackers();
+        sync_directional_lights_with::<With<VisualValleySun>>(&mut world, &scene, frame);
+        let sun = world.entity(sun);
+        assert!(!sun.get_ref::<DirectionalLight>().unwrap().is_changed());
+        assert!(!sun.get_ref::<Transform>().unwrap().is_changed());
+    }
+
     #[test]
     fn solar_publication_clock_primes_captured_then_requested_pose_before_running() {
         let initial = solar::Settings::default();

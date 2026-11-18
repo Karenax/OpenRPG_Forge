@@ -49,6 +49,7 @@ struct SnapshotBinding<'a> {
     bounds: &'a Arc<WorldEnvelopes>,
     population: &'a Arc<ImportedPopulation>,
     snapshot: &'a Arc<ImportedTerrainSnapshot>,
+    footprints: streaming::SnapshotSelection,
 }
 
 /// The complete population and terrain snapshot have already passed exact
@@ -57,6 +58,7 @@ pub(super) struct BoundSources {
     bounds: Arc<WorldEnvelopes>,
     population: Arc<ImportedPopulation>,
     snapshot: Arc<ImportedTerrainSnapshot>,
+    footprints: streaming::SnapshotSelection,
 }
 
 impl BoundSources {
@@ -81,12 +83,16 @@ impl BoundSources {
         }
         let selection = {
             let _profile = crate::cpu_timing::Span::new("plants.partition.world_select");
-            streaming::select(
-                &self.population,
-                self.snapshot.as_ref(),
-                admission,
-                &self.bounds.prototypes,
-            )?
+            if self.footprints.matches_grid(admission.policy) {
+                self.footprints.select(admission)?
+            } else {
+                streaming::select(
+                    &self.population,
+                    self.snapshot.as_ref(),
+                    admission,
+                    &self.bounds.prototypes,
+                )?
+            }
         };
         if selection.plants.len() != self.bounds.pins.len() {
             return Err("Bound plant population changed".into());
@@ -111,11 +117,12 @@ pub(super) struct VerifiedCollisionSource {
 }
 
 impl<'a> VerifiedSelection<'a> {
-    pub(super) fn bind_sources(&self) -> Option<BoundSources> {
-        self.snapshot_binding.as_ref().map(|binding| BoundSources {
+    pub(super) fn bind_sources(&mut self) -> Option<BoundSources> {
+        self.snapshot_binding.take().map(|binding| BoundSources {
             bounds: Arc::clone(binding.bounds),
             population: Arc::clone(binding.population),
             snapshot: Arc::clone(binding.snapshot),
+            footprints: binding.footprints,
         })
     }
     pub(super) fn matches_pins(&self, pins: &Arc<BTreeMap<EntityId, Pin>>) -> bool {
@@ -238,6 +245,12 @@ impl WorldEnvelopes {
             bounds: self,
             population,
             snapshot,
+            footprints: streaming::SnapshotSelection::prepare(
+                Arc::clone(population),
+                Arc::clone(snapshot),
+                admission,
+                &self.prototypes,
+            )?,
         });
         Ok(verified)
     }

@@ -253,7 +253,7 @@ fn refresh(world: &mut World, state: &mut State, publish: bool) -> Result<bool, 
             terrain_hash: terrain.source,
             head_hash: state.head,
         };
-        let selected = {
+        let mut selected = {
             let _profile = crate::cpu_timing::Span::new("plants.partition.bounds_select");
             if let Some(bound) = &state.bound_sources {
                 bound.select(admission)?
@@ -347,20 +347,14 @@ fn observe_ready(
         .as_mut()
         .map(|grass| grass.refresh(world, camera_entity))
         .transpose()?;
-    let render_ready = {
+    let (render_ready, token) = {
         let _profile = crate::cpu_timing::Span::new("plants.render_ready");
-        state.published && state.render.ready(world)
+        state.render.readiness_and_inventory(world, state.published)
     };
     let ready = render_ready
         && collisions_ready
         && state.frame_ready
         && grass.as_ref().is_none_or(|grass| grass.ready);
-    let token = render_inventory::acquire(
-        world,
-        state.owner,
-        state.render.identity(),
-        state.render.generation(),
-    );
     let surfaces = if state.source_lighting {
         let mut observed = crate::source_lighting::surfaces::live::observe(world, token.as_ref())
             .ok_or("Admitted source surface scene absent")?;
@@ -379,7 +373,7 @@ fn observe_ready(
     let (species, species_resources) =
         super::species::observe_with_resources(world, state, collisions_ready);
     let ready = ready && species.as_ref().is_none_or(|species| species.ready);
-    let resources = simulation_resources_ready(world, state, ready, render_ready);
+    let resources = simulation_resources_ready(world, state, ready, render_ready, token);
     let simulation_ready = resources
         && collisions_ready
         && state.frame_ready
@@ -422,19 +416,22 @@ fn simulation_resources_ready(
     state: &mut State,
     strict_ready: bool,
     render_ready: bool,
+    token: Option<render_inventory::RenderInventoryToken>,
 ) -> bool {
     let valid = state.simulation_admission.as_ref().is_some_and(|admitted| {
         admitted.generation == state.render.generation()
             // A ready render observation already audited this projection after
             // the last world mutation in this guard.
             && (render_ready || state.render.audited_projection_intact(world))
-            && admitted.token.is_current(
-                world,
-                state.owner,
-                state.render.identity(),
-                state.render.generation(),
-            )
-            && admitted.token.covers_frame(world, admitted.bootstrap_frame)
+            && admitted
+                .token
+                .completed_frame_for(
+                    world,
+                    state.owner,
+                    state.render.identity(),
+                    state.render.generation(),
+                )
+                .is_some_and(|completed| completed >= admitted.bootstrap_frame)
             && admitted.context.is_current(world)
     });
     if valid {
@@ -446,12 +443,8 @@ fn simulation_resources_ready(
     }
     // Empty source projections require no fabricated inventory. Their strict
     // readiness remains the authority; populated projections retain a real one.
-    if let Some(token) = render_inventory::acquire(
-        world,
-        state.owner,
-        state.render.identity(),
-        state.render.generation(),
-    ) && let Some(context) = token.graphics_context(world)
+    if let Some(token) = token
+        && let Some(context) = token.graphics_context(world)
         && let Some(bootstrap_frame) = token.completed_frame(world)
     {
         state.simulation_admission = Some(SimulationAdmission {
@@ -471,6 +464,7 @@ fn update_selection(world: &mut World, state: &mut State) -> Result<(), String> 
         state.selected_camera.map(|position| position.to_array()),
         position.to_array(),
     ) {
+        let started = crate::cpu_timing::enabled().then(bevy::platform::time::Instant::now);
         let admitted = state
             .admitted
             .as_ref()
@@ -507,6 +501,19 @@ fn update_selection(world: &mut World, state: &mut State) -> Result<(), String> 
         } else {
             state.pending = Some(plan);
             state.published = false;
+        }
+        if let (Some(start), Some(frame)) = (
+            started,
+            world.get_resource::<bevy::diagnostic::FrameCount>(),
+        ) {
+            bevy::log::info!(
+                event_kind = "plant_selection_plan",
+                frame = frame.0,
+                published_sequence = state.render.selection_sequence(),
+                pending = state.pending.is_some(),
+                elapsed_ms = start.elapsed().as_secs_f64() * 1000.0,
+                "Plant selection plan CPU duration"
+            );
         }
     }
     Ok(())

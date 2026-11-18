@@ -29,6 +29,7 @@ fn live_edits_reuse_meshes_reject_stale_heads_and_retire_their_scene() {
     world.insert_resource(State {
         scene: Some(resident),
         placements: initial.clone(),
+        attachments: 0,
         water_mode: WaterMode::Absent,
         water,
         shadow: MaskedFishCache::default(),

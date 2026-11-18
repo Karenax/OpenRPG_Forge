@@ -68,6 +68,7 @@ pub(super) fn install(
         Family::Village,
         MaterialRole::Opaque,
     )?;
+    register_optional_source_materials(app)?;
     temporal::phase::register_standard_opaque(app)?;
     temporal::phase::register_source_model_opaque(app)?;
     temporal::phase::register_sky_material::<forge_engine::source_sky::SkyMaterial>(app)?;
@@ -196,16 +197,7 @@ fn install_dry(app: &mut App, input: DryInput) -> Result<(), String> {
         Family::Village,
         MaterialRole::Opaque,
     )?;
-    if app
-        .world()
-        .contains_resource::<Assets<forge_engine::source_fish::material::FishMaterial>>()
-    {
-        temporal::register_material::<forge_engine::source_fish::material::FishMaterial>(
-            app,
-            Family::Fish,
-            MaterialRole::Opaque,
-        )?;
-    }
+    register_optional_source_materials(app)?;
     temporal::phase::register_standard_opaque(app)?;
     temporal::phase::register_source_model_opaque(app)?;
     temporal::phase::register_sky_material::<forge_engine::source_sky::SkyMaterial>(app)?;
@@ -221,6 +213,20 @@ fn install_dry(app: &mut App, input: DryInput) -> Result<(), String> {
         written: false,
     })
     .add_systems(Last, observe_dry);
+    Ok(())
+}
+
+fn register_optional_source_materials(app: &mut App) -> Result<(), String> {
+    use forge_engine::{
+        source_fish::material::FishMaterial, source_surface::stall_material::FullMaterial,
+    };
+    use temporal::{phase::MaterialRole, shaders::Family};
+    if app.world().contains_resource::<Assets<FishMaterial>>() {
+        temporal::register_material::<FishMaterial>(app, Family::Fish, MaterialRole::Opaque)?;
+    }
+    if app.world().contains_resource::<Assets<FullMaterial>>() {
+        temporal::register_material::<FullMaterial>(app, Family::FullStall, MaterialRole::Opaque)?;
+    }
     Ok(())
 }
 

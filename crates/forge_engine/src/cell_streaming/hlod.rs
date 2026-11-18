@@ -10,7 +10,7 @@ use forge_world::{
     sampled_terrain::SampledTerrainPlan,
     terrain_hlod::{self, TerrainHlodKey, TerrainHlodLayout, TerrainHlodTile},
 };
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
 #[cfg(test)]
 mod tests;
@@ -42,13 +42,13 @@ pub struct StreamedTerrainHlod {
 
 #[derive(Default)]
 pub(super) struct State {
-    layout: Option<TerrainHlodLayout>,
+    layout: Option<Arc<TerrainHlodLayout>>,
     live: BTreeMap<TerrainHlodKey, DistantCell>,
 }
 
 impl State {
     pub(super) fn layout(&self) -> Option<&TerrainHlodLayout> {
-        self.layout.as_ref()
+        self.layout.as_deref()
     }
 }
 
@@ -61,7 +61,7 @@ struct DistantCell {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct Request {
-    layout: TerrainHlodLayout,
+    layout: Arc<TerrainHlodLayout>,
     source: ContentHash,
     stride: u8,
     tile_bytes: u64,
@@ -95,7 +95,14 @@ pub(super) fn request_with_stride(
     let Some(distant) = &state.hlod else {
         return Ok(None);
     };
-    let layout = TerrainHlodLayout::new(&state.policy, plan.desired())?;
+    // The distant layout depends on the covered cell keys, not their detail.
+    // Changing which covered cells carry full colliders leaves it intact.
+    let layout = match &distant.layout {
+        Some(layout) if state.stream.resident().keys().eq(plan.desired().keys()) => {
+            Arc::clone(layout)
+        }
+        _ => Arc::new(TerrainHlodLayout::new(&state.policy, plan.desired())?),
+    };
     let acquire: BTreeMap<_, _> = layout
         .tiles()
         .iter()

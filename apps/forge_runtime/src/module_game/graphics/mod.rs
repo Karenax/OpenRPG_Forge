@@ -161,6 +161,7 @@ pub fn install(
             .after(forge_engine::source_graph_runtime::SourceSceneSystems::Placements)
             .after(forge_engine::source_lighting::surfaces::live::SurfaceHostSet)
             .after(forge_engine::source_fish::host::live::FishHostSet)
+            .after(forge_engine::source_surface::scanned_host::ScanHostSet)
             .after(forge_engine::source_surface::package::host::ObjectHostSet),
     )
     .add_systems(

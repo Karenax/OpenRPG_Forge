@@ -3,7 +3,8 @@ use bevy::{
     ecs::system::NonSendMarker,
     prelude::*,
     window::{
-        Monitor, MonitorSelection, PrimaryMonitor, PrimaryWindow, RawHandleWrapper, WindowMode,
+        Monitor, MonitorSelection, PrimaryMonitor, PrimaryWindow, RawHandleWrapper,
+        VideoModeSelection, WindowMode,
     },
 };
 use forge_project::workspace::launcher::DisplayMode;
@@ -84,6 +85,16 @@ impl Plugin for InitialDisplayPlugin {
     }
 }
 
+/// Set the first native window request before Bevy creates the surface.
+/// The monitor and OS confirmation still belong to `InitialDisplayPlugin`.
+#[must_use]
+pub const fn initial_window_mode(requested: DisplayMode) -> WindowMode {
+    match requested {
+        DisplayMode::Borderless => WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+        DisplayMode::Windowed | DisplayMode::Fullscreen => WindowMode::Windowed,
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 enum Selection {
     Wait,
@@ -91,17 +102,26 @@ enum Selection {
     Fallback(DisplayFallback),
 }
 
-fn select_mode(requested: DisplayMode, monitor_available: bool, expired: bool) -> Selection {
+fn select_mode(
+    requested: DisplayMode,
+    monitor_available: bool,
+    current_video_mode_available: bool,
+    expired: bool,
+) -> Selection {
     match requested {
-        DisplayMode::Windowed => Selection::Request(WindowMode::Windowed),
-        DisplayMode::Fullscreen => Selection::Fallback(DisplayFallback::ExclusiveUnavailable),
-        DisplayMode::Borderless if monitor_available => {
-            Selection::Request(WindowMode::BorderlessFullscreen(MonitorSelection::Primary))
+        DisplayMode::Windowed => Selection::Request(initial_window_mode(requested)),
+        DisplayMode::Fullscreen if !cfg!(windows) => {
+            Selection::Fallback(DisplayFallback::ExclusiveUnavailable)
         }
-        DisplayMode::Borderless if expired => {
+        _ if !monitor_available && expired => {
             Selection::Fallback(DisplayFallback::MonitorUnavailable)
         }
-        DisplayMode::Borderless => Selection::Wait,
+        _ if !monitor_available => Selection::Wait,
+        DisplayMode::Fullscreen if current_video_mode_available => Selection::Request(
+            WindowMode::Fullscreen(MonitorSelection::Primary, VideoModeSelection::Current),
+        ),
+        DisplayMode::Fullscreen => Selection::Fallback(DisplayFallback::ExclusiveUnavailable),
+        DisplayMode::Borderless => Selection::Request(initial_window_mode(requested)),
     }
 }
 
@@ -141,7 +161,10 @@ fn request_initial_display(
                 .map(|window| window.fullscreen().is_some())
         });
         match fullscreen {
-            Some(true) => status.native_checked = true,
+            Some(true) => {
+                status.native_checked = true;
+                info!(requested = ?status.requested, "Native fullscreen reported");
+            }
             Some(false) => {
                 window.mode = WindowMode::Windowed;
                 status.outcome = DisplayOutcome::Fallback(DisplayFallback::NativeRefused);
@@ -172,26 +195,29 @@ fn request_initial_display(
         }
         return;
     }
-    if status.requested == DisplayMode::Borderless {
-        let native_monitor = bevy::winit::WINIT_WINDOWS.with(|windows| {
-            windows
-                .borrow()
-                .get_window(entity)
-                .is_some_and(|window| window.primary_monitor().is_some())
+    let native_monitor = bevy::winit::WINIT_WINDOWS.with(|windows| {
+        windows
+            .borrow()
+            .get_window(entity)
+            .and_then(|window| window.primary_monitor())
+    });
+    let monitor_available = monitors.single().is_ok() && native_monitor.is_some();
+    let current_video_mode_available = cfg!(windows)
+        && status.requested == DisplayMode::Fullscreen
+        && native_monitor.as_ref().is_some_and(|monitor| {
+            bevy::winit::get_selected_videomode(monitor, &VideoModeSelection::Current).is_some()
         });
-        if !native_monitor {
-            if expired {
-                window.mode = WindowMode::Windowed;
-                status.outcome = DisplayOutcome::Fallback(DisplayFallback::MonitorUnavailable);
-                warn!("Native monitor unavailable; windowed mode requested");
-            }
-            return;
-        }
-    }
-    match select_mode(status.requested, monitors.single().is_ok(), expired) {
+    match select_mode(
+        status.requested,
+        monitor_available,
+        current_video_mode_available,
+        expired,
+    ) {
         Selection::Wait => {}
         Selection::Request(mode) => {
-            window.mode = mode;
+            if window.mode != mode {
+                window.mode = mode;
+            }
             status.outcome = DisplayOutcome::Requested;
             status.started_at = Some(now);
         }
@@ -233,30 +259,55 @@ pub fn toggle_window_mode(window: &mut Window) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy::window::VideoModeSelection;
 
     #[test]
-    fn initial_modes_refuse_exclusive_and_keep_a_bounded_windowed_fallback() {
+    fn initial_modes_request_native_display_and_keep_a_bounded_windowed_fallback() {
         assert_eq!(
-            select_mode(DisplayMode::Windowed, false, false),
+            initial_window_mode(DisplayMode::Borderless),
+            WindowMode::BorderlessFullscreen(MonitorSelection::Primary)
+        );
+        assert_eq!(
+            initial_window_mode(DisplayMode::Windowed),
+            WindowMode::Windowed
+        );
+        assert_eq!(
+            initial_window_mode(DisplayMode::Fullscreen),
+            WindowMode::Windowed
+        );
+        assert_eq!(
+            select_mode(DisplayMode::Windowed, false, false, false),
             Selection::Request(WindowMode::Windowed)
         );
         assert_eq!(
-            select_mode(DisplayMode::Borderless, false, false),
+            select_mode(DisplayMode::Borderless, false, false, false),
             Selection::Wait
         );
         assert_eq!(
-            select_mode(DisplayMode::Borderless, false, true),
+            select_mode(DisplayMode::Borderless, false, false, true),
             Selection::Fallback(DisplayFallback::MonitorUnavailable)
         );
         assert_eq!(
-            select_mode(DisplayMode::Borderless, true, false),
+            select_mode(DisplayMode::Borderless, true, false, false),
             Selection::Request(WindowMode::BorderlessFullscreen(MonitorSelection::Primary))
         );
         assert_eq!(
-            select_mode(DisplayMode::Fullscreen, true, false),
+            select_mode(DisplayMode::Fullscreen, true, false, false),
             Selection::Fallback(DisplayFallback::ExclusiveUnavailable)
         );
+        #[cfg(windows)]
+        {
+            assert_eq!(
+                select_mode(DisplayMode::Fullscreen, true, true, false),
+                Selection::Request(WindowMode::Fullscreen(
+                    MonitorSelection::Primary,
+                    VideoModeSelection::Current,
+                ))
+            );
+            assert_eq!(
+                select_mode(DisplayMode::Fullscreen, false, false, true),
+                Selection::Fallback(DisplayFallback::MonitorUnavailable)
+            );
+        }
         let mut status = InitialDisplayStatus::new(DisplayMode::Fullscreen);
         status.outcome = DisplayOutcome::Fallback(DisplayFallback::ExclusiveUnavailable);
         assert!(status.fallback_message().unwrap().contains("non appliqué"));

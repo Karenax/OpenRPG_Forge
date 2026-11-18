@@ -46,6 +46,7 @@ struct Pending {
 struct State {
     scene: Option<Scene>,
     placements: Vec<ManualPlacement>,
+    attachments: usize,
     water_mode: WaterMode,
     water: scene::WaterBindings,
     shadow: MaskedFishCache,
@@ -134,6 +135,10 @@ fn start(world: &mut World) {
             .scene
             .as_ref()
             .map_or_else(Vec::new, |scene| scene.placements().to_vec());
+        let attachments = pending
+            .scene
+            .as_ref()
+            .map_or(0, PreparedScene::attachment_count);
         let resident = if let Some(prepared) = pending.scene {
             let lighting = scene::lighting_material(world, &water)?;
             Some(prepared.stage(world, &lighting, clock(world).0)?)
@@ -143,6 +148,7 @@ fn start(world: &mut World) {
         world.insert_resource(State {
             scene: resident,
             placements,
+            attachments,
             water_mode: pending.water_mode,
             water,
             shadow: MaskedFishCache::default(),
@@ -201,6 +207,11 @@ pub fn replace(
         return Err("Fish scene is still starting".into());
     }
     world.resource_scope(|world, mut state: Mut<State>| {
+        if state.attachments != 0 {
+            return Err(
+                "Fish attached to another authored placement must follow that placement".into(),
+            );
+        }
         if state.placements != expected {
             return Err("Fish placements changed before replacement".into());
         }
@@ -270,7 +281,8 @@ fn update(world: &mut World) {
             frame,
         )?;
         fish.resident().update_scene_receivers(world, &lighting)?;
-        let ready = fish.resident().authored_roots().iter().all(|(root, id, _)| {
+        let ready = (state.attachments == 0 || fish.resident().attachments_ready(world, state.attachments))
+            && fish.resident().authored_roots().iter().all(|(root, id, _)| {
             state.placements.iter().find(|source| source.id == *id).is_some_and(|source| {
                 world.get::<crate::ManualPlacementProjection>(*root).is_some_and(|value| value.0 == *source)
                     && world.get::<GlobalTransform>(*root).is_some_and(|global| {

@@ -82,6 +82,28 @@ fn literal_paths_preserve_unpaired_utf16_in_valid_components() {
 }
 
 #[test]
+fn executable_paths_switch_at_windows_max_path_without_resolving_components() {
+    let short = format!(r"C:/Jeu/{}/lanceur.exe", "é".repeat(240));
+    assert_eq!(short.encode_utf16().count(), 259);
+    assert_eq!(
+        executable_path(Path::new(&short)).unwrap().as_ref(),
+        Path::new(&short)
+    );
+
+    let long = format!(r"C:/Jeu/{}/lanceur.exe", "é".repeat(241));
+    assert_eq!(long.encode_utf16().count(), 260);
+    let expected = format!(r"\\?\{}", long.replace('/', "\\"));
+    assert_eq!(
+        executable_path(Path::new(&long)).unwrap().as_ref(),
+        Path::new(&expected)
+    );
+    assert_eq!(
+        executable_path(Path::new(&expected)).unwrap().as_ref(),
+        Path::new(&expected)
+    );
+}
+
+#[test]
 fn alias_spellings_are_refused_before_any_native_open() {
     for spelling in [
         r"C:relative",

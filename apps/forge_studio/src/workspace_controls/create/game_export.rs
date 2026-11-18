@@ -17,6 +17,18 @@ pub(super) fn GameExportControls(
     let version = RwSignal::new("1.0.0".to_owned());
     let publisher = RwSignal::new(String::new());
     let license = RwSignal::new(String::new());
+    let redistributable = RwSignal::new(false);
+    let can_redistribute = RwSignal::new(false);
+    wasm_bindgen_futures::spawn_local(async move {
+        if let Ok(Some(bytes)) = crate::governed_kit::transport::fetch_game_export_kit().await
+            && let Ok(kit) = serde_json::from_slice::<serde_json::Value>(&bytes)
+        {
+            let _ = can_redistribute.try_set(
+                kit["schema"].as_str() == Some("forge.delivery.game-kit.v2")
+                    && kit["rights"].as_str() == Some("redistributable"),
+            );
+        }
+    });
     let status = RwSignal::new(String::new());
     let error = RwSignal::new(String::new());
     let previous_project = StoredValue::new(selected.get_untracked());
@@ -26,6 +38,7 @@ pub(super) fn GameExportControls(
             previous_project.set_value(current);
             status.set(String::new());
             error.set(String::new());
+            redistributable.set(false);
         }
     });
     let has_game = move || {
@@ -44,7 +57,6 @@ pub(super) fn GameExportControls(
     view! {
         <details class="workspace-game-export" aria-busy=move || controls.busy.get().to_string()>
             <summary>"Créer les paquets du jeu"</summary>
-            <p>"Cet export prépare un dossier de paquets pour un usage privé. Son installation et sa redistribution ne sont pas encore validées."</p>
             <Show when=move || !has_game()><p>"Dans « Configurer le jeu », choisissez un projet et sauvegardez sa configuration."</p></Show>
             <Show when=needs_save><p>"Sauvegardez le projet et ses cartes avant l’export."</p></Show>
             <Show when=needs_review><p>"Examinez ou abandonnez les saisies et propositions en cours avant l’export."</p></Show>
@@ -58,6 +70,12 @@ pub(super) fn GameExportControls(
             <label>"Conditions du jeu et de vos retouches"<textarea rows="4" maxlength="32768" prop:value=move || license.get()
                 on:input=move |event| license.set(event_target_value(&event))></textarea></label>
             <p>"Les droits des médias et contenus importés restent applicables."</p>
+            <Show when=move || can_redistribute.get()>
+                <label><input type="checkbox" prop:checked=move || redistributable.get()
+                    on:change=move |event| redistributable.set(event_target_checked(&event))/>
+                    "Autoriser la redistribution du jeu"
+                </label>
+            </Show>
             <button type="button" disabled=move || blocked.get() || controls.busy.get() || needs_save() || needs_review() || !has_game()
                 on:click=move |_| {
                     status.set(String::new());
@@ -73,6 +91,7 @@ pub(super) fn GameExportControls(
                             schema_version: 1, project_id, expected_workspace_hash,
                             version: version.get_untracked(), publisher: publisher.get_untracked(),
                             license_text: license.get_untracked(),
+                            redistributable: can_redistribute.get_untracked() && redistributable.get_untracked(),
                         };
                         request.validate()?;
                         Ok::<_, String>(request)
@@ -88,7 +107,8 @@ pub(super) fn GameExportControls(
                         let _ = controls.busy.try_set(false);
                         match result {
                             Ok(result) => {
-                                let message = format!("Export privé créé : {} module(s), dans {}. Pour installer le jeu, ouvrez Installer.exe sur Windows ou Installer sur Linux dans ce dossier. Installation non vérifiée ; redistribution non qualifiée.", result.module_count, result.directory);
+                                let scope = if request.redistributable { "Export redistribuable" } else { "Export privé" };
+                                let message = format!("{scope} créé dans {}. Pour installer le jeu, ouvrez Installer.exe sur Windows ou Installer sur Linux.", result.directory);
                                 let _ = status.try_set(message);
                             }
                             Err(reason) => {
@@ -97,7 +117,11 @@ pub(super) fn GameExportControls(
                             }
                         }
                     });
-                }>"Créer les paquets privés"</button>
+                }>{move || if can_redistribute.get() && redistributable.get() {
+                    "Créer les paquets redistribuables"
+                } else {
+                    "Créer les paquets privés"
+                }}</button>
             </fieldset>
             <Show when=move || !error.get().is_empty()><p role="alert">{move || error.get()}</p></Show>
             <output aria-live="polite">{move || status.get()}</output>

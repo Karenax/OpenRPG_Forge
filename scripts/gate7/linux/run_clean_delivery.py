@@ -20,7 +20,8 @@ def sha(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def exercise_studio(cli, output, installed, user, sentinel, sentinel_pin, package, package_pin):
+def exercise_studio(cli, output, installed, user, sentinel, sentinel_pin, package, package_pin,
+                    *, keep_installed):
     inspection = cli("inspect-studio", "inspect", package)
     descriptor = inspection["descriptor"]
     product = descriptor.get("product") or {}
@@ -51,15 +52,21 @@ def exercise_studio(cli, output, installed, user, sentinel, sentinel_pin, packag
     if editor.resolve() != editor or sha(editor) != editor_pin or not os.access(editor, os.X_OK):
         raise RuntimeError("Installed Studio executable differs or cannot be run")
 
-    cli("uninstall-studio", "uninstall-studio", installed)
-    if (installed / "installation.json").exists() or editor.exists() or sha(sentinel) != sentinel_pin:
-        raise RuntimeError("Studio removal or user-data preservation failed")
-    if sha(package) != package_pin:
-        raise RuntimeError("Studio input package changed")
-    return {"succeeded": True, "studio_manifest_sha256": revision,
-            "installed_editor_sha256": editor_pin, "studio_package_sha256": package_pin,
-            "user_data_preserved": True, "packages_unchanged": True,
-            "studio_install_uninstall_verified": True}
+    result = {"succeeded": True, "studio_manifest_sha256": revision,
+              "installed_editor_sha256": editor_pin, "studio_package_sha256": package_pin,
+              "user_data_preserved": True, "packages_unchanged": True,
+              "studio_install_verified": True,
+              "studio_install_uninstall_verified": not keep_installed}
+    if keep_installed:
+        result.update(studio_install_root=str(installed), studio_user_root=str(user),
+                      studio_editor=str(editor))
+    else:
+        cli("uninstall-studio", "uninstall-studio", installed)
+        if (installed / "installation.json").exists() or editor.exists():
+            raise RuntimeError("Studio removal failed")
+    if sha(sentinel) != sentinel_pin or sha(package) != package_pin:
+        raise RuntimeError("Studio input package or user-owned file changed")
+    return result
 
 
 def main():
@@ -69,10 +76,14 @@ def main():
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--studio-package", type=Path, help="Pinned private Linux Studio forgepack")
     parser.add_argument("--studio-package-sha256")
+    parser.add_argument("--keep-studio-installed", action="store_true",
+                        help="Keep the verified Studio for an authoring and export session")
     args = parser.parse_args()
     studio = args.studio_package is not None
     if studio != (args.studio_package_sha256 is not None):
         parser.error("--studio-package and --studio-package-sha256 are required together")
+    if args.keep_studio_installed and not studio:
+        parser.error("--keep-studio-installed requires a Studio package")
     if socket.gethostname() != "forge-g7-linux-clean" or os.getuid() != 1000:
         raise ValueError("Dedicated unprivileged clean guest required")
     if not args.binary.is_absolute() or args.binary.is_symlink() or sha(args.binary) != args.sha256:
@@ -192,7 +203,8 @@ def main():
     try:
         if studio:
             result.update(exercise_studio(cli, output, installed, user, sentinel, sentinel_pin,
-                                          args.studio_package, args.studio_package_sha256))
+                                          args.studio_package, args.studio_package_sha256,
+                                          keep_installed=args.keep_studio_installed))
         else:
             exercise_fixture()
     except Exception as error:

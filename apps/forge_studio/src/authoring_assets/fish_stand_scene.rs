@@ -14,6 +14,9 @@ use forge_engine::source_environment::scene::ResidentEnvironment;
 use forge_engine::source_fish::material::{self as fish_material, FishMaterial};
 use forge_engine::source_fish::resident::{Attachment, ResidentFishProps};
 use forge_engine::source_surface::stall_material::FullMaterial;
+use forge_engine::source_surface::stall_scene::placement::{
+    self as stall_placement, PlacementAssets,
+};
 use forge_project::zone_authoring::placements::ManualPlacement;
 use forge_tidewater::tidewater_stall::FishStandResident;
 use std::{cell::RefCell, collections::BTreeMap};
@@ -412,48 +415,24 @@ fn spawn_fish_stand(
     let fish_handles = state
         .fish
         .get(..package.fish().len())
-        .ok_or("Fish cache unavailable")?
-        .to_vec();
-
-    let root = world
-        .spawn((
-            Name::new(format!("Placement {} · {}", source.id, source.name)),
-            forge_engine::domain_transform_to_bevy(source.transform),
-            Visibility::Inherited,
-        ))
-        .id();
-    world.entity_mut(root).insert((
-        placements::gizmo::PlacementRoot(source.id, source.transform),
-        ManualPlacementProjection(source.clone()),
-    ));
-    let mut stall = world.spawn((
-        Mesh3d(mesh.clone()),
-        MeshMaterial3d(material.clone()),
-        forge_engine::source_shadows::casters::scene::OpaqueCaster,
-        Transform::IDENTITY,
-        Visibility::Inherited,
-        ChildOf(root),
-    ));
-    stall.insert(ManualPlacementPart(source.id));
-    let primitives = forge_engine::fish_stand_colliders()
-        .into_iter()
-        .map(|(transform, collider)| {
-            world
-                .spawn((
-                    transform,
-                    collider,
-                    forge_engine::ManualPlacementCollision(source.id),
-                    ChildOf(root),
-                ))
-                .id()
-        })
-        .collect();
+        .ok_or("Fish cache unavailable")?;
+    let (root, fish) = stall_placement::spawn(
+        world,
+        source,
+        PlacementAssets {
+            mesh,
+            material,
+            fish: fish_handles,
+            clock,
+            fish_lod: forge_tidewater::tidewater_fish_props::lod::POLICY,
+        },
+    )?;
     world
         .entity_mut(root)
-        .insert(forge_engine::ManualPlacementCollisionExpected {
-            placement: source.id,
-            primitives,
-        });
+        .insert(placements::gizmo::PlacementRoot(
+            source.id,
+            source.transform,
+        ));
     let _ = world
         .spawn((
             WorldAssetRoot(joe),
@@ -464,20 +443,6 @@ fn spawn_fish_stand(
         ))
         .observe(tag_joe)
         .id();
-    let fish = match forge_engine::source_fish::resident::stage_attachments(
-        world,
-        root,
-        source.id,
-        &fish_handles,
-        clock,
-        forge_tidewater::tidewater_fish_props::lod::POLICY,
-    ) {
-        Ok(fish) => fish,
-        Err(error) => {
-            world.despawn(root);
-            return Err(error);
-        }
-    };
     Ok((root, fish))
 }
 

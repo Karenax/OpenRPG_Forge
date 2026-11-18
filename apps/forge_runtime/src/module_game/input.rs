@@ -1,5 +1,6 @@
 //! Generic native module arguments; no workspace or Vault fallback.
 use forge_core::{AreaId, ContentHash};
+use forge_engine::WindowResizeRequest;
 use forge_gameplay::native_storage::StartIntent;
 use forge_project::VisualQualityTier;
 use forge_project::workspace::launcher::DisplayMode;
@@ -17,6 +18,7 @@ pub struct ModuleGameOptions {
     pub save_root: PathBuf,
     pub capture: Option<PathBuf>,
     pub exit_after_frames: Option<u32>,
+    pub resize_request: Option<WindowResizeRequest>,
     pub expected_zone: Option<ExpectedZonePins>,
     pub expected_package_manifest: Option<ContentHash>,
     pub start_intent: StartIntent,
@@ -52,6 +54,7 @@ impl ModuleGameOptions {
         let mut arguments = arguments.into_iter();
         let (mut package, mut area_id, mut cache_root, mut save_root) = (None, None, None, None);
         let (mut capture, mut exit_after_frames) = (None, None);
+        let (mut resize_at_frame, mut resize_width, mut resize_height) = (None, None, None);
         let (mut expected_head, mut expected_archive) = (None, None);
         let mut expected_package_manifest = None;
         let mut start_intent = StartIntent::Legacy;
@@ -79,6 +82,9 @@ impl ModuleGameOptions {
                 "--cache" => cache_root = Some(PathBuf::from(value)),
                 "--save-root" => save_root = Some(PathBuf::from(value)),
                 "--capture" => capture = Some(PathBuf::from(value)),
+                "--resize-at-frame" => resize_at_frame = Some(parse_resize_part(flag, &value)?),
+                "--resize-width" => resize_width = Some(parse_resize_part(flag, &value)?),
+                "--resize-height" => resize_height = Some(parse_resize_part(flag, &value)?),
                 "--expected-head" => {
                     expected_head = Some(parse_hash(&value, "expected head")?);
                 }
@@ -112,6 +118,11 @@ impl ModuleGameOptions {
             save_root: save_root.ok_or("--save-root is required")?,
             capture,
             exit_after_frames,
+            resize_request: WindowResizeRequest::from_optional_parts(
+                resize_at_frame,
+                resize_width,
+                resize_height,
+            )?,
             expected_zone: expected_zone(expected_head, expected_archive)?,
             expected_package_manifest,
             start_intent,
@@ -142,6 +153,13 @@ impl ModuleGameOptions {
         }
         Ok(options)
     }
+}
+
+fn parse_resize_part(flag: &str, value: &OsStr) -> Result<u32, String> {
+    value
+        .to_str()
+        .and_then(|value| value.parse().ok())
+        .ok_or_else(|| format!("Invalid integer for {flag}"))
 }
 
 fn expected_zone(

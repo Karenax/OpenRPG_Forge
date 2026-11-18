@@ -67,6 +67,7 @@ impl PreparedHost {
 pub(super) fn spawn(
     input: PreparedHost,
     current: Option<scene::ResidentTerrain>,
+    source_local_lights: bool,
 ) -> Task<Result<Prepared, String>> {
     AsyncComputeTaskPool::get().spawn(async move {
         let water_level = input.water_context.level()?;
@@ -86,6 +87,7 @@ pub(super) fn spawn(
             &input.package,
             &geometry,
             water_level,
+            source_local_lights,
         )?;
         Ok(PreparedUpdate::Full(Box::new((prepared, geometry))))
     })
@@ -145,7 +147,11 @@ pub(super) fn prepare(world: &mut World, state: &mut State) -> Result<bool, Stri
     if state.task.is_none()
         && let Some(input) = state.queued.take()
     {
-        state.task = Some(spawn(input, state.resident.clone()));
+        state.task = Some(spawn(
+            input,
+            state.resident.clone(),
+            state.source_local_lights,
+        ));
         state.running_serial = state.serial;
     }
     Ok(state.resident.is_some())

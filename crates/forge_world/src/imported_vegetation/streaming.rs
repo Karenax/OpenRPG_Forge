@@ -7,7 +7,10 @@ use crate::{
 };
 use forge_core::ContentHash;
 use forge_project::VegetationCollisionProfile;
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::Arc,
+};
 
 #[cfg(test)]
 mod tests;
@@ -118,6 +121,125 @@ pub fn select<'a, V: PlantView + ?Sized>(
     admission: AdmittedPlantCells<'_>,
     envelopes: &BTreeMap<String, PrototypeEnvelope>,
 ) -> Result<StreamedPlantSelection<'a>, String> {
+    validate_context(population, view, admission)?;
+    let grid = Grid::new(&admission)?;
+    let geometry = GridGeometry::from(admission.policy);
+    let mut plants = Vec::new();
+    let mut collisions = Vec::new();
+    visit_sources(population, view, envelopes, |source, _, envelope| {
+        let footprint = geometry.footprint(source.entity, envelope)?;
+        plants.push(source.selected(grid.representation(footprint)?));
+        if let Some(collision) = source.collision() {
+            collisions.push(collision);
+        }
+        Ok(())
+    })?;
+    sort_unique(&mut plants, |plant| plant.entity.id)?;
+    collisions.sort_unstable_by_key(|source| source.entity.id);
+    Ok(StreamedPlantSelection {
+        head_hash: admission.head_hash,
+        terrain_hash: admission.terrain_hash,
+        plants,
+        collisions,
+    })
+}
+
+/// Footprints and canonical ordering for one closed, immutable population and grid.
+pub struct SnapshotSelection {
+    population: Arc<ImportedPopulation>,
+    view: Arc<ImportedTerrainSnapshot>,
+    geometry: GridGeometry,
+    terrain: ContentHash,
+    records: Vec<SnapshotPlant>,
+}
+
+struct SnapshotPlant {
+    indices: PlantIndices,
+    profile: Option<VegetationCollisionProfile>,
+    footprint: PlantFootprint,
+}
+
+impl SnapshotSelection {
+    pub fn prepare(
+        population: Arc<ImportedPopulation>,
+        view: Arc<ImportedTerrainSnapshot>,
+        admission: AdmittedPlantCells<'_>,
+        envelopes: &BTreeMap<String, PrototypeEnvelope>,
+    ) -> Result<Self, String> {
+        validate_context(&population, view.as_ref(), admission)?;
+        admission
+            .policy
+            .validate()
+            .map_err(|error| error.to_string())?;
+        let geometry = GridGeometry::from(admission.policy);
+        let mut records = Vec::new();
+        visit_sources(
+            &population,
+            view.as_ref(),
+            envelopes,
+            |source, indices, envelope| {
+                records.push(SnapshotPlant {
+                    indices,
+                    profile: source.profile,
+                    footprint: geometry.footprint(source.entity, envelope)?,
+                });
+                Ok(())
+            },
+        )?;
+        sort_unique(&mut records, |record| record.indices.entity(&view).id)?;
+        Ok(Self {
+            population,
+            view,
+            geometry,
+            terrain: admission.terrain_hash,
+            records,
+        })
+    }
+
+    #[must_use]
+    pub fn matches_grid(&self, policy: &CellStreamingPolicy) -> bool {
+        self.geometry == GridGeometry::from(policy)
+    }
+
+    pub fn select(
+        &self,
+        admission: AdmittedPlantCells<'_>,
+    ) -> Result<StreamedPlantSelection<'_>, String> {
+        if admission.head_hash != self.view.head
+            || admission.terrain_hash != self.terrain
+            || !self.matches_grid(admission.policy)
+        {
+            return Err("Vegetation footprints differ from the admitted world or grid".into());
+        }
+        // The current cell and HLOD owners are still checked on every transition.
+        let grid = Grid::new(&admission)?;
+        let mut plants = Vec::with_capacity(self.records.len());
+        let mut collisions = Vec::new();
+        for record in &self.records {
+            let source = PlantSource {
+                entity: record.indices.entity(&self.view),
+                layer: &self.population.layers()[record.indices.source_layer],
+                profile: record.profile,
+            };
+            plants.push(source.selected(grid.representation(record.footprint)?));
+            if let Some(collision) = source.collision() {
+                collisions.push(collision);
+            }
+        }
+        Ok(StreamedPlantSelection {
+            head_hash: admission.head_hash,
+            terrain_hash: admission.terrain_hash,
+            plants,
+            collisions,
+        })
+    }
+}
+
+fn validate_context(
+    population: &ImportedPopulation,
+    view: &(impl PlantView + ?Sized),
+    admission: AdmittedPlantCells<'_>,
+) -> Result<(), String> {
     if view.head_hash() != admission.head_hash {
         return Err("Vegetation view differs from the admitted head".into());
     }
@@ -131,70 +253,215 @@ pub fn select<'a, V: PlantView + ?Sized>(
     }) {
         return Err("Vegetation extent differs from the admitted terrain grid".into());
     }
-    let grid = Grid::new(&admission)?;
-    let mut plants = Vec::new();
-    let mut collisions = Vec::new();
-    // Membership alone is needed here; the published vectors are sorted below.
-    let mut identities = HashSet::new();
+    Ok(())
+}
+
+struct PlantIndices {
+    view_layer: usize,
+    instance: usize,
+    source_layer: usize,
+}
+
+impl PlantIndices {
+    fn entity<'a>(&self, view: &'a ImportedTerrainSnapshot) -> &'a ImportedEntity {
+        &view.layers[self.view_layer].1[self.instance]
+    }
+}
+
+struct PlantSource<'a> {
+    entity: &'a ImportedEntity,
+    layer: &'a super::ImportedLayer,
+    profile: Option<VegetationCollisionProfile>,
+}
+
+impl<'a> PlantSource<'a> {
+    fn selected(&self, representation: PlantRepresentation) -> SelectedPlant<'a> {
+        SelectedPlant {
+            entity: self.entity,
+            layer_id: &self.layer.layer_id,
+            prototype_key: &self.layer.prototype_key,
+            parameter_names: &self.layer.parameter_names,
+            representation,
+        }
+    }
+
+    fn collision(&self) -> Option<PlantCollisionSource<'a>> {
+        self.profile.map(|profile| PlantCollisionSource {
+            entity: self.entity,
+            profile,
+        })
+    }
+}
+
+fn visit_sources<'a>(
+    population: &'a ImportedPopulation,
+    view: &'a (impl PlantView + ?Sized),
+    envelopes: &BTreeMap<String, PrototypeEnvelope>,
+    mut visit: impl FnMut(PlantSource<'a>, PlantIndices, &PrototypeEnvelope) -> Result<(), String>,
+) -> Result<(), String> {
+    let maximum_plants = forge_project::imported_vegetation::MAX_IMPORTED_INSTANCES as usize
+        + forge_project::zone_authoring::imported_plants::MAX_IMPORTED_PLANT_PLACEMENTS;
+    let mut remaining = maximum_plants;
     let mut layers = BTreeSet::new();
-    for (layer_id, instances) in view.layers() {
+    for (view_layer, (layer_id, instances)) in view.layers().enumerate() {
         if !layers.insert(layer_id) {
             return Err("Duplicate projected vegetation layer".into());
         }
-        let source = population
+        let source_layer = population
             .layers()
             .iter()
-            .find(|source| source.layer_id == layer_id)
+            .position(|source| source.layer_id == layer_id)
             .ok_or("Projected vegetation layer has no immutable source")?;
+        let layer = &population.layers()[source_layer];
         let definition = population
             .document()
             .layers
             .iter()
             .find(|definition| definition.id.as_str() == layer_id)
             .ok_or("Projected vegetation layer has no definition")?;
-        for entity in instances {
-            if entity.source.parameters.len() != source.parameter_names.len() {
+        if instances.is_empty() {
+            continue;
+        }
+        remaining = remaining
+            .checked_sub(instances.len())
+            .ok_or("Vegetation identity/count budget exceeded")?;
+        let envelope = envelopes
+            .get(&layer.prototype_key)
+            .ok_or("Verified vegetation prototype envelope is missing")?;
+        if !(0.0..=10_000.0).contains(&envelope.radius_m)
+            || !(0.0..=128.0).contains(&envelope.deformation_m)
+        {
+            return Err("Invalid projected vegetation pose or verified envelope".into());
+        }
+        for (instance, entity) in instances.iter().enumerate() {
+            if entity.source.parameters.len() != layer.parameter_names.len() {
                 return Err(
                     "Projected vegetation parameter layout differs from its prototype".into(),
                 );
             }
-            if entity.id.as_uuid().is_nil()
-                || !identities.insert(entity.id)
-                || identities.len()
-                    > forge_project::imported_vegetation::MAX_IMPORTED_INSTANCES as usize
-                        + forge_project::zone_authoring::imported_plants::MAX_IMPORTED_PLANT_PLACEMENTS
-            {
+            if entity.id.as_uuid().is_nil() {
                 return Err("Vegetation identity/count budget exceeded".into());
             }
-            let envelope = envelopes
-                .get(&source.prototype_key)
-                .ok_or("Verified vegetation prototype envelope is missing")?;
-            let representation = grid.representation(entity, envelope)?;
-            plants.push(SelectedPlant {
-                entity,
-                layer_id,
-                prototype_key: &source.prototype_key,
-                parameter_names: &source.parameter_names,
-                representation,
-            });
-            if let Some(profile) = definition.collision {
-                collisions.push(PlantCollisionSource { entity, profile });
-            }
+            visit(
+                PlantSource {
+                    entity,
+                    layer,
+                    profile: definition.collision,
+                },
+                PlantIndices {
+                    view_layer,
+                    instance,
+                    source_layer,
+                },
+                envelope,
+            )?;
         }
     }
     if layers.len() != population.layers().len() {
         return Err("Projected vegetation omits a source layer".into());
     }
-    // Authored copies can follow base sources in a different order. Stable ordering avoids
-    // churn when the producer changes traversal order; identity and all source bits remain intact.
-    plants.sort_by_key(|plant| plant.entity.id);
-    collisions.sort_by_key(|source| source.entity.id);
-    Ok(StreamedPlantSelection {
-        head_hash: admission.head_hash,
-        terrain_hash: admission.terrain_hash,
-        plants,
-        collisions,
-    })
+    Ok(())
+}
+
+fn sort_unique<T>(items: &mut [T], id: impl Fn(&T) -> forge_core::EntityId) -> Result<(), String> {
+    items.sort_unstable_by_key(&id);
+    if items.windows(2).any(|pair| id(&pair[0]) == id(&pair[1])) {
+        return Err("Vegetation identity/count budget exceeded".into());
+    }
+    Ok(())
+}
+
+#[derive(Clone, Copy, PartialEq)]
+struct GridGeometry {
+    origin_xz_m: [f64; 2],
+    dimensions: [u16; 2],
+    cell_size_m: f64,
+}
+
+impl From<&CellStreamingPolicy> for GridGeometry {
+    fn from(policy: &CellStreamingPolicy) -> Self {
+        Self {
+            origin_xz_m: policy.origin_xz_m,
+            dimensions: policy.dimensions,
+            cell_size_m: policy.cell_size_m,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+struct PlantFootprint {
+    minimum: [usize; 2],
+    maximum: [usize; 2],
+    center: [usize; 2],
+}
+
+impl GridGeometry {
+    fn footprint(
+        &self,
+        entity: &ImportedEntity,
+        envelope: &PrototypeEnvelope,
+    ) -> Result<PlantFootprint, String> {
+        let source = &entity.source;
+        if source
+            .position_m
+            .iter()
+            .chain(&source.rotation_xyzw)
+            .chain(&source.scale)
+            .chain(&source.parameters)
+            .any(|value| !value.is_finite())
+            || source
+                .scale
+                .iter()
+                .any(|value| *value <= 0.0 || *value > 10_000.0)
+            || (source
+                .rotation_xyzw
+                .iter()
+                .map(|value| value * value)
+                .sum::<f64>()
+                - 1.0)
+                .abs()
+                > 1e-9
+        {
+            return Err("Invalid projected vegetation pose or verified envelope".into());
+        }
+        let position = [source.position_m[0], source.position_m[2]];
+        let relative: [f64; 2] = std::array::from_fn(|axis| {
+            let value = position[axis];
+            (value - self.origin_xz_m[axis]) / self.cell_size_m
+        });
+        if relative
+            .iter()
+            .enumerate()
+            .any(|(axis, value)| *value < 0.0 || *value > f64::from(self.dimensions[axis]))
+        {
+            return Err("Projected vegetation lies outside the admitted terrain".into());
+        }
+        let radius = envelope.radius_m * source.scale.iter().copied().fold(0.0, f64::max)
+            + envelope.deformation_m;
+        let radius_cells = (radius / self.cell_size_m).next_up();
+        // Include both sides of a touching cell boundary; the source perimeter is closed.
+        let minimum = std::array::from_fn(|axis| {
+            bounded_index(
+                (relative[axis] - radius_cells).ceil() - 1.0,
+                self.dimensions[axis],
+            )
+        });
+        let maximum = std::array::from_fn(|axis| {
+            bounded_index(
+                (relative[axis] + radius_cells).floor(),
+                self.dimensions[axis],
+            )
+        });
+
+        let center = std::array::from_fn(|axis| {
+            bounded_index(relative[axis].floor(), self.dimensions[axis])
+        });
+        Ok(PlantFootprint {
+            minimum,
+            maximum,
+            center,
+        })
+    }
 }
 
 struct Grid<'a> {
@@ -270,73 +537,12 @@ impl<'a> Grid<'a> {
         })
     }
 
-    fn representation(
-        &self,
-        entity: &ImportedEntity,
-        envelope: &PrototypeEnvelope,
-    ) -> Result<PlantRepresentation, String> {
-        let source = &entity.source;
-        if source
-            .position_m
-            .iter()
-            .chain(&source.rotation_xyzw)
-            .chain(&source.scale)
-            .chain(&source.parameters)
-            .any(|value| !value.is_finite())
-            || source
-                .scale
-                .iter()
-                .any(|value| *value <= 0.0 || *value > 10_000.0)
-            || !envelope.radius_m.is_finite()
-            || !(0.0..=10_000.0).contains(&envelope.radius_m)
-            || !envelope.deformation_m.is_finite()
-            || !(0.0..=128.0).contains(&envelope.deformation_m)
-            || (source
-                .rotation_xyzw
-                .iter()
-                .map(|value| value * value)
-                .sum::<f64>()
-                - 1.0)
-                .abs()
-                > 1e-9
-        {
-            return Err("Invalid projected vegetation pose or verified envelope".into());
-        }
-        let dimensions = self.policy.dimensions.map(usize::from);
-        let position = [source.position_m[0], source.position_m[2]];
-        let relative: [f64; 2] = std::array::from_fn(|axis| {
-            let value = position[axis];
-            (value - self.policy.origin_xz_m[axis]) / self.policy.cell_size_m
-        });
-        if relative
-            .iter()
-            .enumerate()
-            .any(|(axis, value)| *value < 0.0 || *value > f64::from(self.policy.dimensions[axis]))
-        {
-            return Err("Projected vegetation lies outside the admitted terrain".into());
-        }
-        let radius = envelope.radius_m * source.scale.iter().copied().fold(0.0, f64::max)
-            + envelope.deformation_m;
-        let radius_cells = (radius / self.policy.cell_size_m).next_up();
-        // Include both sides of a touching cell boundary; the source perimeter is closed.
-        let minimum = std::array::from_fn(|axis| {
-            bounded_index(
-                (relative[axis] - radius_cells).ceil() - 1.0,
-                self.policy.dimensions[axis],
-            )
-        });
-        let maximum = std::array::from_fn(|axis| {
-            bounded_index(
-                (relative[axis] + radius_cells).floor(),
-                self.policy.dimensions[axis],
-            )
-        });
-        if self.full_count(minimum, maximum) > 0 {
+    fn representation(&self, footprint: PlantFootprint) -> Result<PlantRepresentation, String> {
+        if self.full_count(footprint.minimum, footprint.maximum) > 0 {
             return Ok(PlantRepresentation::Detail);
         }
-        let x = bounded_index(relative[0].floor(), self.policy.dimensions[0]);
-        let z = bounded_index(relative[1].floor(), self.policy.dimensions[1]);
-        let (tile, lod) = self.owners[z * dimensions[0] + x]
+        let [x, z] = footprint.center;
+        let (tile, lod) = self.owners[z * usize::from(self.policy.dimensions[0]) + x]
             .ok_or("Projected vegetation has no admitted terrain owner")?;
         Ok(PlantRepresentation::Group { tile, lod })
     }

@@ -426,7 +426,8 @@ def verify_linux_studio(directory, source_zip, started_path, capture_path, *, ex
     assembly=directory/'linux-game-kit-assembly-receipt.json'
     embedded=directory/'linux-game-kit-overlay-manifest.json'
     stage=directory/'linux-game-kit-overlay-stage.json'
-    require(kit.get('status') == 'PRIVATE_STAGED_ONLY' and
+    status=kit.get('status')
+    require(status in ('PRIVATE_STAGED_ONLY','REDISTRIBUTABLE_STAGED_ONLY') and
             kit.get('assembly_receipt_sha256') == expected_kit_receipt_sha256 and
             all(kit.get(key) is False for key in ('runtime_verified','installation_verified','distribution_qualified')) and
             all(physical(path) and physical_file(path) for path in (assembly,embedded,stage)) and
@@ -434,11 +435,32 @@ def verify_linux_studio(directory, source_zip, started_path, capture_path, *, ex
             sha(stage) == kit.get('overlay_stage_sha256'), 'Linux Studio kit overlay proof differs')
     overlay=read_json(stage)
     require(overlay.get('schema') == 'forge.studio.game-kit-stage.v1' and
+            overlay.get('status','PRIVATE_STAGED_ONLY') == status and
             overlay.get('kit_assembly_receipt_sha256') == expected_kit_receipt_sha256 and
             overlay.get('source_manifest_sha256') == started.get('source_manifest_sha256') and
             overlay.get('manifest_sha256') == kit.get('manifest_sha256') and overlay.get('build_only') is True and
             all(overlay.get(key) is False for key in ('runtime_verified','installation_verified','distribution_qualified')),
             'Linux Studio overlay receipt differs')
+    if status == 'REDISTRIBUTABLE_STAGED_ONLY':
+        assembly_receipt=read_json(assembly)
+        manifest=read_json(embedded)
+        require(isinstance(assembly_receipt,dict) and isinstance(manifest,dict) and
+                isinstance(manifest.get('files'),list) and isinstance(manifest.get('license_paths'),list),
+                'Linux Studio redistribution review does not match the embedded kit')
+        source_revision=started.get('source_manifest_sha256')
+        review_path='licenses/redistribution-review.json'
+        review_pin=assembly_receipt.get('rights_review_sha256')
+        review_entries=[item for item in manifest['files'] if isinstance(item,dict) and item.get('path') == review_path]
+        require(assembly_receipt.get('schema') == 'forge.delivery.redistributable-game-kit-assembly.v1' and
+                assembly_receipt.get('status') == status and assembly_receipt.get('platform') == 'linux-x64' and
+                assembly_receipt.get('source_revision') == source_revision and
+                assembly_receipt.get('kit_manifest_sha256') == kit.get('manifest_sha256') and
+                manifest.get('schema') == 'forge.delivery.game-kit.v2' and manifest.get('platform') == 'linux-x64' and
+                manifest.get('rights') == 'redistributable' and manifest.get('source_revision') == source_revision and
+                review_path in manifest['license_paths'] and len(review_entries) == 1 and
+                isinstance(review_pin,str) and re.fullmatch(r'[0-9a-f]{64}',review_pin) and
+                review_entries[0].get('sha256') == review_pin,
+                'Linux Studio redistribution review does not match the embedded kit')
     for phase in ('before','after'):
         entry=kit.get(phase+'_studio_verification',{})
         phase_log=directory/('linux-game-kit-'+phase+'-studio.log')

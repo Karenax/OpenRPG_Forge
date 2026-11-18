@@ -30,6 +30,17 @@ pub const MODULE_FISH_API_VERSION: u32 = 12;
 pub const MODULE_PLACEMENT_COMPANIONS_API_VERSION: u32 = 13;
 /// Exact private model revisions retained for the authoring journal.
 pub const MODULE_HISTORICAL_MODELS_API_VERSION: u32 = 14;
+pub const MODULE_SCANNED_DEBRIS_API_VERSION: u32 = 15;
+pub const MODULE_SOURCE_STALL_API_VERSION: u32 = 16;
+pub const MODULE_CAPTURED_DIFFUSE_API_VERSION: u32 = 17;
+pub const MAX_SUPPORTED_MODULE_API_VERSION: u32 = MODULE_CAPTURED_DIFFUSE_API_VERSION;
+mod source_stalls;
+pub use source_stalls::{
+    MAX_STALL_DESCRIPTOR_BYTES, MAX_STALL_MODEL_BYTES, ModuleSourceStallBinding,
+    ModuleStallAnimatedModel, ModuleStallFishAttachment,
+};
+pub mod scanned_debris;
+pub use scanned_debris::ModuleScannedDebrisBinding;
 pub mod placement_companions;
 pub use placement_companions::{ModulePlacementCompanion, ModulePlacementCompanionKind};
 pub mod fish;
@@ -44,7 +55,8 @@ pub mod local_lights;
 pub use local_lights::ModuleLocalLightPackage;
 pub mod environment;
 pub use environment::{
-    ModuleEnvironmentBinding, ModuleEnvironmentFiles, ModuleEnvironmentSource, ModuleSolarClock,
+    ModuleDiffuseLighting, ModuleEnvironmentBinding, ModuleEnvironmentFiles,
+    ModuleEnvironmentSource, ModuleSolarClock,
 };
 pub mod vegetation;
 pub use vegetation::{ModuleFilePin, ModuleVegetationBinding, ModuleVegetationSource};
@@ -69,6 +81,8 @@ pub enum ModuleFileRole {
     ShoreSimulation,
     /// Explicit source object geometry/material packages, independent of terrain association.
     ObjectSource,
+    /// Closed, independently authored scan resources and their instance program.
+    ScannedDebris,
     /// Closed terrain material programs/textures explicitly associated with an area.
     TerrainSurface,
     ZoneArchive,
@@ -185,6 +199,10 @@ pub struct ModulePackageManifest {
     pub environments: Vec<ModuleEnvironmentBinding>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub objects: Vec<ModuleObjectBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub scanned_debris: Vec<ModuleScannedDebrisBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub source_stalls: Vec<ModuleSourceStallBinding>,
     /// Fish source profiles and their existing catalog, independently of surfaces.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fish_profiles: Vec<ModuleFishBinding>,
@@ -297,7 +315,9 @@ impl ModulePackageManifest {
         self.validate_vegetation(&files, &mut used)?;
         self.validate_environments(&files, &mut used)?;
         self.validate_objects(&files, &mut used)?;
+        self.validate_scanned_debris(&files, &mut used)?;
         self.validate_fish_profiles(&files, &mut used)?;
+        self.validate_source_stalls(&files, &mut used)?;
         self.validate_terrain_surfaces(&files, &mut used)?;
         self.validate_ocean_inputs(&files, &mut used)?;
         self.validate_local_light_packages(&files, &mut used)?;
@@ -321,29 +341,44 @@ impl ModulePackageManifest {
             return Err(ModulePackageError::Limit("manifest bytes"));
         }
         let manifest: Self = serde_json::from_slice(bytes)?;
-        if matches!(manifest.compatibility.module_api_version, 1 | 2)
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("vegetation")
-                .is_some()
+        let version = manifest.compatibility.module_api_version;
+        if version < MAX_SUPPORTED_MODULE_API_VERSION {
+            // Deserialization defaults hide fields supplied as empty arrays.
+            let raw: serde_json::Value = serde_json::from_slice(bytes)?;
+            Self::validate_versioned_fields(version, &raw)?;
+        }
+        manifest.validate()?;
+        Ok(manifest)
+    }
+
+    fn validate_versioned_fields(
+        version: u32,
+        raw: &serde_json::Value,
+    ) -> Result<(), ModulePackageError> {
+        let versioned_fields = [
+            ("environments", MODULE_ENVIRONMENT_API_VERSION),
+            ("local_light_packages", MODULE_LOCAL_LIGHTS_API_VERSION),
+            ("objects", MODULE_OBJECTS_API_VERSION),
+            ("terrain_surfaces", MODULE_TERRAIN_API_VERSION),
+            ("ocean_inputs", MODULE_OCEAN_API_VERSION),
+            ("fish_profiles", MODULE_FISH_API_VERSION),
+            (
+                "placement_companions",
+                MODULE_PLACEMENT_COMPANIONS_API_VERSION,
+            ),
+            ("historical_models", MODULE_HISTORICAL_MODELS_API_VERSION),
+            ("scanned_debris", MODULE_SCANNED_DEBRIS_API_VERSION),
+            ("source_stalls", MODULE_SOURCE_STALL_API_VERSION),
+        ];
+        if (matches!(version, 1 | 2) && raw.get("vegetation").is_some())
+            || versioned_fields
+                .iter()
+                .any(|(field, minimum)| version < *minimum && raw.get(*field).is_some())
         {
             return Err(ModulePackageError::Compatibility);
         }
-        if manifest.compatibility.module_api_version < MODULE_ENVIRONMENT_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("environments")
-                .is_some()
-        {
-            return Err(ModulePackageError::Compatibility);
-        }
-        if manifest.compatibility.module_api_version < MODULE_LOCAL_LIGHTS_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("local_light_packages")
-                .is_some()
-        {
-            return Err(ModulePackageError::Compatibility);
-        }
-        if manifest.compatibility.module_api_version < MODULE_SOLAR_CLOCK_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
+        if version < MODULE_SOLAR_CLOCK_API_VERSION
+            && raw
                 .get("environments")
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|entries| {
@@ -354,50 +389,23 @@ impl ModulePackageManifest {
         {
             return Err(ModulePackageError::Compatibility);
         }
-        if manifest.compatibility.module_api_version < MODULE_OBJECTS_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("objects")
-                .is_some()
+        if version < MODULE_CAPTURED_DIFFUSE_API_VERSION
+            && raw
+                .get("environments")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|entries| {
+                    entries.iter().any(|entry| {
+                        entry
+                            .get("solar_clock")
+                            .and_then(|clock| clock.get("diffuse_lighting"))
+                            .is_some()
+                    })
+                })
         {
             return Err(ModulePackageError::Compatibility);
         }
-        if manifest.compatibility.module_api_version < MODULE_FISH_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("fish_profiles")
-                .is_some()
-        {
-            return Err(ModulePackageError::Compatibility);
-        }
-        if manifest.compatibility.module_api_version < MODULE_PLACEMENT_COMPANIONS_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("placement_companions")
-                .is_some()
-        {
-            return Err(ModulePackageError::Compatibility);
-        }
-        if manifest.compatibility.module_api_version < MODULE_HISTORICAL_MODELS_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("historical_models")
-                .is_some()
-        {
-            return Err(ModulePackageError::Compatibility);
-        }
-        if manifest.compatibility.module_api_version < MODULE_TERRAIN_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("terrain_surfaces")
-                .is_some()
-        {
-            return Err(ModulePackageError::Compatibility);
-        }
-        if manifest.compatibility.module_api_version < MODULE_OCEAN_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
-                .get("ocean_inputs")
-                .is_some()
-        {
-            return Err(ModulePackageError::Compatibility);
-        }
-        if manifest.compatibility.module_api_version < MODULE_OCEAN_SURFACE_API_VERSION
-            && serde_json::from_slice::<serde_json::Value>(bytes)?
+        if version < MODULE_OCEAN_SURFACE_API_VERSION
+            && raw
                 .get("ocean_inputs")
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|entries| {
@@ -408,8 +416,7 @@ impl ModulePackageManifest {
         {
             return Err(ModulePackageError::Compatibility);
         }
-        manifest.validate()?;
-        Ok(manifest)
+        Ok(())
     }
 
     fn validate_creator(&self) -> Result<(), ModulePackageError> {
@@ -584,6 +591,9 @@ impl ModulePackageManifest {
                 | MODULE_FISH_API_VERSION
                 | MODULE_PLACEMENT_COMPANIONS_API_VERSION
                 | MODULE_HISTORICAL_MODELS_API_VERSION
+                | MODULE_SCANNED_DEBRIS_API_VERSION
+                | MODULE_SOURCE_STALL_API_VERSION
+                | MODULE_CAPTURED_DIFFUSE_API_VERSION
         ) {
             let sources = session
                 .required_source_blobs()
@@ -668,10 +678,25 @@ impl ModulePackageManifest {
             .flat_map(|binding| &binding.assets)
             .map(|asset| (asset.asset_id, asset.sha256))
             .collect();
+        let scanned = self
+            .scanned_debris
+            .iter()
+            .find(|binding| binding.area_id == head.base.terrain.area_id);
+        let stalls: BTreeMap<_, _> = self
+            .source_stalls
+            .iter()
+            .filter(|binding| binding.area_id == head.base.terrain.area_id)
+            .map(|binding| (binding.asset_id, binding.package.manifest.sha256))
+            .collect();
         let require = |placement: &crate::zone_authoring::placements::ManualPlacement| {
             if assets.get(&placement.asset_id) == Some(&placement.asset_hash)
                 || object_assets.get(&placement.asset_id) == Some(&placement.asset_hash)
                 || fish_assets.get(&placement.asset_id) == Some(&placement.asset_hash)
+                || stalls.get(&placement.asset_id) == Some(&placement.asset_hash)
+                || scanned.is_some_and(|binding| {
+                    binding.package.manifest.sha256 == placement.asset_hash
+                        && binding.assets.binary_search(&placement.asset_id).is_ok()
+                })
             {
                 Ok(())
             } else {
@@ -708,7 +733,7 @@ impl ModulePackageManifest {
                 require_source(copy)?;
             }
         }
-        if (MODULE_FISH_API_VERSION..=MODULE_HISTORICAL_MODELS_API_VERSION)
+        if (MODULE_FISH_API_VERSION..=MAX_SUPPORTED_MODULE_API_VERSION)
             .contains(&self.compatibility.module_api_version)
         {
             let history: BTreeSet<_> = self
@@ -759,8 +784,13 @@ impl ModulePackageManifest {
                 return Err(ModulePackageError::Duplicate);
             }
             let file = refer(files, &model.payload.path, ModuleFileRole::HistoricalModel)?;
+            #[expect(
+                clippy::case_sensitive_file_extension_comparisons,
+                reason = "Historical model paths use the lowercase .glb suffix."
+            )]
+            let has_model_suffix = file.path.ends_with(".glb");
             if file.sha256 != model.payload.sha256
-                || !file.path.ends_with(".glb")
+                || !has_model_suffix
                 || model.asset_id.as_uuid().is_nil()
                 || !licenses.contains(model.license_path.as_str())
             {

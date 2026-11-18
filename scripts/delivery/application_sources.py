@@ -182,7 +182,10 @@ def component_files(component, data, registry, cache_key):
 def prepare_sources(repo, cargo_registry, inventory_path=INVENTORY_PATH):
     inventory_data = read_regular(inventory_path, 1024 * 1024, "source inventory")
     inventory = json.loads(inventory_data)
-    keys(inventory, {"schema", "version", "name_prefix", "registry_cache_directory", "components"}, "source inventory")
+    fields = {"schema", "version", "name_prefix", "registry_cache_directory", "components"}
+    if isinstance(inventory, dict) and "additional_components" in inventory:
+        fields.add("additional_components")
+    keys(inventory, fields, "source inventory")
     if (inventory["schema"] != "forge.delivery.application-source-inventory"
             or type(inventory["version"]) is not int or inventory["version"] != 1):
         raise ValueError("Unsupported source inventory version/schema")
@@ -192,10 +195,34 @@ def prepare_sources(repo, cargo_registry, inventory_path=INVENTORY_PATH):
     components = inventory["components"]
     if not isinstance(components, list) or not 1 <= len(components) <= 128:
         raise ValueError("Source component inventory count is invalid")
-    lock_data = read_regular(Path(repo) / "Cargo.lock", 16 * 1024 * 1024, "Cargo.lock")
-    locked = [item for item in tomllib.loads(lock_data.decode()).get("package", [])
-              if item.get("name", "").startswith(inventory["name_prefix"])]
-    identities = [(item.get("name"), item.get("version"), item.get("source"), item.get("checksum")) for item in locked]
+    additional = inventory.get("additional_components", {})
+    if not isinstance(additional, dict) or any(
+        not re.fullmatch(r"[a-z0-9-]{1,64}", name) or not isinstance(paths, list)
+        or not paths or any(not isinstance(path, str) for path in paths)
+        for name, paths in additional.items()
+    ):
+        raise ValueError("Invalid additional application source components/locks")
+    lock_paths = {"Cargo.lock"}
+    for paths in additional.values():
+        for path in paths:
+            if relative(path).split("/")[-1] != "Cargo.lock":
+                raise ValueError("Additional application source lock must name Cargo.lock")
+            lock_paths.add(path)
+    locks = {path: read_regular(Path(repo) / path, 16 * 1024 * 1024, path)
+             for path in sorted(lock_paths)}
+    locked = set()
+    for path, raw in locks.items():
+        packages = tomllib.loads(raw.decode()).get("package", [])
+        required = {name for name, paths in additional.items() if path in paths}
+        selected = [item for item in packages if item.get("name") in required or (
+            path == "Cargo.lock" and (item.get("name", "").startswith(inventory["name_prefix"])
+                                      or item.get("name") in additional)
+        )]
+        identities = [(item.get("name"), item.get("version"), item.get("source"), item.get("checksum"))
+                      for item in selected]
+        if not required.issubset(name for name, *_ in identities) or len(set(identities)) != len(identities):
+            raise ValueError(f"Missing or duplicate application source component in {path}")
+        locked.update(identities)
     expected = []
     for component in components:
         keys(component, {"name", "version", "source", "sha256", "bytes", "license", "repository", "authors", "license_file", "notices"}, "component")
@@ -206,7 +233,7 @@ def prepare_sources(repo, cargo_registry, inventory_path=INVENTORY_PATH):
                 or not all(isinstance(author, str) and len(author) <= 1024 for author in component["authors"])):
             raise ValueError("Invalid component identity/source/license")
         expected.append((component["name"], component["version"], component["source"], component["sha256"]))
-    if len(set(expected)) != len(expected) or len(set(identities)) != len(identities) or set(expected) != set(identities):
+    if len(set(expected)) != len(expected) or set(expected) != locked:
         raise ValueError("Cargo.lock component set/pins differ from source inventory")
     files, aliases, summaries = {}, {}, []
     total = 0
@@ -243,13 +270,18 @@ def prepare_sources(repo, cargo_registry, inventory_path=INVENTORY_PATH):
                        f"Source SHA-256: {component['sha256']}", ""])
     notice.extend(f"Original notice: {name.removeprefix(PREFIX)}" for name in sorted(files) if "/notices/" in name)
     files[PREFIX + "NOTICE.txt"] = ("\n".join(notice) + "\n").encode()
+    lock_pins = {"cargo_lock_sha256": sha(locks["Cargo.lock"])}
+    if len(locks) > 1:
+        lock_pins["additional_cargo_locks_sha256"] = {
+            path: sha(raw) for path, raw in locks.items() if path != "Cargo.lock"
+        }
     manifest = {"schema": "forge.delivery.application-sources.v1", "inventory_sha256": sha(inventory_data),
-                "cargo_lock_sha256": sha(lock_data), "components": summaries,
+                **lock_pins, "components": summaries,
                 "files": {name: pin(content) for name, content in sorted(files.items())}}
     files[PREFIX + "manifest.json"] = json_bytes(manifest)
     receipt = {"schema": "forge.delivery.application-sources-receipt.v1",
                "manifest_path": PREFIX + "manifest.json", "manifest_sha256": sha(files[PREFIX + "manifest.json"]),
-               "inventory_sha256": sha(inventory_data), "cargo_lock_sha256": sha(lock_data),
+               "inventory_sha256": sha(inventory_data), **lock_pins,
                "source_archives": len(components), "source_archive_bytes": sum(c["bytes"] for c in components),
                "files": {name: pin(content) for name, content in sorted(files.items())}}
     return PreparedSources(tuple(sorted(files.items())), receipt)

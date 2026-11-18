@@ -1,4 +1,4 @@
-//! Opt-in forward PBR receiver for a camera's source mesh DBuffer.
+//! Opt-in forward PBR receiver for a camera's source mesh `DBuffer`.
 //! The caller owns both the receiver selection and the matching view images.
 use crate::material_composition::ComposedMaterial;
 use bevy::{

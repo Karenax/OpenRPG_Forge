@@ -170,12 +170,19 @@ fn partition(
         return Ok(());
     }
     let side = key.side_cells();
-    let contains_fine = fine.iter().any(|cell| {
-        (key.x..key.x + side).contains(&cell.x) && (key.z..key.z + side).contains(&cell.z)
-    });
-    if key.level == 0
-        || (!contains_fine && key.x + side <= dimensions[0] && key.z + side <= dimensions[1])
-    {
+    // CellKey sorts by x, then z. Only search the columns spanned by this tile.
+    let inside_grid = key.x + side <= dimensions[0] && key.z + side <= dimensions[1];
+    let outside_fine = || {
+        let start = CellKey { x: key.x, z: 0 };
+        let end = CellKey {
+            x: key.x + side,
+            z: 0,
+        };
+        !fine
+            .range(start..end)
+            .any(|cell| (key.z..key.z + side).contains(&cell.z))
+    };
+    if key.level == 0 || (inside_grid && outside_fine()) {
         leaves.insert(key);
         return check_count(leaves.len(), fine.len());
     }

@@ -2,7 +2,7 @@
 
 Les tests autonomes du workspace doivent fonctionner sur un checkout Windows ou Linux sans variables ni fichiers prives de la machine du developpeur.
 
-Quatorze tests d'integration du profil poisson et de la scene Scanned portent `#[ignore]` : ils exigent le paquet original et les references acquises dont ils verifient les SHA. Ils ne doivent ni etre remplaces par des fixtures inventees ni etre comptes comme executes par la CI publique. Le replay explicite utilise les donnees autorisees suivantes :
+Onze tests d'integration du profil poisson portent `#[ignore]`. Ils exigent le paquet original et les references acquises dont ils verifient les SHA. La scene Scanned dispose de tests autonomes de residence et d'un rejeu distinct qui verifie la projection du paquet acquis. Les rejeux explicites utilisent les donnees autorisees suivantes :
 
 - `FORGE_TIDEWATER_FISH_PROP_PACKAGE` : repertoire du paquet original valide et de sa licence ;
 - `FORGE_TIDEWATER_FISH_POSE_REFERENCE` : repertoire de la reference de pose GPU acquise ;
@@ -16,19 +16,25 @@ Apres verification du manifeste et des empreintes des entrees, executer avec le 
 cargo +1.98.0 test --locked --offline -j4 -p forge_tidewater_assets --lib tidewater_fish_props::tests::real_package_and_refusals -- --ignored --exact
 cargo +1.98.0 test --locked --offline -j4 -p forge_tidewater --lib tidewater_fish_props::pose_reference::complete_source_gpu_pose_reference -- --ignored --exact
 cargo +1.98.0 test --locked --offline -j4 -p forge_tidewater --lib tidewater_fish_props:: -- --ignored --skip tidewater_fish_props::tests::game_stand_excludes_pool_and_preserves_three_source_lods --skip tidewater_fish_props::pose_reference::complete_source_gpu_pose_reference
-cargo +1.98.0 test --locked --offline -j4 -p forge_tidewater --lib tidewater_debris::scanned_scene::tests:: -- --ignored
 ```
 
-Les quatre replays doivent executer respectivement un, un, neuf et trois tests. Une absence d'entree, un SHA divergent ou un nombre de tests different bloque le verdict. Ces replays comparent les references retenues sur CPU ; ils ne constituent pas une nouvelle acquisition GPU ni une qualification visuelle de la revision courante.
+Les trois rejeux poisson doivent executer respectivement un, un et neuf tests. Une absence d'entree, un SHA divergent ou un nombre de tests different bloque le verdict. Ces rejeux comparent les references retenues sur CPU.
 
-Le test GameFish `game_stand_excludes_pool_and_preserves_three_source_lods`, deja ignore avant cette correction, est explicitement exclu : il exige son propre paquet via `FORGE_TIDEWATER_GAME_FISH_PACKAGE` et ne fait pas partie des quatorze replays ci-dessus.
+Le test GameFish `game_stand_excludes_pool_and_preserves_three_source_lods` est exclu de ces onze tests. Il utilise son propre paquet via `FORGE_TIDEWATER_GAME_FISH_PACKAGE`.
+
+Le premier controle Scanned execute trois tests CPU de residence sur des maillages synthetiques. Le second execute un test CPU de la projection des instances du paquet acquis via `FORGE_DEBRIS_SCANNED_FIXTURE`.
+
+```powershell
+cargo +1.98.0 test --locked --offline -j4 -p forge_engine --lib source_surface::scanned_scene::tests::
+cargo +1.98.0 test --locked --offline -j4 -p forge_tidewater --lib tidewater_debris::scanned_draws::tests::edited_duplicates_keep_variation_and_transition_records_separate -- --ignored --exact
+```
 
 Les autres tests ignores du workspace conservent leurs propres exigences. Un PASS des tests autonomes ne vaut pas PASS de tous les replays externes, de la CI distante ou de la Gate 3.
 
 Le replay GameFish optionnel utilise `FORGE_TIDEWATER_GAME_FISH_PACKAGE` et la
 commande suivante. Il execute un test, y compris les cinq poissons attaches a
-leur parent avec la residence moteur ; il reste distinct des quatorze replays
-ci-dessus et ne qualifie pas le rendu GPU :
+leur parent avec la residence moteur ; il reste distinct des onze replays
+poisson ci-dessus et ne qualifie pas le rendu GPU :
 
 ```powershell
 cargo +1.98.0 test --locked --offline -j4 -p forge_tidewater --lib tidewater_fish_props::tests::game_stand_excludes_pool_and_preserves_three_source_lods -- --ignored --exact

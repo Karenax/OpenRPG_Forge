@@ -619,7 +619,7 @@ fn prepare_command(planned: &ModuleLaunchPlan) -> Result<Command> {
         .create_new(true)
         .open(planned.working_directory.join("game.log"))
         .map_err(|e| e.to_string())?;
-    let mut command = Command::new(&planned.executable);
+    let mut command = Command::new(manifest::executable_path(&planned.executable)?.as_os_str());
     command
         .env_clear()
         .envs(&planned.environment)
@@ -705,6 +705,7 @@ fn require_companion_runtime(
     if product.apps.contains_key("module-game") {
         Ok(())
     } else {
+        loaded.reject_unrendered_source_stall()?;
         loaded.reject_unhandled_placement_companions()
     }
 }
@@ -758,6 +759,8 @@ fn environment(session: &Path) -> Result<BTreeMap<String, String>> {
         "PROCESSOR_ARCHITECTURE",
         "NUMBER_OF_PROCESSORS",
         "DISPLAY",
+        #[cfg(target_os = "linux")]
+        "XAUTHORITY",
         "WAYLAND_DISPLAY",
         "XDG_RUNTIME_DIR",
         "HOME",
@@ -1376,7 +1379,11 @@ mod standalone_spawn_tests {
             )
         };
         assert_eq!(from_recovery(LegacySaveAction::Review).unwrap(), reviewed);
-        let import = || from_recovery(LegacySaveAction::Import { reviewed_save: Some(reviewed) });
+        let import = || {
+            from_recovery(LegacySaveAction::Import {
+                reviewed_save: Some(reviewed),
+            })
+        };
         let hash = import().unwrap();
         assert_eq!(hash, reviewed);
         assert_eq!(import().unwrap(), hash);

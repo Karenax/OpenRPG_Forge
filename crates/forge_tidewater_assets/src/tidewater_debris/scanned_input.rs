@@ -1,6 +1,6 @@
 //! Atomic scanned acquisition for native and browser transports, independent of ECS.
 use super::{
-    collisions::{Category, CollisionFrames},
+    collisions::CollisionFrames,
     scanned::{ScannedPackage, atlases, geometry},
 };
 use forge_core::bytes_sha256;
@@ -51,10 +51,6 @@ impl ScannedInput {
         )
     }
 
-    #[allow(
-        clippy::float_cmp,
-        reason = "Immutable acquired frames must match exactly; this is not a measured transform tolerance."
-    )]
     fn finish(package: ScannedPackage, instance_program: String) -> Result<Self, String> {
         let geometry = geometry::prepare(&package)?;
         // Validate all acquired levels and formats, without producing replacement mips.
@@ -64,23 +60,7 @@ impl ScannedInput {
                 .file("collisions/collision-frames.json")
                 .ok_or("Scanned collision ownership absent")?,
         )?;
-        for instance in &geometry.instances {
-            let source = &instance.source;
-            let owner = collisions
-                .owner(&instance.source_id)
-                .ok_or("Scanned collision owner absent")?;
-            if owner.category != Category::Scanned
-                || owner.source_frame.translation_m != [source.x, source.y, source.z]
-                || owner.source_frame.rotation_xyzw != instance.quaternion_xyzw
-                || owner.source_frame.scale != [source.sx, source.sy, source.sz]
-                || owner.source_matrix_column_major != instance.matrix_column_major
-            {
-                return Err(format!(
-                    "Scanned collision frame differs: {}",
-                    instance.source_id
-                ));
-            }
-        }
+        collisions.validate_scanned(&geometry)?;
         Ok(Self {
             package,
             geometry,

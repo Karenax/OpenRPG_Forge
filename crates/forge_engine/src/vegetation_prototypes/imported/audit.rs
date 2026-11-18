@@ -60,8 +60,9 @@ pub(super) struct Audit {
 
 impl Audit {
     pub(super) fn new(world: &mut World) -> Self {
+        let marker = world.register_component::<OwnedPrimitive>();
         let components = [
-            world.register_component::<OwnedPrimitive>(),
+            marker,
             world.register_component::<Mesh3d>(),
             world.register_component::<MeshMaterial3d<VisualValleyVegetationMaterial>>(),
             world.register_component::<MeshMaterial3d<crate::source_lighting::surfaces::VegetationMaterial>>(),
@@ -80,7 +81,7 @@ impl Audit {
         Self {
             shape: world.query_filtered(),
             changes: world.query_filtered(),
-            guard: Guard::new(components),
+            guard: Guard::new(marker, components),
             #[cfg(test)]
             complete_audits: 0,
         }

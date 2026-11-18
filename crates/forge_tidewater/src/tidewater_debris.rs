@@ -3,25 +3,22 @@
 use bevy::prelude::Mesh;
 use forge_core::AssetId;
 use forge_engine::source_surface::mesh::SourceMeshBytes;
+pub use forge_engine::source_surface::{pebble_cells, pebble_material, pebble_scene};
+pub use forge_engine::source_surface::{
+    scanned_images, scanned_material, scanned_meshes, scanned_scene,
+};
 use forge_tidewater_assets::tidewater_debris as source_assets;
 use forge_tidewater_assets::tidewater_debris::DebrisPackage;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
 pub mod collisions;
-pub mod pebble_cells;
-pub mod pebble_material;
 pub mod pebble_mesh;
 pub mod pebble_patch;
-pub mod pebble_scene;
 pub mod pebbles;
 pub mod scanned_draws;
-pub mod scanned_images;
 pub mod scanned_lod;
-pub mod scanned_material;
-pub mod scanned_meshes;
 pub mod scanned_placements;
-pub mod scanned_scene;
 pub mod scanned_shadow;
 pub mod scanned_shadow_runtime;
 pub mod scene;

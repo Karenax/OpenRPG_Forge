@@ -65,6 +65,12 @@ fn approve(plan: &install::Plan) -> Result<()> {
 fn run() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
+        #[cfg(all(windows, target_env = "msvc"))]
+        Some("check-webview2") if args.len() == 1 => check_webview2(),
+        #[cfg(all(windows, target_env = "msvc"))]
+        Some("check-webview2-current-environment") if args.len() == 1 => {
+            print(&serde_json::json!({"version": webview2_version()?}))
+        }
         Some("module-check") if args.len() == 4 => {
             let cache=Path::new(&args[3]);
             forge_delivery::manifest::safe_chain(cache)?;
@@ -214,6 +220,44 @@ fn run() -> Result<()> {
         }
         _ => Err("Usage: forge_delivery module-check PACKAGE AREA_ID CACHE_ABSOLUTE | modules ROOT | module-launch-plan ROOT MODULE_ID AREA_ID | module-launch ROOT MODULE_ID AREA_ID | pack SOURCE DESCRIPTOR OUTPUT | inspect PACKAGE | plan ROOT PACKAGE... | plan-file ROOT OUTPUT PACKAGE... | apply PLAN | uninstall ROOT | uninstall-studio ROOT | setup ROOT PACKAGE... | status ROOT | verify ROOT | rollback-plan ROOT | launch ROOT game|editor | launcher ROOT".into()),
     }
+}
+
+#[cfg(all(windows, target_env = "msvc"))]
+fn check_webview2() -> Result<()> {
+    let mut probe = std::process::Command::new(std::env::current_exe().map_err(|e| e.to_string())?);
+    probe.arg("check-webview2-current-environment");
+    // Installed Studio launches discard these overrides before loading WebView2.
+    for (key, _) in std::env::vars_os() {
+        if key.to_string_lossy().to_ascii_uppercase().starts_with("WEBVIEW2_") {
+            probe.env_remove(key);
+        }
+    }
+    let status = probe.status().map_err(|e| e.to_string())?;
+    if !status.success() {
+        std::process::exit(status.code().unwrap_or(1));
+    }
+    Ok(())
+}
+
+#[cfg(all(windows, target_env = "msvc"))]
+#[allow(unsafe_code, reason = "The WebView2 SDK returns a COM-allocated version string")]
+fn webview2_version() -> Result<String> {
+    use webview2_com_sys::Microsoft::Web::WebView2::Win32::GetAvailableCoreWebView2BrowserVersionString;
+    use windows_core::{PCWSTR, PWSTR};
+    use windows_sys::Win32::System::Com::CoTaskMemFree;
+
+    let mut version = PWSTR::null();
+    // A null folder asks the SDK to resolve the runtime for the current user.
+    // On success it returns an owned, NUL-terminated COM string.
+    unsafe { GetAvailableCoreWebView2BrowserVersionString(PCWSTR::null(), &mut version) }
+        .map_err(|error| format!("Microsoft Edge WebView2 Runtime indisponible : {error}"))?;
+    if version.is_null() {
+        return Err("Microsoft Edge WebView2 Runtime n'a retourné aucune version.".into());
+    }
+    // Read before freeing the string even when its UTF-16 conversion fails.
+    let decoded = unsafe { version.to_string() };
+    unsafe { CoTaskMemFree(version.0.cast()) };
+    decoded.map_err(|error| format!("Version WebView2 illisible : {error}"))
 }
 
 fn module_selection(module: &str, area: &str) -> Result<installed_modules::ModuleSelection> {

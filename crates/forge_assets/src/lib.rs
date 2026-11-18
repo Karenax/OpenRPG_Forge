@@ -10,6 +10,7 @@ mod imported_catalog;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod media_validation;
 pub mod source_collision_geometry;
+pub mod source_debris_collisions;
 pub mod source_decal_glb;
 pub mod source_decal_lifetime;
 pub mod source_environment_package;
@@ -31,7 +32,9 @@ pub mod source_particle_package;
 pub mod source_particle_transport;
 pub mod source_physics_package;
 pub mod source_physics_transport;
+pub mod source_scanned_package;
 pub mod source_shore_sim_package;
+pub mod source_stall_package;
 pub mod source_surface_package;
 pub mod source_terrain_package;
 pub mod source_vegetation_geometry;

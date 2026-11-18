@@ -1,4 +1,4 @@
-//! Native kit and module resolution for a private game-package candidate.
+//! Native kit and module resolution for a game-package candidate.
 use forge_core::{ContentHash, bytes_sha256};
 use forge_delivery::game_builder::VerifiedGameKit;
 use forge_studio_frontend::game_export_protocol::{GameExportRequest, GameExportResult};
@@ -46,7 +46,7 @@ pub(super) fn execute(request: &GameExportRequest) -> Result<GameExportResult, S
                     return Ok(None);
                 }
                 super::with_asset_imports(|store| {
-                    let snapshot = store.export_module_snapshot(&pins, &[], false)?;
+                    let snapshot = store.export_module_snapshot(&pins, &[], request.redistributable)?;
                     Ok(Some(
                         forge_delivery::game_presentation::PresentationBundle {
                             catalog: snapshot.catalog,
@@ -320,6 +320,7 @@ mod gate7_headless_export {
             version: version.into(),
             publisher: "Qualification locale".into(),
             license_text: "Usage privé de qualification.".into(),
+            redistributable: false,
         };
         let candidate = export_game(&host, &root.join("exports"), &request, || kit.load(),
             |scratch, selection, snapshot, metadata| {

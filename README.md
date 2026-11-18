@@ -85,12 +85,11 @@ ou contribution ; les assets tiers et privés conservent leurs propres droits.
 
 ## Où en est le projet ?
 
-Au **7 novembre 2026**, les Gates 5 et 6 sont clôturées localement.
-**Gate 7 reste ouverte**. Le candidat privé Windows 049 a couvert l'export
-depuis le Studio, l'installation, le jeu et la reprise via le launcher de
-chaque jeu. La qualification Linux, les droits de redistribution et les
-mesures de performance restent en cours.
-[Matrice d'acceptation de Gate 7](docs/evidence/gate7/GATE7_PROGRESS_20261023.md#matrice-dacceptation).
+Au **18 novembre 2026**, les Gates 5, 6 et 7 sont clôturées localement.
+Pour Gate 7, le candidat Windows 063 couvre l’export du Grand Plateau, la
+reprise via son launcher et la maintenance sur le poste de développement.
+Le propriétaire reporte Linux et le rejeu du 063 sur Windows propre.
+[Rapport de clôture de Gate 7](docs/evidence/gate7/GATE7_CLOSURE_20261118.md).
 
 Les sections suivantes donnent les détails techniques et les preuves datées.
 Le [contexte canonique](PROJECT_CONTEXT.md) et la [roadmap](docs/planning/MIGRATION_ROADMAP.md)

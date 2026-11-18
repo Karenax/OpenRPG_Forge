@@ -96,7 +96,9 @@ class StandaloneStageTests(unittest.TestCase):
         self.assertEqual(proof['launcher_verification']['marker'], game_kit.STANDALONE)
         self.assertTrue(proof['frontend_required_until_kit_assembly'])
         self.assertFalse(proof['runtime_verified'] or proof['gate_qualified'])
-        self.assertEqual(json.loads(proof['build_environment']['TAURI_CONFIG']), game_kit.standalone_tauri_config(self.frontend, self.repo))
+        config = json.loads(proof['build_environment']['TAURI_CONFIG'])
+        self.assertEqual(config, game_kit.standalone_tauri_config(self.frontend, self.repo))
+        self.assertEqual(config['bundle']['icon'], ['../forge_studio/icons/icon.ico'])
         self.assertEqual(len(self.commands), 2)
         self.assertEqual(self.commands[0][2]['FORGE_LAUNCHER_PROFILE'], 'standalone')
         self.assertEqual(self.commands[0][2]['FORGE_LAUNCHER_DIST'], str(self.frontend))
@@ -216,6 +218,24 @@ class StandaloneStageTests(unittest.TestCase):
         self.assertEqual(self.commands[0][0][self.commands[0][0].index('--bin')+1], 'forge_delivery')
         self.assertEqual(self.commands[0][2]['CARGO_HOME'], str(self.cargo_home))
         self.assertFalse(self.frontend.exists())
+
+    def test_external_windows_crt_records_explicit_dynamic_linkage(self):
+        self.args.stage = 'delivery-cli'
+        self.args.delivery_jobs = 2
+        self.args.windows_external_crt = True
+        rebuild.shared_rebuild(self.args)
+        proof = json.loads((self.evidence/'delivery-cli-build-proof.json').read_bytes())
+        self.assertEqual(proof['build_environment']['RUSTFLAGS'],
+                         '-C debuginfo=0 -C target-feature=-crt-static')
+        self.assertEqual(self.commands[0][2]['RUSTFLAGS'],
+                         proof['build_environment']['RUSTFLAGS'])
+
+    def test_external_windows_crt_refuses_frontend_only_stage(self):
+        self.args.stage = 'prepare-frontend'
+        self.args.windows_external_crt = True
+        with self.assertRaisesRegex(ValueError, 'new native Windows build'):
+            rebuild.shared_rebuild(self.args)
+        self.assertEqual(self.commands, [])
 
 
 if __name__ == '__main__':

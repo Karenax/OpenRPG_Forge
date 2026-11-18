@@ -1,5 +1,8 @@
 //! Admit a complete package catalogue as one additive collection revision.
-use super::*;
+use super::{
+    AssetImportStore, CommandId, ContentHash, GOVERNED_IMPORT_SCHEMA, GOVERNED_IMPORT_VERSION,
+    GovernedImportCatalog, ImportCandidate, ImportReceipt, bytes_sha256, storage,
+};
 
 impl AssetImportStore {
     pub(crate) fn merge_package_assets(

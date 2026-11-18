@@ -3,7 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from frame_intervals import MAX_METADATA, decode, load
+from frame_intervals import MAX_METADATA, decode, load, load_presentmon
 
 
 def fixture():
@@ -92,6 +92,27 @@ class Intervals(unittest.TestCase):
             path.write_text(json.dumps(document), encoding='utf-8')
             self.assertGreater(path.stat().st_size, 8 * 1024 * 1024)
             self.assertEqual(load(path)[0]['graphics_observed_frame'], 10)
+
+    def test_presentmon_uses_only_complete_intervals_for_one_process_in_the_qpc_window(self):
+        header = 'ProcessID,QPCTime,SwapChainAddress,msBetweenPresents,Dropped,PresentMode\n'
+        rows = (
+            '8,90,0xA,10,0,Composed: Flip\n'
+            '8,100,0xA,10,0,Composed: Flip\n'
+            '9,110,0xB,10,0,Composed: Flip\n'
+            '8,120,0xA,20,1,Composed: Flip\n'
+            '8,139,0xA,19,0,Composed: Flip\n'
+            '8,140,0xA,1,0,Composed: Flip\n'
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / 'present.csv'
+            path.write_text(header + rows, encoding='utf-8-sig')
+            self.assertEqual(load_presentmon(path, 8, 100, 140), [
+                {'qpc': 120, 'present_interval_ms': 20.0, 'dropped': True, 'present_mode': 'Composed: Flip'},
+                {'qpc': 139, 'present_interval_ms': 19.0, 'dropped': False, 'present_mode': 'Composed: Flip'},
+            ])
+            path.write_text(header + rows.replace('8,139,0xA', '8,139,0xB'), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'one ordered swap chain'):
+                load_presentmon(path, 8, 100, 140)
 
 
 if __name__ == '__main__':

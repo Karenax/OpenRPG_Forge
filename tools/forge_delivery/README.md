@@ -103,9 +103,8 @@ avant de créer une sortie. Les manifestes, licences, preuves et crédits origin
 voyagent sans modification sous `_forge-export/origin/`, avec le hash du package
 d'origine et la tête retouchée. La licence saisie concerne les nouveaux apports ;
 une origine `private_local_only` interdit un réexport redistribuable.
-L'admission mémoire des origines est bornée à 256 Mio ; `build_zone` conserve son
-contrat pour les créations sans origine importée. La lecture fichier des grands
-packages reste un autre chemin d'admission.
+L'admission mémoire des origines est bornée à 512 Mio. Le lecteur de fichiers
+admet les paquets de distribution selon les limites propres au transport.
 
 `plan-file` écrit le plan canonique dans un chemin absolu avec `create_new` et ne remplace
 jamais un fichier existant. `uninstall` prend le même verrou natif que l'installation,

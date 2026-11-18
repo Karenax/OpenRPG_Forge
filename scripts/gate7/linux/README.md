@@ -111,3 +111,10 @@ en contrôlant le fichier témoin conservé. Le parcours auteur, la reprise
 d'un jeu et la mise à jour ou restauration entre deux versions exigent
 leurs propres observations. Le mode sans paquet conserve le scénario
 historique avec fixture.
+
+Pour enchaîner installation, ouverture du Studio et export dans le même
+essai, ajouter `--keep-studio-installed`. Le reçu indique les chemins
+vérifiés de l'installation, de l'éditeur et du profil auteur. Dans la
+session graphique de l'invité, lancer `forge-delivery launch <installation>
+editor`. Après le parcours auteur, utiliser `uninstall-studio` avec cette
+racine et relire le projet sauvegardé ainsi que le fichier témoin.

@@ -227,16 +227,39 @@ fn read_bounded(root: &Path, relative: &str, limit: u64) -> Result<Vec<u8>> {
 }
 
 /// Read under the existing package verification/installation lock.
-pub(crate) fn read(root: &Path, game: &GameConfiguration) -> Result<PresentationView> {
+pub(crate) fn read(
+    root: &Path,
+    game: &GameConfiguration,
+    descriptor: &manifest::Descriptor,
+) -> Result<PresentationView> {
+    let publishing = descriptor.rights == manifest::Rights::Redistributable;
+    let mut members = descriptor.files.iter().filter_map(|entry| {
+        let (directory, relative) = entry.path.split_once('/')?;
+        directory.eq_ignore_ascii_case(ROOT).then_some(relative)
+    });
     if selections(game).is_empty() {
+        if publishing && members.next().is_some() {
+            return Err("Redistributable game carries unselected presentation files".into());
+        }
         return Ok(PresentationView::default());
     }
+    let catalog_bytes = read_bounded(root, CATALOG, 8 * 1024 * 1024)?;
+    let catalog_hash = bytes_sha256(&catalog_bytes).to_string();
+    if !descriptor.files.iter().any(|entry| {
+        entry.path == CATALOG
+            && entry.bytes == catalog_bytes.len() as u64
+            && entry.sha256 == catalog_hash
+    }) {
+        return Err("Presentation catalogue differs from its package pin".into());
+    }
     let catalog: GovernedImportCatalog =
-        serde_json::from_slice(&read_bounded(root, CATALOG, 8 * 1024 * 1024)?)
-            .map_err(|error| error.to_string())?;
-    catalog
-        .validate_for_local_use()
-        .map_err(|error| error.to_string())?;
+        serde_json::from_slice(&catalog_bytes).map_err(|error| error.to_string())?;
+    if publishing {
+        catalog.validate_for_publication()
+    } else {
+        catalog.validate_for_local_use()
+    }
+    .map_err(|error| error.to_string())?;
     let mut declared = BTreeMap::new();
     for asset in &catalog.assets {
         declared.insert(asset.payload.path.clone(), asset.payload.bytes);
@@ -254,6 +277,25 @@ pub(crate) fn read(root: &Path, game: &GameConfiguration) -> Result<Presentation
             .or_insert(65536);
         if let Some(path) = &asset.provenance.rights.redistribution_evidence {
             declared.entry(path.clone()).or_insert(65536);
+        }
+    }
+    if publishing {
+        if members.any(|path| path != "catalog.json" && !declared.contains_key(path)) {
+            return Err("Redistributable game carries undeclared presentation files".into());
+        }
+        let notices: BTreeSet<_> = descriptor
+            .license_paths
+            .iter()
+            .map(String::as_str)
+            .collect();
+        if declared
+            .keys()
+            .filter(|path| path.starts_with("licenses/"))
+            .any(|path| !notices.contains(format!("{ROOT}/{path}").as_str()))
+        {
+            return Err(
+                "Redistributable game omits a presentation licence from its inventory".into(),
+            );
         }
     }
     let mut total = 0_u64;

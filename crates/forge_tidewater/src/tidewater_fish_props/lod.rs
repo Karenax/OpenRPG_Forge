@@ -1,10 +1,6 @@
 //! Data-specific distances for the shared engine detail policy.
 
-pub const POLICY: forge_engine::distance_lod::Policy =
-    match forge_engine::distance_lod::Policy::new(90.0, 81.0, 22.0, 28.0, 0.88) {
-        Ok(policy) => policy,
-        Err(_) => panic!("Invalid acquired fish LOD policy"),
-    };
+pub use forge_engine::source_fish::SOURCE_PROP_POLICY as POLICY;
 
 #[cfg(test)]
 mod tests {

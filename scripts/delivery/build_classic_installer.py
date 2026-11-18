@@ -7,7 +7,9 @@ import os
 from pathlib import Path
 import re
 import subprocess
-from build_delivery import digest, write, studio_product, verify_package_stream
+import tempfile
+from build_delivery import (STUDIO_RIGHTS_REVIEW, STUDIO_SCOPES, digest, studio_product,
+                            verify_package_stream, verify_studio_redistribution_review, write)
 import application_sources
 from complete_rebuild import shared_source_inputs, source_inputs_equal
 
@@ -20,7 +22,7 @@ def logged(command, log, env, cwd=None):
 
 
 def verify_studio_delivery(root, receipt_sha256, source_manifest_sha256):
-    """Re-read a private Studio assembly without relying on an NSIS build."""
+    """Re-read a Studio assembly without relying on an NSIS build."""
     import game_kit
     root = Path(root)
     application_sources.ordinary(root)
@@ -34,30 +36,45 @@ def verify_studio_delivery(root, receipt_sha256, source_manifest_sha256):
     if not re.fullmatch(r'[0-9a-f]{64}', receipt_sha256) or digest(receipt_path) != receipt_sha256:
         raise ValueError('Studio assembly receipt pin differs')
     receipt = game_kit.read_document(receipt_path)
-    if (receipt.get('schema') != 'forge.delivery.private-studio-assembly.v1' or
-            receipt.get('status') != 'PRIVATE_STAGED_ONLY' or
+    entry = receipt.get('package')
+    rights = entry.get('rights') if isinstance(entry, dict) else None
+    if not isinstance(rights, str) or rights not in STUDIO_SCOPES:
+        raise ValueError('Unknown Studio assembly rights')
+    scope, status = STUDIO_SCOPES[rights]
+    if (receipt.get('schema') != f'forge.delivery.{scope}-studio-assembly.v1' or
+            receipt.get('status') != status or
             receipt.get('source_manifest_sha256') != source_manifest_sha256 or
             any(receipt.get(k) is not False for k in ('runtime_verified', 'installation_verified',
                                                        'distribution_qualified'))):
-        raise ValueError('Studio assembly does not match the current private source receipt')
+        raise ValueError('Studio assembly does not match the current source receipt')
     game_kit.require_windows_x64_executable(root/'forge-delivery.exe')
     if digest(root/'forge-delivery.exe') != receipt.get('delivery_cli_sha256'):
         raise ValueError('Studio delivery CLI differs from its receipt')
-    entry = receipt.get('package')
     index = game_kit.read_document(root/'delivery.json')
     descriptor = game_kit.read_document(root/'forge-studio.manifest.json')
-    if (not isinstance(entry, dict) or entry.get('file') != 'forge-studio.forgepack' or
-            entry.get('rights') != 'private_local_only' or entry.get('id') != 'forge-studio' or
+    if (entry.get('file') != 'forge-studio.forgepack' or entry.get('id') != 'forge-studio' or
             index != {'schema':'forge.delivery.index.v1', 'packages':[entry]} or
             descriptor.get('schema') != 'forge.delivery.package.v1' or
             descriptor.get('id') != 'forge-studio' or descriptor.get('kind') != 'applications' or
-            descriptor.get('platform') != 'windows-x64' or descriptor.get('rights') != 'private_local_only' or
+            descriptor.get('platform') != 'windows-x64' or descriptor.get('rights') != rights or
+            descriptor.get('version') != entry.get('version') or
             descriptor.get('source_revision') != source_manifest_sha256 or descriptor.get('product') != studio_product()):
         raise ValueError('Studio package index or product definition differs')
     package = root/entry['file']
     if package.stat().st_size != entry.get('bytes'):
         raise ValueError('Studio package size differs')
-    verify_package_stream(package, descriptor, entry.get('manifest_sha256'), entry.get('archive_sha256'))
+    review = None
+    if rights == 'redistributable':
+        review = receipt.get('redistribution_review')
+        matches = [item for item in descriptor['files'] if item['path'] == STUDIO_RIGHTS_REVIEW]
+        if (not isinstance(review, dict) or len(matches) != 1 or
+                STUDIO_RIGHTS_REVIEW not in descriptor['license_paths'] or
+                matches[0]['sha256'] != receipt.get('redistribution_review_sha256')):
+            raise ValueError('Reviewed Studio package is missing its pinned review')
+        verify_studio_redistribution_review(review, descriptor['files'], source_manifest_sha256,
+                                            receipt['delivery_cli_sha256'], descriptor['version'])
+    verify_package_stream(package, descriptor, entry.get('manifest_sha256'), entry.get('archive_sha256'),
+                          expected_studio_review=review)
     return {'receipt':receipt, 'files':files}
 
 
@@ -112,16 +129,32 @@ def build_studio_installer(args, *, repo=None, runner=logged):
     repo = (repo or Path(__file__).resolve().parents[2]).resolve(strict=True)
     source_path = game_kit.physical_file(args.source_manifest)
     nsis = game_kit.physical_file(args.nsis)
-    webview = game_kit.physical_file(args.webview2)
-    for pin in (args.studio_receipt_sha256, args.nsis_sha256, args.webview2_sha256):
+    external_webview = getattr(args, 'external_webview2', False)
+    crt_version = getattr(args, 'external_crt_min_version', None)
+    if crt_version is not None and (
+            not re.fullmatch(r'14\.[0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}', crt_version)
+            or any(int(part) > 65535 for part in crt_version.split('.'))):
+        raise ValueError('Expected a four-part Visual C++ v14 minimum version')
+    if external_webview:
+        if args.webview2 is not None or args.webview2_sha256 is not None:
+            raise ValueError('External WebView2 mode cannot embed a runtime installer')
+    elif args.webview2 is None or args.webview2_sha256 is None:
+        raise ValueError('Supply both WebView2 installer and SHA-256, or select external WebView2')
+    webview = None if external_webview else game_kit.physical_file(args.webview2)
+    pins = (args.studio_receipt_sha256, args.nsis_sha256)
+    if webview is not None:
+        pins += (args.webview2_sha256,)
+    for pin in pins:
         if not isinstance(pin, str) or not re.fullmatch(r'[0-9a-f]{64}', pin):
             raise ValueError('Explicit lowercase SHA-256 inputs are required')
-    if digest(nsis) != args.nsis_sha256 or digest(webview) != args.webview2_sha256:
+    if digest(nsis) != args.nsis_sha256 or (webview is not None and digest(webview) != args.webview2_sha256):
         raise ValueError('NSIS or WebView2 pin differs')
-    webview_stub = inspect_webview_installer(webview)
-    require_microsoft_signature(webview)
-    if digest(webview) != args.webview2_sha256:
-        raise ValueError('WebView2 installer changed during signature verification')
+    webview_stub = None
+    if webview is not None:
+        webview_stub = inspect_webview_installer(webview)
+        require_microsoft_signature(webview)
+        if digest(webview) != args.webview2_sha256:
+            raise ValueError('WebView2 installer changed during signature verification')
     output, evidence = Path(args.output), Path(args.evidence)
     for path in (output, evidence):
         if (not path.is_absolute() or '..' in path.parts or path.exists() or path.is_symlink() or
@@ -141,34 +174,46 @@ def build_studio_installer(args, *, repo=None, runner=logged):
     verified = verify_studio_delivery(args.delivery_root, args.studio_receipt_sha256, source_hash)
     if verified['receipt']['package']['version'] != args.version:
         raise ValueError('Installer version differs from Studio package')
+    rights = verified['receipt']['package']['rights']
+    if rights == 'redistributable' and (not external_webview or crt_version is None):
+        raise ValueError('Reviewed Studio requires external WebView2 and Visual C++ prerequisites')
     evidence.mkdir()
-    pending = evidence/'studio-installer.pending.exe'
     root = Path(args.delivery_root)
-    command = [nsis, '/NOCD', '/INPUTCHARSET', 'UTF8', '/V3', '/DSTUDIO_ONLY',
-               f'/DSTUDIO_PACKAGE={root / "forge-studio.forgepack"}',
-               f'/DSTUDIO_DELIVERY_CLI={root / "forge-delivery.exe"}',
-               f'/DSTUDIO_DELIVERY_INDEX={root / "delivery.json"}', f'/DSTUDIO_WEBVIEW2={webview}',
-               f'/DPAYLOAD_DIR={root}', f'/DOUTPUT_FILE={pending}', f'/DVERSION={args.version}',
-               repo/'scripts/delivery/classic_installer.nsi']
     error = None
     try:
-        runner(command, evidence/'nsis-build.log', dict(os.environ), repo)
-        game_kit.physical_file(pending)
-        if (digest(source_path) != source_hash or not source_inputs_equal(shared_source_inputs(repo), source) or
-                verify_studio_delivery(root, args.studio_receipt_sha256, source_hash) != verified or
-                digest(nsis) != args.nsis_sha256 or digest(webview) != args.webview2_sha256):
-            raise ValueError('Installer input changed during packaging')
-        pending_hash = digest(pending)
-        if output.exists() or output.is_symlink():
-            raise ValueError('Installer output appeared during packaging')
-        os.rename(pending, output)
+        # Keep the final rename on one volume even when evidence lives on another drive.
+        with tempfile.TemporaryDirectory(prefix='.forge-studio-setup-', dir=output.parent) as staging:
+            pending = Path(staging)/'studio-installer.pending.exe'
+            command = [nsis, '/NOCD', '/INPUTCHARSET', 'UTF8', '/V3', '/DSTUDIO_ONLY',
+                       f'/DSTUDIO_PACKAGE={root / "forge-studio.forgepack"}',
+                       f'/DSTUDIO_DELIVERY_CLI={root / "forge-delivery.exe"}',
+                       f'/DSTUDIO_DELIVERY_INDEX={root / "delivery.json"}',
+                       '/DSTUDIO_EXTERNAL_WEBVIEW2' if external_webview else f'/DSTUDIO_WEBVIEW2={webview}',
+                       f'/DPAYLOAD_DIR={root}', f'/DOUTPUT_FILE={pending}', f'/DVERSION={args.version}',
+                       repo/'scripts/delivery/classic_installer.nsi']
+            if crt_version is not None:
+                command.insert(-1, f'/DSTUDIO_EXTERNAL_CRT_MIN_VERSION={crt_version}')
+            runner(command, evidence/'nsis-build.log', dict(os.environ), repo)
+            game_kit.physical_file(pending)
+            if (digest(source_path) != source_hash or not source_inputs_equal(shared_source_inputs(repo), source) or
+                    verify_studio_delivery(root, args.studio_receipt_sha256, source_hash) != verified or
+                    digest(nsis) != args.nsis_sha256 or
+                    (webview is not None and digest(webview) != args.webview2_sha256)):
+                raise ValueError('Installer input changed during packaging')
+            pending_hash = digest(pending)
+            if output.exists() or output.is_symlink():
+                raise ValueError('Installer output appeared during packaging')
+            os.rename(pending, output)
     except Exception as failure:
         error = failure
     write(evidence/'studio-installer-result.json', {'schema':'forge.delivery.studio-installer-build.v1',
         'status':'FAIL' if error else 'BUILD_ONLY', 'error':str(error) if error else None,
         'source_manifest_sha256':source_hash, 'studio_assembly_receipt_sha256':args.studio_receipt_sha256,
         'nsis_sha256':args.nsis_sha256, 'webview2_sha256':args.webview2_sha256,
-        'webview2_stub_architecture':webview_stub, 'webview2_microsoft_signature_verified':True,
+        'webview2_mode':'external' if external_webview else 'bundled',
+        'external_crt_min_version':crt_version,
+        'studio_package_rights':rights,
+        'webview2_stub_architecture':webview_stub, 'webview2_microsoft_signature_verified':webview is not None,
         'webview2_payload_architecture_verified':False,
         'output_sha256':None if error else pending_hash, 'runtime_verified':False,
         'installation_verified':False, 'distribution_qualified':False})
@@ -180,10 +225,16 @@ def build_studio_installer(args, *, repo=None, runner=logged):
 def main():
     parser = argparse.ArgumentParser(description='Build the offline Forge Studio installer')
     parser.add_argument('mode', choices=('studio-only',))
-    for name in ('delivery-root', 'source-manifest', 'webview2', 'nsis', 'output', 'evidence'):
+    for name in ('delivery-root', 'source-manifest', 'nsis', 'output', 'evidence'):
         parser.add_argument('--'+name, required=True, type=Path)
-    for name in ('studio-receipt-sha256', 'webview2-sha256', 'nsis-sha256', 'version'):
+    for name in ('studio-receipt-sha256', 'nsis-sha256', 'version'):
         parser.add_argument('--'+name, required=True)
+    webview = parser.add_mutually_exclusive_group(required=True)
+    webview.add_argument('--webview2', type=Path)
+    webview.add_argument('--external-webview2', action='store_true', help='Require a usable Microsoft WebView2 runtime already installed on Windows')
+    parser.add_argument('--webview2-sha256')
+    parser.add_argument('--external-crt-min-version',
+                        help='Require the specified Microsoft Visual C++ v14 runtime or later')
     print(json.dumps(build_studio_installer(parser.parse_args()), ensure_ascii=False))
 
 

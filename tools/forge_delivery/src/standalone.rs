@@ -4,8 +4,10 @@ pub use forge_core::ProjectId;
 use forge_core::{AreaId, ContentHash, ModuleId, bytes_sha256};
 use forge_gameplay::native_storage::{self, GameStorage};
 use forge_project::{
-    authoring::playtest::PlaytestSnapshot, module_package::ModulePackageManifest,
-    workspace::launcher::DerivedGameManifest, zone_authoring::session::ZoneEditSession,
+    authoring::playtest::PlaytestSnapshot,
+    module_package::{ModulePackageManifest, ModuleRights},
+    workspace::launcher::DerivedGameManifest,
+    zone_authoring::session::ZoneEditSession,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -100,7 +102,7 @@ impl VerifiedGameApplication {
         if game.game_id().to_string() != product.id || game.configuration().title != product.title {
             return Err("Game identity or title differs from the product".into());
         }
-        let presentation = crate::game_presentation::read(root, game.configuration())?;
+        let presentation = crate::game_presentation::read(root, game.configuration(), &descriptor)?;
         let product = product.clone();
         Ok(Self {
             descriptor,
@@ -147,7 +149,12 @@ impl VerifiedGameModule {
     /// Verify an archive and its transport revision without extracting it.
     /// Inspection is portable; host compatibility is checked on installation.
     pub fn read_archive(path: &Path) -> Result<Self> {
-        let (module, _descriptor, revision) = orpmod::inspect_with_transport(path, false)?;
+        Self::read_archive_for_scope(path, &manifest::Rights::PrivateLocalOnly)
+    }
+
+    pub(crate) fn read_archive_for_scope(path: &Path, rights: &manifest::Rights) -> Result<Self> {
+        let (module, _descriptor, revision) =
+            orpmod::inspect_with_transport(path, *rights == manifest::Rights::Redistributable)?;
         Ok(Self {
             module,
             transport_revision: ContentHash::parse(&revision).map_err(|error| error.to_string())?,
@@ -894,10 +901,17 @@ pub fn validate_game_closure(
         return Err("Standalone module and pack closure differs".into());
     }
     let mut unique = BTreeSet::new();
+    let publishing = application.descriptor.rights == manifest::Rights::Redistributable;
     for verified in modules {
         let module = &verified.module;
         if module.project_id != application.game.game_id() || !unique.insert(module.module_id) {
             return Err("Foreign or duplicate module".into());
+        }
+        if publishing && module.provenance.rights != ModuleRights::Redistributable {
+            return Err(format!(
+                "Redistributable game includes private module {}",
+                module.module_id
+            ));
         }
         let selected = game
             .contents

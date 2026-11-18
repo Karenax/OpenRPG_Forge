@@ -7,6 +7,10 @@ use std::collections::BTreeMap;
 
 const PREFIX: &str = "_forge-export/origin";
 
+pub(super) fn evidence_path(path: &str) -> String {
+    format!("{PREFIX}/files/{path}")
+}
+
 pub(super) struct PreparedOrigin {
     documents: orpmod::OriginDocuments,
     package_sha256: ContentHash,
@@ -105,13 +109,7 @@ impl PreparedOrigin {
             } else {
                 ModuleFileRole::Provenance
             };
-            insert(
-                format!("{PREFIX}/files/{path}"),
-                bytes.clone(),
-                role,
-                payloads,
-                roles,
-            )?;
+            insert(evidence_path(path), bytes.clone(), role, payloads, roles)?;
         }
         Ok(())
     }

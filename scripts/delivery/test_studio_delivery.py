@@ -11,6 +11,7 @@ import unittest
 from unittest import mock
 
 import build_delivery as delivery
+from complete_rebuild import frontend_inputs
 import game_kit
 import runtime_notices
 import stage_studio_game_kit
@@ -160,6 +161,94 @@ class StudioDeliveryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'proof pin'):
             self.assemble()
         self.assertFalse(self.args.output.exists())
+
+    def test_reviewed_studio_pins_payload_and_cli_before_nsis_admission(self):
+        import build_classic_installer as installer
+
+        private = self.assemble()
+        private_root = self.args.output
+        source_pin = delivery.digest(self.args.source_manifest)
+        self.assertEqual(installer.verify_studio_delivery(
+            private_root, private['receipt_sha256'], source_pin)['receipt']['package']['rights'],
+            'private_local_only')
+        review_path = self.fixture.root/'studio-rights-review.json'
+        test_game_kit.write(review_path, {})
+        self.args.redistribution_review = review_path
+        self.args.redistribution_review_sha256 = delivery.digest(review_path)
+        self.args.output = self.fixture.root/'reviewed-studio'
+        with self.assertRaisesRegex(ValueError, 'complete notices, no local assets and a reviewed game kit'):
+            self.assemble()
+
+        def inventory_pin(files):
+            rows = ''.join(f"{item['path']}\t{item['bytes']}\t{item['sha256']}\n" for item in files)
+            return hashlib.sha256(rows.encode('utf-8')).hexdigest()
+
+        kit_review = self.fixture.root/'kit-rights-review.json'
+        test_game_kit.write(kit_review, {'schema':'forge.delivery.game-kit-rights-review.v1',
+            'platform':game_kit.PLATFORM, 'source_revision':source_pin, 'evidence_sha256':'b'*64,
+            'files_sha256':inventory_pin(game_kit.inventory(self.args.kit_root/'game-export-kit'))})
+        kit_args = self.fixture.args
+        kit_args.redistribution_review = kit_review
+        kit_args.redistribution_review_sha256 = delivery.digest(kit_review)
+        kit_args.output = self.fixture.root/'reviewed-kit'
+        self.fixture.assemble()
+        self.args.kit_root = kit_args.output
+        self.args.kit_receipt_sha256 = delivery.digest(kit_args.output/'game-kit-assembly-receipt.json')
+        stamp = game_kit.read_document(self.args.studio_proof)
+        frontend = Path(stamp['frontend'])
+        for name in (stage_studio_game_kit.MANIFEST, stage_studio_game_kit.RECEIPT):
+            (frontend/name).unlink()
+        staged = stage_studio_game_kit.stage(kit_args.output, frontend, self.args.kit_receipt_sha256, source_pin)
+        stamp.update(without_local_assets=True, frontend_pins=frontend_inputs(frontend))
+        stamp['game_kit'].update(assembly_root=str(kit_args.output),
+            assembly_receipt_sha256=self.args.kit_receipt_sha256, manifest_sha256=staged['manifest_sha256'],
+            stage_receipt_sha256=delivery.digest(frontend/stage_studio_game_kit.RECEIPT), stage_receipt=staged)
+        test_game_kit.write(self.args.studio_proof, stamp)
+        self.args.studio_proof_sha256 = delivery.digest(self.args.studio_proof)
+        with mock.patch.object(delivery, 'verify_studio_notice_audit', return_value={'unresolved_identity_cases':[]}):
+            self.args.redistribution_review = self.args.redistribution_review_sha256 = None
+            self.args.output = self.fixture.root/'review-subject'
+            self.assemble()
+            descriptor = game_kit.read_document(self.args.output/'forge-studio.manifest.json')
+            review = {'schema':'forge.delivery.studio-rights-review.v1', 'platform':'windows-x64',
+                'source_revision':source_pin, 'version':self.args.version,
+                'files_sha256':inventory_pin(descriptor['files']),
+                'delivery_cli_sha256':'0'*64, 'evidence_sha256':'a'*64}
+            test_game_kit.write(review_path, review)
+            self.args.output = self.fixture.root/'reviewed-studio'
+            self.args.redistribution_review = review_path
+            self.args.redistribution_review_sha256 = delivery.digest(review_path)
+            with self.assertRaisesRegex(ValueError, 'does not cover this Studio package and delivery CLI'):
+                self.assemble()
+            self.assertFalse(self.args.output.exists())
+            review['delivery_cli_sha256'] = delivery.digest(self.args.delivery_cli)
+            test_game_kit.write(review_path, review)
+            self.args.redistribution_review_sha256 = delivery.digest(review_path)
+            result = self.assemble()
+        receipt = installer.verify_studio_delivery(self.args.output, result['receipt_sha256'], source_pin)['receipt']
+        self.assertEqual(receipt['package']['rights'], 'redistributable')
+        self.assertEqual(receipt['redistribution_review'], review)
+        self.assertFalse(receipt['distribution_qualified'])
+
+        nsis = self.fixture.root/'makensis.exe'
+        nsis.write_bytes(b'inert NSIS')
+        setup = SimpleNamespace(delivery_root=self.args.output, studio_receipt_sha256=result['receipt_sha256'],
+            source_manifest=self.args.source_manifest, nsis=nsis, nsis_sha256=delivery.digest(nsis),
+            external_webview2=True, webview2=None, webview2_sha256=None, version=self.args.version,
+            output=self.fixture.root/'Setup.exe', evidence=self.fixture.root/'setup-evidence')
+
+        def run_nsis(command, log, env, cwd):
+            target = next(str(arg).split('=', 1)[1] for arg in command if str(arg).startswith('/DOUTPUT_FILE='))
+            Path(target).write_bytes(b'inert Setup')
+
+        with mock.patch.object(installer, 'shared_source_inputs', return_value=self.fixture.source):
+            with self.assertRaisesRegex(ValueError, 'requires external WebView2 and Visual'):
+                installer.build_studio_installer(setup, repo=self.fixture.repo, runner=run_nsis)
+            setup.external_crt_min_version = '14.44.35207.0'
+            installer.build_studio_installer(setup, repo=self.fixture.repo, runner=run_nsis)
+        built = game_kit.read_document(setup.evidence/'studio-installer-result.json')
+        self.assertEqual(built['studio_package_rights'], 'redistributable')
+        self.assertFalse(built['distribution_qualified'])
 
     def test_refuses_stale_notice_audit_even_when_its_new_receipt_is_pinned(self):
         self.audit['results'][1]['index_ids_sha256'] = '0'*64

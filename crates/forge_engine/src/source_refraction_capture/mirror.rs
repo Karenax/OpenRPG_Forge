@@ -10,7 +10,7 @@ use bevy::camera::primitives::Frustum;
 use bevy::{camera::visibility::RenderLayers, prelude::*, render::render_resource::TextureFormat};
 use bevy::{
     camera::{primitives::Aabb, visibility::NoFrustumCulling},
-    light::NotShadowCaster,
+    light::{NotShadowCaster, NotShadowReceiver},
     render::camera::TemporalJitter,
 };
 use std::collections::{HashMap, HashSet};
@@ -524,6 +524,8 @@ fn spawn_mirror(world: &mut World) -> Entity {
             Visibility::Visible,
             NoFrustumCulling,
             NotShadowCaster,
+            // The capture fragments retain the source materials' own lighting.
+            NotShadowReceiver,
         ))
         .id()
 }
@@ -558,6 +560,7 @@ mod tests {
     fn only_owned_capture_layer_mirrors_are_excluded_from_the_main_scene() {
         let mut world = World::new();
         let mirror = spawn_mirror(&mut world);
+        assert!(world.get::<NotShadowReceiver>(mirror).is_some());
         assert!(!super::super::owns_mirror(&world, mirror));
         world.init_resource::<State>();
         assert!(super::super::owns_mirror(&world, mirror));

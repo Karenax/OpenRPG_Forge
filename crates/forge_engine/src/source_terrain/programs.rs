@@ -6,8 +6,8 @@
 //! `THIRD_PARTY_NOTICES.md`. Module-provided surface data does not supply code.
 use forge_assets::source_terrain_package::{TerrainPackage, TerrainPackageFormat};
 
-const SURFACE: &str = include_str!("engine_surface.wgsl");
-const LOD: &str = include_str!("engine_lod.wgsl");
+pub(super) const SURFACE: &str = include_str!("engine_surface.wgsl");
+pub(super) const LOD: &str = include_str!("engine_lod.wgsl");
 
 pub(super) fn for_package(package: &TerrainPackage) -> Result<(&str, &str), String> {
     let (surface, lod) = select(package)?;

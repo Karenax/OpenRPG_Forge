@@ -2,8 +2,38 @@
   "schema": "forge.delivery.application-source-inventory",
   "version": 1,
   "name_prefix": "symphonia",
+  "additional_components": {
+    "option-ext": ["apps/forge_launcher/Cargo.lock"]
+  },
   "registry_cache_directory": "index.crates.io-1949cf8c6b5b557f",
   "components": [
+    {
+      "name": "option-ext",
+      "version": "0.2.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 7345,
+      "sha256": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/soc/option-ext.git",
+      "authors": [
+        "Simon Ochsenreither <simon@ochsenreither.de>"
+      ],
+      "license_file": {
+        "member": "LICENSE.txt",
+        "bytes": 16727,
+        "sha256": "66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172"
+      },
+      "notices": [
+        {
+          "member": "README.md",
+          "first_line": 4,
+          "last_line": 4,
+          "bytes": 78,
+          "sha256": "1821b35dd22da4f5d93f3a6f26c0cdc8847b0a7397a80ae173f69247e4dc52a7",
+          "output": "notices/option-ext-license.txt"
+        }
+      ]
+    },
     {
       "name": "symphonia",
       "version": "0.6.1",

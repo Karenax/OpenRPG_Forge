@@ -1,12 +1,7 @@
 //! Acquired distances for the shared three-level engine detail policy.
 
 pub use forge_engine::distance_lod::fixed_bands::Draw;
-use forge_engine::distance_lod::fixed_bands::Policy;
-
-const POLICY: Policy = match Policy::new(22.0, 70.0, 260.0, 0.12, 6.0, Some(0)) {
-    Ok(policy) => policy,
-    Err(_) => panic!("Invalid acquired scanned LOD policy"),
-};
+pub(super) use forge_engine::source_surface::scanned_draws::SOURCE_POLICY as POLICY;
 
 /// Select source LOD buckets using source double-precision thresholds.
 ///

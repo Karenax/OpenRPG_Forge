@@ -5,11 +5,38 @@ import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
 import {CloudCapture} from './lib/cloud-capture.mjs';
-const [sourceArg,referenceArg,outputArg,option]=process.argv.slice(2);
-if(option && option!=='--clouds') throw new Error('Unknown acquisition option');
-if(process.argv.length>6) throw new Error('Too many arguments');
-if(!sourceArg||!referenceArg||!outputArg) throw new Error('SOURCE REFERENCE_JSON NEW_DIRECTORY required');
+const [sourceArg,referenceArg,outputArg,...options]=process.argv.slice(2);
+const captureClouds=options.length===1 && options[0]==='--clouds';
+const generatedClouds=options.length===2 && options[0]==='--generated-clouds';
+if(options.length && !captureClouds && !generatedClouds) throw new Error('Unknown acquisition option');
+if(!sourceArg||!referenceArg||!outputArg) {
+  throw new Error('SOURCE REFERENCE_JSON NEW_DIRECTORY [--clouds | --generated-clouds DIRECTORY] required');
+}
+
+// SkyProClouds reads a gzip NZZ1 volume followed by a separate 64² noise image.
+function packGeneratedClouds(directory) {
+  const header=Buffer.alloc(16);
+  header.write('NZZ1');
+  header[4]=1;
+  header[5]=4;
+  const side=64;
+  for(const axis of [6,8,10]) header.writeUInt16LE(side,axis);
+  header[12]=7;
+  const noise=[header];
+  for(let level=0;level<7;level++){
+    const data=readFileSync(join(directory,`cloud-volume-m${level}.rgba8.bin`));
+    if(data.length!==(side>>level)**3*4) throw new Error(`Invalid cloud volume mip ${level}`);
+    noise.push(data);
+  }
+  const blue=readFileSync(join(directory,'cloud-blueNoise.bin'));
+  if(blue.length!==side*side) throw new Error('Invalid cloud dither image');
+  return new Map([
+    ['/clouds/baseShape64.bin',gzipSync(Buffer.concat(noise))],
+    ['/clouds/blueNoise.bin',blue],
+  ]);
+}
 const source=resolve(sourceArg),output=resolve(outputArg);
 const pin='1438b1abfcaee3267092b75573014f4d9b4a983c';
 const git=(...args)=>execFileSync('git',['-C',source,...args],{encoding:'utf8'}).trim();
@@ -17,6 +44,7 @@ if(git('rev-parse','HEAD')!==pin||git('status','--porcelain')) throw new Error('
 if(existsSync(output)||output.startsWith(source+'/')||output.startsWith(source+'\\')) throw new Error('New directory outside source required');
 const referenceBytes=readFileSync(resolve(referenceArg)),reference=JSON.parse(referenceBytes);
 if(reference.source_commit!==pin||reference.status!=='ready_reference_only') throw new Error('Pinned reference required');
+const cloudInputs=generatedClouds?packGeneratedClouds(resolve(options[1])):null;
 const moduleAt=p=>import(pathToFileURL(join(source,p)).href);
 await moduleAt('test/headless.mjs');
 const {GPU}=await moduleAt('src/engine/gpu/GPU.js');
@@ -30,11 +58,11 @@ const {PerspectiveCamera,Scene,Vector3,MathUtils,Color}=await moduleAt('src/engi
 const {readBuffer,readTexture}=await moduleAt('src/engine/gpu/Readback.js');
 const {Texture}=await moduleAt('src/engine/gpu/Texture.js');
 const assets={};
-// Only the two original cloud noise files are served to the original loader.
+// Only the two selected noise inputs are served to the original loader.
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async url=>{
   if(!['/clouds/baseShape64.bin','/clouds/blueNoise.bin'].includes(url)) throw new Error(`Unexpected acquisition fetch: ${url}`);
-  const bytes=readFileSync(join(source,'public',url.slice(1)));
+  const bytes=cloudInputs ? cloudInputs.get(url) : readFileSync(join(source,'public',url.slice(1)));
   assets[url]=createHash('sha256').update(bytes).digest('hex');
   return new Response(bytes);
 };
@@ -46,7 +74,7 @@ if(reference.cloud_coverage!==undefined){
  clouds.coverage.value=reference.cloud_coverage;
 }
 
-const cloudCapture=option==='--clouds'?new CloudCapture(clouds,FrameUniforms,source):null;
+const cloudCapture=captureClouds?new CloudCapture(clouds,FrameUniforms,source):null;
 const environment=new Environment(null,new Scene(),sky);
 const [width,height]=reference.output,c=reference.camera;
 const camera=new PerspectiveCamera(c.fov,width/height,.06,60000);
@@ -121,6 +149,7 @@ writeFileSync(join(output,'environment.json'),JSON.stringify({schema:'forge.tide
  acquisition:'original_atmosphere_skyproclouds_environment_cold_120_frames',time:2,step:dt,camera:c,
  sun_direction:vec(G.sunDir.value),sun_color:color(G.sunColor.value),sky_irradiance:color(G.skyIrradiance.value),
  environment_intensity:FrameUniforms.fields.envIntensity.value,night,sh,mips,assets,files,
+ ...(generatedClouds?{cloud_inputs:'generated_rgba8_mips'}:{}),
  cloud_coverage:clouds.coverage.value,
  wind:{speed:G.windSpeed.value,direction:[G.windDir.value.x,G.windDir.value.y]},
  limitations:['cold_state_not_app_precompile_replay','fixed_camera_and_time','no_native_sky_or_cloud_implementation','no_cross_adapter_bit_identity']},null,2),{flag:'wx'});

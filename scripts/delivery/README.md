@@ -9,13 +9,29 @@ leurs chemins et reçus ne doivent pas être réutilisés pour qualifier de nouv
 Les recettes courantes produisent le paquet et le Setup du Studio.
 Le Studio exporte chaque jeu avec son launcher et le runtime commun.
 
+Le [rapport de clôture de Gate 7](../../docs/evidence/gate7/GATE7_CLOSURE_20261118.md)
+consigne les validations du candidat 063 et les contrôles reportés.
+
 ## Installateur Windows
 
 `build_classic_installer.py studio-only --help` décrit les paramètres du
-Setup Studio. Le profil NSIS vérifie le prérequis WebView2 hors ligne et
-embarque les fichiers nécessaires. La désinstallation retire les fichiers
-vérifiés du Studio et conserve les paquets auteur à leur emplacement.
-Le Setup reprend leurs révisions épinglées à la réinstallation.
+Setup Studio. Avec `--webview2` et `--webview2-sha256`, le profil NSIS
+embarque l'installateur Microsoft signé pour les installations hors ligne.
+Avec `--external-webview2`, le Setup contient les composants Forge et vérifie
+que Windows dispose déjà d'un runtime Evergreen utilisable. En cas d'absence
+ou d'inscription obsolète, il indique comment obtenir le prérequis auprès de
+Microsoft avant de modifier le dossier d'installation.
+
+Le candidat 063 exige aussi le [runtime Microsoft Visual C++ v14 x64](https://aka.ms/vc14/vc_redist.x64.exe)
+en version 14.44.35207.0 ou ultérieure. Le Setup contrôle sa présence.
+Les jeux exportés avec le kit Windows 063 utilisent ce même prérequis
+et le launcher utilise WebView2 Evergreen. Sur le poste joueur, installer
+les prérequis avant d'ouvrir `Installer.exe`, qui charge les DLL Visual C++
+dès le démarrage.
+
+La désinstallation retire les fichiers vérifiés du Studio et conserve
+les paquets auteur à leur emplacement. Le Setup reprend leurs révisions
+épinglées à la réinstallation.
 
 Le Setup groupé, son Hub et les recettes de compilation historiques sont
 conservés dans l'archive du retrait 048. Les vérificateurs historiques
@@ -75,7 +91,14 @@ que le validateur, avec le même profil et les mêmes features. Il embarque ce
 `dist` avec `tauri.conf.json` et son URL `index.html?authoring=1`, sans override
 `TAURI_CONFIG`. Le binaire reste dans `CHEMIN_CACHE/release/forge-studio.exe`.
 Les assets locaux passent par le hook commun ; `--frontend-assets` et les anciens
-candidats sont refusés. L'option d'adoption est disponible pour `prepare-frontend`,
+candidats sont refusés. Pour préparer un Studio dont le frontend exclut les
+références locales `forge-imports` et `forge-kit`, ajouter `--without-local-assets`
+aux deux étapes `prepare-frontend` et `studio` et utiliser de nouveaux reçus.
+Le kit d'export de jeu épinglé peut accompagner ce Studio. Cette option vérifie
+le contenu du frontend. Les droits du kit, des dépendances et des projets exportés
+font l'objet de leurs propres preuves.
+
+L'option d'adoption est disponible pour `prepare-frontend`,
 `studio` et `game`. Pour `game`, elle adopte le jeu natif validé dans
 `CHEMIN_CACHE/release/examples/tidewater_plant_probe.exe`, sans reconstruction.
 Sans cette option, `game` compile le même checkout et conserve son résultat dans
@@ -112,7 +135,7 @@ Les anciennes copies produites par `freeze_sources.py`, les appels
 des preuves historiques. Elles ne constituent plus la procédure de livraison active
 et ne sont pas rejouées pour finaliser la version commune.
 
-La livraison complète exige aussi le reçu `forge-studio-local-assets-manifest.json`
+La livraison avec la bibliothèque locale exige aussi le reçu `forge-studio-local-assets-manifest.json`
 dans le dist : `STAGED`, assets présents, inventaire exact de `forge-imports` et
 `forge-kit`, hash du manifeste local et fermeture identique au frontend embarqué.
 Un frontend CI public sans ces assets ne devient pas un Studio installable complet.
@@ -127,6 +150,34 @@ utilise les modes `build_delivery.py studio-only` et
 décrites par `--help` après le nom du mode. Les tests de fixtures ne constituent
 pas une installation réelle. Le kit Studio Linux et sa qualification restent
 en cours ; voir le [suivi de Gate 7](../../docs/evidence/gate7/GATE7_PROGRESS_20261023.md).
+
+`game_kit.py` assemble un kit privé par défaut. Les options
+`--redistribution-review` et `--redistribution-review-sha256` fournissent
+ensemble la revue du kit redistribuable. Elle doit couvrir la plateforme,
+la révision source et l'inventaire exact des fichiers du kit. Le manifeste
+v2 et la revue épinglée sont relus avant le build du Studio, puis lors de
+la copie du kit à côté du Studio. Les reçus d'assemblage conservent les
+verdicts de qualification à `false`. Le format de la revue et les preuves
+de test figurent dans la [passation Gate 7](../../docs/HANDOFF.md#gate-7-inventaires-licences-livrees).
+
+`build_delivery.py studio-only` assemble le Studio en portée privée par
+défaut. Pour une revue Windows, partir d’un Studio construit avec
+`--without-local-assets`, un kit joueur redistribuable et un audit sans
+identité Cargo en réserve. Assembler d’abord le sujet privé pour obtenir
+l’inventaire exact `files` de `forge-studio.manifest.json`.
+
+La revue `forge.delivery.studio-rights-review.v1` contient les champs
+`schema`, `platform` (`windows-x64`), `source_revision`, `version`,
+`files_sha256`, `delivery_cli_sha256` et `evidence_sha256`. Pour
+`files_sha256`, calculer le SHA-256 UTF-8 de l’inventaire trié par chemin,
+une ligne `chemin<TAB>octets<TAB>sha256<LF>` par fichier. La revue
+embarquée est la seule entrée exclue de ce calcul. `evidence_sha256`
+identifie le document de preuves de droits. Passer le fichier et son empreinte
+via `--redistribution-review` et `--redistribution-review-sha256` à
+l’assembleur Studio. Pour ce paquet, le Setup exige
+`--external-webview2` et `--external-crt-min-version`. Le reçu du Setup
+consigne la portée du paquet. L’installateur lui-même et le parcours
+sur Windows propre restent à qualifier.
 
 L'installateur WebView2 historique a été retrouvé dans les archives puis vérifié
 sur E: ; son SHA est celui de la recette ci-dessous. Son programme d'amorçage

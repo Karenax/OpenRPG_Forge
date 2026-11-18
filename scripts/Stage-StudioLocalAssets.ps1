@@ -9,11 +9,15 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $repository = Split-Path -Parent $PSScriptRoot
+$withoutLocalAssets = $env:FORGE_STUDIO_WITHOUT_LOCAL_ASSETS -ceq '1'
+if ($withoutLocalAssets -and $ExpectedManifestSha256) {
+    throw 'A manifest pin requires staged local assets.'
+}
 if (-not $AssetRoot) {
     $AssetRoot = Join-Path (Split-Path -Parent $repository) '.forge-local/studio-assets'
 }
 if (-not $Output) { throw 'Supply Output or run as a Trunk hook with TRUNK_STAGING_DIR.' }
-$assetDirectory = [IO.Path]::GetFullPath($AssetRoot)
+$assetDirectory = if (-not $withoutLocalAssets) { [IO.Path]::GetFullPath($AssetRoot) }
 $outputDirectory = [IO.Path]::GetFullPath($Output)
 $manifestName = 'frontend-static-inputs.json'
 $receiptPath = Join-Path $outputDirectory 'forge-studio-local-assets-manifest.json'
@@ -75,12 +79,14 @@ function Assert-Inventory($Inventory, $Pins, $AllowedPaths, [string]$ManifestSha
 }
 
 Assert-PhysicalPath $outputDirectory
-Assert-PhysicalPath $assetDirectory
 if (-not (Test-Path -LiteralPath $outputDirectory -PathType Container)) { throw 'Output must be an existing Trunk staging directory.' }
-if ($assetDirectory -eq $outputDirectory -or
-    $assetDirectory.StartsWith($outputDirectory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or
-    $outputDirectory.StartsWith($assetDirectory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
-    throw 'Static asset input and output directories must be separate.'
+if (-not $withoutLocalAssets) {
+    Assert-PhysicalPath $assetDirectory
+    if ($assetDirectory -eq $outputDirectory -or
+        $assetDirectory.StartsWith($outputDirectory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or
+        $outputDirectory.StartsWith($assetDirectory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Static asset input and output directories must be separate.'
+    }
 }
 foreach ($name in @('forge-imports', 'forge-kit', 'forge-studio-local-assets-manifest.json')) {
     if (Test-Path -LiteralPath (Join-Path $outputDirectory $name)) { throw "Refusing to overwrite existing staged output: $name" }
@@ -94,7 +100,7 @@ $receipt = [ordered]@{
     import_files = 0; kit_files = 0; files = @{}
     orchestrator_sha256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant()
 }
-if (-not (Test-Path -LiteralPath $assetDirectory)) {
+if ($withoutLocalAssets -or -not (Test-Path -LiteralPath $assetDirectory)) {
     if ($ExpectedManifestSha256) { throw 'An expected manifest was supplied but the local assets are absent.' }
     $receipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $receiptPath -Encoding utf8
     Write-Host 'LOCAL_ASSETS_ABSENT: public frontend build contains no forge-imports or forge-kit.'

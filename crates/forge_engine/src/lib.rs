@@ -401,6 +401,25 @@ pub struct WindowResizeRequest {
     pub height: u32,
 }
 
+impl WindowResizeRequest {
+    pub const fn from_optional_parts(
+        frame: Option<u32>,
+        width: Option<u32>,
+        height: Option<u32>,
+    ) -> Result<Option<Self>, &'static str> {
+        match (frame, width, height) {
+            (None, None, None) => Ok(None),
+            (Some(frame), Some(width), Some(height)) if width > 0 && height > 0 => {
+                Ok(Some(Self { frame, width, height }))
+            }
+            (Some(_), Some(_), Some(_)) => {
+                Err("automated resize dimensions must be greater than zero")
+            }
+            _ => Err("--resize-at-frame, --resize-width and --resize-height must be provided together"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, Resource, Serialize)]
 pub struct ProofSceneStats {
     /// Canonical input records represented by this runtime scene. Visual Valley has one terrain

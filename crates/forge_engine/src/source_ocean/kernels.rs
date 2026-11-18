@@ -26,26 +26,43 @@ pub const NAMES: [&str; 9] = [
     "mipB-1",
 ];
 
-/// Create the mip views once per render invocation, not once per simulated step.
-pub fn views(textures: &[&GpuImage]) -> Result<Vec<Vec<gpu::TextureView>>, String> {
-    if !matches!(textures.len(), 0 | 2) {
-        return Err("Ocean requires zero or two GPU textures".into());
-    }
-    Ok(textures
-        .iter()
-        .map(|texture| {
-            (0..9)
-                .map(|mip| {
-                    texture.texture.create_view(&gpu::TextureViewDescriptor {
-                        dimension: Some(gpu::TextureViewDimension::D2Array),
-                        base_mip_level: mip,
-                        mip_level_count: Some(1),
-                        ..default()
-                    })
+/// Keep mip views with the exact GPU textures that own them.
+#[derive(Default)]
+pub struct MipViews {
+    textures: Option<[gpu::TextureId; 2]>,
+    views: Vec<Vec<gpu::TextureView>>,
+}
+
+impl MipViews {
+    pub fn for_textures(
+        &mut self,
+        textures: &[&GpuImage],
+    ) -> Result<&[Vec<gpu::TextureView>], String> {
+        let ids = match textures {
+            [] => return Ok(&[]),
+            [first, second] => [first.texture.id(), second.texture.id()],
+            _ => return Err("Ocean requires zero or two GPU textures".into()),
+        };
+        if self.textures != Some(ids) {
+            self.views = textures
+                .iter()
+                .map(|texture| {
+                    (0..9)
+                        .map(|mip| {
+                            texture.texture.create_view(&gpu::TextureViewDescriptor {
+                                dimension: Some(gpu::TextureViewDimension::D2Array),
+                                base_mip_level: mip,
+                                mip_level_count: Some(1),
+                                ..default()
+                            })
+                        })
+                        .collect()
                 })
-                .collect()
-        })
-        .collect())
+                .collect();
+            self.textures = Some(ids);
+        }
+        Ok(&self.views)
+    }
 }
 
 /// Prepare the original kernels in source order; initialization-only probes need three.
@@ -216,6 +233,6 @@ mod tests {
 
     #[test]
     fn initialization_without_output_textures_needs_no_mip_views() {
-        assert!(views(&[]).unwrap().is_empty());
+        assert!(MipViews::default().for_textures(&[]).unwrap().is_empty());
     }
 }

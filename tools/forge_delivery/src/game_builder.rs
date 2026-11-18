@@ -1,4 +1,4 @@
-//! Private game-package candidates built from an authenticated native kit.
+//! Game-package candidates built from an authenticated native kit.
 //!
 //! The kit manifest must come from the native Studio distribution, never from
 //! a frontend path. Hashes establish byte identity, not licence qualification,
@@ -24,6 +24,7 @@ const MAX_CANDIDATE_BYTES: u64 = 8 * 1024 * 1024;
 const MAX_NOTICE_BYTES: u64 = 16 * 1024 * 1024;
 const NOTICE_ROOT: &str = "licenses/rust-runtime-candidate/";
 const PROJECT_NOTICE: &str = "licenses/THIRD_PARTY_NOTICES.md";
+const KIT_RIGHTS_REVIEW: &str = "licenses/redistribution-review.json";
 const NOTICE_INDICES: [(&str, &str); 4] = [
     ("INDEX.json", "forge.rust-dependency-notices.v2"),
     (
@@ -57,6 +58,25 @@ pub struct VerifiedGameKit {
     root: PathBuf,
     manifest: GameKitManifest,
     manifest_sha256: ContentHash,
+}
+
+/// The trusted kit producer supplies this review for the exact kit inventory.
+/// The evidence pin identifies its supporting licence review records.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct KitRightsReview {
+    schema: String,
+    platform: String,
+    source_revision: String,
+    files_sha256: String,
+    evidence_sha256: String,
+}
+
+const fn candidate_schema(rights: &Rights) -> &'static str {
+    match rights {
+        Rights::PrivateLocalOnly => "forge.delivery.private-game-candidate.v2",
+        Rights::Redistributable => "forge.delivery.redistributable-game-candidate.v2",
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -241,10 +261,9 @@ pub fn inspect_candidate(source: &Path, bootstrap: &Path) -> Result<CandidateIns
     }
     let index: CandidateIndex =
         serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
-    if index.schema != "forge.delivery.private-game-candidate.v2"
+    if index.schema != candidate_schema(&index.rights)
         || index.application_file != "game.forgepack"
         || index.installer_file != installer_name()
-        || index.rights != Rights::PrivateLocalOnly
         || index.runtime_verified
         || index.installation_verified
         || index.distribution_qualified
@@ -286,7 +305,7 @@ fn inspect_candidate_archives(
     descriptor.validate_host()?;
     let product = descriptor.product.as_ref().ok_or("Game product missing")?;
     if descriptor.kind != Kind::Applications
-        || descriptor.rights != Rights::PrivateLocalOnly
+        || descriptor.rights != index.rights
         || descriptor.source_revision != index.workspace_sha256.to_string()
         || revision != index.application_manifest_sha256.to_string()
         || product.schema != manifest::STANDALONE_PRODUCT_SCHEMA
@@ -323,7 +342,7 @@ fn inspect_candidate_archives(
         if crate::file_hash(&path)? != item.package_sha256.to_string() {
             return Err("Game module archive changed".into());
         }
-        let admitted = VerifiedGameModule::read_archive(&path)?;
+        let admitted = VerifiedGameModule::read_archive_for_scope(&path, &index.rights)?;
         if admitted.module_id() != item.module_id
             || admitted.transport_revision() != item.transport_manifest_sha256
             || !product.required_packs.iter().any(|pack| {
@@ -480,6 +499,11 @@ pub fn apply_candidate_install(candidate: &CandidateInstall) -> Result<()> {
 }
 
 impl VerifiedGameKit {
+    #[must_use]
+    pub fn supports_redistribution(&self) -> bool {
+        self.manifest.rights == Rights::Redistributable
+    }
+
     /// `manifest_bytes` must be anchored in the installed Studio's own build.
     pub fn read(root: &Path, manifest_bytes: &[u8]) -> Result<Self> {
         if manifest_bytes.is_empty() || manifest_bytes.len() > MAX_KIT_MANIFEST_BYTES {
@@ -496,6 +520,9 @@ impl VerifiedGameKit {
         }
         reject_known_aube_launcher(&root, &kit)?;
         verify_notices(&root, &kit)?;
+        if kit.rights == Rights::Redistributable {
+            verify_kit_rights_review(&root, &kit)?;
+        }
         Ok(Self {
             root,
             manifest: kit,
@@ -535,16 +562,18 @@ fn validate_kit_shape(kit: &GameKitManifest) -> Result<()> {
     let compatible = (kit.platform == "windows-x64"
         && cfg!(all(target_os = "windows", target_arch = "x86_64")))
         || (kit.platform == "linux-x64" && cfg!(all(target_os = "linux", target_arch = "x86_64")));
-    if kit.schema != "forge.delivery.game-kit.v1"
-        || !compatible
+    if !matches!(
+        (kit.schema.as_str(), &kit.rights),
+        ("forge.delivery.game-kit.v1", Rights::PrivateLocalOnly)
+            | ("forge.delivery.game-kit.v2", Rights::Redistributable)
+    ) || !compatible
         || kit.launcher_contract != "forge.game-launcher.v2"
-        || kit.rights != Rights::PrivateLocalOnly
         || kit.version.trim().is_empty()
         || kit.version.len() > 128
         || kit.files.is_empty()
         || kit.files.len() > manifest::MAX_FILES
     {
-        return Err("Unsupported, incomplete or non-private game kit".into());
+        return Err("Unsupported or incomplete game kit".into());
     }
     manifest::valid_hash(&kit.source_revision)?;
     manifest::relative(&kit.launcher)?;
@@ -599,12 +628,51 @@ fn validate_kit_shape(kit: &GameKitManifest) -> Result<()> {
             return Err("Game kit licence inventory is incomplete or duplicated".into());
         }
     }
+    if kit
+        .files
+        .iter()
+        .any(|entry| entry.path.starts_with("licenses/") && !licenses.contains(entry.path.as_str()))
+    {
+        return Err("Game kit licence inventory is incomplete or duplicated".into());
+    }
     if !licenses.contains(PROJECT_NOTICE)
         || NOTICE_INDICES
             .iter()
             .any(|(name, _)| !licenses.contains(format!("{NOTICE_ROOT}{name}").as_str()))
     {
         return Err("Game kit project and runtime notice indices are required".into());
+    }
+    Ok(())
+}
+
+fn verify_kit_rights_review(root: &Path, kit: &GameKitManifest) -> Result<()> {
+    let bytes = read_notice(root, kit_entry(kit, KIT_RIGHTS_REVIEW)?)?;
+    let review: KitRightsReview =
+        serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+    manifest::valid_hash(&review.evidence_sha256)?;
+    let mut entries: Vec<_> = kit
+        .files
+        .iter()
+        .filter(|entry| entry.path != KIT_RIGHTS_REVIEW)
+        .collect();
+    entries.sort_unstable_by(|a, b| a.path.cmp(&b.path));
+    // Paths have already passed the package path validator and contain no tabs or newlines.
+    let mut inventory = String::new();
+    use std::fmt::Write as _;
+    for entry in entries {
+        writeln!(
+            inventory,
+            "{}\t{}\t{}",
+            entry.path, entry.bytes, entry.sha256
+        )
+        .map_err(|error| error.to_string())?;
+    }
+    if review.schema != "forge.delivery.game-kit-rights-review.v1"
+        || review.platform != kit.platform
+        || review.source_revision != kit.source_revision
+        || review.files_sha256 != crate::hash(inventory.as_bytes())
+    {
+        return Err("Redistribution review does not cover this game kit".into());
     }
     Ok(())
 }
@@ -734,7 +802,7 @@ fn verify_notice_texts(kit: &GameKitManifest, value: &serde_json::Value) -> Resu
     Ok(())
 }
 
-/// Assemble and read back private candidates. The caller must derive `game`
+/// Assemble and read back candidates in the trusted kit's scope. The caller must derive `game`
 /// from its locked saved workspace and provide only native-resolved modules.
 pub fn build_candidate(
     output_root: &Path,
@@ -754,6 +822,31 @@ pub fn build_candidate_with_presentation(
     modules: &[ExportedModule],
     presentation: Option<&crate::game_presentation::PresentationBundle>,
 ) -> Result<GameCandidate> {
+    build_candidate_in_scope(
+        output_root,
+        kit,
+        game,
+        expected_workspace,
+        modules,
+        presentation,
+        kit.manifest.rights.clone(),
+    )
+}
+
+/// A reviewed kit can also be used for a local-only game. The chosen game
+/// scope never promotes the kit or any project content beyond its own rights.
+pub fn build_candidate_in_scope(
+    output_root: &Path,
+    kit: &VerifiedGameKit,
+    game: &DerivedGameManifest,
+    expected_workspace: ContentHash,
+    modules: &[ExportedModule],
+    presentation: Option<&crate::game_presentation::PresentationBundle>,
+    rights: Rights,
+) -> Result<GameCandidate> {
+    if rights == Rights::Redistributable && !kit.supports_redistribution() {
+        return Err("This game kit permits private export only".into());
+    }
     game.validate().map_err(|error| error.to_string())?;
     if game.source_workspace_hash() != expected_workspace {
         return Err("Game manifest differs from the reviewed workspace".into());
@@ -782,7 +875,7 @@ pub fn build_candidate_with_presentation(
         {
             return Err("Game module selection or package pin differs".into());
         }
-        let verified = VerifiedGameModule::read_archive(&module.package_path)?;
+        let verified = VerifiedGameModule::read_archive_for_scope(&module.package_path, &rights)?;
         if verified.module_id() != module.module_id
             || verified.transport_revision().to_string() != module.transport_manifest_sha256
         {
@@ -803,6 +896,7 @@ pub fn build_candidate_with_presentation(
         expected_workspace,
         modules,
         presentation,
+        rights,
     );
     match result {
         Ok(mut candidate) => {
@@ -830,6 +924,7 @@ fn assemble(
     expected_workspace: ContentHash,
     modules: &[ExportedModule],
     presentation: Option<&crate::game_presentation::PresentationBundle>,
+    rights: Rights,
 ) -> Result<GameCandidate> {
     let source = temporary.join(".application-source");
     fs::create_dir(&source).map_err(|error| error.to_string())?;
@@ -887,7 +982,7 @@ fn assemble(
         kind: Kind::Applications,
         platform: kit.manifest.platform.clone(),
         source_revision: expected_workspace.to_string(),
-        rights: Rights::PrivateLocalOnly,
+        rights: rights.clone(),
         license_paths,
         files: Vec::new(),
         product: Some(product),
@@ -914,7 +1009,7 @@ fn assemble(
         .map_err(|error| error.to_string())?;
     }
     let candidate = GameCandidate {
-        schema: "forge.delivery.private-game-candidate.v2",
+        schema: candidate_schema(&rights),
         workspace_sha256: expected_workspace,
         kit_manifest_sha256: kit.manifest_sha256,
         application_file: "game.forgepack",
@@ -926,7 +1021,7 @@ fn assemble(
         installer_sha256: ContentHash::parse(&launcher_entry.sha256)
             .map_err(|error| error.to_string())?,
         modules: receipts,
-        rights: Rights::PrivateLocalOnly,
+        rights,
         runtime_verified: false,
         installation_verified: false,
         distribution_qualified: false,

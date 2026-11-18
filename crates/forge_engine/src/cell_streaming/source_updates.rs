@@ -79,6 +79,8 @@ pub fn request_source_update(
     let mut state = world.resource_mut::<State>();
     state.requested_source = requested;
     state.last_request = None;
+    state.last_request_admitted = false;
+    state.prepared_plan = None;
     Ok(())
 }
 
@@ -124,6 +126,8 @@ pub fn request_mesh_quality(
     let mut state = world.resource_mut::<State>();
     state.requested_source = requested;
     state.last_request = None;
+    state.last_request_admitted = false;
+    state.prepared_plan = None;
     Ok(())
 }
 

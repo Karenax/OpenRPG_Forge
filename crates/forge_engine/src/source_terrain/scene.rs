@@ -1,7 +1,7 @@
 //! Disposable renderer assembly for one authored imported terrain.
 //! Canonical edits remain in `TerrainDocument`; this resource owns only derived assets.
 use super::{
-    TerrainMaterial, TerrainSettings,
+    CdlodReceivesSourceSun, TerrainMaterial, TerrainSettings,
     lod::{self, LodMaterial, PreparedLod},
     normals,
     paint::PreparedPaint,
@@ -44,6 +44,7 @@ pub struct PreparedTerrain {
     water_level_m: Option<f64>,
     edited: bool,
     fragment: Shader,
+    fragment_receives_source_sun: bool,
     vertex: Shader,
     lighting_seed: crate::source_lighting::scene_uniform::Seed,
 }
@@ -92,7 +93,7 @@ impl PreparedTerrain {
         require_fixed_profile(plan)?;
         require_fixed_package(package)?;
         let geometry = PreparedLod::new(plan, heights, view)?;
-        Self::with_geometry(plan, package, geometry, Some(0.0))
+        Self::with_geometry(plan, package, geometry, Some(0.0), true)
     }
 
     pub(super) fn for_host(
@@ -101,12 +102,14 @@ impl PreparedTerrain {
         package: &TerrainPackage,
         geometry: &lod::ViewGeometry,
         water_level_m: Option<f64>,
+        source_local_lights: bool,
     ) -> Result<Self, String> {
         Self::with_geometry(
             plan,
             package,
             Some(PreparedLod::resident_root(plan, heights, geometry)?),
             water_level_m,
+            source_local_lights,
         )
     }
 
@@ -115,6 +118,7 @@ impl PreparedTerrain {
         package: &TerrainPackage,
         geometry: Option<PreparedLod>,
         water_level_m: Option<f64>,
+        source_local_lights: bool,
     ) -> Result<Self, String> {
         require_matching_package(plan, package)?;
         if water_level_m.is_some_and(|level| !level.is_finite()) {
@@ -142,14 +146,15 @@ impl PreparedTerrain {
         let fragment = crate::source_shadows::receiver::shader_source(&lighting.shader)?;
         let fragment =
             crate::source_surface::underwater::receivers::terrain_shader_source(&fragment)?;
-        let fragment = Shader::from_wgsl(
-            crate::source_lighting::local_lights::receiver::terrain_shader_source(&fragment)?,
-            "source-package-terrain.wgsl",
-        );
+        let fragment = if source_local_lights {
+            crate::source_lighting::local_lights::receiver::terrain_shader_source(&fragment)?
+        } else {
+            fragment
+        };
+        let fragment = Shader::from_wgsl(fragment, "source-package-terrain.wgsl");
         let corrections = crate::sampled_terrain_corrections::Corrections::from_document(document)?;
-        let vertex = super::sampling::prepare_shader(lod_program, document)?;
-        let vertex = super::sampling::clip_vertex_shader(&vertex, document)?;
-        let vertex = corrections.shader(&vertex, "#{MATERIAL_BIND_GROUP}", 102)?;
+        let vertex = super::lod::prepare_vertex_shader(lod_program, document)?;
+        let vertex = corrections.material_shader(&vertex, 102)?;
         Ok(Self {
             hash: plan.document_hash(),
             relief: super::sampling::relief_identity(plan)?,
@@ -162,6 +167,7 @@ impl PreparedTerrain {
             water_level_m,
             edited,
             fragment,
+            fragment_receives_source_sun: surface_program == super::programs::SURFACE,
             lighting_seed: lighting.seed,
             vertex: Shader::from_wgsl(vertex, "source-edited-terrain.wgsl"),
         })
@@ -191,6 +197,7 @@ impl PreparedTerrain {
             &mut world.resource_mut::<Assets<Image>>(),
         )?;
         stage_programs(world, self.fragment, self.vertex);
+        CdlodReceivesSourceSun::publish(world, self.fragment_receives_source_sun);
         let mut entity = None;
         let mut material = None;
         let mut source_linear_detail = Handle::default();

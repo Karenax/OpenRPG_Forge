@@ -322,6 +322,71 @@ fn selection_order_is_independent_of_projected_instance_order() {
 }
 
 #[test]
+fn cached_footprints_follow_new_cell_owners_and_preserve_collision_sources() {
+    let fixture = Fixture::new();
+    let view = Arc::new(
+        fixture
+            .population
+            .terrain_view(fixture.zone.head(), &fixture.heights)
+            .unwrap()
+            .into_snapshot(),
+    );
+    let first_cells = fixture.cells(CellKey { x: 1, z: 1 });
+    let first_distant = layout(&fixture, &first_cells);
+    let second_cells = fixture.cells(CellKey { x: 2, z: 1 });
+    let second_distant = layout(&fixture, &second_cells);
+    let first = AdmittedPlantCells {
+        policy: &fixture.policy,
+        cells: &first_cells,
+        distant: &first_distant,
+        terrain_hash: fixture.terrain_hash,
+        head_hash: view.head_hash(),
+    };
+    let second = AdmittedPlantCells {
+        cells: &second_cells,
+        distant: &second_distant,
+        ..first
+    };
+    let envelopes = fixture.envelopes;
+    let population = Arc::new(fixture.population);
+    let cache = SnapshotSelection::prepare(
+        Arc::clone(&population),
+        Arc::clone(&view),
+        first,
+        &envelopes,
+    )
+    .unwrap();
+    for admission in [first, second] {
+        let ordinary = select(&population, view.as_ref(), admission, &envelopes).unwrap();
+        let cached = cache.select(admission).unwrap();
+        assert_eq!(ordinary.plants.len(), cached.plants.len());
+        assert!(ordinary.plants.iter().zip(&cached.plants).all(|(a, b)| {
+            a.entity == b.entity
+                && a.representation == b.representation
+                && a.layer_id == b.layer_id
+                && a.prototype_key == b.prototype_key
+                && a.parameter_names == b.parameter_names
+        }));
+        assert_eq!(ordinary.collisions.len(), cached.collisions.len());
+        assert!(
+            ordinary
+                .collisions
+                .iter()
+                .zip(&cached.collisions)
+                .all(|(a, b)| a.entity == b.entity && a.profile == b.profile)
+        );
+    }
+    assert!(
+        cache
+            .select(AdmittedPlantCells {
+                distant: &first_distant,
+                ..second
+            })
+            .is_err()
+    );
+}
+
+#[test]
 fn crown_touching_a_protected_cell_keeps_the_whole_plant_detailed() {
     let mut fixture = Fixture::new();
     // Plant 2 is rooted in coarse cell (3,1), but its crown touches full cell (2,1).

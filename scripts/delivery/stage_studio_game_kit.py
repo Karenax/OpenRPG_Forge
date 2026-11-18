@@ -1,4 +1,4 @@
-"""Embed only the authenticated private game-kit manifest in a Studio frontend.
+"""Embed the authenticated game-kit manifest in a Studio frontend.
 
 The existing static asset inventory remains untouched. This is a build input,
 not evidence of a runnable game, installed Studio or distribution rights.
@@ -73,7 +73,7 @@ def _stage_receipt(verified, expected_receipt_sha256, expected_source_manifest_s
         raise ValueError('Verified kit inventory sizes are invalid')
     return {
         'schema': 'forge.studio.game-kit-stage.v1',
-        'status': 'PRIVATE_STAGED_ONLY',
+        'status': verified.receipt['status'],
         'manifest_file': MANIFEST,
         'manifest_sha256': verified.manifest_sha256,
         'manifest_bytes': len(raw),

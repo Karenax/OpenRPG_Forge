@@ -1,5 +1,4 @@
 //! Bounded input replay, not navigation, teleportation, or physical-keyboard qualification.
-mod cpu_phases;
 mod measurement;
 mod moving_measurement;
 mod render_samples;
@@ -7,7 +6,7 @@ mod shadow_policy;
 use bevy::prelude::*;
 use forge_engine::{
     GovernedAssetKitReadiness, PendingPlayerControlCommand, PlayerControlCommand,
-    PlayerControllerSet, PlayerRuntimeSnapshot,
+    PlayerControllerSet, PlayerRuntimeSnapshot, cpu_timing::main_phases as cpu_phases,
 };
 pub use measurement::install_measurement;
 pub use moving_measurement::install as install_moving_measurement;

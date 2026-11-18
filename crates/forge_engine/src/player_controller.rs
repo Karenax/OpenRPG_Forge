@@ -62,6 +62,23 @@ struct PlayerInitialCameraMode(PlayerCameraMode);
 #[derive(Clone, Copy, Resource)]
 struct PlayerInitialCameraPitch(Option<f32>);
 
+/// Perspective range selected by the scene before the player camera spawns.
+#[derive(Clone, Copy, Debug, Default, Resource)]
+pub enum PlayerCameraRange {
+    #[default]
+    Local,
+    SourceHorizon,
+}
+
+impl PlayerCameraRange {
+    const fn far_m(self) -> f32 {
+        match self {
+            Self::Local => 1_600.0,
+            Self::SourceHorizon => 60_000.0,
+        }
+    }
+}
+
 impl PlayerSpawnPoint {
     #[must_use]
     pub const fn position(self) -> Vec3 {
@@ -568,6 +585,7 @@ impl Plugin for PlayerControllerPlugin {
             .insert_resource(PlayerInitialCameraTarget(self.initial_camera_target))
             .insert_resource(PlayerInitialCameraMode(self.initial_camera_mode))
             .insert_resource(PlayerInitialCameraPitch(self.initial_camera_pitch_degrees))
+            .init_resource::<PlayerCameraRange>()
             .init_resource::<PendingPlayerControlCommand>()
             .init_resource::<PlayerInputFocus>()
             .init_resource::<PlayerSimulationReady>()
@@ -616,6 +634,14 @@ impl Plugin for PlayerControllerPlugin {
     }
 }
 
+type PlayerInitialPose<'w> = (
+    Res<'w, PlayerSpawnPoint>,
+    Res<'w, PlayerInitialCameraTarget>,
+    Res<'w, PlayerInitialCameraMode>,
+    Res<'w, PlayerInitialCameraPitch>,
+    Res<'w, PlayerCameraRange>,
+);
+
 #[allow(
     clippy::needless_pass_by_value,
     reason = "Bevy systems require owned system parameter wrappers"
@@ -627,12 +653,7 @@ impl Plugin for PlayerControllerPlugin {
 fn spawn_player_controller(
     mut commands: Commands,
     profile: Res<PlayerRuntimeProfile>,
-    (spawn_point, camera_target, camera_mode, camera_pitch): (
-        Res<PlayerSpawnPoint>,
-        Res<PlayerInitialCameraTarget>,
-        Res<PlayerInitialCameraMode>,
-        Res<PlayerInitialCameraPitch>,
-    ),
+    (spawn_point, camera_target, camera_mode, camera_pitch, camera_range): PlayerInitialPose,
     mut bindings: ResMut<PlayerRuntimeBindings>,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
     meshes: Option<ResMut<Assets<Mesh>>>,
@@ -732,7 +753,7 @@ fn spawn_player_controller(
             Projection::Perspective(PerspectiveProjection {
                 fov: vertical_fov_degrees.to_radians(),
                 near: 0.05,
-                far: 1_600.0,
+                far: camera_range.far_m(),
                 ..default()
             }),
             Transform::from_translation(pose.translation).looking_to(pose.forward, Vec3::Y),
@@ -1009,11 +1030,12 @@ fn update_player_camera(
 
     match rig.mode {
         PlayerCameraMode::FirstPerson => {
-            *player_visibility = Visibility::Hidden;
+            player_visibility.set_if_neq(Visibility::Hidden);
             rig.boom_distance_m = 0.0;
             let pose = first_person_pose(player_center, capsule_half_height, *rig, camera_profile);
-            *camera_transform =
-                Transform::from_translation(pose.translation).looking_to(pose.forward, Vec3::Y);
+            camera_transform.set_if_neq(
+                Transform::from_translation(pose.translation).looking_to(pose.forward, Vec3::Y),
+            );
             set_perspective_fov(
                 &mut projection,
                 camera_profile
@@ -1028,7 +1050,7 @@ fn update_player_camera(
                 .to_radians();
         }
         PlayerCameraMode::ThirdPerson => {
-            *player_visibility = Visibility::Visible;
+            player_visibility.set_if_neq(Visibility::Visible);
             let mut cast_rig = *rig;
             cast_rig.boom_distance_m = camera_profile.third_person_distance_m;
             let desired_pose =
@@ -1073,8 +1095,9 @@ fn update_player_camera(
                 fixed_time.timestep().as_secs_f32(),
             );
             let pose = third_person_pose(player_center, capsule_half_height, *rig, camera_profile);
-            *camera_transform =
-                Transform::from_translation(pose.translation).looking_to(pose.forward, Vec3::Y);
+            camera_transform.set_if_neq(
+                Transform::from_translation(pose.translation).looking_to(pose.forward, Vec3::Y),
+            );
             set_perspective_fov(
                 &mut projection,
                 camera_profile
@@ -1095,9 +1118,13 @@ fn update_player_camera(
     snapshot.camera_boom_distance_m = rig.boom_distance_m;
 }
 
-fn set_perspective_fov(projection: &mut Projection, fov_radians: f32) {
-    if let Projection::Perspective(perspective) = projection {
+fn set_perspective_fov(projection: &mut Mut<'_, Projection>, fov_radians: f32) {
+    // Bevy recomputes the camera projection whenever this component changes.
+    if let Projection::Perspective(perspective) = projection.bypass_change_detection()
+        && perspective.fov.to_bits() != fov_radians.to_bits()
+    {
         perspective.fov = fov_radians;
+        projection.set_changed();
     }
 }
 
@@ -1789,6 +1816,23 @@ mod tests {
         let expected_eye_y = player_y - half_height + camera.eye_height_m;
         assert!((camera_y - expected_eye_y).abs() <= 1.0e-5);
 
+        app.world_mut().clear_trackers();
+        run_fixed(&mut app, 1);
+        assert!(
+            !app.world()
+                .entity(identity.camera_entity)
+                .get_ref::<Projection>()
+                .unwrap()
+                .is_changed()
+        );
+        assert!(
+            !app.world()
+                .entity(identity.player_entity)
+                .get_ref::<Visibility>()
+                .unwrap()
+                .is_changed()
+        );
+
         submit(
             &mut app,
             PlayerControlCommand {
@@ -1963,6 +2007,30 @@ mod tests {
 
     fn capsule_half_height(profile: &PlayerControllerProfileDocument) -> f32 {
         profile.controller.capsule_radius_m + profile.controller.capsule_half_segment_m
+    }
+
+    #[test]
+    fn scene_camera_range_is_applied_at_spawn() {
+        for (range, expected_far) in [
+            (None, 1_600.0_f32),
+            (Some(PlayerCameraRange::SourceHorizon), 60_000.0),
+        ] {
+            let mut app = App::new();
+            app.add_plugins(MinimalPlugins);
+            if let Some(range) = range {
+                app.insert_resource(range);
+            }
+            app.add_plugins(
+                PlayerControllerPlugin::new(test_profile(), Vec3::ZERO)
+                    .with_interactive_input(false),
+            );
+            app.world_mut().run_schedule(Startup);
+            let camera = app.world().get::<Projection>(bindings(&app).camera_entity);
+            let Some(Projection::Perspective(camera)) = camera else {
+                panic!("expected perspective camera");
+            };
+            assert_eq!(camera.far.to_bits(), expected_far.to_bits());
+        }
     }
 
     #[test]

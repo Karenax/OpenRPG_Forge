@@ -27,26 +27,41 @@ pub(super) fn receipts(world: &World, context: Entity) -> Result<Vec<SourceRecei
         .get::<RapierContextColliders>(context)
         .ok_or("missing Rapier collider context")?;
     let mut sources = Vec::new();
-    for entity in world.iter_entities() {
-        if excluded(world, entity.id())
-            || entity.contains::<Sensor>()
-            || entity.contains::<ColliderDisabled>()
+    // Match the unfiltered world scan for pending colliders, including entities
+    // excluded by Bevy's default query filters, without walking visual entities.
+    let ecs_colliders = world
+        .components()
+        .component_id::<Collider>()
+        .into_iter()
+        .flat_map(|id| {
+            world
+                .archetypes()
+                .iter()
+                .filter(move |archetype| archetype.contains(id))
+                .flat_map(bevy::ecs::archetype::Archetype::entities)
+        });
+    let installed = colliders.entity2collider();
+    for entry in ecs_colliders {
+        let entity = entry.id();
+        if installed.contains_key(&entity)
+            || excluded(world, entity)
+            || world.get::<Sensor>(entity).is_some()
+            || world.get::<ColliderDisabled>(entity).is_some()
         {
             continue;
         }
-        if let Some(shape) = entity.get::<Collider>()
-            && !colliders.entity2collider().contains_key(&entity.id())
-        {
-            let global = current_global(world, entity.id())
-                .ok_or("navigation source hierarchy not ready")?;
-            let (min, max) = pending_bounds(shape, global)?;
-            sources.push(SourceReceipt {
-                min: min.to_array(),
-                max: max.to_array(),
-                stamp: None,
-                error: Some("navigation waits for a newly authored collider in Rapier".into()),
-            });
-        }
+        let shape = world
+            .get::<Collider>(entity)
+            .ok_or("pending navigation collider absent")?;
+        let global =
+            current_global(world, entity).ok_or("navigation source hierarchy not ready")?;
+        let (min, max) = pending_bounds(shape, global)?;
+        sources.push(SourceReceipt {
+            min: min.to_array(),
+            max: max.to_array(),
+            stamp: None,
+            error: Some("navigation waits for a newly authored collider in Rapier".into()),
+        });
     }
     let mut entries: Vec<_> = colliders.entity2collider().iter().collect();
     entries.sort_by_key(|(entity, _)| entity.to_bits());
@@ -187,15 +202,6 @@ pub(super) fn collect(
             return Err("navigation tile geometry budget exceeded".into());
         }
     }
-    // Deterministic geometry identity does not depend on hash-map iteration or Entity IDs.
-    triangles.sort_by(|a, b| {
-        a.iter()
-            .flatten()
-            .zip(b.iter().flatten())
-            .map(|(a, b)| a.total_cmp(b))
-            .find(|order| !order.is_eq())
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
     // Portable obstacle ordering excludes ECS identities and map iteration.
     let mut ordered = obstacles
         .into_iter()
@@ -232,8 +238,29 @@ pub(super) fn collect(
         input.vertices.extend(triangle);
         input.triangles.push([start, start + 1, start + 2]);
     }
-    input.source_hash = source_hash(&input)?;
+    // Native generation seals non-empty geometry on its existing worker.
+    // Empty tiles have no worker job and the browser dispatch sends a sealed tile.
+    if cfg!(target_arch = "wasm32") || input.triangles.is_empty() {
+        order_triangles(&mut input.vertices);
+        input.source_hash = source_hash(&input)?;
+    }
     Ok(input)
+}
+
+pub(super) fn order_triangles(vertices: &mut [[f32; 3]]) {
+    // Each triangle owns three consecutive vertices with sequential indices.
+    // Reordering the triples leaves the index buffer valid while preserving
+    // the canonical source identity across collider iteration orders.
+    let (triangles, remainder) = vertices.as_chunks_mut::<3>();
+    debug_assert!(remainder.is_empty());
+    triangles.sort_by(|a, b| {
+        a.iter()
+            .flatten()
+            .zip(b.iter().flatten())
+            .map(|(a, b)| a.total_cmp(b))
+            .find(|order| !order.is_eq())
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 }
 
 /// A pending edit may replace a shape or enlarge it before `SyncBackend`. This

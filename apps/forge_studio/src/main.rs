@@ -11,6 +11,7 @@ mod native_atelier;
 mod native_game;
 mod native_mcp;
 mod native_module_resources;
+mod native_module_upload;
 mod native_reconciliation;
 mod native_webview;
 
@@ -338,16 +339,58 @@ mod native_module_export;
 #[tauri::command]
 async fn import_module_package(
     request: tauri::ipc::Request<'_>,
-) -> Result<forge_project::authoring::workspace::WorkspaceHostState, String> {
-    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
-        return Err("Choisissez un fichier .orpmod dans le Studio.".into());
+    window: tauri::WebviewWindow,
+) -> Result<serde_json::Value, String> {
+    use forge_studio_frontend::module_import_protocol::{Control, OFFSET_HEADER, UPLOAD_HEADER};
+    use tauri::ipc::InvokeBody;
+
+    let label = window.label();
+    let bytes = {
+        let mut uploads = native_module_upload::UPLOAD
+            .lock()
+            .map_err(|_| "Import interrompu.")?;
+        match request.body() {
+            InvokeBody::Json(control) => {
+                match serde_json::from_value(control.clone()).map_err(|error| error.to_string())? {
+                    Control::Start { bytes } => return Ok(uploads.start(label, bytes)?.into()),
+                    Control::Cancel { upload } => {
+                        uploads.cancel(label, upload);
+                        return Ok(serde_json::Value::Null);
+                    }
+                    Control::Finish { upload } => uploads.finish(label, upload)?,
+                }
+            }
+            InvokeBody::Raw(chunk) => {
+                let header = |name| {
+                    request
+                        .headers()
+                        .get(name)
+                        .and_then(|value| value.to_str().ok())
+                };
+                if !request.headers().contains_key(UPLOAD_HEADER)
+                    && !request.headers().contains_key(OFFSET_HEADER)
+                {
+                    // Preserve the original one-message import within its IPC budget.
+                    if chunk.is_empty() || chunk.len() > 256 * 1024 * 1024 {
+                        return Err(
+                            "Le transfert direct accepte un fichier .orpmod de 256 Mio maximum."
+                                .into(),
+                        );
+                    }
+                    chunk.clone()
+                } else {
+                    let upload = header(UPLOAD_HEADER)
+                        .and_then(|value| value.parse().ok())
+                        .ok_or("Identifiant d’import invalide.")?;
+                    let offset = header(OFFSET_HEADER)
+                        .and_then(|value| value.parse().ok())
+                        .ok_or("Position de la partie du fichier invalide.")?;
+                    uploads.append(label, upload, offset, chunk)?;
+                    return Ok(serde_json::Value::Null);
+                }
+            }
+        }
     };
-    if bytes.is_empty()
-        || bytes.len() as u64 > forge_project::workspace::MAX_MODULE_ORIGIN_PACKAGE_BYTES
-    {
-        return Err("Choisissez un fichier .orpmod de 256 Mio maximum.".into());
-    }
-    let bytes = bytes.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let audit = studio_human_audit()?;
         with_authoring_host(|host| {
@@ -360,6 +403,7 @@ async fn import_module_package(
     })
     .await
     .map_err(|error| format!("Import interrompu ({error})"))?
+    .and_then(|state| serde_json::to_value(state).map_err(|error| error.to_string()))
 }
 
 #[tauri::command]
@@ -674,10 +718,13 @@ fn main() -> Result<(), String> {
                 }
                 return;
             }
-            if window.label() == native_atelier::LABEL
-                && matches!(event, tauri::WindowEvent::Destroyed)
-            {
-                native_atelier::closed();
+            if matches!(event, tauri::WindowEvent::Destroyed) {
+                if let Ok(mut uploads) = native_module_upload::UPLOAD.lock() {
+                    uploads.discard_window(window.label());
+                }
+                if window.label() == native_atelier::LABEL {
+                    native_atelier::closed();
+                }
             }
             if let tauri::WindowEvent::CloseRequested { api, .. } = event
                 && let Some(webview) = window.get_webview_window(window.label())
@@ -974,6 +1021,9 @@ mod tests {
                 "allow-import-module-package",
                 "allow-export-module",
                 "allow-export-game",
+                "allow-preview-aurora-bundle",
+                "allow-import-aurora-bundle",
+                "allow-run-aurora-gameplay",
                 "allow-read-asset-library",
                 "allow-read-asset-model",
                 "allow-read-asset-physics",

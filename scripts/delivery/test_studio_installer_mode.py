@@ -54,6 +54,9 @@ class StudioInstallerModeTests(unittest.TestCase):
         self.assertFalse(result['distribution_qualified'])
         self.assertEqual((self.old_root/'Forge-ContentManager.exe').read_bytes(), b'preserve existing hub')
         command = list(map(str, self.commands[0]))
+        staging = Path(next(arg.split('=', 1)[1] for arg in command if arg.startswith('/DOUTPUT_FILE='))).parent
+        self.assertEqual(staging.parent, self.args.output.parent)
+        self.assertFalse(staging.exists())
         self.assertIn('/DSTUDIO_ONLY', command)
         self.assertTrue(any(arg.startswith('/DSTUDIO_PACKAGE=') for arg in command))
         self.assertFalse(any('Forge-ContentManager' in arg or 'Forge.exe' in arg for arg in command))
@@ -76,6 +79,28 @@ class StudioInstallerModeTests(unittest.TestCase):
         self.assertEqual(receipt['webview2_stub_architecture'], 'x86')
         self.assertFalse(receipt['webview2_payload_architecture_verified'])
         self.signature.assert_called_once_with(self.args.webview2)
+
+    def test_external_webview_requires_no_runtime_payload_or_pin(self):
+        self.args.external_webview2 = True
+        with self.assertRaisesRegex(ValueError, 'cannot embed'):
+            self.build()
+        self.args.webview2 = None
+        self.args.webview2_sha256 = None
+        self.build()
+        command = list(map(str, self.commands[0]))
+        self.assertIn('/DSTUDIO_EXTERNAL_WEBVIEW2', command)
+        self.assertFalse(any(arg.startswith('/DSTUDIO_WEBVIEW2=') for arg in command))
+        receipt = json.loads((self.args.evidence/'studio-installer-result.json').read_bytes())
+        self.assertEqual(receipt['webview2_mode'], 'external')
+        self.assertIsNone(receipt['webview2_sha256'])
+        self.signature.assert_not_called()
+
+    def test_external_crt_pins_minimum_version_in_installer_recipe(self):
+        self.args.external_crt_min_version = '14.44.35207.0'
+        self.build()
+        self.assertIn('/DSTUDIO_EXTERNAL_CRT_MIN_VERSION=14.44.35207.0', self.commands[0])
+        receipt = json.loads((self.args.evidence/'studio-installer-result.json').read_bytes())
+        self.assertEqual(receipt['external_crt_min_version'], '14.44.35207.0')
 
     def test_refuses_untrusted_or_invalid_webview_before_packaging(self):
         self.signature.side_effect = ValueError('WebView2 installer requires a valid Microsoft signature')
@@ -170,6 +195,32 @@ class StudioInstallerModeTests(unittest.TestCase):
             self.assertIn(command, preprocessed)
         subprocess.run(args, text=True, encoding='utf-8', errors='replace', capture_output=True, check=True)
         self.assertTrue(output.is_file())
+        external = common + studio[:-1] + ['/DSTUDIO_EXTERNAL_WEBVIEW2',
+                                            f'/DOUTPUT_FILE={folder / "external.exe"}', str(source)]
+        preprocessed = subprocess.run(external[:-1] + ['/PPO', external[-1]], text=True, encoding='utf-8',
+                                      errors='replace', capture_output=True, check=True).stdout
+        self.assertNotIn('MicrosoftEdgeWebView2RuntimeInstallerX64.exe', preprocessed)
+        self.assertNotIn('VerifyWebView2Signature', preprocessed)
+        self.assertIn('Microsoft Edge WebView2 Runtime est requis', preprocessed)
+        detection = preprocessed.split('Function DetectWebView2', 1)[1].split('FunctionEnd', 1)[0]
+        self.assertIn('check-webview2', detection)
+        self.assertNotIn('ReadRegStr', detection)
+        self.assertNotIn('IfFileExists', detection)
+        section = preprocessed.split('Section "OpenRPG Forge"', 1)[1]
+        self.assertLess(section.index('Call InstallWebView2IfMissing'),
+                        section.index('File /oname=forge-studio.forgepack'))
+        subprocess.run(external, text=True, encoding='utf-8', errors='replace', capture_output=True, check=True)
+        self.assertTrue((folder/'external.exe').is_file())
+        crt_output = folder / 'external-crt.exe'
+        crt = external[:-2] + ['/DSTUDIO_EXTERNAL_CRT_MIN_VERSION=14.44.35207.0',
+                              f'/DOUTPUT_FILE={crt_output}', str(source)]
+        preprocessed = subprocess.run(crt[:-1] + ['/PPO', crt[-1]], text=True, encoding='utf-8',
+                                      errors='replace', capture_output=True, check=True).stdout
+        section = preprocessed.split('Section "OpenRPG Forge"', 1)[1]
+        self.assertLess(section.index('Call RequireExternalCrt'),
+                        section.index('File /oname=forge-delivery.exe'))
+        subprocess.run(crt, text=True, encoding='utf-8', errors='replace', capture_output=True, check=True)
+        self.assertTrue(crt_output.is_file())
 
 
 if __name__ == '__main__':

@@ -24,6 +24,47 @@ pub struct LoadedModuleZone {
 }
 
 impl LoadedModuleZone {
+    /// Resolve the selected area's authored stall from its installed, pinned files.
+    pub fn source_stall(
+        &self,
+    ) -> Result<Option<crate::module_source_stall::ResolvedSourceStall<'_>>> {
+        let area = self.zone.head().base.terrain.area_id;
+        self.manifest
+            .source_stalls
+            .iter()
+            .find(|binding| binding.area_id == area)
+            .map(|binding| {
+                crate::module_source_stall::resolve(&self.manifest, binding, |path, maximum| {
+                    self.read_payload(path, maximum)
+                })
+            })
+            .transpose()
+    }
+
+    /// Keep transport admission separate from the scene host's rendering support.
+    pub fn reject_unrendered_source_stall(&self) -> Result<()> {
+        if self
+            .manifest
+            .source_stalls
+            .iter()
+            .any(|binding| binding.area_id == self.zone.head().base.terrain.area_id)
+        {
+            return Err("Le jeu ne peut pas encore afficher l’étal déclaré dans cette zone".into());
+        }
+        Ok(())
+    }
+
+    /// Resolve the scanned resources supplied by the selected installed area.
+    pub fn scanned_debris(
+        &self,
+    ) -> Result<Option<crate::module_scanned_debris::ResolvedScannedDebris>> {
+        crate::module_scanned_debris::resolve(
+            &self.manifest,
+            self.zone.head().base.terrain.area_id,
+            |path, maximum| self.read_payload(path, maximum),
+        )
+    }
+
     /// A host cannot execute modules whose placement companions are not connected.
     /// Inspection and authoring can still load their verified transport.
     pub fn reject_unhandled_placement_companions(&self) -> Result<()> {

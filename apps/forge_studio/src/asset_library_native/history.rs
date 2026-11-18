@@ -3,8 +3,44 @@ use super::{
     BTreeSet, BuildCache, Library, LibraryModel, MAX_ASSETS, Snapshot, StoredAsset, Value,
     parse_json, profile_index, required, valid_hash, validate_pack_metadata, validate_relative,
 };
+use std::io::Read;
+use std::path::Path;
 
 impl Library {
+    /// Read a historical metadata file, transparently accepting a checked gzip
+    /// copy when its original has been retired. Active snapshots remain plain.
+    fn checked_historical_pack_file(
+        &self,
+        root: &Path,
+        files: &serde_json::Map<String, Value>,
+        name: &str,
+        total: &mut u64,
+    ) -> Result<Vec<u8>, String> {
+        if root.join(name).exists() {
+            return self.checked_pack_file(root, files, name, total);
+        }
+        let expected = files
+            .get(name)
+            .and_then(Value::as_str)
+            .filter(|hash| valid_hash(hash))
+            .ok_or_else(|| format!("empreinte {name} absente ou invalide"))?;
+        let compressed = self.safe_from(root, &format!("{name}.gz"))?;
+        let raw = super::read_limited(&compressed, super::MAX_JSON)?;
+        let mut gzip = flate2::read::GzDecoder::new(raw.as_slice()).take(super::MAX_JSON + 1);
+        let mut decoded = Vec::new();
+        gzip
+            .read_to_end(&mut decoded)
+            .map_err(|error| format!("métadonnées historiques compressées invalides: {error}"))?;
+        *total = total.saturating_add(decoded.len() as u64);
+        if decoded.len() as u64 > super::MAX_JSON
+            || *total > super::MAX_TOTAL_JSON
+            || !super::same_hash(&decoded, expected)
+        {
+            return Err(format!("limite ou empreinte invalide pour {name}"));
+        }
+        Ok(decoded)
+    }
+
     pub(super) fn read_historical_model(
         &self,
         snapshot: &Snapshot,
@@ -99,11 +135,11 @@ impl Library {
                 .as_object()
                 .ok_or("empreintes historiques absentes")?;
             let details = parse_json(
-                &self.checked_pack_file(&root, files, "details.v1.json", &mut total)?,
+                &self.checked_historical_pack_file(&root, files, "details.v1.json", &mut total)?,
                 "details historiques",
             )?;
             let profiles = parse_json(
-                &self.checked_pack_file(&root, files, "profiles.v1.json", &mut total)?,
+                &self.checked_historical_pack_file(&root, files, "profiles.v1.json", &mut total)?,
                 "profiles historiques",
             )?;
             if details["schema_version"].as_u64() != Some(1)
@@ -248,6 +284,68 @@ mod tests {
         assert_eq!(page.total_assets, 1);
         assert!(library.execute(request(b"unknown version")).is_err());
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn compressed_historical_metadata_keeps_saved_models_and_rejects_corruption() {
+        use std::io::Write;
+        let (root, old, current) = fixture();
+        let historical = root.join("metadata/rev/demo/old");
+        for name in ["details.v1.json", "profiles.v1.json"] {
+            let path = historical.join(name);
+            let bytes = fs::read(&path).unwrap();
+            let mut encoder =
+                flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+            encoder.write_all(&bytes).unwrap();
+            fs::write(
+                historical.join(format!("{name}.gz")),
+                encoder.finish().unwrap(),
+            )
+            .unwrap();
+            fs::remove_file(path).unwrap();
+        }
+        let mut library = Library::new(&root).unwrap();
+        for bytes in [&old, &current] {
+            let LibraryResponse::Model { model } = library.execute(request(bytes)).unwrap() else {
+                panic!()
+            };
+            assert_eq!(&model.bytes, bytes);
+        }
+        fs::write(historical.join("details.v1.json.gz"), b"not a gzip").unwrap();
+        assert!(library.execute(request(&old)).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    #[ignore = "Requires an explicitly selected private Vault historical snapshot"]
+    fn live_compressed_history_metadata_matches_registry_pin() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let pack = std::env::var("OPENRPG_HISTORY_PROBE_PACK").unwrap();
+        let revision = std::env::var("OPENRPG_HISTORY_PROBE_REVISION").unwrap();
+        let library = Library::new(Path::new(&root)).unwrap();
+        let registry: Value = serde_json::from_slice(&library.read_registry().unwrap()).unwrap();
+        let entry = registry["packs"][&pack]["history"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|item| item["revision"] == revision)
+            .expect("historical revision absent");
+        let directory = library
+            .safe_relative(entry["path"].as_str().unwrap())
+            .unwrap();
+        let files = entry["files"].as_object().unwrap();
+        let mut total = 0;
+        for name in ["details.v1.json", "profiles.v1.json"] {
+            assert!(
+                !directory.join(name).exists(),
+                "original still present: {name}"
+            );
+            let bytes = library
+                .checked_historical_pack_file(&directory, files, name, &mut total)
+                .unwrap();
+            assert_eq!(sha256(&bytes), files[name]);
+        }
+        eprintln!("Verified both compressed historical metadata files against the registry");
     }
 
     #[test]

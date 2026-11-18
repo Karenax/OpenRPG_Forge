@@ -1,5 +1,27 @@
 # Third-party notices
 
+## Windows Studio installer
+
+The Windows Studio setup requires Microsoft Edge WebView2 Runtime. The setup
+with an offline prerequisite includes the Evergreen Standalone Installer for
+x64 Windows. The setup with an external prerequisite uses the runtime already
+installed on Windows. WebView2 remains subject to Microsoft's terms. Microsoft
+describes the installer and its offline use in its
+[WebView2 deployment documentation](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#offline-deployment).
+WebView2 includes Microsoft Defender SmartScreen. SmartScreen collects and
+sends end-user information to Microsoft as described in the
+[Microsoft Privacy Statement](https://www.microsoft.com/en-us/privacy/privacystatement)
+and the [Microsoft Edge Privacy Whitepaper](https://learn.microsoft.com/en-us/microsoft-edge/privacy-whitepaper#smartscreen).
+
+The Studio setup uses NSIS with its zlib compression module. See the
+[NSIS license](https://nsis.sourceforge.io/License) for the terms applicable to
+NSIS and its components.
+
+The Windows Studio, game launcher and delivery CLI link the static loader
+from Microsoft WebView2 SDK 1.0.3650.58 through `webview2-com-sys` 0.38.2. The SDK loader's
+BSD 3-Clause terms and copyright notice accompany the distribution.
+[Microsoft WebView2 SDK license](third_party/webview2-sdk-1.0.3650.58/LICENSE.txt)
+
 ## Active source-derived renderer — 27 October 2026
 
 The renderer includes code and WGSL substantially derived from Tidewater,

@@ -867,11 +867,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                     title: "OpenRPG Forge â€” Tidewater".into(),
                     resolution: bevy::window::WindowResolution::new(1920, 1080)
                         .with_scale_factor_override(1.0),
-                    mode: if matches!(plant_projection, PlantProjection::Walk) {
-                        WindowMode::BorderlessFullscreen(MonitorSelection::Primary)
-                    } else {
-                        WindowMode::Windowed
-                    },
+                    mode: forge_engine::native_display::initial_window_mode(
+                        if matches!(plant_projection, PlantProjection::Walk) {
+                            forge_project::workspace::launcher::DisplayMode::Borderless
+                        } else {
+                            forge_project::workspace::launcher::DisplayMode::Windowed
+                        },
+                    ),
                     resizable: matches!(plant_projection, PlantProjection::Walk),
                     enabled_buttons: bevy::window::EnabledButtons {
                         maximize: matches!(plant_projection, PlantProjection::Walk),

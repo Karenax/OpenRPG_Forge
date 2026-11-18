@@ -8,6 +8,8 @@ pub(super) struct Companions {
     pub environment: Option<ModuleEnvironmentBinding>,
     pub vegetation: Option<ModuleVegetationBinding>,
     pub objects: Option<ModuleObjectBinding>,
+    pub scanned_debris: Option<ModuleScannedDebrisBinding>,
+    pub source_stall: Option<ModuleSourceStallBinding>,
     pub fish: Vec<ModuleFishBinding>,
     pub terrain: Option<ModuleTerrainBinding>,
     pub ocean: Option<ModuleOceanBinding>,
@@ -16,7 +18,18 @@ pub(super) struct Companions {
 
 impl Companions {
     pub fn api_version(&self) -> u32 {
-        if !self.fish.is_empty() {
+        if self
+            .environment
+            .as_ref()
+            .and_then(|binding| binding.solar_clock)
+            .is_some_and(|clock| clock.diffuse_lighting.is_some())
+        {
+            MODULE_CAPTURED_DIFFUSE_API_VERSION
+        } else if self.source_stall.is_some() {
+            MODULE_SOURCE_STALL_API_VERSION
+        } else if self.scanned_debris.is_some() {
+            MODULE_SCANNED_DEBRIS_API_VERSION
+        } else if !self.fish.is_empty() {
             MODULE_FISH_API_VERSION
         } else if self
             .ocean
@@ -74,6 +87,18 @@ pub(super) fn prepare(
             .iter()
             .find(|binding| binding.area_id == area)
             .cloned(),
+        scanned_debris: origin
+            .module()
+            .scanned_debris
+            .iter()
+            .find(|binding| binding.area_id == area)
+            .cloned(),
+        source_stall: origin
+            .module()
+            .source_stalls
+            .iter()
+            .find(|binding| binding.area_id == area)
+            .cloned(),
         fish: origin
             .module()
             .fish_profiles
@@ -122,6 +147,30 @@ pub(super) fn prepare(
         for pin in std::iter::once(&package.manifest).chain(&package.resources) {
             let role = insert(origin, pin, payloads)?;
             result.roles.insert(pin.path.clone(), role);
+        }
+    }
+    if let Some(binding) = &mut result.scanned_debris {
+        for pin in [&binding.package.manifest, &binding.instance_program]
+            .into_iter()
+            .chain(&binding.package.resources)
+        {
+            let role = insert(origin, pin, payloads)?;
+            result.roles.insert(pin.path.clone(), role);
+        }
+        binding.license_path = origin::evidence_path(&binding.license_path);
+    }
+    if let Some(binding) = &mut result.source_stall {
+        for pin in std::iter::once(&binding.package.manifest).chain(&binding.package.resources) {
+            let role = insert(origin, pin, payloads)?;
+            result.roles.insert(pin.path.clone(), role);
+        }
+        for path in &mut binding.license_paths {
+            *path = origin::evidence_path(path);
+        }
+        if let Some(animated) = &mut binding.animated_model {
+            let role = insert(origin, &animated.model, payloads)?;
+            result.roles.insert(animated.model.path.clone(), role);
+            animated.license_path = origin::evidence_path(&animated.license_path);
         }
     }
     for binding in &result.fish {
@@ -344,12 +393,22 @@ pub(super) fn append(
     prepared.module.environments.extend(companions.environment);
     prepared.module.vegetation.extend(companions.vegetation);
     prepared.module.objects.extend(companions.objects);
+    prepared
+        .module
+        .scanned_debris
+        .extend(companions.scanned_debris);
+    prepared
+        .module
+        .source_stalls
+        .extend(companions.source_stall);
     prepared.module.fish_profiles.extend(companions.fish);
     prepared.module.terrain_surfaces.extend(companions.terrain);
     prepared.module.ocean_inputs.extend(companions.ocean);
     prepared.module.environments.sort_by_key(|b| b.area_id);
     prepared.module.vegetation.sort_by_key(|b| b.area_id);
     prepared.module.objects.sort_by_key(|b| b.area_id);
+    prepared.module.scanned_debris.sort_by_key(|b| b.area_id);
+    prepared.module.source_stalls.sort_by_key(|b| b.area_id);
     prepared
         .module
         .fish_profiles

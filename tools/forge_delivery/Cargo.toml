@@ -20,6 +20,11 @@ serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"
 sha2 = "=0.11.0"
 
+[target.'cfg(all(windows, target_env = "msvc"))'.dependencies]
+webview2-com-sys = "=0.38.2"
+windows-core = "=0.61.2"
+windows-sys = { version = "=0.61.2", features = ["Win32_System_Com"] }
+
 [dev-dependencies]
 # Native evidence contract shares the domain's canonical terrain HLOD limit.
 forge_world = { path = "../../crates/forge_world" }

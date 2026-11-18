@@ -163,6 +163,7 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         underwater,
         forge_engine::amphibious_player::ladder_prompt::LadderPromptPlugin,
     ))
+    .insert_resource(forge_engine::player_controller::PlayerCameraRange::SourceHorizon)
     .insert_resource(PlayerSimulationReady(false))
     .insert_resource(PlayerInputFocus(false))
     .insert_resource(Walk {
@@ -296,16 +297,13 @@ fn live_camera(
 
 fn configure(
     mut windows: Query<&mut Window>,
-    mut cameras: Query<(&mut Projection, Entity), With<ForgePlayerCamera>>,
+    cameras: Query<Entity, With<ForgePlayerCamera>>,
     mut commands: Commands,
 ) {
     for mut window in &mut windows {
         window.title = "Tidewater | clic: jouer | WASD: marcher/nager | Maj: accélérer | Espace: sauter/monter/échelle | C/Ctrl: plonger | V: vue | H: graphismes | Échap: souris".into();
     }
-    for (mut projection, entity) in &mut cameras {
-        if let Projection::Perspective(p) = &mut *projection {
-            p.far = 60_000.0;
-        }
+    for entity in &cameras {
         commands.entity(entity).insert((
             Msaa::Off,
             Camera3d {

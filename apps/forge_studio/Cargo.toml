@@ -52,6 +52,7 @@ serde_json.workspace = true
 sha2.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+flate2 = "=1.1.10"
 reqwest = { version = "=0.13.4", default-features = false, features = ["blocking", "json", "native-tls"] }
 forge_delivery = { path = "../../tools/forge_delivery" }
 forge_engine = { workspace = true, features = ["physics-rapier"], optional = true }

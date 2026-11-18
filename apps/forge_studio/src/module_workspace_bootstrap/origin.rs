@@ -17,7 +17,7 @@ pub fn import_module_into_workspace(
     audit: AuditStamp,
 ) -> Result<WorkspaceReceipt, String> {
     if bytes.is_empty() || bytes.len() as u64 > MAX_MODULE_ORIGIN_PACKAGE_BYTES {
-        return Err("Choisissez un fichier .orpmod de 256 Mio maximum.".into());
+        return Err(crate::module_import_protocol::size_error());
     }
     let bytes: Arc<[u8]> = bytes.into();
     let documents = forge_delivery::orpmod::read_origin_documents(Arc::clone(&bytes))?;

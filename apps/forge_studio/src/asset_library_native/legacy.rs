@@ -19,7 +19,7 @@ fn prefix_end(bytes: &[u8]) -> Result<usize, String> {
         return Err("en-tête GLB invalide".into());
     }
     let json_len = u32_at(bytes, 12)? as usize;
-    if json_len % 4 != 0 || u32_at(bytes, 16)? != 0x4e4f_534a {
+    if !json_len.is_multiple_of(4) || u32_at(bytes, 16)? != 0x4e4f_534a {
         return Err("bloc JSON GLB invalide".into());
     }
     20usize
@@ -28,9 +28,6 @@ fn prefix_end(bytes: &[u8]) -> Result<usize, String> {
 }
 
 fn hex_decode(value: &str) -> Result<Vec<u8>, String> {
-    if value.len() % 2 != 0 || value.len() / 2 > MAX_PREFIX {
-        return Err("préfixe historique trop grand ou invalide".into());
-    }
     fn nibble(b: u8) -> Option<u8> {
         match b {
             b'0'..=b'9' => Some(b - b'0'),
@@ -38,9 +35,12 @@ fn hex_decode(value: &str) -> Result<Vec<u8>, String> {
             _ => None,
         }
     }
-    value
-        .as_bytes()
-        .chunks_exact(2)
+    let (pairs, tail) = value.as_bytes().as_chunks::<2>();
+    if !tail.is_empty() || pairs.len() > MAX_PREFIX {
+        return Err("préfixe historique trop grand ou invalide".into());
+    }
+    pairs
+        .iter()
         .map(|pair| {
             Ok((nibble(pair[0]).ok_or("hexadécimal invalide")? << 4)
                 | nibble(pair[1]).ok_or("hexadécimal invalide")?)
@@ -126,22 +126,35 @@ pub(super) fn reconstruct(
 }
 
 #[cfg(test)]
+pub(super) fn encode_test_hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+
+    let mut text = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        write!(text, "{byte:02x}").unwrap();
+    }
+    text
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use serde_json::json;
 
     fn glb(json: &[u8], bin: &[u8]) -> Vec<u8> {
         let mut metadata = json.to_vec();
-        while metadata.len() % 4 != 0 {
+        while !metadata.len().is_multiple_of(4) {
             metadata.push(b' ');
         }
         let size = 12 + 8 + metadata.len() + 8 + bin.len();
         let mut bytes = b"glTF".to_vec();
-        for value in [2, size as u32, metadata.len() as u32, 0x4e4f_534a] {
+        let size = u32::try_from(size).unwrap();
+        let metadata_size = u32::try_from(metadata.len()).unwrap();
+        for value in [2, size, metadata_size, 0x4e4f_534a] {
             bytes.extend_from_slice(&value.to_le_bytes());
         }
         bytes.extend_from_slice(&metadata);
-        bytes.extend_from_slice(&(bin.len() as u32).to_le_bytes());
+        bytes.extend_from_slice(&u32::try_from(bin.len()).unwrap().to_le_bytes());
         bytes.extend_from_slice(&0x004e_4942u32.to_le_bytes());
         bytes.extend_from_slice(bin);
         bytes
@@ -151,7 +164,7 @@ mod tests {
     fn inline_recipe_preserves_bytes_and_rejects_corruption_and_oversize() {
         let old = glb(br#"{"id":"old"}"#, b"data");
         let pin = forge_core::bytes_sha256(&old).to_string();
-        let text = old.iter().map(|byte| format!("{byte:02x}")).collect::<String>();
+        let text = encode_test_hex(&old);
         let recipe = json!({"schema":"openrpg.legacy-inline-glb.v1", "data_hex":text,
                             "logical_sha256":pin, "logical_bytes":old.len()});
         assert_eq!(reconstruct_inline(&recipe, &pin).unwrap(), old);
@@ -168,10 +181,7 @@ mod tests {
         let kept = glb(br#"{"id":"keep"}"#, b"data");
         let old = glb(br#"{"id":"old"}"#, b"data");
         let old_end = prefix_end(&old).unwrap();
-        let prefix = old[..old_end]
-            .iter()
-            .map(|v| format!("{v:02x}"))
-            .collect::<String>();
+        let prefix = encode_test_hex(&old[..old_end]);
         let pin = forge_core::bytes_sha256(&old).to_string();
         let recipe = json!({"schema":"openrpg.legacy-glb-recipe.v1", "prefix_hex":prefix,
                             "logical_sha256":pin,"logical_bytes":old.len(),

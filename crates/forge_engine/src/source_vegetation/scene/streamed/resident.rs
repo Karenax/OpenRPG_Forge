@@ -4,10 +4,13 @@ use super::{
 };
 use crate::render_inventory::{self, RenderInventoryToken};
 use crate::source_vegetation::world::SourceMaterial;
-use bevy::prelude::{Vec3, Visibility, World};
+use bevy::{
+    platform::collections::HashMap,
+    prelude::{Vec3, Visibility, World},
+};
 use forge_core::{ContentHash, EntityId};
 use forge_world::imported_vegetation::streaming::PlantRepresentation;
-use std::{collections::BTreeMap, sync::Mutex};
+use std::sync::Mutex;
 mod audit;
 
 pub struct Resident<M: SourceMaterial> {
@@ -17,7 +20,7 @@ pub struct Resident<M: SourceMaterial> {
     generation: u64,
     published: bool,
     selected: usize,
-    parts: BTreeMap<(EntityId, u8), PlantRepresentation>,
+    parts: HashMap<(EntityId, u8), PlantRepresentation>,
     indices: Vec<Vec<Vec<usize>>>,
     publication_frame: u32,
     sequence: u64,
@@ -82,7 +85,7 @@ impl<M: SourceMaterial> Resident<M> {
             generation: 1,
             published: false,
             selected: 0,
-            parts: BTreeMap::new(),
+            parts: HashMap::new(),
             indices: Vec::new(),
             publication_frame: 0,
             sequence: 0,
@@ -219,6 +222,10 @@ impl<M: SourceMaterial> Resident<M> {
         self.publish_with_bounds(world, selection, token, None)
     }
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Publication updates the resident inventory in one transaction."
+    )]
     pub(super) fn publish_with_bounds(
         &mut self,
         world: &mut World,
@@ -226,29 +233,35 @@ impl<M: SourceMaterial> Resident<M> {
         token: Option<&RenderInventoryToken>,
         bounds: Option<&WorldEnvelopes>,
     ) -> Result<(), String> {
+        let started = crate::cpu_timing::enabled().then(bevy::platform::time::Instant::now);
         if selection.identity != self.prepared.identity {
             return Err("Selection belongs to another plant projection".into());
         }
         if bounds.is_some_and(|bounds| bounds.identity() != self.prepared.identity) {
             return Err("Shadow bounds belong to another plant projection".into());
         }
-        if self.published
-            && self.parts == selection.parts
-            && self.indices == selection.indices
-            && self.projection_intact(world)
-        {
-            return Ok(());
-        }
+        let unchanged = self.matches(&selection);
         let empty = self.prepared.pins.is_empty();
-        if !empty
+        if !unchanged
+            && !empty
             && !token.is_some_and(|token| {
                 token.is_current(world, self.owner, self.prepared.identity, self.generation)
             })
         {
             return Err("Current plant GPU inventory is not admitted".into());
         }
-        if !self.projection_intact(world) {
+        // A published projection shares the same change/removal audit with
+        // readiness. Warm entities do not carry the streamed part markers yet.
+        let intact = if self.published {
+            self.audited_projection_intact(world)
+        } else {
+            self.projection_intact(world)
+        };
+        if !intact {
             return Err("Plant warm/live entities changed before publication".into());
+        }
+        if unchanged {
+            return Ok(());
         }
         let next = if self.published {
             self.generation
@@ -272,7 +285,8 @@ impl<M: SourceMaterial> Resident<M> {
                 &materials,
             )?;
         }
-        self.inner
+        let delta = self
+            .inner
             .select_indices(world, &selection.indices, Visibility::Visible)?;
         for (entity, lod) in self.inner.entities_with_lod() {
             let plant = world
@@ -284,15 +298,26 @@ impl<M: SourceMaterial> Resident<M> {
                 .parts
                 .get(&(id, source_lod))
                 .ok_or("Published plant not in the complete selection")?;
-            world.entity_mut(entity).insert(StreamedPlantPart {
+            let part = StreamedPlantPart {
                 id,
                 representation,
                 source_lod,
-            });
+            };
+            // Keep retained parts out of the ECS change stream when the
+            // selection changes only the ordering or membership of other parts.
+            if world.get::<StreamedPlantPart>(entity) != Some(&part) {
+                world.entity_mut(entity).insert(part);
+            }
             if world.get::<PlantShadowBounds>(entity).is_none()
                 && let Some(bound) = bounds.and_then(|bounds| bounds.plant_shadow_bounds(id))
             {
-                world.entity_mut(entity).insert(bound);
+                let mut plant = world.entity_mut(entity);
+                plant.insert(bound);
+                if let Some(aabb) = bound.render_aabb() {
+                    plant
+                        .insert((aabb, bevy::camera::visibility::NoAutoAabb))
+                        .remove::<bevy::camera::visibility::NoFrustumCulling>();
+                }
             }
         }
         // Selection changes reuse the already warmed immutable meshes/buffers.
@@ -309,23 +334,66 @@ impl<M: SourceMaterial> Resident<M> {
         self.parts = selection.parts;
         self.indices = selection.indices;
         self.sequence = sequence;
+        if let (Some(start), Some(frame)) = (
+            started,
+            world.get_resource::<bevy::diagnostic::FrameCount>(),
+        ) {
+            bevy::log::info!(
+                event_kind = "plant_selection_publication",
+                frame = frame.0,
+                sequence,
+                retained = delta.retained,
+                spawned = delta.spawned,
+                removed = delta.removed,
+                elapsed_ms = start.elapsed().as_secs_f64() * 1000.0,
+                "Plant selection publication CPU duration"
+            );
+        }
         Ok(())
     }
 
     #[must_use]
     pub fn ready(&self, world: &World) -> bool {
+        self.ready_with(world, || {
+            self.inventory(world)
+                .is_some_and(|(_, completed)| completed >= self.publication_frame)
+        })
+    }
+
+    pub(super) fn readiness_and_inventory(
+        &self,
+        world: &World,
+        host_published: bool,
+    ) -> (bool, Option<RenderInventoryToken>) {
+        let inventory = self.inventory(world);
+        let ready = host_published
+            && self.ready_with(world, || {
+                inventory
+                    .as_ref()
+                    .is_some_and(|(_, completed)| *completed >= self.publication_frame)
+            });
+        (ready, inventory.map(|(token, _)| token))
+    }
+
+    fn ready_with(
+        &self,
+        world: &World,
+        inventory_covers_publication: impl FnOnce() -> bool,
+    ) -> bool {
         self.published
             && self.selected == self.parts.len()
             && self.inner.entity_count() == self.selected
             && self.audited_projection_intact(world)
-            && (self.prepared.pins.is_empty()
-                || render_inventory::acquire(
-                    world,
-                    self.owner,
-                    self.prepared.identity,
-                    self.generation,
-                )
-                .is_some_and(|token| token.covers_frame(world, self.publication_frame)))
+            && (self.prepared.pins.is_empty() || inventory_covers_publication())
+    }
+
+    fn inventory(&self, world: &World) -> Option<(RenderInventoryToken, u32)> {
+        render_inventory::acquire_with_completed_frame(
+            world,
+            self.owner,
+            self.prepared.identity,
+            self.generation,
+        )
     }
 
     pub(super) fn audited_projection_intact(&self, world: &World) -> bool {

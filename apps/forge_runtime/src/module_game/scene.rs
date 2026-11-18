@@ -4,7 +4,7 @@ use bevy::{
     ecs::system::SystemParam,
     input::{keyboard::KeyboardInput, mouse::MouseButtonInput},
     prelude::*,
-    window::{CursorGrabMode, CursorOptions, PrimaryWindow},
+    window::{CursorGrabMode, CursorOptions, PresentMode, PrimaryWindow},
 };
 use forge_delivery::module_runtime::LoadedModuleZone;
 use forge_engine::{
@@ -12,6 +12,7 @@ use forge_engine::{
     RuntimeAutomation, VisualValleyPlugin, VisualValleyVegetationPlugin,
     native_gameplay::{NativeGameplayUi, NativeGameplayUiSet, PreparedNativeGameplay},
 };
+use forge_project::workspace::launcher::DisplayMode;
 
 #[cfg(feature = "qualification")]
 fn fixed_shore_baseline() -> bool {
@@ -61,6 +62,12 @@ pub fn run(
         super::environment::surfaces(environment.is_some(), imported.is_some(), sampled.as_ref())?;
     let source_terrain =
         super::source_terrain::prepare(&loaded, sampled.as_ref(), environment.is_some())?;
+    if manual.has_scanned_debris() && source_terrain.is_none() {
+        return Err(
+            "Les débris scannés nécessitent le terrain source et l’environnement de leur zone."
+                .into(),
+        );
+    }
     let water = super::water::prepare(
         &loaded,
         sampled.as_ref(),
@@ -138,6 +145,8 @@ pub fn run(
         &loaded.package_root,
     )?;
     let local_lights = super::lights::prepare(&loaded, &manual.accepted())?;
+    let source_terrain =
+        source_terrain.map(|terrain| terrain.with_source_local_lights(local_lights.is_some()));
     let capture_frame = options
         .exit_after_frames
         .map_or(120, |last| last.saturating_sub(30).max(1));
@@ -172,7 +181,20 @@ pub fn run(
         .package_root
         .to_str()
         .ok_or("Non-Unicode installed module root")?;
-    let mut app = module_app(root, &loaded.manifest.name, species.as_ref());
+    let present_mode = match std::env::var_os("FORGE_GAME_PROFILE_PRESENT_MODE").as_deref() {
+        None => PresentMode::Fifo,
+        Some(mode) if mode == "immediate" && forge_engine::cpu_timing::enabled() => {
+            PresentMode::Immediate
+        }
+        _ => return Err("FORGE_GAME_PROFILE_PRESENT_MODE=immediate requires CPU profiling".into()),
+    };
+    let mut app = module_app(
+        root,
+        &loaded.manifest.name,
+        species.as_ref(),
+        present_mode,
+        default_display_mode.unwrap_or(DisplayMode::Windowed),
+    );
     configure_source_graph_contacts(
         &mut app,
         manual.has_source_graphs(),
@@ -189,6 +211,7 @@ pub fn run(
         capture_path: options.capture,
         capture_frame,
         exit_after_frames: options.exit_after_frames,
+        resize_request: options.resize_request,
         ..default()
     };
     let facing = start.and_then(|start| start.facing_degrees).map(|angle| {
@@ -308,16 +331,38 @@ fn install_source_hosts(
     water: Option<forge_engine::source_water_host::PreparedResidentScene>,
     follow_shore: bool,
 ) -> Result<(), String> {
+    #[cfg(feature = "qualification")]
+    if std::env::var("FORGE_LIGHTING_BUFFER_READBACK").as_deref() == Ok("1") {
+        if environment.is_none() {
+            return Err("Lighting readback requires an admitted environment".into());
+        }
+        app.add_systems(
+            PostStartup,
+            start_lighting_readback
+                .after(forge_engine::source_environment::host::EnvironmentHostSet),
+        );
+    }
     if let Some(environment) = environment {
         environment.install(app)?;
     }
     if let Some(terrain) = terrain {
         terrain.install(app)?;
+        app.insert_resource(forge_engine::player_controller::PlayerCameraRange::SourceHorizon);
     }
     if let Some(water) = water {
         water.install(app, follow_shore)?;
     }
     Ok(())
+}
+
+#[cfg(feature = "qualification")]
+fn start_lighting_readback(world: &mut World) {
+    if let Err(error) =
+        forge_engine::source_lighting::scene_buffer::observation::observe_while_held(world, true)
+    {
+        tracing::error!(%error, "Could not start scene lighting readback");
+        world.write_message(AppExit::error());
+    }
 }
 
 fn run_app(
@@ -427,6 +472,9 @@ fn static_hlod_plugin(source_graphs_present: bool) -> forge_engine::static_hlod:
         >(),
         forge_engine::static_hlod::StaticHlodMaterial::retained_detail::<
             forge_engine::source_fragment::SourceFragmentMaterial,
+        >(),
+        forge_engine::static_hlod::StaticHlodMaterial::retained_detail::<
+            forge_engine::source_surface::stall_material::FullMaterial,
         >(),
         forge_engine::static_hlod::StaticHlodMaterial::pose_baked::<StandardMaterial>(),
         forge_engine::static_hlod::StaticHlodMaterial::pose_baked::<
@@ -550,7 +598,13 @@ fn static_hlod_settings(
     Ok(forge_engine::static_hlod::StaticHlodSettings { enabled })
 }
 
-fn module_app(root: &str, name: &str, species: Option<&super::species::Prepared>) -> App {
+fn module_app(
+    root: &str,
+    name: &str,
+    species: Option<&super::species::Prepared>,
+    present_mode: PresentMode,
+    display_mode: DisplayMode,
+) -> App {
     let mut app = App::new();
     app.add_plugins(forge_engine::model_nodes::ModelNodeIdentityPlugin);
     if let Some(species) = species {
@@ -559,7 +613,10 @@ fn module_app(root: &str, name: &str, species: Option<&super::species::Prepared>
     let plugins = DefaultPlugins.set(AssetPlugin { file_path: root.into(), ..default() })
         .set(WindowPlugin { primary_window: Some(Window {
             title: format!("{name} | clic : jouer · G : actions · F2 : réglages · F11 : affichage · F5 : sauvegarder · F9 : reprendre · Échap : souris"),
-            resolution: (1280, 800).into(), ..default()
+            resolution: (1280, 800).into(),
+            present_mode,
+            mode: forge_engine::native_display::initial_window_mode(display_mode),
+            ..default()
         }), ..default() });
     // This diagnostic observes the existing Main-owned auxiliary path. Its
     // synchronization requirement is explicit and does not qualify production

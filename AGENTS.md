@@ -38,7 +38,7 @@ de performance et d’édition définies dans `PROJECT_CONTEXT.md`.
   capacités réutilisables appartiennent à l'éditeur et au moteur communs et doivent
   être reproductibles dans d'autres jeux. La Gate 9 planifiée, non ouverte, en
   définit l'inventaire et les preuves dans `docs/planning/MIGRATION_ROADMAP.md`.
-- Inscrire la transition dans **Gate 7 déjà ouverte**, selon la section
+- La transition éditeur/launcher a été qualifiée dans Gate 7, selon la section
   [transition éditeur/launcher](docs/planning/GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher).
   Préserver les travaux et preuves en cours ; requalifier les parcours affectés
   sans réécrire les reçus historiques ni transformer un plan en verdict PASS.
@@ -141,10 +141,9 @@ Gate 5 est clôturée localement le 22 octobre selon
 `docs/evidence/gate5/GATE5_CLOSURE_20261022.md`.
 Gate 6 est clôturée localement le 23 octobre selon
 `docs/evidence/gate6/GATE6_CLOSURE_20261023.md` : 21 critères rapprochés de leurs
-preuves, comparaison et archive vérifiée. Le propriétaire ouvre Gate 7 le
-23 octobre avec objectif de clôture documentée sur preuves ; suivre
-`docs/planning/GATE7_IMPLEMENTATION_PLAN.md` et
-`docs/evidence/gate7/GATE7_PROGRESS_20261023.md`.
+preuves, comparaison et archive vérifiée. Gate 7 est clôturée localement le
+18 novembre selon `docs/evidence/gate7/GATE7_CLOSURE_20261118.md`. Le propriétaire
+reporte Linux et le rejeu du candidat 063 sur Windows propre.
 Gate 8 et la perspective bonus restent non ouvertes ; aucune publication Git n'est implicite.
 Le run historique du 11 octobre 2026 `38123749165` sur
 `48a894d550c5770a5ea50bc54707113e85ab5218` a exécuté les runners : WASM et supply-chain

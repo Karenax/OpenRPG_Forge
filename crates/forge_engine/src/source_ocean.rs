@@ -367,6 +367,7 @@ struct Execution {
     next: u32,
     time: f64,
     pipelines: Vec<gpu::ComputePipeline>,
+    mip_views: kernels::MipViews,
 }
 
 // A resident shore can be staged after the ocean has already advanced. It
@@ -449,14 +450,6 @@ fn compute(
     let diagnostics = context.diagnostic_recorder();
     let recorder = diagnostics.as_deref();
     let compute_span = recorder.time_span(context.command_encoder(), "source_ocean");
-    let views = match kernels::views(&textures) {
-        Ok(views) => views,
-        Err(reason) => {
-            compute_span.end(context.command_encoder());
-            error!(%reason, "Ocean GPU views unavailable");
-            return;
-        }
-    };
     if execution.pipelines.is_empty() {
         match kernels::pipelines(&device, &staged.0.shaders, NAMES.len()) {
             Ok(pipelines) => execution.pipelines = pipelines,
@@ -488,13 +481,26 @@ fn compute(
         params = acquired.params;
         frame_bytes = acquired.global;
     }
+    let Execution {
+        pipelines,
+        mip_views,
+        ..
+    } = &mut *execution;
+    let views = match mip_views.for_textures(&textures) {
+        Ok(views) => views,
+        Err(reason) => {
+            compute_span.end(context.command_encoder());
+            error!(%reason, "Ocean GPU views unavailable");
+            return;
+        }
+    };
     if let Err(reason) = kernels::encode(
         &device,
         &mut context,
         kernels::Step {
-            pipelines: &execution.pipelines,
+            pipelines,
             buffers: &gpu,
-            views: &views,
+            views,
             frame: &frame_bytes,
             parameters: &params,
             index: step,

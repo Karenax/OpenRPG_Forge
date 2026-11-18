@@ -87,6 +87,49 @@ fn unchanged_projection_skips_full_audits_but_same_tick_mutations_are_refused() 
 }
 
 #[test]
+fn unrelated_component_removals_do_not_recheck_the_plant_projection() {
+    let (mut world, resident, entities) = cpu_projection();
+    world.increment_change_tick();
+    assert!(resident.audited_projection_intact(&world));
+    let previous = resident.audit.lock().unwrap().complete_audits;
+    let other = world.spawn((Transform::IDENTITY, Visibility::Visible)).id();
+    assert!(world.despawn(other));
+    assert!(resident.audited_projection_intact(&world));
+    assert_eq!(resident.audit.lock().unwrap().complete_audits, previous);
+
+    world.entity_mut(entities[0]).remove::<ImportedPlant>();
+    assert!(!resident.audited_projection_intact(&world));
+    assert!(resident.audit.lock().unwrap().complete_audits > previous);
+}
+
+#[test]
+fn unchanged_publication_reuses_the_live_audit_and_refuses_a_changed_part() {
+    let (mut world, mut resident, entities) = cpu_projection();
+    world.increment_change_tick();
+    assert!(resident.audited_projection_intact(&world));
+    world.increment_change_tick();
+    let prior = resident.audit.lock().unwrap().complete_audits;
+    let identity = resident.identity();
+    let indices = resident.indices.clone();
+    let parts = resident.parts.clone();
+    let selection = || super::super::super::Selection {
+        identity,
+        indices: indices.clone(),
+        parts: parts.clone(),
+        detail_instances: 0,
+        group_instances: 0,
+        cpu_selected_triangles: 0,
+    };
+    resident.publish(&mut world, selection(), None).unwrap();
+    assert_eq!(resident.audit.lock().unwrap().complete_audits, prior);
+
+    world.get_mut::<StreamedPlantPart>(entities[0]).unwrap().id =
+        EntityId::deterministic("invalid-published-part");
+    assert!(resident.publish(&mut world, selection(), None).is_err());
+    assert!(!resident.audited_projection_intact(&world));
+}
+
+#[test]
 fn component_removal_parenting_and_material_mutations_revoke_cached_integrity() {
     let (mut world, resident, entities) = cpu_projection();
     let entity = entities[0];

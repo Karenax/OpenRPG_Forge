@@ -9,6 +9,23 @@ use bevy::{math::DVec3, prelude::*};
 #[derive(Component)]
 pub struct OpaqueCaster;
 
+/// A verified animated model whose skinned meshes use Bevy's shadow pass.
+#[derive(Component)]
+pub struct NativeSkinnedShadowRoot;
+
+pub(crate) fn uses_native_skin_shadows(world: &World, mut entity: Entity) -> bool {
+    for _ in 0..64 {
+        if world.get::<NativeSkinnedShadowRoot>(entity).is_some() {
+            return true;
+        }
+        let Some(parent) = world.get::<ChildOf>(entity) else {
+            break;
+        };
+        entity = parent.parent();
+    }
+    false
+}
+
 pub fn prepare(
     view: CascadeView,
     sun: DVec3,

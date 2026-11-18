@@ -1,4 +1,6 @@
-"""Read bounded v1-v3 native intervals. Snapshot fences belong to snapshot.frame only."""
+"""Read bounded native intervals and Windows ETW presentation intervals."""
+import csv
+import io
 import json
 import math
 from pathlib import Path
@@ -92,3 +94,58 @@ def load(path):
     if len(data) > MAX_BYTES:
         raise ValueError('Native intervals exceed 32 MiB')
     return decode(json.loads(data))
+
+
+def load_presentmon(path, pid, start_qpc, end_qpc):
+    """Read one app's PresentMon 2.6 capture with --v1_metrics --qpc_time.
+
+    The caller supplies the QPC window witnessed by the game scenario. These
+    intervals end at a Present call. Dropped presents remain in the result.
+    """
+    integer(pid, 1, 2**32 - 1)
+    integer(start_qpc)
+    integer(end_qpc, start_qpc + 1)
+    path = Path(path)
+    if not path.is_file():
+        raise ValueError('PresentMon interval input is not a regular file')
+    with path.open('rb') as stream:
+        data = stream.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        raise ValueError('PresentMon intervals exceed 32 MiB')
+    reader = csv.DictReader(io.StringIO(data.decode('utf-8-sig')))
+    expected = {'ProcessID', 'QPCTime', 'SwapChainAddress',
+                'msBetweenPresents', 'Dropped', 'PresentMode'}
+    header = reader.fieldnames or []
+    if not expected.issubset(header) or len(set(header)) != len(header):
+        raise ValueError('Expected a PresentMon v1 CSV with raw QPC and display data')
+    previous = None
+    swap_chain = None
+    samples = []
+    for row in reader:
+        if None in row or any(row[name] is None for name in expected):
+            raise ValueError('Incomplete PresentMon row')
+        if int(row['ProcessID']) != pid:
+            continue
+        qpc = int(row['QPCTime'])
+        if not start_qpc <= qpc < end_qpc:
+            continue
+        address = row['SwapChainAddress']
+        dropped = row['Dropped']
+        mode = row['PresentMode']
+        if not address or dropped not in ('0', '1') or not mode:
+            raise ValueError('Incomplete PresentMon presentation state')
+        if previous is None:
+            # This interval may have started before the verified window.
+            previous, swap_chain = qpc, address
+            continue
+        if address != swap_chain or qpc <= previous:
+            raise ValueError('PresentMon window does not describe one ordered swap chain')
+        interval = float(row['msBetweenPresents'])
+        if not math.isfinite(interval) or interval <= 0 or len(samples) >= MAX_SAMPLES:
+            raise ValueError('Invalid or excessive PresentMon intervals')
+        samples.append({'qpc': qpc, 'present_interval_ms': interval,
+                        'dropped': dropped == '1', 'present_mode': mode})
+        previous = qpc
+    if not samples:
+        raise ValueError('No complete present interval for the process and QPC window')
+    return samples

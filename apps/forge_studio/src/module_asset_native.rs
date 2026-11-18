@@ -311,7 +311,9 @@ pub fn export_reference_models(
         let length = if let Some(bytes) = files.get(&path) {
             bytes.len() as u64
         } else {
-            let limit = remaining.min(MAX_MODEL_BYTES as u64) as usize;
+            let limit = usize::try_from(remaining.min(MAX_MODEL_BYTES as u64)).map_err(|_| {
+                "Le budget des ressources de référence dépasse la capacité de la plateforme."
+            })?;
             let bytes = reference.read(&entry.file, limit)?;
             validate_model(entry, &bytes).map_err(|error| error.to_string())?;
             let length = bytes.len() as u64;

@@ -173,24 +173,24 @@ fn source_terrain_material_and_cpu_status_do_not_forge_renderer_ownership() {
         Mesh3d(Handle::default()),
         MeshMaterial3d::<forge_engine::source_terrain::lod::LodMaterial>(Handle::default()),
     ));
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
 }
 
 #[test]
 fn graphics_coverage_refuses_unknown_ambiguous_and_unowned_environment_meshes() {
     let mut world = World::new();
     let mesh = world.spawn(Mesh3d(Handle::default())).id();
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
     world
         .entity_mut(mesh)
         .insert(MeshMaterial3d::<StandardMaterial>(Handle::default()));
-    assert!(runtime::coverage(&mut world).is_ok());
+    assert!(runtime::coverage(&world).is_ok());
     world
         .entity_mut(mesh)
         .insert(MeshMaterial3d::<forge_engine::VisualValleyTerrainMaterial>(
             Handle::default(),
         ));
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
     world.despawn(mesh);
     let sky = world
         .spawn((
@@ -198,14 +198,14 @@ fn graphics_coverage_refuses_unknown_ambiguous_and_unowned_environment_meshes() 
             MeshMaterial3d::<forge_engine::source_sky::SkyMaterial>(Handle::default()),
         ))
         .id();
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
     world.despawn(sky);
     world.spawn((
         Mesh3d(Handle::default()),
         MeshMaterial3d::<forge_engine::source_surface::SourceSurfaceMaterial>(Handle::default()),
     ));
     assert!(
-        runtime::coverage(&mut world).is_err(),
+        runtime::coverage(&world).is_err(),
         "An arbitrary source-material entity cannot claim module object ownership"
     );
 }
@@ -221,11 +221,11 @@ fn shared_source_fragment_has_its_own_unambiguous_graphics_route() {
             ),
         ))
         .id();
-    assert!(runtime::coverage(&mut world).is_ok());
+    assert!(runtime::coverage(&world).is_ok());
     world
         .entity_mut(draw)
         .insert(MeshMaterial3d::<StandardMaterial>(Handle::default()));
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
 }
 
 #[test]
@@ -239,11 +239,11 @@ fn governed_source_lighting_requires_its_live_owner_and_one_material() {
             ),
         ))
         .id();
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
     world
         .entity_mut(draw)
         .insert(MeshMaterial3d::<forge_engine::VisualValleyVegetationMaterial>(Handle::default()));
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
 }
 
 #[test]
@@ -255,11 +255,11 @@ fn fish_material_without_its_live_scene_owner_is_refused() {
             MeshMaterial3d::<forge_engine::source_fish::material::FishMaterial>(Handle::default()),
         ))
         .id();
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
     world
         .entity_mut(draw)
         .insert(MeshMaterial3d::<StandardMaterial>(Handle::default()));
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
 }
 
 #[test]
@@ -271,19 +271,19 @@ fn source_graph_materials_without_a_scene_owner_are_refused() {
             MeshMaterial3d::<forge_engine::source_graph::SourceGraphMaterial>(Handle::default()),
         ))
         .id();
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
     world
         .entity_mut(graph)
         .insert(MeshMaterial3d::<StandardMaterial>(Handle::default()));
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
     world.init_resource::<forge_engine::source_graph_runtime::SourceSceneResidents>();
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
     world.despawn(graph);
     world.spawn((
         Mesh3d(Handle::default()),
         MeshMaterial3d::<forge_engine::source_graph::SourceUnlitForwardMaterial>(Handle::default()),
     ));
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
 }
 
 #[test]
@@ -298,7 +298,7 @@ fn water_material_without_its_real_host_is_refused() {
         Mesh3d(Handle::default()),
         MeshMaterial3d::<forge_engine::source_water_optics::OpticalMaterial>(Handle::default()),
     ));
-    assert!(runtime::coverage(&mut world).is_err());
+    assert!(runtime::coverage(&world).is_err());
 }
 
 #[test]

@@ -195,7 +195,7 @@ fn bound_snapshot_reuses_only_the_exact_validated_immutable_sources() {
         terrain_hash: terrain,
         head_hash: snapshot.head_hash(),
     };
-    let first = bounds
+    let mut first = bounds
         .select_snapshot_verified(&population, &snapshot, admission)
         .unwrap();
     let bound = first.bind_sources().unwrap();

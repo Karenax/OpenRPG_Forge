@@ -7,6 +7,7 @@ use bevy::{
     prelude::*,
     render::{
         render_asset::RenderAssets,
+        render_resource::BufferId,
         renderer::{RenderContext, RenderDevice},
         storage::GpuShaderBuffer,
         texture::GpuImage,
@@ -19,6 +20,7 @@ pub(super) struct Execution {
     generation: Option<Arc<Progress>>,
     controller: Controller,
     samplers: Vec<wgpu::Sampler>,
+    direct_light: Option<(BufferId, Arc<()>, [u8; 32])>,
 }
 
 #[allow(
@@ -125,7 +127,7 @@ pub(super) fn compute(
             fail("Scene lighting destination GPU ABI differs".into());
             return;
         }
-        Some(buffer)
+        Some((buffer, &destination.lease))
     } else {
         None
     };
@@ -138,6 +140,7 @@ pub(super) fn compute(
             generation: Some(staged.progress.clone()),
             controller: Controller::default(),
             samplers: samplers::create(device.wgpu_device()),
+            direct_light: None,
         };
     }
     let plan = match execution.controller.plan(input.dt, input.sun, input.force) {
@@ -147,6 +150,43 @@ pub(super) fn compute(
             return;
         }
     };
+    let refresh = !plan.steps().is_empty();
+    if !refresh
+        && (*a.texture == *b.texture
+            || *sh_a.buffer == *sh_b.buffer
+            || *source.texture == *a.texture
+            || *source.texture == *b.texture)
+    {
+        fail("Environment front/back resources alias".into());
+        return;
+    }
+    let mut direct_update = None;
+    if let Some((destination, lease)) = destination {
+        let direct = match super::lighting::direct(&input.global) {
+            Ok(d) => d,
+            Err(e) => {
+                fail(e);
+                return;
+            }
+        };
+        let id = destination.buffer.id();
+        // Rebinding or replacing the buffer requires the current light again.
+        if execution
+            .direct_light
+            .as_ref()
+            .is_none_or(|(previous_id, previous_lease, previous)| {
+                *previous_id != id || !Arc::ptr_eq(previous_lease, lease) || *previous != direct
+            })
+        {
+            direct_update = Some((destination, id, lease, direct));
+        }
+    }
+    // Idle plans still advance the refresh timer and acknowledge the cloud frame.
+    let mut encoder = (refresh || direct_update.is_some()).then(|| {
+        device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("environment refresh"),
+        })
+    });
     let uniform = |label: &'static str, contents: &[u8]| {
         device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
             label: Some(label),
@@ -161,48 +201,59 @@ pub(super) fn compute(
             .flat_map(f32::to_le_bytes)
             .collect::<Vec<_>>()
     };
-    let global = uniform("environment frame", &input.global);
-    let atmosphere = uniform("environment atmosphere", &pack(&input.atmosphere));
-    let clouds = uniform("environment clouds", &pack(&input.clouds));
-    let sky = uniform("environment sky", &pack(&input.sky));
-    // A private encoder can be dropped on failure without losing atmosphere/cloud work.
-    // RenderContext appends its commands after preceding work on the existing queue.
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("environment refresh"),
-    });
-    let result = staged.programs.encode_cycle(
-        &execution.controller,
-        &plan,
-        device.wgpu_device(),
-        &mut encoder,
-        FrameBindings {
-            frame: &global,
-            samplers: &execution.samplers,
-        },
-        Resources {
-            atmosphere: &atmosphere,
-            textures: [
-                &views[0].texture_view,
-                &views[1].texture_view,
-                &views[2].texture_view,
-                &views[3].texture_view,
-                &views[4].texture_view,
-            ],
-            clouds: &clouds,
-            sky: &sky,
-            source: &source.texture,
-            filtered: [&a.texture, &b.texture],
-            sh: [&sh_a.buffer, &sh_b.buffer],
-        },
-    );
-    let front = match result {
-        Ok(p) => p,
-        Err(e) => {
-            fail(e);
-            return;
+    let front = if refresh {
+        let global = uniform("environment frame", &input.global);
+        let atmosphere = uniform("environment atmosphere", &pack(&input.atmosphere));
+        let clouds = uniform("environment clouds", &pack(&input.clouds));
+        let sky = uniform("environment sky", &pack(&input.sky));
+        let result = staged.programs.encode_cycle(
+            &execution.controller,
+            &plan,
+            device.wgpu_device(),
+            encoder.as_mut().expect("refresh encoder"),
+            FrameBindings {
+                frame: &global,
+                samplers: &execution.samplers,
+            },
+            Resources {
+                atmosphere: &atmosphere,
+                textures: [
+                    &views[0].texture_view,
+                    &views[1].texture_view,
+                    &views[2].texture_view,
+                    &views[3].texture_view,
+                    &views[4].texture_view,
+                ],
+                clouds: &clouds,
+                sky: &sky,
+                source: &source.texture,
+                filtered: [&a.texture, &b.texture],
+                sh: [&sh_a.buffer, &sh_b.buffer],
+            },
+        );
+        match result {
+            Ok(p) => p,
+            Err(e) => {
+                fail(e);
+                return;
+            }
         }
+    } else {
+        None
     };
+    if let Some((buffer, _, _, direct)) = direct_update {
+        let prefix = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
+            label: Some("current scene key light"),
+            contents: &direct,
+            usage: wgpu::BufferUsages::COPY_SRC,
+        });
+        encoder
+            .as_mut()
+            .expect("direct light encoder")
+            .copy_buffer_to_buffer(&prefix, 0, &buffer.buffer, 0, 32);
+    }
     if let Some(front) = front {
+        let encoder = encoder.as_mut().expect("publication encoder");
         let completed = if front == 0 { a } else { b };
         for level in 0..6 {
             encoder.copy_texture_to_texture(
@@ -225,22 +276,7 @@ pub(super) fn compute(
                 },
             );
         }
-    }
-    if let Some(destination) = destination {
-        let direct = match super::lighting::direct(&input.global) {
-            Ok(d) => d,
-            Err(e) => {
-                fail(e);
-                return;
-            }
-        };
-        let prefix = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
-            label: Some("current scene key light"),
-            contents: &direct,
-            usage: wgpu::BufferUsages::COPY_SRC,
-        });
-        encoder.copy_buffer_to_buffer(&prefix, 0, &destination.buffer, 0, 32);
-        if let Some(front) = front {
+        if let Some((destination, _)) = destination {
             let source = if front == 0 { sh_a } else { sh_b };
             encoder.copy_buffer_to_buffer(&source.buffer, 0, &destination.buffer, 32, 144);
         }
@@ -248,10 +284,16 @@ pub(super) fn compute(
     if !staged.progress.active.load(Ordering::Acquire) {
         return;
     }
-    context.add_command_buffer(encoder.finish());
+    if let Some(encoder) = encoder {
+        // Queue only successful commands after the atmosphere and cloud work.
+        context.add_command_buffer(encoder.finish());
+    }
     if let Err(e) = execution.controller.commit(plan) {
         fail(e);
         return;
+    }
+    if let Some((_, id, lease, direct)) = direct_update {
+        execution.direct_light = Some((id, lease.clone(), direct));
     }
     if let Some(front) = front {
         staged

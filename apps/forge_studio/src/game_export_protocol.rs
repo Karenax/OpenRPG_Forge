@@ -11,6 +11,8 @@ pub struct GameExportRequest {
     pub version: String,
     pub publisher: String,
     pub license_text: String,
+    #[serde(default)]
+    pub redistributable: bool,
 }
 
 impl GameExportRequest {

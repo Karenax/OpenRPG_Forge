@@ -44,6 +44,7 @@ pub mod gameplay_visual_transform;
 pub mod governed_kit_export;
 pub mod mcp_protocol;
 pub mod module_export_protocol;
+pub mod module_import_protocol;
 pub mod module_resources_acquisition;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod module_resources_native;
@@ -2191,7 +2192,15 @@ mod web {
         command: &str,
         arguments: &JsValue,
     ) -> Result<JsValue, String> {
-        let promise = tauri_promise(command, arguments)?;
+        invoke_tauri_with_headers(command, arguments, &[]).await
+    }
+
+    pub(super) async fn invoke_tauri_with_headers(
+        command: &str,
+        arguments: &JsValue,
+        headers: &[(&str, &str)],
+    ) -> Result<JsValue, String> {
+        let promise = tauri_promise(command, arguments, headers)?;
         wasm_bindgen_futures::JsFuture::from(promise)
             .await
             .map_err(|error| format!("Commande Tauri échouée : {}", js_error(&error)))
@@ -2203,7 +2212,7 @@ mod web {
         timeout_ms: i32,
     ) -> Result<JsValue, String> {
         let window = web_sys::window().ok_or("Fenêtre navigateur absente")?;
-        let promise = tauri_promise(command, arguments)?;
+        let promise = tauri_promise(command, arguments, &[])?;
         let mut timer = None;
         let deadline = js_sys::Promise::new(&mut |_, reject| {
             let message = JsValue::from_str("Délai de réponse dépassé");
@@ -2225,15 +2234,31 @@ mod web {
         result.map_err(|error| js_error(&error))
     }
 
-    fn tauri_promise(command: &str, arguments: &JsValue) -> Result<js_sys::Promise, String> {
+    fn tauri_promise(
+        command: &str,
+        arguments: &JsValue,
+        headers: &[(&str, &str)],
+    ) -> Result<js_sys::Promise, String> {
         let core = tauri_core()?;
         let invoke = js_sys::Reflect::get(&core, &JsValue::from_str("invoke"))
             .map_err(|error| format!("API Tauri invoke inaccessible : {}", js_error(&error)))?
             .dyn_into::<js_sys::Function>()
             .map_err(|_| "API Tauri invoke invalide".to_owned())?;
-        let result = invoke
-            .call2(&core, &JsValue::from_str(command), arguments)
-            .map_err(|error| format!("Invocation Tauri impossible : {}", js_error(&error)))?;
+        let command = JsValue::from_str(command);
+        let result = if headers.is_empty() {
+            invoke.call2(&core, &command, arguments)
+        } else {
+            let fields = js_sys::Object::new();
+            for (name, value) in headers {
+                js_sys::Reflect::set(&fields, &JsValue::from_str(name), &JsValue::from_str(value))
+                    .map_err(|error| js_error(&error))?;
+            }
+            let options = js_sys::Object::new();
+            js_sys::Reflect::set(&options, &JsValue::from_str("headers"), &fields)
+                .map_err(|error| js_error(&error))?;
+            invoke.call3(&core, &command, arguments, &options)
+        }
+        .map_err(|error| format!("Invocation Tauri impossible : {}", js_error(&error)))?;
         result
             .dyn_into::<js_sys::Promise>()
             .map_err(|_| "Tauri invoke n’a pas retourné de Promise".to_owned())
@@ -2335,16 +2360,7 @@ mod web {
                     .to_owned(),
             );
         }
-        let window = web_sys::window().ok_or_else(|| "Fenêtre navigateur absente".to_owned())?;
-        let gpu = js_sys::Reflect::get(window.navigator().as_ref(), &JsValue::from_str("gpu"))
-            .map_err(|error| format!("Accès à navigator.gpu refusé : {}", js_error(&error)))?;
-        if gpu.is_null() || gpu.is_undefined() {
-            return Err(
-                "navigator.gpu est absent : WebGPU n’est pas disponible dans ce contexte"
-                    .to_owned(),
-            );
-        }
-
+        let gpu = browser_gpu()?;
         let request_adapter = js_sys::Reflect::get(&gpu, &JsValue::from_str("requestAdapter"))
             .map_err(|error| format!("requestAdapter inaccessible : {}", js_error(&error)))?
             .dyn_into::<js_sys::Function>()
@@ -2364,6 +2380,19 @@ mod web {
         }
 
         Ok(())
+    }
+
+    pub(super) fn browser_gpu() -> Result<JsValue, String> {
+        let window = web_sys::window().ok_or_else(|| "Fenêtre navigateur absente".to_owned())?;
+        let gpu = js_sys::Reflect::get(window.navigator().as_ref(), &JsValue::from_str("gpu"))
+            .map_err(|error| format!("Accès à navigator.gpu refusé : {}", js_error(&error)))?;
+        if gpu.is_null() || gpu.is_undefined() {
+            return Err(
+                "navigator.gpu est absent : WebGPU n’est pas disponible dans ce contexte"
+                    .to_owned(),
+            );
+        }
+        Ok(gpu)
     }
 
     fn js_error(value: &JsValue) -> String {

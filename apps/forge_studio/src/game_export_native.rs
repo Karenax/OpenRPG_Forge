@@ -1,10 +1,10 @@
-//! Native orchestration for a private package candidate; no `WebView` paths.
+//! Native orchestration for a game package candidate; no `WebView` paths.
 use crate::game_export_protocol::GameExportRequest;
 use forge_core::{ContentHash, bytes_sha256};
 use forge_delivery::{
-    game_builder::{GameCandidate, VerifiedGameKit, build_candidate_with_presentation},
+    game_builder::{GameCandidate, VerifiedGameKit, build_candidate_in_scope},
     game_presentation::PresentationBundle,
-    manifest,
+    manifest::{self, Rights},
     module_builder::{ExportMetadata, ExportedModule},
     orpmod,
 };
@@ -62,8 +62,16 @@ where
 {
     request.validate()?;
     let plan = host.game_export_plan(request.project_id, request.expected_workspace_hash)?;
-    let presentation = load_presentation(plan.game.configuration())?;
     let (kit, kit_hash) = load_kit()?;
+    let (scope, module_rights) = if request.redistributable {
+        if !kit.supports_redistribution() {
+            return Err("Cette version du Studio permet l’export de jeux à usage privé.".into());
+        }
+        (Rights::Redistributable, ModuleRights::Redistributable)
+    } else {
+        (Rights::PrivateLocalOnly, ModuleRights::PrivateLocalOnly)
+    };
+    let presentation = load_presentation(plan.game.configuration())?;
     manifest::safe_chain(output_root)?;
     fs::create_dir_all(output_root).map_err(|error| error.to_string())?;
     let output_root = fs::canonicalize(output_root).map_err(|error| error.to_string())?;
@@ -86,20 +94,21 @@ where
                 version: request.version.clone(),
                 publisher: request.publisher.clone(),
                 license_text: request.license_text.clone(),
-                rights: ModuleRights::PrivateLocalOnly,
+                rights: module_rights,
             };
             let exported = build_module(&scratch, selection, &snapshot, metadata)?;
             verify_module(&snapshot, &exported)?;
             snapshot_hashes.push(snapshot.content_hash()?);
             modules.push(exported);
         }
-        let mut candidate = build_candidate_with_presentation(
+        let mut candidate = build_candidate_in_scope(
             &scratch.join("candidate"),
             &kit,
             &plan.game,
             request.expected_workspace_hash,
             &modules,
             presentation.as_ref(),
+            scope,
         )?;
         if candidate.kit_manifest_sha256 != kit_hash {
             return Err("Le manifeste du kit ne correspond pas à la ressource du Studio.".into());

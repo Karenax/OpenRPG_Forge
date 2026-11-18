@@ -461,6 +461,7 @@ fn compute(
     live: Option<Res<LiveClock>>,
     coupled_live: Option<Res<LiveCoupled>>,
     mut cached: Local<Option<Vec<bevy::render::render_resource::ComputePipeline>>>,
+    mut mip_views: Local<kernels::MipViews>,
 ) {
     let was_ready = targets.ready.load(Ordering::Acquire);
     if was_ready && (live.is_none() || !targets.readback_complete.load(Ordering::Acquire)) {
@@ -484,7 +485,7 @@ fn compute(
         error!("Ocean GPU simulation buffers are incomplete");
         return;
     };
-    let views = match kernels::views(&textures) {
+    let views = match mip_views.for_textures(&textures) {
         Ok(views) => views,
         Err(reason) => {
             error!(%reason, "Ocean GPU views unavailable");
@@ -561,7 +562,7 @@ fn compute(
             kernels::Step {
                 pipelines,
                 buffers: ocean_buffers,
-                views: &views,
+                views,
                 frame: &frame_bytes,
                 parameters: &params,
                 index: step,

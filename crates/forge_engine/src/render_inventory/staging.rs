@@ -6,7 +6,7 @@ use super::{
 };
 use bevy::{diagnostic::FrameCount, pbr::Material, prelude::*};
 use forge_core::{ContentHash, EntityId};
-use std::any::TypeId;
+use std::{any::TypeId, sync::Arc};
 
 /// A staged inventory retains its candidate handles until it is activated or
 /// explicitly cancelled. Abandoning it without cancellation leaves its scoped
@@ -20,7 +20,7 @@ pub struct StagedScopedInventory<M: Material> {
     identity: ContentHash,
     generation: u64,
     registration_frame: u32,
-    required_live: super::Requirements,
+    required_live: Arc<super::Requirements>,
     meshes: Vec<Handle<Mesh>>,
     materials: Vec<Handle<M>>,
     transferred: bool,
@@ -182,7 +182,7 @@ impl<M: Material> StagedScopedInventory<M> {
         }
         let candidate = super::Requirements::custom(world, meshes, materials)?;
         let required_live = if let Some(live_meshes) = live_meshes {
-            super::Requirements::custom(world, live_meshes, materials)?
+            Arc::new(super::Requirements::custom(world, live_meshes, materials)?)
         } else {
             current.required.clone()
         };

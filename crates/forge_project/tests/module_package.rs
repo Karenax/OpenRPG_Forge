@@ -53,6 +53,8 @@ fn fixture(key: &str) -> (ModulePackageManifest, Vec<u8>) {
             placement_companions: Vec::new(),
             environments: Vec::new(),
             objects: Vec::new(),
+            scanned_debris: Vec::new(),
+            source_stalls: Vec::new(),
             fish_profiles: Vec::new(),
             vegetation: Vec::new(),
             creator: None,
@@ -1494,8 +1496,8 @@ fn environment_declarations_are_explicit_closed_bounded_and_area_owned() {
 #[test]
 fn solar_clock_is_explicit_versioned_bounded_and_requires_live_programs() {
     use forge_project::module_package::{
-        ModuleEnvironmentBinding, ModuleEnvironmentFiles, ModuleEnvironmentSource, ModuleFilePin,
-        ModuleSolarClock,
+        MODULE_CAPTURED_DIFFUSE_API_VERSION, ModuleDiffuseLighting, ModuleEnvironmentBinding,
+        ModuleEnvironmentFiles, ModuleEnvironmentSource, ModuleFilePin, ModuleSolarClock,
     };
     let (mut module, archive) = fixture("solar-clock");
     let clock = ModuleSolarClock {
@@ -1503,6 +1505,7 @@ fn solar_clock_is_explicit_versioned_bounded_and_requires_live_programs() {
         start_minutes: 0,
         azimuth_degrees: 0,
         day_length_seconds: None,
+        diffuse_lighting: None,
     };
     let files: Vec<_> = [
         "solar/index.json",
@@ -1540,6 +1543,34 @@ fn solar_clock_is_explicit_versioned_bounded_and_requires_live_programs() {
     assert_eq!(
         ModulePackageManifest::from_bytes(&module.to_bytes().unwrap()).unwrap(),
         module
+    );
+    let mut captured = module.clone();
+    captured.environments[0]
+        .solar_clock
+        .as_mut()
+        .unwrap()
+        .diffuse_lighting = Some(ModuleDiffuseLighting::CapturedIrradiance);
+    assert!(captured.validate().is_err());
+    captured.compatibility.module_api_version = MODULE_CAPTURED_DIFFUSE_API_VERSION;
+    assert_eq!(
+        ModulePackageManifest::from_bytes(&captured.to_bytes().unwrap()).unwrap(),
+        captured
+    );
+    captured
+        .validate_zone_archive(captured.zones[0].area_id, &archive)
+        .unwrap();
+    let ModuleEnvironmentSource::SourceProfile { programs, .. } =
+        &mut captured.environments[0].source;
+    *programs = None;
+    captured.files.retain(|file| {
+        !matches!(
+            file.path.as_str(),
+            "solar/programs.json" | "solar/program.wgsl"
+        )
+    });
+    assert_eq!(
+        ModulePackageManifest::from_bytes(&captured.to_bytes().unwrap()).unwrap(),
+        captured
     );
     for case in 0..6 {
         let mut bad = module.clone();

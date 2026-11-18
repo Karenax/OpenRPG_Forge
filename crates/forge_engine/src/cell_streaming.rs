@@ -473,6 +473,8 @@ struct State {
     material: CellMaterial,
     pending: Option<Job>,
     last_request: Option<Request>,
+    last_request_admitted: bool,
+    prepared_plan: Option<(Request, CellStreamPlan)>,
     live: BTreeMap<CellKey, LiveCell>,
     hlod: Option<hlod::State>,
 }
@@ -689,6 +691,8 @@ fn install_cell_streaming(app: &mut App, bootstrap: CellBootstrap<'_>) {
         material,
         pending: None,
         last_request: None,
+        last_request_admitted: false,
+        prepared_plan: None,
         live: BTreeMap::new(),
         hlod: bootstrap.terrain_hlod.then(hlod::State::default),
     })
@@ -860,6 +864,7 @@ fn update(world: &mut World) {
 fn tick(world: &mut World, state: &mut State) -> Result<(), String> {
     let observer = *world.resource::<CellStreamingObserver>();
     let request = requested(world, state);
+    let prepared_plan = state.prepared_plan.take();
     // Always poll an outstanding job, including after the observer leaves the grid.
     if let Some(job) = state.pending.as_mut() {
         let Some((prepared, elapsed)) = check_ready(&mut job.task) else {
@@ -877,7 +882,9 @@ fn tick(world: &mut World, state: &mut State) -> Result<(), String> {
             .is_ok_and(|current| *current == job.request)
         {
             state.last_request = Some(job.request);
+            state.last_request_admitted = false;
             source_updates::admit_job(world, state, &job.plan, prepared?, job.replacement)?;
+            state.last_request_admitted = true;
         } else {
             world.resource_mut::<CellStreamingStats>().discarded_jobs += 1;
         }
@@ -894,15 +901,19 @@ fn tick(world: &mut World, state: &mut State) -> Result<(), String> {
     let stream = replacement
         .as_ref()
         .map_or(&state.stream, |next| &next.stream);
-    let plan = stream
-        .prepare_with_protected_cells(observer.position_xz_m, &request.protected)
-        .map_err(|error| error.to_string())?;
+    let plan = match prepared_plan {
+        Some((planned, plan)) if replacement.is_none() && planned == request => plan,
+        _ => stream
+            .prepare_with_protected_cells(observer.position_xz_m, &request.protected)
+            .map_err(|error| error.to_string())?,
+    };
     if replacement.is_some() {
         source_updates::check_staging_budget(state, &plan)?;
     }
     if plan.acquisitions().is_empty() && plan.retirements().is_empty() {
         validate_live_projection(world, state)?;
         state.last_request = Some(request);
+        state.last_request_admitted = true;
         world.resource_mut::<CellStreamingStats>().last_error = None;
         return Ok(());
     }

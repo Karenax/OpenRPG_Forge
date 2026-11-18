@@ -1,12 +1,297 @@
 # Gate 7 — Progression et critères du 23 octobre 2026
 
-## État courant au 10 novembre 2026
+## État courant au 18 novembre 2026
 
-Gate 7 reste ouverte. La [matrice d'acceptation](#matrice-dacceptation)
-intègre le candidat privé Windows 049, les essais partiels Linux 0837
-et les réserves de redistribution. La [passation](../../HANDOFF.md#gate-7-etat-courant)
-résume les travaux restants. Les observations ci-dessous conservent
-leur périmètre et leur candidat d'origine.
+**Gate 7 est clôturée localement par décision du propriétaire le 18 novembre 2026.**
+Le [rapport de clôture](GATE7_CLOSURE_20261118.md) rapproche les dix critères.
+Linux et le rejeu du 063 sur Windows propre sont reportés. La
+[matrice d’acceptation](#matrice-dacceptation) conserve la portée des preuves. Le Windows 059 couvre l'export Studio puis
+l'installation, la sauvegarde, la reprise et la désinstallation du jeu
+dans deux invités sans SDK équipés de WebView2 Fixed Version géré. Le
+Setup corrigé, réassemblé avec le même paquet et le même CLI, réussit
+l'installation dans un invité neuf avec ce prérequis et l'inscription
+Evergreen intacte. Les transactions
+Windows de maintenance restent rattachées à leurs candidats vérifiés.
+Les travaux Linux sont reportés à la demande du propriétaire. Le 011
+conserve ses preuves d'export, d'installation et de reprise du Grand
+Plateau sous Ubuntu. La vue 3D du Studio Linux reste à qualifier.
+Le kit joueur Windows du Grand Plateau est examiné pour redistribution
+et le Studio 059 garde sa portée privée. Le [Setup Studio 060](../../HANDOFF.md#gate-7-setup-studio-060)
+est relu dans son périmètre Windows prévu pour redistribution, avec CRT
+et WebView2 externes. Le [rejeu exact 060](../../HANDOFF.md#gate-7-studio-060-fixed-windows-propre)
+valide le Setup, la vérification du paquet et l’ouverture du Studio dans
+un Sandbox sans SDK avec le CRT externe et WebView2 Fixed Version géré.
+Le [rejeu auteur 060](../../HANDOFF.md#gate-7-studio-060-export-grand-plateau)
+exporte Le Grand Plateau depuis l’interface du Studio. Le CLI relit le
+module comme redistribuable. Le [rejeu joueur 060](../../HANDOFF.md#gate-7-joueur-060-grand-plateau)
+installe cet export dans un second invité sans Studio, sauvegarde, reprend
+et désinstalle le jeu en conservant la sauvegarde. L’[installation standard
+Evergreen](../../HANDOFF.md#gate-7-studio-060-evergreen-ltsc) du Setup 060
+passe sur Windows LTSC sans SDK et ouvre le Studio. Sur l’hôte, le
+[parcours auteur sous Evergreen](../../HANDOFF.md#gate-7-studio-060-evergreen-hote)
+produit les quatre fichiers exacts de l’export sous Fixed Version.
+Le [cycle Studio 059 → 060 → 059](../../HANDOFF.md#gate-7-studio-060-maintenance)
+sur l’hôte vérifie les révisions installées et conserve les 15 fichiers
+auteur du Grand Plateau après la mise à jour et la restauration par CLI.
+La [désinstallation native du Studio 060](../../HANDOFF.md#gate-7-studio-060-desinstallation)
+préserve les 21 fichiers du workspace isolé Evergreen, dont les quatre
+fichiers exportés du Grand Plateau.
+Le [cycle natif du jeu 059 → 060 → 059](../../HANDOFF.md#gate-7-jeu-060-maintenance)
+utilise ses deux exports exacts et conserve la même sauvegarde, reconnue
+comme reprenable aux trois révisions actives.
+La [relecture des licences Windows 060](../../HANDOFF.md#gate-7-windows-060-licences-chaine)
+relie les 422 fichiers du kit revu au jeu installé et les quatre chemins
+de licence au module exact du Grand Plateau, dont le CC0 original.
+Le [module Tidewater du sprint](../../HANDOFF.md#gate-7-tidewater-licences-du-rejeu)
+reste privé et le contrôle de publication le refuse. Le
+[rejeu 060 à placements rapprochés](../../HANDOFF.md#gate-7-tidewater-scene-012-060)
+réduit le GPU actif médian de 10,22 à 8,93 ms par rapport au module complet,
+avec un p95 qui monte de 15,69 à 17,27 ms à 1440p.
+La [trace du sprint 1080p](../../HANDOFF.md#gate-7-tidewater-trace-presentation)
+relève 1 352 demandes de présentation wgpu et 611 événements DXGI sur la
+même fenêtre. Le diagnostic Direct3D 12 s’arrête avant le premier point du
+trajet. Le [rejeu après correction](../../HANDOFF.md#gate-7-tidewater-reutilisation-image-gpu)
+retrouve le même nombre d’événements wgpu et DXGI, avec 18,41 ms en
+moyenne entre présentations. Le [comparatif sans profilage](../../HANDOFF.md#gate-7-tidewater-comparatif-sans-profilage)
+relève 18,14 ms pour le moteur commun contre 16,88 ms pour le 012.
+Le [rejeu après les changements d’admission](../../HANDOFF.md#gate-7-tidewater-admission-plantes-comparatif)
+reste proche, à 18,27 ms et 27,90 ms au p95 d’affichage, contre
+16,88 et 20,89 ms pour le 012. Le [rejeu avec journal réduit aux jalons](../../HANDOFF.md#gate-7-tidewater-couverture-jalons)
+et contrôle des matériaux par archétype donne 18,07 ms en moyenne
+et 27,78 ms au p95 d’affichage. Le [rejeu du cache d’emprises et de l’audit](../../HANDOFF.md#gate-7-tidewater-emprises-audit-comparatif)
+ramène ces valeurs à 17,56 et 26,66 ms. Le [passage avec inventaires
+partagés](../../HANDOFF.md#gate-7-tidewater-inventaires-partages) atteint
+16,68 ms en moyenne et 21,80 ms au p95 d’affichage, contre 16,88 et
+20,89 ms pour le lecteur 012. Le passage dépasse de 0,0055 ms le budget
+moyen de 16,67 ms. La parité reste ouverte.
+La [relecture des à-coups](../../HANDOFF.md#gate-7-tidewater-a-coups-061)
+compte 16 intervalles d’affichage au-delà de 33,33 ms pour le 061, contre
+un pour le 012. Le tronçon `(0, -90)` → `(-20, -110)` en concentre huit
+pour le 061, après retrait de 750 ms à chaque extrémité.
+La [trace du 061 sur ce tronçon](../../HANDOFF.md#gate-7-tidewater-061-trace-troncon)
+rapproche sept pics d’affichage à des intervalles de présentation déjà
+supérieurs à 25 ms. Le coût de la boucle fixe augmente sur cette portion.
+Le [parcours ciblé des colliders](../../HANDOFF.md#gate-7-tidewater-colliders-navigation)
+réduit le coût de la recherche isolée. Le moteur corrigé termine le
+trajet 1080p. Le [comparatif par le compteur du moteur](../../HANDOFF.md#gate-7-tidewater-cadence-moteur-navigation)
+mesure un p95 de 20,89 ms sur la portion commune contre 23,34 ms pour
+le 061, avec 12 intervalles au-delà de 33,33 ms contre 10. Les à-coups
+les plus longs persistent. La cadence affichée du moteur corrigé reste
+à mesurer.
+La [relecture du terrain sur trois pics communs](../../HANDOFF.md#gate-7-tidewater-admission-terrain)
+repère des changements de disponibilité. Les contrôles du moteur
+réutilisent la demande de cellules déjà validée. Le contrôle Cargo
+Windows passe sous le profil Release.
+Le [rejeu Release avec réutilisation du HLOD distant](../../HANDOFF.md#gate-7-tidewater-hlod-empreinte)
+passe les cinq repères. Il ramène le nombre d'intervalles moteur de
+plus de 33,33 ms de 18 à 15, avec une moyenne qui passe de 14,95 à
+16,93 ms. Il reste à établir la cadence d'affichage et la parité.
+Le [rapprochement wgpu/DXGI](../../HANDOFF.md#gate-7-tidewater-hlod-presentations)
+confirme des demandes wgpu pendant chacun des 109 trous DXGI de 50 ms
+ou plus. Sur les deux passages instrumentés, le p95 entre demandes
+wgpu passe de 21,10 à 19,69 ms, avec 17 intervalles au-delà de 33,33 ms
+dans chaque relevé.
+La [mesure du compositeur Windows](../../HANDOFF.md#gate-7-tidewater-cadence-compositeur)
+compare le moteur commun au lecteur 012 sur la portion 1080p vérifiée.
+Le p95 est de 20,83 ms pour les deux, avec 20 intervalles de plus de
+33,33 ms pour le moteur commun et un pour le 012.
+Le [rejeu instrumenté ultérieur](../../HANDOFF.md#gate-7-tidewater-phases-images-longues)
+mesure 17 intervalles de plus de 33,33 ms sur le trajet. Les treize
+à-coups des deux tronçons les plus touchés suivent une reprise de
+simulation. Le [plan terrain mutualisé](../../HANDOFF.md#gate-7-tidewater-plan-cellules-partage)
+réduit le nombre de calculs lors des changements de résidence. Son rejeu
+donne 18 intervalles au-delà de 33,33 ms et un p99 de 34,72 ms. Les
+à-coups persistent sur ce trajet.
+Le [calcul d'empreinte déplacé dans le travailleur de navigation](../../HANDOFF.md#gate-7-tidewater-navigation-empreinte-worker)
+fait passer le relevé à trois intervalles au-delà de 33,33 ms et à
+27,78 ms au p99. Sur le même trajet à 1080p, le 012 donne un intervalle
+au-delà de 33,33 ms et 27,78 ms au p99.
+Le [candidat Windows 062](../../HANDOFF.md#gate-7-windows-062) contient ce
+runtime. Sur l’hôte, le Studio mis à jour exporte Le Grand Plateau, dont
+le launcher retrouve la sauvegarde 061. Le jeu la reprend et la conserve
+à la désinstallation. Les licences des trois paquets sont vérifiées.
+Le [kit Windows 061](../../HANDOFF.md#gate-7-windows-061-kit) assemble son
+runtime, le launcher et leurs notices sur un inventaire source commun.
+Le [Setup Studio 061 et l’export réel du Grand Plateau](../../HANDOFF.md#gate-7-studio-061-export-grand-plateau)
+reprennent ce kit à l’octet près. Le 061 a été réinstallé dans le profil
+Windows isolé du 060 et a préservé les 21 fichiers du workspace et du
+premier export. Les preuves de machine propre restent rattachées au 060.
+Le [parcours joueur 061 sur l’hôte](../../HANDOFF.md#gate-7-joueur-061-grand-plateau)
+installe l’export exact dans un profil séparé. Le launcher lance une
+partie, propose de reprendre la sauvegarde F5 et redémarre le jeu avec
+le même état. La désinstallation native conserve la sauvegarde.
+La [passation](../../HANDOFF.md#gate-7-etat-courant) relie ces résultats
+aux binaires, aux reçus et aux limites des essais.
+
+Le rejeu Windows du module privé avec les débris scannés termine ses 360
+images avec projection prête sur RX 7800 XT et Vulkan. La capture montre
+les troncs témoins et le rapport confirme les 64 formes de collision
+attendues parmi les 145 placements. Le [plan d'implémentation](../../planning/GATE7_IMPLEMENTATION_PLAN.md)
+donne les empreintes du rapport et de la capture sur F:.
+
+Le [Setup Windows 057](../../HANDOFF.md#gate-7-setup-windows-057) est
+assemblé et relu. Son moteur exact a repris le trajet court du module
+de débris scannés. Sur l'hôte, le Studio installé dans un dossier isolé
+a importé et réexporté ce module avec ses deux cartes et les 141 variantes
+de débris. Le jeu privé installé par CLI dans une racine joueur séparée
+a lancé une nouvelle partie, sauvegardé et repris dans son propre
+launcher. Les deux rapports et le fichier de sauvegarde concordent.
+Le même parcours avec Setup NSIS reste à vérifier sur Windows propre.
+La relecture des 421 fichiers déclarés dans les licences du jeu installé
+passe. Le contrôle de publication du module retourne un refus explicite
+pour sa portée privée.
+
+Le [rejeu Linux du 15 novembre](../../HANDOFF.md#gate-7-rejeu-linux-20261115)
+couvre la reprise du Grand Plateau sur Ubuntu sans SDK avec le 006,
+projection et simulation prêtes. Le retour au 005 conserve les sauvegardes
+des deux jeux. Le 007 passe 1 826 tests du monde, du moteur, du workspace et
+du runtime, avec 16 tests ignorés, ainsi que le Clippy strict du monde et
+du moteur. Son frontend a été refusé après une modification du checkout.
+Le frontend 008 est vérifié sur son snapshot et rattaché au conteneur du
+008. Le monde, le moteur, le workspace, le runtime et la livraison passent
+2 066 tests sur ce snapshot, avec 30 tests ignorés. Le Clippy strict passe
+sur le monde, le moteur, le runtime et la livraison. Le runtime Release
+et le launcher autonome sont construits. Le launcher renvoie le marqueur
+`FORGE_LAUNCHER_STANDALONE_FRONTEND_READY`. Le reçu du couple runtime et
+launcher, `linux-core-artifacts.json`, a pour SHA-256
+`d1225bfbddc51dd249e6cff16abcf84c81e34cba95eb0e27fd07237128329310`.
+Le kit joueur Linux x64 a été assemblé dans le conteneur SDK. Le reçu
+`linux-game-kit-assembly-receipt.json` porte le statut
+`PRIVATE_STAGED_ONLY` et le SHA-256
+`e877b196c876d080b504de56880b481f9d9b2b56b9e3ba53a7b40985d7338909`.
+Le jeu du Grand Plateau assemblé avec ce kit a passé l'installation et
+la reprise d'une sauvegarde existante via son launcher sur Ubuntu sans
+SDK. La simulation et la projection sont prêtes à la fermeture. Reçu
+`grand-plateau-008/assessment.json`, SHA-256
+`029d27048e44562294bb69cea302bdd2ae64d5b58b3e4e4e8d8cd4c058605826`.
+Les contrôles de compilation Web du moteur et du Studio et les tests
+JavaScript de cadence de l'éditeur passent dans le conteneur. Le Studio
+passe 456 tests natifs, avec 34 ignorés, et son Clippy strict. Les SHA-256
+des journaux `13-studio-tests.log` et `14-studio-clippy.log` sont
+`c821943a178bd218b2322b418d69d41e8ac9364079a6b60d3f00febab5425cc2`
+et `ef727d4ed76a7e9836f419caf092067776b458c23d83fda93690fb1c462ae4bc`.
+La compilation Release du Studio est terminée. Le conteneur a quitté
+avec le code 0 et ses 20 fichiers de preuve ont été relus sur F:.
+Le reçu final `receipt.json` a pour SHA-256
+`c084d19146c7ed4b9a6fda5ab638238c176b2889aff4df35af78cf98262e98fb`.
+Le paquet Studio privé a été assemblé après le reçu de compilation.
+Ses 465 fichiers et 462 chemins de licences ont été vérifiés par lecture
+intégrale de l'archive de 238 214 284 octets. Les 463 fichiers du kit
+adjacent correspondent à son inventaire. Reçu
+`linux-studio-build-008-readback.json`, SHA-256
+`3d697b73b7f6670764218afeb3f1a4ca048c0242b7486a0723a4eccd8a974f29`.
+Le CLI du Studio 008 a terminé l'inspection, le plan, l'installation et la
+vérification dans l'invité Ubuntu 24.04.5 sans SDK. Le binaire installé
+correspond au build et ses bibliothèques se résolvent. Le fichier témoin
+est intact. Reçu `studio-008-clean-ubuntu/assessment.json`, SHA-256
+`30c01493028a128c0e469b0fb68d18bc649e5fb0abd42d45b1a15f99baa8536f`.
+Sur le même invité, l'interface du Studio 008 s'affiche et ouvre la carte
+sauvegardée **Prairie de qualification**. La vue 3D reste vide sous Xvfb.
+L'invité est arrêté et l'installation conservée pour la suite.
+Reçu `studio-008-gui/assessment.json`, SHA-256
+`94d034017bedcb2ad7f9ee844d06ab2c9889f009c890f2d9450c1d35bf5efc82`.
+Le Studio 008 a également importé et exporté Le Grand Plateau. Le
+launcher de cet export installé par CLI a démarré, sauvegardé et
+repris une partie dans un profil isolé du même invité. Le premier
+rapport perd la projection prête à la fermeture. La reprise confirme
+la simulation, avec un rapport de projection vide après l'arrêt de
+Xvfb. Reçu `studio-008-game-export/play-resume-assessment.json`,
+SHA-256 `3c03f8a271a6db46fe537a2ad803fba21360491c1695c6337898c995faaf50cf`.
+Après le retrait du Studio 008, l'export installé reprend la même
+sauvegarde et quitte avec simulation et projection prêtes. Les 23
+fichiers de l'espace auteur restent intacts. Reçu
+`studio-008-game-export/post-uninstall-assessment.json`, SHA-256
+`a9bf55920ec615c2f8fc5f94557ec408928eecc8976470ba75a563d3a144ee93`.
+L'installateur livré avec cet export a aussi installé le jeu dans un
+invité Ubuntu distinct sans Studio ni SDK. Le launcher y a lancé une
+nouvelle partie, sauvegardé et repris avec l'empreinte attendue. La
+projection et la simulation sont prêtes à la fermeture de la reprise.
+Le rapport de fermeture de la première partie indique un état non prêt.
+Reçu `studio-008-game-export/player-only-ubuntu/play-resume-assessment.json`,
+SHA-256 `2b7901f06af78f09493479fdf92171e5f66b296b5d9ff3a35af01fb1ddbda2bd`.
+Le rejeu du 008 avec uniquement le binaire moteur corrigé sauvegarde
+et quitte normalement. La physique du terrain et la simulation
+perdent encore l'état prêt à l'image suivant la demande de fermeture
+de la nouvelle partie. Reçu
+`player-only-ubuntu/terrain-replay-assessment.json`, SHA-256
+`0bca602b14c3d55240ff3b548b6fea46ec8e343bc15e2c344711206b2b8d0c62`.
+Le rejeu instrumenté retrouve une physique et une simulation prêtes
+à la dernière image, sans motif de suspension. La perte d'état des
+rejeux précédents reste à expliquer. Reçu
+`player-only-ubuntu/terrain-hold-assessment.json`, SHA-256
+`35216d3f992191352309068a61bd20bd2d5670d4d58e529d611c0f3fa1e925d5`.
+La relecture du kit joueur privé 008 vérifie ses 463 fichiers sur 187 265 222
+octets, dont les 461 fichiers de licences et notices et les 10 archives
+sources incluses. Les 48 manifests et verrous Cargo concordent avec le
+graphe des notices utilisé par ce kit. Reçu
+`R7-08-linux-player-kit-008-license-readback.json`, SHA-256
+`2b85611634ab4747c08a18f812f7ccdc3268769f05a24540052897b3e2451944`.
+
+Le passage Windows 052 sur l'hôte couvre le Studio installé, l'export
+du Grand Plateau et la reprise depuis le launcher du jeu installé.
+Le Setup 052 refuse un WebView2 inutilisable dans l'invité Windows
+sans SDK. La livraison privée 053 utilise les DLL Visual C++ de
+Windows pour le Studio, le moteur, le launcher et le CLI. Les imports
+PE et les PDB concordants des quatre rôles ont été vérifiés. Reçu
+`windows-external-crt-20261114/unified-product-inputs/R7-08-windows-external-crt-game-kit-binaries.json`,
+SHA-256 `d075539a447895e564622567ea68fde429dab68f5932429051d339b57511bbf1`.
+Pour le Setup 053, les trois plugins et le bitmap NSIS 3.12 concordent
+avec les composants vérifiés dans le 050 et le journal confirme zlib.
+Reçu `setup-053/R7-08-studio-053-nsis-attribution.json`, SHA-256
+`8f244a618c98357fd208e95f248e0a47eeefd0303b6861f976b0aec89242cec2`.
+Le Setup privé 055 a été assemblé avec WebView2 et Visual C++ externes.
+La relecture des 425 fichiers et des 10 archives sources confirme le
+frontend compilé sans références locales `forge-imports` ou `forge-kit`.
+La lecture de la table Tauri du binaire Studio confirme ses 16 ressources
+embarquées et l'absence de ces répertoires dans la table. La relecture
+des ressources PE, de trois scripts Tauri et de Fira Mono est consignée
+dans la passation. Le Setup 056 intègre le launcher Windows et l'icône
+Forge à la provenance documentée. La table web du 056 a été relue.
+Les segments de données de ses deux modules WASM ne contiennent aucun PNG,
+GLB2 ni SFNT littéral valide selon le contrôle exécuté. Les deux modules
+correspondent exactement à ceux du 055 après substitution de la seule
+empreinte du fournisseur de navigation, recalculée après changement de
+`Cargo.lock`. Les deux reçus sont référencés dans la
+[passation du 056](../../HANDOFF.md#gate-7-setup-windows-056).
+Le CLI a vérifié WebView2 et installé le Studio dans un dossier isolé sur
+l'hôte. Le parcours positif sur Windows sans SDK reste à exécuter avec
+Visual C++ et WebView2 Evergreen fonctionnels. Les empreintes des reçus
+055 figurent dans la [passation](../../HANDOFF.md#gate-7-setup-windows-055).
+Le disque de qualification Windows réutilisé en lecture seule sous QEMU
+démarre jusqu'au message d'installation Windows inachevée. Le Setup Forge
+056 attend encore un invité utilisable. La capture et le reçu du démarrage
+sont référencés dans la [passation du 056](../../HANDOFF.md#gate-7-setup-windows-056).
+Sur l'hôte, les CLI ont installé le 055, appliqué le 056 puis restauré
+le 055 dans une racine isolée. Le module Le Grand Plateau a conservé
+son empreinte. Voir les [reçus du 056](../../HANDOFF.md#gate-7-setup-windows-056).
+
+Sur le même export Tidewater, au profil Moyen et à 1280 × 800, les kits
+053, 054 et 055 mesurent 16,58, 16,07 et 15,59 ms en moyenne, avec des
+p95 de 27,40, 19,32 et 17,75 ms. Le kit 055 atteint le budget moyen sur
+ce trajet. À 2560 × 1440, immobile en troisième personne, le 055 mesure
+13,25 ms en moyenne et 16,47 ms au p95 avec les réglages du précédent
+relevé comparable du moteur commun. En première personne à cette
+résolution, le scénario commun mesure 20,28 ms en moyenne et 21,68 ms au
+p95 en FIFO avec les observations écrites temporairement sur E:. Le
+lecteur 012 mesurait 10,42 à 10,44 ms avec sa télémétrie historique.
+La relecture des deux transitions déjà enregistrées confirme sur le même
+binaire 12,76 → 20,28 ms en FIFO et 12,63 → 20,04 ms en Immediate. Le
+périmètre GPU échantillonné du rendu caméra varie entre 7,63 et 8,49 ms.
+L'origine de l'attente de la surface, la parité et les autres profils
+restent à qualifier. Voir les
+[reçus Tidewater](../../HANDOFF.md#gate-7-tidewater-windows-055).
+
+Sur le 056 sans profilage CPU et pendant la compilation Linux 006, les
+fenêtres prêtes à 1440p mesurent 22,02 ms en troisième personne et
+22,47 ms en première personne. La résolution, les réglages et la pose
+sont contrôlés. Le binaire et la charge hôte diffèrent du rejeu précédent.
+
+Sur une paire de trajets du 14 novembre au profil Moyen, la recherche
+par identité et niveau de détail dans le moteur commun ramène le p95 de
+27,67 à 24,43 ms. Le 1 % low passe de 27,65 à 29,59 images/s.
+La moyenne était de 19,30 ms.
+Reçu `runtime-plant-identity-lookups-20261114/replay/G7-D6-tidewater-plant-identity-lookups.json`,
+SHA-256 `427557d18e5592cdc13dd12c8e83fbb5d99fb1a2f55b4bbce298b20c7928bda6`.
 
 ## 7 novembre — réexport du module Tidewater migré
 
@@ -1600,16 +1885,27 @@ autres distributions et l'agrégation complète restent à vérifier.
 | R7-01 | Streaming de cellules | Chargement/déchargement borné réel, aller/retour, erreurs, identités et gameplay conservés | PASS local Windows du 5 novembre — région 2 km, trajet de 291 m, 29 transitions et 799 observations prêtes au sol ; 72 tests actuels des budgets/refus/identités, sources et persistance rapprochées. Reçu 015 `R7-01-streaming-assessment-015.json` ; aucun FPS, HLOD général ou autre OS déduit |
 | R7-02 | HLOD | Représentation agrégée réellement rendue, continuité, coûts et limites mesurés | **Qualifié localement Windows.** Aller-retour 017 dans le module exporté, quatre profils, terrain et végétation 014–015, réduction texturée dans le cas dense ; aucun gain FPS établi. Runtime 017 exécuté séparément, cycle final d'installation distinct |
 | R7-03 | Sauvegardes multi-zones | A→B→A, sauvegarde/reprise, progression et séparation des modules, écriture interrompue | PASS local Windows — A→B→A→B natif, états complets retrouvés ; refus intermodules et staging interrompu vérifiés par tests du stockage réel ; `R7-03-saves-assessment-001.json` |
-| R7-04 | Packaging runtime | Exécution autonome sans sources, Vault ou IA ; intégrité et refus d'altération | PASS local Windows du 5 novembre — export 015, exécutions réelles et ressources fermées rapprochés ; chemins sans fallback dev/Vault/IA, 25 tests actuels de fermeture/corruption/identités étrangères. Reçu 015 `R7-04-runtime-packaging-assessment-015.json` ; OS propre, installation 015 et redistribution restent distincts |
-| R7-05 | Profils graphiques | Low/Medium/High/Ultra appliqués, persistés, relus ; capacités effectives et refus visibles | PASS local Windows du 5 novembre — quatre profils réels, ressources, persistance/relecture, refus et défaut Medium rapprochés sur sources vérifiées ; reçu 015 `R7-05-graphics-profiles-assessment-015.json`. Les fenêtres mesurées courtes ne qualifient ni benchmark FPS ni parité Tidewater ; distribution/OS restent distincts |
-| R7-06 | Lanceur | Launcher propre au jeu exporté, identité du projet, lancement/reprise, erreurs et retour | PASS local Windows du 5 novembre — parcours réels 008/011, identité du projet, reprise et retour ; sources/frontend 011–015 identiques, 32 tests actuels des refus/processus. Reçu 015 `R7-06-game-launcher-assessment-015.json`. Installation 015, OS propre et réglages indiqués non appliqués restent distincts |
-| R7-07 | Builds Windows/Linux | Binaires issus des entrées qualifiées et contrôles locaux propres à chaque plateforme | **Volet Windows privé qualifié avec le 049.** Studio, kit, launcher et runtime rapprochés dans le bilan Windows 049. Le build Linux 0837 porte sur un snapshot antérieur. Le build Linux des sources courantes et sa qualification restent ouverts. |
-| R7-08 | Licences agrégées | Notices et droits des composants réellement distribués ; réserves résolues | **Ouvert.** Le 049 garde ses trois réserves historiques. Le Studio privé 050 a été installé et démarré sur Windows Sandbox hors ligne sans SDK. Ses quatre index installés ont les empreintes attendues et son audit ne relève aucune identité Cargo sans texte candidat. Les droits de redistribution des assets et composants et l'inventaire du paquet Linux courant restent à qualifier. |
-| R7-09 | Installateur | Installation, mise à jour/reprise, rollback, désinstallation préservant les données | **Volet Windows privé qualifié avec le 049.** Les cycles de maintenance du Studio et de Tidewater préservent les fichiers auteur et les sauvegardes contrôlés. Sous Linux 0837, installation et retrait vérifiés en conteneur. Mise à jour, restauration et reprise via le launcher restent ouvertes. |
-| R7-10 | Machine propre | Installation et parcours sur OS propre, prérequis consignés, aucune dépendance de développement | **Volet Windows privé qualifié avec le 049.** Studio installé et deux exports dans un Sandbox hors ligne sans SDK, lancement et reprise dans un autre invité sans Studio. Le 050 confirme ce parcours avec Le Grand Plateau, sauvegarde et empreintes des notices installées comprises. Sous Linux 0837, fenêtre Studio, lancement de diagnostic et sauvegarde du Grand Plateau observés en conteneur sans SDK. Parcours Linux de bout en bout sur OS propre à qualifier. |
+| R7-04 | Packaging runtime | Exécution autonome sans sources, Vault ou IA, intégrité et refus d'altération | PASS local Windows, reçu `R7-04-runtime-packaging-assessment-015.json` pour la fermeture des ressources et les refus. Le [Grand Plateau 060](../../HANDOFF.md#gate-7-joueur-060-grand-plateau) s’exécute aussi dans un invité sans SDK ni Studio, avec les binaires exacts du jeu exporté. |
+| R7-05 | Profils graphiques | Low/Medium/High/Ultra appliqués, persistés, relus, avec capacités et refus visibles | PASS local Windows pour les quatre profils et leur persistance après relance au 015. Le [runtime exact du 062](../../HANDOFF.md#gate-7-windows-062-quatre-profils) applique, persiste et rend les quatre profils à une même pose Tidewater. Les p95 moteur à 1080p vont de 15,19 à 16,39 ms sur cette pose. Le [trajet Medium en déplacement](../../HANDOFF.md#gate-7-tidewater-navigation-tri-worker) relève zéro intervalle du compositeur au-delà de 33,33 ms, contre trois sur le 062. Le [kit 063](../../HANDOFF.md#gate-7-windows-063) embarque le runtime exact de cette mesure. |
+| R7-06 | Lanceur | Launcher propre au jeu exporté, identité du projet, lancement/reprise, erreurs et retour | PASS local Windows, reçu `R7-06-game-launcher-assessment-015.json` pour l’identité, le retour et les refus. Les launchers du Grand Plateau [060](../../HANDOFF.md#gate-7-joueur-060-grand-plateau) et [061](../../HANDOFF.md#gate-7-joueur-061-grand-plateau) lancent deux processus distincts pour jouer puis reprendre avec la même sauvegarde. |
+| R7-07 | Builds Windows/Linux | Binaires issus des entrées qualifiées et contrôles locaux propres à chaque plateforme | Le [063](../../HANDOFF.md#gate-7-windows-063) relie les builds Release des deux rôles et du CLI au même inventaire et couvre le parcours sur l’hôte. Le [060](../../HANDOFF.md#gate-7-setup-studio-060) couvre son propre Setup, export et jeu sur Windows sans SDK avec WebView2 Fixed Version géré. Le volet Linux est reporté. |
+| R7-08 | Licences agrégées | Notices et droits des composants réellement distribués, réserves résolues | PASS sur les paquets exacts du [Studio 063 et du Grand Plateau exporté](../../HANDOFF.md#gate-7-windows-063), avec 424, 422 et quatre chemins de licence. Evergreen et Visual C++ sont fournis séparément. Le [module Tidewater mesuré](../../HANDOFF.md#gate-7-tidewater-licences-du-rejeu) reste privé. Linux est reporté. |
+| R7-09 | Installateur | Installation, mise à jour/reprise, rollback, désinstallation préservant les données | Le [Studio](../../HANDOFF.md#gate-7-studio-060-maintenance) et le [jeu](../../HANDOFF.md#gate-7-jeu-060-maintenance) passent le cycle natif 059 → 060 → 059 sur l’hôte. Le [rejeu joueur 060](../../HANDOFF.md#gate-7-joueur-060-grand-plateau) couvre la désinstallation graphique sur Windows propre. Le [063](../../HANDOFF.md#gate-7-windows-063) couvre la mise à jour du Studio et le retour 063 → 062 → 063 par CLI, puis l’installation native du jeu, la reprise et la conservation de la sauvegarde à la désinstallation. Linux est reporté. |
+| R7-10 | Machine propre | Installation et parcours sur OS propre, prérequis consignés, aucune dépendance de développement | Rejeu du 063 sur Windows propre reporté par le propriétaire. Le [060](../../HANDOFF.md#gate-7-joueur-060-grand-plateau) couvre le parcours auteur et joueur sur deux invités Windows sans SDK avec WebView2 Fixed Version géré. Le [Setup 060 standard](../../HANDOFF.md#gate-7-studio-060-evergreen-ltsc) s’installe, vérifie son paquet et ouvre le Studio avec Evergreen sur Windows LTSC sans SDK. L’[export Evergreen sur l’hôte](../../HANDOFF.md#gate-7-studio-060-evergreen-hote) reproduit les quatre fichiers du parcours Fixed Version à l’octet près. Linux est reporté. |
 
-Les reçus Windows 049 et Linux 0837 et les limites de chaque essai sont
-référencés dans la [passation](../../HANDOFF.md#gate-7-etat-courant).
+Les reçus par candidat et les limites de chaque essai sont référencés dans
+la [passation](../../HANDOFF.md#gate-7-etat-courant).
+
+Le [rejeu Linux 011 du 17 novembre](../../HANDOFF.md#17-novembre--candidat-linux-011)
+confirme la construction des deux rôles, l'export redistribuable du Grand
+Plateau depuis le Studio installé et le parcours installateur, launcher,
+sauvegarde et reprise dans un invité joueur distinct. Le kit joueur
+examiné contient les notices prévues et le reçu autorise sa préparation
+à la redistribution. Le Studio 011 reste un paquet privé. La vue 3D
+du Studio reste ouverte. Dans le rejeu joueur, la première partie se
+ferme avec la simulation prête. La reprise préserve la sauvegarde et
+se ferme avec succès, avec une suspension de la simulation sur sa dernière
+image, après la demande de fermeture. Les quatre critères restent ouverts.
 
 Mesure transverse : carte plus grande que la vallée de référence, seed/révision,
 machine, backend, résolution, profil effectif, mémoire et frame times après

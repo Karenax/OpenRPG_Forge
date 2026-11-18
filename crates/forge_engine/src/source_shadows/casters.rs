@@ -1,6 +1,8 @@
 //! Shared opaque caster preparation on Bevy's render device.
 //! Geometry is validated before upload; authoring adapters own placement and cascades.
 use bevy::{
+    camera::primitives::{Aabb, Frustum},
+    math::{Affine3A, Vec3A, primitives::ViewFrustum},
     prelude::*,
     render::{
         render_resource::{
@@ -14,6 +16,7 @@ pub struct OpaqueDraw {
     vertices: Vec<u8>,
     indices: Vec<u8>,
     model: Mat4,
+    bounds: Aabb,
 }
 impl OpaqueDraw {
     /// Preserve the resident triangle mesh positions/winding for an opaque caster.
@@ -73,10 +76,20 @@ impl OpaqueDraw {
         if !model.is_finite() {
             return Err("Invalid opaque caster transform".into());
         }
+        let bounds = Aabb::enclosing(vertices.as_chunks::<12>().0.iter().map(|point| {
+            let [x, y, z] = point.as_chunks::<4>().0.try_into().expect("XYZ positions");
+            Vec3::new(
+                f32::from_le_bytes(x),
+                f32::from_le_bytes(y),
+                f32::from_le_bytes(z),
+            )
+        }))
+        .expect("validated non-empty shadow geometry");
         Ok(Self {
             vertices,
             indices,
             model,
+            bounds,
         })
     }
 }
@@ -86,11 +99,14 @@ struct GpuDraw {
     count: u32,
     groups: Vec<BindGroup>,
     models: Vec<UniformBuffer<Mat4>>,
+    bounds: Aabb,
 }
 pub struct OpaqueBatch {
     pub(super) bundles: Vec<wgpu::RenderBundle>,
     draws: Vec<GpuDraw>,
     cascades: Vec<UniformBuffer<Mat4>>,
+    visible_draws: Vec<Vec<usize>>,
+    pipeline: RenderPipeline,
 }
 impl OpaqueBatch {
     pub fn update_cascades(
@@ -130,12 +146,20 @@ impl OpaqueBatch {
         }
         let _profile = crate::cpu_timing::Span::new("shadows.opaque_uniforms");
         for &layer in layers {
-            write_changed_matrix(&mut self.cascades[layer], matrices[layer], device, queue);
-        }
-        if let Some(models) = models {
-            for (draw, &model) in self.draws.iter_mut().zip(models) {
-                for &layer in layers {
-                    write_changed_matrix(&mut draw.models[layer], model, device, queue);
+            let matrix = matrices[layer];
+            let mut changed =
+                write_changed_matrix(&mut self.cascades[layer], matrix, device, queue);
+            if let Some(models) = models {
+                for (draw, &model) in self.draws.iter_mut().zip(models) {
+                    changed |= write_changed_matrix(&mut draw.models[layer], model, device, queue);
+                }
+            }
+            if changed && !self.draws.is_empty() {
+                let selected = select_draws(&self.draws, layer, &matrix);
+                if self.visible_draws[layer] != selected {
+                    self.bundles[layer] =
+                        encode_bundle(device, &self.pipeline, &self.draws, layer, &selected);
+                    self.visible_draws[layer] = selected;
                 }
             }
         }
@@ -148,10 +172,13 @@ fn write_changed_matrix(
     matrix: Mat4,
     device: &RenderDevice,
     queue: &RenderQueue,
-) {
+) -> bool {
     if uniform.get().to_cols_array().map(f32::to_bits) != matrix.to_cols_array().map(f32::to_bits) {
         uniform.set(matrix);
         uniform.write_buffer(device, queue);
+        true
+    } else {
+        false
     }
 }
 
@@ -171,6 +198,10 @@ const SHADER: &str = "
     return view_projection * world;
 }";
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "The shadow pipeline and its resource layout are prepared together."
+)]
 pub fn prepare(
     draws: &[OpaqueDraw],
     matrices: &[Mat4],
@@ -265,23 +296,54 @@ pub fn prepare(
                 count: u32::try_from(d.indices.len() / 4).expect("validated indices"),
                 groups,
                 models,
+                bounds: d.bounds,
             }
         })
         .collect();
-    // The bundle holds the same bind groups across frames. Pose updates write
-    // their buffers before the depth pass executes the recorded draws.
+    let visible_draws: Vec<_> = matrices
+        .iter()
+        .enumerate()
+        .map(|(layer, matrix)| select_draws(&draws, layer, matrix))
+        .collect();
     let bundles = if draws.is_empty() {
         Vec::new()
     } else {
-        (0..matrices.len())
-            .map(|layer| encode_bundle(device, &pipeline, &draws, layer))
+        visible_draws
+            .iter()
+            .enumerate()
+            .map(|(layer, selected)| encode_bundle(device, &pipeline, &draws, layer, selected))
             .collect()
     };
     Ok(OpaqueBatch {
         bundles,
         draws,
         cascades,
+        visible_draws,
+        pipeline,
     })
+}
+
+fn select_draws(draws: &[GpuDraw], layer: usize, matrix: &Mat4) -> Vec<usize> {
+    let frustum = Frustum(ViewFrustum::from_clip_from_world(matrix));
+    draws
+        .iter()
+        .enumerate()
+        .filter_map(|(index, draw)| {
+            in_cascade_side_planes(&frustum, *draw.models[layer].get(), draw.bounds)
+                .then_some(index)
+        })
+        .collect()
+}
+
+fn in_cascade_side_planes(frustum: &Frustum, model: Mat4, mut bounds: Aabb) -> bool {
+    if model.row(3) != Vec4::W || !bounds.center.is_finite() || !bounds.half_extents.is_finite() {
+        return true;
+    }
+    // The source uses standard depth. Only cull against the four side planes
+    // and keep casters touching a plane despite rounding of their mesh bounds.
+    bounds.half_extents +=
+        (bounds.center.abs() + bounds.half_extents + Vec3A::ONE) * (32.0 * f32::EPSILON);
+    frustum.intersects_obb(&bounds, &Affine3A::from_mat4(model), false, false)
 }
 
 fn encode_bundle(
@@ -289,6 +351,7 @@ fn encode_bundle(
     pipeline: &RenderPipeline,
     draws: &[GpuDraw],
     layer: usize,
+    selected: &[usize],
 ) -> wgpu::RenderBundle {
     let mut encoder = device.create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {
         label: Some("Source opaque shadow cascade"),
@@ -302,7 +365,8 @@ fn encode_bundle(
         multiview: None,
     });
     encoder.set_pipeline(pipeline);
-    for draw in draws {
+    for &index in selected {
+        let draw = &draws[index];
         encoder.set_bind_group(0, &*draw.groups[layer], &[]);
         encoder.set_vertex_buffer(0, *draw.vertices.slice(..));
         encoder.set_index_buffer(*draw.indices.slice(..), gpu::IndexFormat::Uint32);
@@ -348,6 +412,27 @@ pub mod textured;
 #[cfg(test)]
 mod pose_tests {
     use super::*;
+
+    #[test]
+    fn cascade_culling_keeps_boundary_casters_and_ignores_depth_range() {
+        let frustum = Frustum(ViewFrustum::from_clip_from_world(&Mat4::IDENTITY));
+        let bounds = Aabb::from_min_max(Vec3::splat(-0.25), Vec3::splat(0.25));
+        assert!(!in_cascade_side_planes(
+            &frustum,
+            Mat4::from_translation(Vec3::new(2.0, 0.0, 0.5)),
+            bounds
+        ));
+        assert!(in_cascade_side_planes(
+            &frustum,
+            Mat4::from_translation(Vec3::new(1.25, 0.0, 0.5)),
+            bounds
+        ));
+        assert!(in_cascade_side_planes(
+            &frustum,
+            Mat4::from_translation(Vec3::new(0.0, 0.0, 5.0)),
+            bounds
+        ));
+    }
 
     #[test]
     fn resident_mesh_caster_preserves_positions_winding_and_authored_pose() {

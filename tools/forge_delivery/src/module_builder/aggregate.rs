@@ -237,6 +237,16 @@ fn append_area(
             .iter()
             .find(|binding| binding.area_id == source.area_id),
         &prepared.module.fish_profiles,
+        prepared
+            .module
+            .scanned_debris
+            .iter()
+            .find(|binding| binding.area_id == source.area_id),
+        prepared
+            .module
+            .source_stalls
+            .iter()
+            .find(|binding| binding.area_id == source.area_id),
     )?;
     companions::supply_lights(prepared.origin.as_ref(), &zone, light_payloads)?;
     let required_sources = zone.required_source_blobs()?;

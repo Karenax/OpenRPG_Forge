@@ -141,6 +141,26 @@ class SourcesAdmission(unittest.TestCase):
                 self.f.lock_package[field] = original
         self.f.write_lock()
 
+    def test_separate_application_lock_is_pinned_and_must_match(self):
+        relative = "apps/launcher/Cargo.lock"
+        additional = self.f.repo / relative
+        additional.parent.mkdir(parents=True)
+        lock = (self.f.repo / "Cargo.lock").read_bytes()
+        additional.write_bytes(lock)
+        self.f.document["additional_components"] = {self.f.name: [relative]}
+        self.f.write_inventory()
+
+        receipt = self.f.prepare().receipt
+        self.assertEqual(receipt["additional_cargo_locks_sha256"], {relative: sha(lock)})
+        self.assertEqual(receipt["source_archives"], 1)
+
+        additional.write_bytes(lock.replace(sha(self.f.archive).encode(), b"0" * 64))
+        with self.assertRaisesRegex(ValueError, "Cargo.lock component set/pins"):
+            self.f.prepare()
+        additional.write_bytes(b"version = 4\n")
+        with self.assertRaisesRegex(ValueError, "Missing or duplicate application source component"):
+            self.f.prepare()
+
     def test_missing_or_changed_notices_and_license_are_refused(self):
         for field in ["license_file", "notices"]:
             with self.subTest(field=field):

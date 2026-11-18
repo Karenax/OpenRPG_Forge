@@ -11,6 +11,7 @@ use forge_engine::{
     ManualPlacementCollision, ManualPlacementCollisionExpected, ManualPlacementCollisionGeometry,
     ManualPlacementCollisionPlugin, ManualPlacementPart, ManualPlacementProjection,
     source_fish::host::{live as fish_live, scene as fish_scene},
+    source_surface::scanned_host,
 };
 use forge_project::zone_authoring::{placements::ManualPlacement, source_objects};
 use std::{
@@ -18,6 +19,8 @@ use std::{
     sync::{Arc, OnceLock},
 };
 mod decals;
+mod stall;
+pub(super) use stall::SourceStallProjection;
 
 #[derive(Resource)]
 pub struct PreparedManual {
@@ -27,7 +30,10 @@ pub struct PreparedManual {
     decals: Vec<(ManualPlacement, Arc<[u8]>)>,
     objects: Option<PreparedObjects>,
     fish_placements: Vec<ManualPlacement>,
+    pub(super) attached_fish: usize,
     fish: Option<fish_scene::PreparedScene>,
+    scanned: Option<scanned_host::PreparedHost>,
+    stall: Option<stall::Prepared>,
 }
 
 struct PreparedGraph {
@@ -151,6 +157,21 @@ fn prepare_fish(
 }
 
 impl PreparedManual {
+    pub(super) fn has_source_stall(&self) -> bool {
+        self.stall.is_some()
+    }
+
+    pub(super) fn source_stall_ids(&self) -> BTreeSet<forge_core::EntityId> {
+        self.stall
+            .iter()
+            .flat_map(|stall| stall.placements.iter().map(|placement| placement.id))
+            .collect()
+    }
+
+    pub fn has_scanned_debris(&self) -> bool {
+        self.scanned.is_some()
+    }
+
     #[must_use]
     pub fn has_source_graphs(&self) -> bool {
         !self.graph.is_empty()
@@ -168,6 +189,18 @@ impl PreparedManual {
         ids
     }
 
+    pub fn scanned_collision_primitives(&self) -> BTreeMap<forge_core::EntityId, usize> {
+        self.scanned
+            .iter()
+            .flat_map(|host| {
+                host.placements().iter().filter_map(|placement| {
+                    host.collision_primitive_count(placement.asset_id)
+                        .map(|count| (placement.id, count))
+                })
+            })
+            .collect()
+    }
+
     pub fn accepted(&self) -> Vec<ManualPlacement> {
         let mut placements = self
             .governed
@@ -177,6 +210,16 @@ impl PreparedManual {
             .chain(self.graph.iter().map(|graph| graph.placement.clone()))
             .chain(self.decals.iter().map(|(placement, _)| placement.clone()))
             .chain(self.fish_placements.iter().cloned())
+            .chain(
+                self.stall
+                    .iter()
+                    .flat_map(|stall| stall.placements.iter().cloned()),
+            )
+            .chain(
+                self.scanned
+                    .iter()
+                    .flat_map(|host| host.placements().iter().cloned()),
+            )
             .collect::<Vec<_>>();
         placements.sort_by_key(|placement| placement.id);
         placements
@@ -259,19 +302,52 @@ pub fn prepare(
     let fish_profiles = loaded.fish_profiles()?;
     let fish_placements = fish_scene::select_placements(fish_profiles.iter(), &placements)?;
     let fish_ids: BTreeSet<_> = fish_placements.iter().map(|item| item.id).collect();
-    let fish = prepare_fish(loaded, &fish_profiles, &fish_placements, profile.as_ref())?;
+    let mut fish_inputs = fish_placements.clone();
+    let lighting = || {
+        profile
+            .as_ref()
+            .map_or(
+                Ok(forge_engine::source_surface::PROFILE_PROGRAM),
+                |profile| forge_engine::source_surface::package::shader_source(&profile.package),
+            )
+            .map(str::to_owned)
+    };
+    let (stall, parents) = stall::prepare(loaded, &placements, lighting, &mut fish_inputs)?;
+    let attached_fish = parents.len();
+    fish_inputs.sort_by_key(|placement| placement.id);
+    let fish = prepare_fish(loaded, &fish_profiles, &fish_inputs, profile.as_ref())?
+        .map(|fish| fish.with_attachments(parents))
+        .transpose()?;
     let mut result = Vec::new();
     let mut source = Vec::new();
     let mut graph = Vec::new();
     let mut decals = Vec::new();
     let mut graph_cache = GraphCache::new();
     let mut companion_cache = super::companions::Cache::default();
+    let scan_binding = loaded
+        .manifest
+        .scanned_debris
+        .iter()
+        .find(|binding| binding.area_id == head.base.terrain.area_id);
+    let mut scans = Vec::new();
     for placement in placements {
+        if stall
+            .as_ref()
+            .is_some_and(|stall| stall.placements[0].asset_id == placement.asset_id)
+        {
+            continue;
+        }
         let has_companions = placement.physics.is_some() || placement.particles.is_some();
         if fish_ids.contains(&placement.id) {
             if has_companions {
                 return Err("Fish placement companions do not have an admitted source host".into());
             }
+            continue;
+        }
+        if scan_binding
+            .is_some_and(|binding| binding.assets.binary_search(&placement.asset_id).is_ok())
+        {
+            scans.push(placement);
             continue;
         }
         if let Some(profile) = &profile
@@ -342,6 +418,21 @@ pub fn prepare(
         return Err("Mesh decals require a compatible source material in their map".into());
     }
     let objects = prepare_objects(loaded, &source, profile)?;
+    let scanned = if scans.is_empty() {
+        None
+    } else {
+        let resolved = loaded
+            .scanned_debris()?
+            .ok_or("Scanned debris resources absent")?;
+        Some(scanned_host::PreparedHost::new(
+            &resolved.package,
+            resolved.geometry,
+            &resolved.collisions,
+            resolved.instance_program,
+            resolved.revision,
+            scans,
+        )?)
+    };
     Ok(PreparedManual {
         governed: result,
         source,
@@ -349,11 +440,17 @@ pub fn prepare(
         decals,
         objects,
         fish_placements,
+        attached_fish,
         fish,
+        scanned,
+        stall,
     })
 }
 
 pub fn install(app: &mut App, mut prepared: PreparedManual, water: bool) -> Result<(), String> {
+    if let Some(stall) = prepared.stall.take() {
+        stall.install(app, water)?;
+    }
     if let Some(objects) = prepared.objects.take() {
         forge_engine::source_surface::receivers::stage_shader(app.world_mut(), &objects.shader)?;
         if water {
@@ -364,6 +461,10 @@ pub fn install(app: &mut App, mut prepared: PreparedManual, water: bool) -> Resu
     }
     if let Some(fish) = prepared.fish.take() {
         fish_live::install(app, Some(fish), water)?;
+    }
+    if let Some(scanned) = prepared.scanned.take() {
+        scanned.install(app, water)?;
+        app.add_systems(PostUpdate, observe_scans.after(scanned_host::ScanHostSet));
     }
     if !prepared.graph.is_empty() {
         if !app.is_plugin_added::<forge_engine::source_graph::SourceGraphPlugin>() {
@@ -494,6 +595,18 @@ fn observe_source_graph(world: &mut World) {
     }
 }
 
+fn observe_scans(world: &mut World) {
+    if let Some(reason) = world
+        .get_resource::<scanned_host::Status>()
+        .and_then(|status| status.error.clone())
+    {
+        refuse(
+            world,
+            format!("Module scanned debris projection failed: {reason}"),
+        );
+    }
+}
+
 fn admitted_meshes(world: &World, entities: &[Entity]) -> Result<Vec<Entity>, String> {
     if let Some(reason) = entities.iter().find_map(|entity| {
         world
@@ -525,7 +638,7 @@ fn flat_box_mesh(world: &World, root: Entity, mut entity: Entity) -> Result<bool
         {
             let shape = &value["openrpg_collision"];
             if shape["kind"].as_str() == Some("flat_box") {
-                let name = world.get::<Name>(entity).map(Name::as_str).unwrap_or("");
+                let name = world.get::<Name>(entity).map_or("", Name::as_str);
                 let component = value["source_component_id"].as_str().unwrap_or("");
                 let hash = value["source_prefab_sha256"].as_str().unwrap_or("");
                 if extras.value.len() > 65_536
@@ -555,6 +668,13 @@ fn flat_box_mesh(world: &World, root: Entity, mut entity: Entity) -> Result<bool
 }
 
 fn observe(world: &mut World) {
+    if let Some(reason) = world
+        .get_resource::<forge_engine::source_surface::stall_scene::live::Status>()
+        .and_then(|status| status.error.clone())
+    {
+        refuse(world, format!("Module source stall refused: {reason}"));
+        return;
+    }
     if world
         .get_resource::<ModuleAssetFailure>()
         .and_then(ModuleAssetFailure::reason)
@@ -632,63 +752,61 @@ fn observe(world: &mut World) {
             continue;
         }
         let entities = spawner.iter_instance_entities(instance).collect::<Vec<_>>();
-        let meshes = match admitted_meshes(world, &entities) {
-            Ok(meshes) => meshes,
-            Err(reason) => {
-                refuse(world, format!("Module manual mesh {id} refused: {reason}"));
-                return;
-            }
-        };
-        let roles = meshes
-            .iter()
-            .map(|&entity| flat_box_mesh(world, root, entity).map(|flat| (entity, flat)))
-            .collect::<Result<Vec<_>, _>>();
-        let roles = match roles {
-            Ok(roles) => roles,
-            Err(reason) => {
-                refuse(world, format!("Module manual mesh {id} refused: {reason}"));
-                return;
-            }
-        };
-        let has_flat = roles.iter().any(|&(_, flat)| flat);
-        if has_flat && roles.iter().all(|&(_, flat)| flat) {
-            refuse(
-                world,
-                format!("Module manual mesh {id} has no visual primitive"),
-            );
+        let source = forge_engine::static_hlod::StaticHlodSource { object: id, source };
+        if let Err(reason) = admit_instance(world, root, source, &entities) {
+            refuse(world, reason);
             return;
         }
-        let mut collision = Vec::new();
-        for (entity, flat) in roles {
-            let mut node = world.entity_mut(entity);
-            if !flat {
-                node.insert((
-                    ManualPlacementPart(id),
-                    forge_engine::static_hlod::StaticHlodSource { object: id, source },
-                ));
-            } else {
-                node.insert(Visibility::Hidden);
-            }
-            if flat || !has_flat {
-                node.insert((
-                    ManualPlacementCollision(id),
-                    if flat {
-                        ManualPlacementCollisionGeometry::FlatBoxSurface
-                    } else {
-                        ManualPlacementCollisionGeometry::TriangleMesh
-                    },
-                ));
-                collision.push(entity);
-            }
-        }
-        world.entity_mut(root).insert((
-            ManualPlacementCollisionExpected {
-                placement: id,
-                primitives: collision,
-            },
-            Visibility::Inherited,
-        ));
     }
+}
+
+fn admit_instance(
+    world: &mut World,
+    root: Entity,
+    source: forge_engine::static_hlod::StaticHlodSource,
+    entities: &[Entity],
+) -> Result<(), String> {
+    let id = source.object;
+    let roles = admitted_meshes(world, entities)
+        .and_then(|meshes| {
+            meshes
+                .into_iter()
+                .map(|entity| flat_box_mesh(world, root, entity).map(|flat| (entity, flat)))
+                .collect::<Result<Vec<_>, _>>()
+        })
+        .map_err(|reason| format!("Module manual mesh {id} refused: {reason}"))?;
+    let has_flat = roles.iter().any(|&(_, flat)| flat);
+    if has_flat && roles.iter().all(|&(_, flat)| flat) {
+        return Err(format!("Module manual mesh {id} has no visual primitive"));
+    }
+    let mut collision = Vec::new();
+    for (entity, flat) in roles {
+        let mut node = world.entity_mut(entity);
+        if flat {
+            node.insert(Visibility::Hidden);
+        } else {
+            node.insert((ManualPlacementPart(id), source));
+        }
+        if flat || !has_flat {
+            node.insert((
+                ManualPlacementCollision(id),
+                if flat {
+                    ManualPlacementCollisionGeometry::FlatBoxSurface
+                } else {
+                    ManualPlacementCollisionGeometry::TriangleMesh
+                },
+            ));
+            collision.push(entity);
+        }
+    }
+    world.entity_mut(root).insert((
+        ManualPlacementCollisionExpected {
+            placement: id,
+            primitives: collision,
+        },
+        Visibility::Inherited,
+    ));
+    Ok(())
 }
 
 #[cfg(test)]

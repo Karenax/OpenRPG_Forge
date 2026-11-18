@@ -4,17 +4,32 @@
 use crate::cpu_timing;
 use bevy::{
     app::MainScheduleOrder,
+    camera::{NormalizedRenderTarget, visibility::CascadesVisibleEntities},
+    core_pipeline::{
+        core_3d::main_opaque_pass_3d,
+        mip_generation::experimental::depth::early_downsample_depth,
+        schedule::{Core3d, Core3dSystems},
+    },
     diagnostic::{DiagnosticsStore, FrameCount},
-    ecs::schedule::ScheduleLabel,
+    ecs::schedule::{ScheduleLabel, SingleThreadedExecutor},
+    pbr::{
+        EARLY_SHADOW_PASS, LightEntity, ShadowView, early_prepass_build_indirect_parameters,
+        shared_shadow_pass,
+    },
     platform::time::Instant,
     prelude::*,
     render::{
-        Render, RenderApp, RenderSystems,
+        Extract, ExtractSchedule, Render, RenderApp, RenderSystems,
         batching::gpu_preprocessing::BinUnpackingBuffers,
+        camera::ExtractedCamera,
         diagnostic::{
             DiagnosticsRecorder, RecordDiagnostics, RenderDiagnosticsPlugin, resolve_encoder,
         },
-        renderer::{PendingCommandBuffers, RenderDevice, RenderGraph, RenderGraphSystems},
+        renderer::{
+            CurrentView, PendingCommandBuffers, RenderContext, RenderDevice, RenderGraph,
+            RenderGraphSystems, ViewQuery, render_system,
+        },
+        view::{ExtractedView, ExtractedWindows, prepare_windows},
     },
 };
 use std::{any::TypeId, collections::BTreeMap};
@@ -76,7 +91,14 @@ pub struct RenderClock {
     schedule_span: Option<cpu_timing::Span>,
     stage_span: Option<cpu_timing::Span>,
     prepare_span: Option<cpu_timing::Span>,
+    window_prepare_span: Option<cpu_timing::Span>,
 }
+#[derive(Resource, Default)]
+struct ExtractedFrame(Option<u32>);
+
+#[derive(Resource, Default)]
+struct PrimaryPresentTrace(Option<(Entity, bool)>);
+
 impl RenderClock {
     #[must_use]
     pub fn snapshot(&self) -> RenderTiming {
@@ -112,6 +134,7 @@ impl Plugin for RenderTimingPlugin {
             .init_resource::<MainClock>()
             .init_resource::<FixedClock>()
             .add_systems(First, main_begin.in_set(TimingSet::MainBegin))
+            .add_systems(TimingComplete, log_directional_shadow_candidates)
             .add_systems(
                 TimingComplete,
                 (
@@ -121,6 +144,9 @@ impl Plugin for RenderTimingPlugin {
             )
             .add_systems(FixedFirst, fixed_begin)
             .add_systems(FixedLast, fixed_end);
+        if cpu_timing::enabled() {
+            cpu_timing::main_phases::install(app);
+        }
         let Some(render) = app.get_sub_app_mut(RenderApp) else {
             return;
         };
@@ -195,29 +221,83 @@ impl Plugin for RenderTimingPlugin {
                     .chain(),
             );
         if cpu_timing::enabled() {
-            render.add_systems(
-                Render,
-                (
-                    prepare_mark::<0>
-                        .after(render_mark::<7>)
-                        .before(RenderSystems::PrepareResources),
-                    prepare_mark::<1>
-                        .after(RenderSystems::PrepareResources)
-                        .before(RenderSystems::PrepareResourcesBatchPhases),
-                    prepare_mark::<2>
-                        .after(RenderSystems::PrepareResourcesCollectPhaseBuffers)
-                        .before(RenderSystems::PrepareResourcesFlush),
-                    prepare_mark::<3>
-                        .after(RenderSystems::PrepareResourcesFlush)
-                        .before(RenderSystems::PrepareBindGroups),
-                    prepare_end
-                        .after(RenderSystems::PrepareBindGroups)
-                        .before(render_mark::<8>),
-                    log_mesh_bins.after(render_end),
-                ),
-            );
+            install_render_profiling(render);
         }
     }
+}
+
+fn install_render_profiling(render: &mut bevy::app::SubApp) {
+    install_frame_breakdown(render);
+    if std::env::var_os("FORGE_RUNTIME_GPU_VIEW_PROFILE").as_deref() != Some("1".as_ref()) {
+        return;
+    }
+    // Bevy associates nested spans on the same thread. Keep this executor
+    // override confined to opt-in GPU attribution runs.
+    render.edit_schedule(Core3d, |schedule| {
+        schedule.set_executor(SingleThreadedExecutor::new());
+    });
+    render.add_systems(
+        Core3d,
+        (
+            opaque_view_begin.before(main_opaque_pass_3d),
+            opaque_view_end
+                .after(main_opaque_pass_3d)
+                .before(bevy::pbr::main_transmissive_pass_3d),
+        )
+            .in_set(Core3dSystems::MainPass),
+    );
+    render.add_systems(
+        Core3d,
+        (
+            point_shadow_begin
+                .after(early_prepass_build_indirect_parameters)
+                .before(shared_shadow_pass::<EARLY_SHADOW_PASS>),
+            point_shadow_end
+                .after(shared_shadow_pass::<EARLY_SHADOW_PASS>)
+                .before(early_downsample_depth),
+        ),
+    );
+}
+
+fn install_frame_breakdown(render: &mut bevy::app::SubApp) {
+    render
+        .init_resource::<ExtractedFrame>()
+        .init_resource::<PrimaryPresentTrace>()
+        .add_systems(ExtractSchedule, extract_frame)
+        .add_systems(Render, log_render_frame.after(TimingSet::RenderEnd));
+    render.add_systems(
+        Render,
+        (
+            prepare_mark::<0>
+                .after(render_mark::<7>)
+                .before(RenderSystems::PrepareResources),
+            prepare_mark::<1>
+                .after(RenderSystems::PrepareResources)
+                .before(RenderSystems::PrepareResourcesBatchPhases),
+            prepare_mark::<2>
+                .after(RenderSystems::PrepareResourcesCollectPhaseBuffers)
+                .before(RenderSystems::PrepareResourcesFlush),
+            prepare_mark::<3>
+                .after(RenderSystems::PrepareResourcesFlush)
+                .before(RenderSystems::PrepareBindGroups),
+            prepare_end
+                .after(RenderSystems::PrepareBindGroups)
+                .before(render_mark::<8>),
+            window_prepare_begin
+                .after(render_mark::<4>)
+                .before(prepare_windows),
+            window_prepare_end
+                .after(prepare_windows)
+                .before(render_mark::<5>),
+            observe_primary_texture
+                .after(render_mark::<8>)
+                .before(render_system),
+            trace_primary_present
+                .after(render_system)
+                .before(render_mark::<9>),
+            log_mesh_bins.after(render_end),
+        ),
+    );
 }
 fn main_begin(mut clock: ResMut<MainClock>) {
     let now = Instant::now();
@@ -228,8 +308,31 @@ fn main_begin(mut clock: ResMut<MainClock>) {
     clock.start = Some(now);
     clock.span = Some(cpu_timing::Span::new("app.main_schedule"));
 }
-fn main_end(mut clock: ResMut<MainClock>) {
+#[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
+fn main_end(
+    mut clock: ResMut<MainClock>,
+    frame: Res<FrameCount>,
+    phases: Option<Res<cpu_timing::main_phases::CpuPhases>>,
+) {
     clock.span.take();
+    if let Some(interval_ms) = clock.wall_ms
+        && interval_ms > 25.0
+        && let Some(phases) = phases.and_then(|phases| phases.latest)
+    {
+        let [outside_ms, pre_update_ms, fixed_ms, update_ms, post_update_ms] = phases;
+        bevy::log::debug!(
+            target: "forge::frame_cpu",
+            event_kind = "slow_main_frame",
+            frame = frame.0,
+            interval_ms,
+            outside_ms,
+            pre_update_ms,
+            fixed_ms,
+            update_ms,
+            post_update_ms,
+            "Slow main frame across the existing schedule boundaries"
+        );
+    }
 }
 fn fixed_begin(mut clock: ResMut<FixedClock>) {
     clock.0 = Some(cpu_timing::Span::new("app.fixed_schedule"));
@@ -308,6 +411,16 @@ fn prepare_end(mut clock: ResMut<RenderClock>) {
     clock.prepare_span.take();
 }
 
+// Bracket Bevy's window preparation, including texture acquisition. Other
+// parallel work in PrepareViews may overlap this elapsed interval.
+fn window_prepare_begin(mut clock: ResMut<RenderClock>) {
+    clock.window_prepare_span = Some(cpu_timing::Span::new("render.prepare_views.windows"));
+}
+
+fn window_prepare_end(mut clock: ResMut<RenderClock>) {
+    clock.window_prepare_span.take();
+}
+
 fn mesh_bin_phase(phase: TypeId) -> &'static str {
     use bevy::core_pipeline::{
         core_3d::{AlphaMask3d, Opaque3d},
@@ -326,29 +439,149 @@ fn mesh_bin_phase(phase: TypeId) -> &'static str {
     }
 }
 
-fn log_mesh_bins(bins: Option<Res<BinUnpackingBuffers>>, mut last: Local<Option<Instant>>) {
+#[allow(
+    clippy::needless_pass_by_value,
+    clippy::type_complexity,
+    reason = "Bevy supplies the resources and material classification query as system parameters."
+)]
+fn log_directional_shadow_candidates(
+    frame: Res<FrameCount>,
+    lights: Query<(Entity, &CascadesVisibleEntities)>,
+    casters: Query<(
+        Option<&MeshMaterial3d<crate::source_vegetation::world::WorldPlantMaterial>>,
+        Has<MeshMaterial3d<crate::source_lighting::surfaces::ModelMaterial>>,
+        Has<MeshMaterial3d<crate::source_lighting::surfaces::TerrainMaterial>>,
+        Has<MeshMaterial3d<crate::source_lighting::surfaces::VegetationMaterial>>,
+    )>,
+    plant_materials: Option<Res<Assets<crate::source_vegetation::world::WorldPlantMaterial>>>,
+    mut last: Local<Option<Instant>>,
+) {
+    if last.is_some_and(|time| time.elapsed().as_secs_f64() < 5.0) {
+        return;
+    }
+    *last = Some(Instant::now());
+    for (light, visible) in &lights {
+        for (camera, cascades) in &visible.entities {
+            for (cascade, visible) in cascades.iter().enumerate() {
+                let mut source_plants = 0;
+                let mut other_world_plants = 0;
+                let mut source_surfaces = 0;
+                for &entity in &visible.entities {
+                    let Ok((plant, model, terrain, vegetation)) = casters.get(entity) else {
+                        continue;
+                    };
+                    if let Some(plant) = plant {
+                        if plant_materials
+                            .as_ref()
+                            .and_then(|materials| materials.get(&plant.0))
+                            .is_some_and(|material| material.source_lighting)
+                        {
+                            source_plants += 1;
+                        } else {
+                            other_world_plants += 1;
+                        }
+                    } else if model || terrain || vegetation {
+                        source_surfaces += 1;
+                    }
+                }
+                let candidates = visible.entities.len();
+                info!(
+                    event_kind = "runtime_directional_shadow_candidates",
+                    frame = frame.0,
+                    ?light,
+                    ?camera,
+                    cascade,
+                    candidates,
+                    source_plants,
+                    other_world_plants,
+                    source_surfaces,
+                    other = candidates - source_plants - other_world_plants - source_surfaces,
+                    "CPU-visible directional shadow candidates before render preparation"
+                );
+            }
+        }
+    }
+}
+
+fn log_mesh_bins(
+    frame: Res<ExtractedFrame>,
+    bins: Option<Res<BinUnpackingBuffers>>,
+    shadow_views: Query<(&ExtractedView, &bevy::pbr::LightEntity)>,
+    camera_views: Query<(
+        Entity,
+        &ExtractedView,
+        &ExtractedCamera,
+        Has<crate::source_refraction::CaptureCamera>,
+    )>,
+    mut last: Local<Option<Instant>>,
+) {
     let Some(bins) = bins else { return };
     if last.is_some_and(|time| time.elapsed().as_secs_f64() < 5.0) {
         return;
     }
     *last = Some(Instant::now());
     let mut phases = BTreeMap::new();
+    let shadow_kinds: bevy::platform::collections::HashMap<_, _> = shadow_views
+        .iter()
+        .map(|(view, light)| {
+            use bevy::pbr::LightEntity;
+            let group = match light {
+                LightEntity::Directional { cascade_index, .. } => ("directional", *cascade_index),
+                LightEntity::Point { face_index, .. } => ("point", *face_index),
+                LightEntity::Spot { .. } => ("spot", 0),
+            };
+            (view.retained_view_entity, group)
+        })
+        .collect();
+    let camera_kinds: bevy::platform::collections::HashMap<_, _> = camera_views
+        .iter()
+        .map(|(entity, view, camera, refraction)| {
+            (
+                view.retained_view_entity,
+                (camera_kind(camera, refraction), entity),
+            )
+        })
+        .collect();
+    let mut shadow_groups = BTreeMap::new();
+    let mut camera_groups = BTreeMap::new();
     for (key, buffers) in &bins.view_phase_buffers {
         let jobs = buffers
             .indexed_unpacking_jobs
             .iter()
             .chain(&buffers.non_indexed_unpacking_jobs);
-        let mut jobs = jobs.filter(|job| job.mesh_instance_count > 0).peekable();
-        if jobs.peek().is_none() {
+        let (count, total) = jobs
+            .filter(|job| job.mesh_instance_count > 0)
+            .fold((0, 0_u64), |(count, total), job| {
+                (count + 1, total + u64::from(job.mesh_instance_count))
+            });
+        if count == 0 {
             continue;
         }
-        let (view_phases, batches, instances) = phases
-            .entry(mesh_bin_phase(key.phase))
-            .or_insert((0_usize, 0_usize, 0_u64));
+        let phase = mesh_bin_phase(key.phase);
+        let (view_phases, batches, instances) =
+            phases.entry(phase).or_insert((0_usize, 0_usize, 0_u64));
         *view_phases += 1;
-        for job in jobs {
-            *batches += 1;
-            *instances += u64::from(job.mesh_instance_count);
+        *batches += count;
+        *instances += total;
+        if phase == "shadow" {
+            let group = shadow_kinds
+                .get(&key.view)
+                .copied()
+                .unwrap_or(("unknown", 0));
+            let (views, batches, instances) = shadow_groups.entry(group).or_insert((0, 0, 0));
+            *views += 1;
+            *batches += count;
+            *instances += total;
+        }
+        if matches!(phase, "forward" | "prepass")
+            && let Some(&(kind, camera)) = camera_kinds.get(&key.view)
+        {
+            let (view_phases, batches, instances) = camera_groups
+                .entry((kind, camera, phase))
+                .or_insert((0, 0, 0));
+            *view_phases += 1;
+            *batches += count;
+            *instances += total;
         }
     }
     for (phase, (view_phases, batches, instances)) in phases {
@@ -359,6 +592,54 @@ fn log_mesh_bins(bins: Option<Res<BinUnpackingBuffers>>, mut last: Local<Option<
             batches,
             instances,
             "Prepared nonempty mesh bin jobs across render views"
+        );
+    }
+    let frame = frame.into_inner().0;
+    let shadow_instances = |kind| {
+        shadow_groups
+            .iter()
+            .filter(|((light, _), _)| *light == kind)
+            .map(|(_, (_, _, instances))| *instances)
+            .sum::<u64>()
+    };
+    info!(
+        event_kind = "runtime_shadow_mesh_sample",
+        ?frame,
+        directional_instances = shadow_instances("directional"),
+        point_instances = shadow_instances("point"),
+        spot_instances = shadow_instances("spot"),
+        unknown_instances = shadow_instances("unknown"),
+        "Prepared shadow mesh instances for this sample, including empty groups"
+    );
+    for ((light, subview), (views, batches, instances)) in shadow_groups {
+        info!(
+            event_kind = "runtime_shadow_mesh_bins",
+            ?frame,
+            light,
+            subview,
+            views,
+            batches,
+            instances,
+            "Prepared nonempty shadow mesh bin jobs by light type and subview"
+        );
+    }
+    log_camera_mesh_bins(frame, camera_groups);
+}
+
+type CameraMeshBins = BTreeMap<(&'static str, Entity, &'static str), (usize, usize, u64)>;
+
+fn log_camera_mesh_bins(frame: Option<u32>, groups: CameraMeshBins) {
+    for ((kind, camera, phase), (view_phases, batches, instances)) in groups {
+        info!(
+            event_kind = "runtime_camera_mesh_bins",
+            ?frame,
+            kind,
+            ?camera,
+            phase,
+            view_phases,
+            batches,
+            instances,
+            "Prepared nonempty mesh bin jobs for an extracted camera"
         );
     }
 }
@@ -391,6 +672,75 @@ fn record_graph_band(clock: &mut RenderClock, band: usize) {
     }
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy extract system parameter."
+)]
+fn extract_frame(mut extracted: ResMut<ExtractedFrame>, frame: Extract<Option<Res<FrameCount>>>) {
+    extracted.0 = frame.as_ref().map(|frame| frame.0);
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy render system parameters."
+)]
+fn log_render_frame(frame: Res<ExtractedFrame>, clock: Res<RenderClock>) {
+    if let (Some(frame), Some(elapsed_ms)) = (frame.0, clock.elapsed_ms) {
+        bevy::log::debug!(
+            event_kind = "render_cpu_frame",
+            frame,
+            elapsed_ms,
+            stages_ms = ?clock.stages,
+            "Render CPU timings by extracted frame"
+        );
+    }
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy render system parameters."
+)]
+fn observe_primary_texture(
+    windows: Option<Res<ExtractedWindows>>,
+    mut trace: ResMut<PrimaryPresentTrace>,
+) {
+    trace.0 = windows.and_then(|windows| {
+        let entity = windows.primary?;
+        Some((entity, windows.get(&entity)?.swap_chain_texture.is_some()))
+    });
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy render system parameters."
+)]
+fn trace_primary_present(
+    windows: Option<Res<ExtractedWindows>>,
+    frame: Res<ExtractedFrame>,
+    trace: Res<PrimaryPresentTrace>,
+) {
+    let (Some(windows), Some(frame), Some((entity, texture_before))) =
+        (windows, frame.0, trace.0)
+    else {
+        return;
+    };
+    let Some(window) = windows.get(&entity) else {
+        return;
+    };
+    let texture_after = window.swap_chain_texture.is_some();
+    // Bevy takes this texture when it requests presentation from wgpu.
+    // The window compositor can still choose when to display it.
+    debug!(
+        target: "forge::present",
+        event_kind = "primary_window_present",
+        frame,
+        texture_before,
+        texture_after,
+        submitted = texture_before && !texture_after,
+        "Primary window surface texture across the renderer"
+    );
+}
+
 fn render_end(mut clock: ResMut<RenderClock>) {
     let now = Instant::now();
     if let Some(last) = clock.last {
@@ -404,6 +754,66 @@ fn render_end(mut clock: ResMut<RenderClock>) {
     clock.stage_span.take();
     clock.schedule_span.take();
 }
+fn camera_kind(camera: &ExtractedCamera, refraction: bool) -> &'static str {
+    if refraction {
+        "refraction"
+    } else if matches!(camera.target, Some(NormalizedRenderTarget::Window(_))) {
+        "window"
+    } else {
+        "offscreen"
+    }
+}
+
+fn opaque_view_begin(
+    view: Res<CurrentView>,
+    cameras: Query<(
+        &ExtractedCamera,
+        Has<crate::source_refraction::CaptureCamera>,
+    )>,
+    mut context: RenderContext,
+) {
+    let view = view.into_inner();
+    let kind = cameras
+        .get(view.0)
+        .map_or("offscreen", |(camera, refraction)| {
+            camera_kind(camera, refraction)
+        });
+    if let Some(recorder) = context.diagnostic_recorder() {
+        let name = format!("opaque_{kind}_{:?}", view.0);
+        recorder.begin_time_span(context.command_encoder(), name.into());
+    }
+}
+
+fn opaque_view_end(mut context: RenderContext) {
+    if let Some(recorder) = context.diagnostic_recorder() {
+        recorder.end_time_span(context.command_encoder());
+    }
+}
+
+// Bevy runs the shared shadow pass once per punctual shadow view. The
+// point light's retained entity and face identify the same work across frames.
+fn point_shadow_begin(view: ViewQuery<&LightEntity, With<ShadowView>>, mut context: RenderContext) {
+    let LightEntity::Point {
+        light_entity,
+        face_index,
+    } = view.into_inner()
+    else {
+        return;
+    };
+    if let Some(recorder) = context.diagnostic_recorder() {
+        let name = format!("point_shadow_early_{light_entity:?}_{face_index}");
+        recorder.begin_time_span(context.command_encoder(), name.into());
+    }
+}
+
+fn point_shadow_end(view: ViewQuery<&LightEntity, With<ShadowView>>, mut context: RenderContext) {
+    if matches!(view.into_inner(), LightEntity::Point { .. })
+        && let Some(recorder) = context.diagnostic_recorder()
+    {
+        recorder.end_time_span(context.command_encoder());
+    }
+}
+
 // Exclusive functions preserve the reference driving-thread and encoder ordering.
 fn gpu_begin(world: &mut World) {
     let mut encoder = world

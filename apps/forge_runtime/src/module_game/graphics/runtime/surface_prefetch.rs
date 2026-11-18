@@ -1,6 +1,6 @@
 //! Bounded preparation of future source terrain and water without scene publication.
 use super::super::{Publication, ScopeRevision, owner, prepared_owner};
-use super::{State, family, identity, scope_token, signature_family};
+use super::{InventoryKey, State, family, identity, inventory_sources_hash, scope_token, signature_family};
 use bevy::{diagnostic::FrameCount, pbr::Material, prelude::*};
 use forge_core::{EntityId, canonical_json_sha256};
 use forge_engine::{
@@ -141,7 +141,7 @@ impl<S: Surface> Default for Probe<S> {
 struct Waiting<M: Material> {
     staged: StagedScopedInventory<M>,
     candidate: PreparedTiles<M>,
-    visible_keys: Vec<String>,
+    visible_keys: Vec<InventoryKey>,
     handoff: Option<Handoff>,
     new_meshes: usize,
 }
@@ -163,7 +163,7 @@ enum Phase<M: Material> {
     LaterFence(
         Box<ActivatedScopedInventory<M>>,
         u32,
-        Vec<String>,
+        Vec<InventoryKey>,
         Option<Handoff>,
     ),
     Done,
@@ -549,7 +549,7 @@ fn handoff_frame<S: Surface>(
     state: &State,
     active: &ActivatedScopedInventory<S::Material>,
     marker: u32,
-    initial_keys: &[String],
+    initial_keys: &[InventoryKey],
     handoff: Option<Handoff>,
     mode: Mode,
 ) -> Result<Option<u32>, String> {
@@ -594,7 +594,7 @@ fn adopt<S: Surface>(
     state: &mut State,
     active: &ActivatedScopedInventory<S::Material>,
     marker: u32,
-    keys: &[String],
+    keys: &[InventoryKey],
     handoff: Handoff,
     mode: Mode,
 ) -> Result<(), String> {
@@ -625,8 +625,7 @@ fn adopt<S: Surface>(
         || marker < active.registration_frame
         || marker < previous_publication.frame
         || !active.token.covers_frame(world, marker)
-        || canonical_json_sha256(&current.keys).map_err(|error| error.to_string())?
-            != previous_publication.sources
+        || inventory_sources_hash(&current.keys)? != previous_publication.sources
     {
         return Err("Prepared surface no longer matches the active scene".into());
     }

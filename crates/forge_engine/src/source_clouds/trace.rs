@@ -8,7 +8,7 @@ pub(super) struct Cache {
     atmosphere: bevy::render::render_resource::Buffer,
     clamp: bevy::render::render_resource::Sampler,
     pipeline: bevy::render::render_resource::ComputePipeline,
-    temporal: Option<bevy::render::render_resource::ComputePipeline>,
+    temporal: Option<(gpu::ComputePipeline, gpu::BindGroup)>,
     panorama: Option<bevy::render::render_resource::ComputePipeline>,
 }
 pub struct Input {
@@ -118,14 +118,23 @@ impl Input {
                         label: Some("cloud temporal"),
                         source: gpu::ShaderSource::Wgsl(source.as_str().into()),
                     });
-                device.create_compute_pipeline(&gpu::RawComputePipelineDescriptor {
+                let pipeline = device.create_compute_pipeline(&gpu::RawComputePipelineDescriptor {
                     label: Some("cloud temporal"),
                     layout: None,
                     module: &module,
                     entry_point: Some("main"),
                     compilation_options: gpu::PipelineCompilationOptions::default(),
                     cache: None,
-                })
+                });
+                let sampler = device.create_bind_group(
+                    "cloud temporal sampler",
+                    &pipeline.get_bind_group_layout(0).into(),
+                    &[gpu::BindGroupEntry {
+                        binding: 2,
+                        resource: gpu::BindingResource::Sampler(&clamp),
+                    }],
+                );
+                (pipeline, sampler)
             });
             let panorama = self.panorama.as_ref().map(|source| {
                 let module =
@@ -175,25 +184,8 @@ impl Input {
             let global = uniform(frame.global);
             let live_atmosphere = frame.atmosphere.map(uniform);
             let atmosphere = live_atmosphere.as_ref().unwrap_or(atmosphere);
-            let group0 = device.create_bind_group(
-                "cloud trace frame",
-                &pipeline.get_bind_group_layout(0).into(),
-                &[
-                    gpu::BindGroupEntry {
-                        binding: 0,
-                        resource: global.as_entire_binding(),
-                    },
-                    gpu::BindGroupEntry {
-                        binding: 1,
-                        resource: gpu::BindingResource::Sampler(repeat),
-                    },
-                    gpu::BindGroupEntry {
-                        binding: 2,
-                        resource: gpu::BindingResource::Sampler(clamp),
-                    },
-                ],
-            );
-            let mut entries = vec![
+            let mut entries = Vec::with_capacity(10);
+            entries.extend([
                 gpu::BindGroupEntry {
                     binding: 0,
                     resource: local.as_entire_binding(),
@@ -206,7 +198,7 @@ impl Input {
                     binding: 4,
                     resource: atmosphere.as_entire_binding(),
                 },
-            ];
+            ]);
             for (binding, view) in [
                 (2, noise),
                 (3, weather),
@@ -225,21 +217,48 @@ impl Input {
                     ),
                 ),
                 (7, views[0]),
-                (8, &**inputs[2].as_ref().expect("blue noise")),
-                (9, views[1]),
-                (10, views[2]),
             ] {
                 entries.push(gpu::BindGroupEntry {
                     binding,
                     resource: gpu::BindingResource::TextureView(view),
                 });
             }
-            let group1 = device.create_bind_group(
-                "cloud trace resources",
-                &pipeline.get_bind_group_layout(1).into(),
-                &entries,
-            );
             if frame.trace_view {
+                let group0 = device.create_bind_group(
+                    "cloud trace frame",
+                    &pipeline.get_bind_group_layout(0).into(),
+                    &[
+                        gpu::BindGroupEntry {
+                            binding: 0,
+                            resource: global.as_entire_binding(),
+                        },
+                        gpu::BindGroupEntry {
+                            binding: 1,
+                            resource: gpu::BindingResource::Sampler(repeat),
+                        },
+                        gpu::BindGroupEntry {
+                            binding: 2,
+                            resource: gpu::BindingResource::Sampler(clamp),
+                        },
+                    ],
+                );
+                let shared_count = entries.len();
+                for (binding, view) in [
+                    (8, &**inputs[2].as_ref().expect("blue noise")),
+                    (9, views[1]),
+                    (10, views[2]),
+                ] {
+                    entries.push(gpu::BindGroupEntry {
+                        binding,
+                        resource: gpu::BindingResource::TextureView(view),
+                    });
+                }
+                let group1 = device.create_bind_group(
+                    "cloud trace resources",
+                    &pipeline.get_bind_group_layout(1).into(),
+                    &entries,
+                );
+                entries.truncate(shared_count);
                 let mut pass = encoder.begin_compute_pass(&gpu::ComputePassDescriptor {
                     label: Some("cloud volume trace"),
                     ..gpu::ComputePassDescriptor::default()
@@ -273,11 +292,6 @@ impl Input {
                         },
                     ],
                 );
-                let mut entries: Vec<_> = entries
-                    .iter()
-                    .filter(|entry| entry.binding < 8)
-                    .cloned()
-                    .collect();
                 entries.push(gpu::BindGroupEntry {
                     binding: 8,
                     resource: gpu::BindingResource::TextureView(history[4]),
@@ -306,18 +320,10 @@ impl Input {
                 }
             }
             if frame.trace_view
-                && let (Some(temporal), Some(history)) = (&temporal, history_views)
+                && let (Some((temporal, sampler)), Some(history)) = (&temporal, history_views)
             {
                 let write = frame.view_index * 2;
                 let previous = (1 - frame.view_index) * 2;
-                let g0 = device.create_bind_group(
-                    "cloud temporal sampler",
-                    &temporal.get_bind_group_layout(0).into(),
-                    &[gpu::BindGroupEntry {
-                        binding: 2,
-                        resource: gpu::BindingResource::Sampler(clamp),
-                    }],
-                );
                 let mut entries = vec![gpu::BindGroupEntry {
                     binding: 0,
                     resource: local.as_entire_binding(),
@@ -345,7 +351,7 @@ impl Input {
                     ..gpu::ComputePassDescriptor::default()
                 });
                 pass.set_pipeline(temporal);
-                pass.set_bind_group(0, &*g0, &[]);
+                pass.set_bind_group(0, &**sampler, &[]);
                 pass.set_bind_group(1, &*g1, &[]);
                 pass.dispatch_workgroups(120, 68, 1);
                 drop(pass);

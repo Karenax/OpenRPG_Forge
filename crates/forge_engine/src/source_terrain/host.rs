@@ -24,6 +24,7 @@ pub struct PreparedHost {
     relief: ContentHash,
     domain: Vec4,
     water_context: WaterContext,
+    source_local_lights: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -77,6 +78,7 @@ struct State {
     relief: ContentHash,
     domain: Vec4,
     water_level_m: Option<f64>,
+    source_local_lights: bool,
     task: Option<Task<Result<Prepared, String>>>,
     queued: Option<PreparedHost>,
     serial: u64,
@@ -139,6 +141,7 @@ impl PreparedHost {
             relief,
             domain,
             water_context,
+            source_local_lights: true,
         })
     }
 
@@ -156,6 +159,14 @@ impl PreparedHost {
         }
         self.water_context = WaterContext::Explicit(level_m);
         Ok(self)
+    }
+
+    /// Select the terrain shader when the scene's light producers are known.
+    /// Terrain document replacements retain the choice made at installation.
+    #[must_use]
+    pub fn with_source_local_lights(mut self, available: bool) -> Self {
+        self.source_local_lights = available;
+        self
     }
 
     pub fn install(self, app: &mut App) -> Result<(), String> {
@@ -225,13 +236,15 @@ fn start(world: &mut World) {
         let relief = input.relief;
         let domain = input.domain;
         let water_level_m = input.water_context.level()?;
-        let task = updates::spawn(input, None);
+        let source_local_lights = input.source_local_lights;
+        let task = updates::spawn(input, None, source_local_lights);
         let shore = world.resource_mut::<Assets<Image>>().add(Image::default());
         world.insert_resource(State {
             document,
             relief,
             domain,
             water_level_m,
+            source_local_lights,
             task: Some(task),
             queued: None,
             serial: 1,
@@ -317,6 +330,24 @@ pub fn owns(world: &World, entity: Entity) -> bool {
                         .is_some_and(|m| &m.0 == material)
                 })
     })
+}
+
+pub(crate) fn active_source_shadow_receivers(world: &World) -> usize {
+    if !world.contains_resource::<super::CdlodReceivesSourceSun>() {
+        return 0;
+    }
+    let (Some(state), Some(status)) = (
+        world.get_resource::<State>(),
+        world.get_resource::<Status>(),
+    ) else {
+        return 0;
+    };
+    let root = state.resident.as_ref().and_then(|resident| resident.entity);
+    if status.document == Some(state.document) && root.is_some_and(|entity| owns(world, entity)) {
+        status.active_tiles
+    } else {
+        0
+    }
 }
 
 /// Cached terrain sources eligible for a bounded typed renderer inventory.
@@ -808,6 +839,7 @@ mod tests {
             relief: document,
             domain: Vec4::new(-1024.0, 2048.0, 2048.0, 0.58),
             water_level_m: Some(0.0),
+            source_local_lights: true,
             task: None,
             queued: None,
             serial: 1,

@@ -120,6 +120,8 @@ impl Fixture {
             placement_companions: Vec::new(),
             environments: Vec::new(),
             objects: Vec::new(),
+            scanned_debris: Vec::new(),
+            source_stalls: Vec::new(),
             fish_profiles: Vec::new(),
             vegetation: Vec::new(),
             creator: None,

@@ -2,7 +2,7 @@
 use super::{CommandResult, NativeGameplayCommand, observations::ObservationSink};
 use crate::{
     PendingPlayerControlCommand, PlayerControlCommand, PlayerRuntimeSnapshot,
-    gameplay::GameplayRuntime,
+    gameplay::GameplayRuntime, player_camera::PlayerCameraMode,
 };
 use bevy::{
     prelude::*,
@@ -33,6 +33,10 @@ enum Step {
         ticks: u32,
         timeout_s: u32,
     },
+    SetCamera {
+        first_person: bool,
+        timeout_s: u32,
+    },
     Move {
         axis: [f32; 2],
         look_delta: [f32; 2],
@@ -49,6 +53,8 @@ enum Step {
     MoveTo {
         position_xz: [f32; 2],
         tolerance_m: f32,
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        sprint: bool,
         timeout_s: u32,
     },
     Action {
@@ -108,6 +114,7 @@ impl Step {
         match *self {
             Self::WaitReady { timeout_s }
             | Self::WaitTicks { timeout_s, .. }
+            | Self::SetCamera { timeout_s, .. }
             | Self::Move { timeout_s, .. }
             | Self::SwimVertical { timeout_s, .. }
             | Self::MoveTo { timeout_s, .. }
@@ -136,6 +143,7 @@ struct Scenario {
     command_sequence: u64,
     expected_command: Option<NativeGameplayCommand>,
     expected_action: Option<CommandId>,
+    expected_camera_sequence: Option<u64>,
     expected_graphics_sequence: Option<u64>,
     action_sequence: u64,
     captured: bool,
@@ -167,12 +175,17 @@ pub(super) fn install(app: &mut App) -> Result<(), String> {
     if runtime.session().source_hash() != plan.source_hash {
         return Err("Scenario source differs from native launch".into());
     }
-    let sink = app
+    let markers_only = std::env::var_os("FORGE_NATIVE_GAMEPLAY_SCENARIO_MARKERS_ONLY")
+        .is_some_and(|value| value == "1");
+    let mut sink = app
         .world_mut()
         .get_resource_mut::<ObservationSink>()
         .ok_or("Scenario requires native observations")?;
     if !sink.matches_archive(plan.archive_hash) {
         return Err("Scenario archive differs from native launch".into());
+    }
+    if markers_only {
+        sink.use_scenario_markers_only();
     }
     let output = PathBuf::from(
         std::env::var_os("FORGE_NATIVE_GAMEPLAY_OUTPUT_ROOT")
@@ -187,7 +200,8 @@ pub(super) fn install(app: &mut App) -> Result<(), String> {
         expected,
         0,
         "prepared",
-        &serde_json::json!({"steps":plan.steps.len(),"max_duration_s":plan.max_duration_s}),
+        &serde_json::json!({"steps":plan.steps.len(),"max_duration_s":plan.max_duration_s,
+                           "frame_observations":!markers_only}),
     )?;
     let now = Instant::now();
     app.insert_resource(Scenario {
@@ -202,6 +216,7 @@ pub(super) fn install(app: &mut App) -> Result<(), String> {
         command_sequence: 0,
         expected_command: None,
         expected_action: None,
+        expected_camera_sequence: None,
         expected_graphics_sequence: None,
         action_sequence: 0,
         captured: false,
@@ -340,6 +355,7 @@ fn drive(world: &mut World) {
                 scenario.submitted = false;
                 scenario.expected_command = None;
                 scenario.expected_action = None;
+                scenario.expected_camera_sequence = None;
                 scenario.expected_graphics_sequence = None;
                 scenario.step_ticks = 0;
                 scenario.captured = false;
@@ -488,6 +504,17 @@ fn execute_step(world: &mut World, scenario: &mut Scenario) -> Result<bool, Stri
             scenario.step_ticks += 1;
             Ok(scenario.step_ticks >= ticks)
         }
+        Step::SetCamera { first_person, .. } => {
+            if !world.resource::<GameplayRuntime>().is_ready() {
+                return Ok(false);
+            }
+            let mode = if first_person {
+                PlayerCameraMode::FirstPerson
+            } else {
+                PlayerCameraMode::ThirdPerson
+            };
+            set_camera(world, scenario, mode)
+        }
         Step::Move {
             axis,
             look_delta,
@@ -578,6 +605,7 @@ fn execute_step(world: &mut World, scenario: &mut Scenario) -> Result<bool, Stri
         Step::MoveTo {
             position_xz,
             tolerance_m,
+            sprint,
             ..
         } => {
             if !world.resource::<GameplayRuntime>().is_ready() {
@@ -609,6 +637,7 @@ fn execute_step(world: &mut World, scenario: &mut Scenario) -> Result<bool, Stri
                 PlayerControlCommand {
                     move_axis: axis,
                     look_delta: Vec2::new(-turn / scenario.sensitivity, 0.0),
+                    sprint,
                     ..default()
                 },
             )?;
@@ -868,11 +897,47 @@ fn check_action(world: &World, scenario: &Scenario, action: &GameAction) -> Resu
             receipt.sequence > scenario.action_sequence && matches(&receipt.request)
         }))
 }
+fn set_camera(
+    world: &mut World,
+    scenario: &mut Scenario,
+    mode: PlayerCameraMode,
+) -> Result<bool, String> {
+    let snapshot = world
+        .get_resource::<PlayerRuntimeSnapshot>()
+        .ok_or("Scenario camera requires a player controller")?;
+    if let Some(sequence) = scenario.expected_camera_sequence {
+        if snapshot
+            .last_applied_sequence
+            .is_none_or(|applied| applied < sequence)
+        {
+            return Ok(false);
+        }
+        return if snapshot.camera_mode == mode {
+            Ok(true)
+        } else {
+            Err("Player controller acknowledged the camera command without applying the requested mode".into())
+        };
+    }
+    if snapshot.camera_mode == mode {
+        return Ok(true);
+    }
+    let sequence = submit_input(
+        world,
+        scenario,
+        PlayerControlCommand {
+            toggle_camera: true,
+            ..default()
+        },
+    )?;
+    scenario.expected_camera_sequence = Some(sequence);
+    Ok(false)
+}
+
 fn submit_input(
     world: &mut World,
     scenario: &mut Scenario,
     command: PlayerControlCommand,
-) -> Result<(), String> {
+) -> Result<u64, String> {
     let submitted = world
         .resource_mut::<PendingPlayerControlCommand>()
         .submit(command)
@@ -881,7 +946,7 @@ fn submit_input(
         world.resource_mut::<ObservationSink>().scenario(scenario.hash, scenario.step, "input_submitted", &serde_json::json!({"submitted_sequence":submitted,"move_axis":command.move_axis.to_array(),"look_delta":command.look_delta.to_array()}))?;
         scenario.submitted = true;
     }
-    Ok(())
+    Ok(submitted)
 }
 
 #[cfg(test)]
@@ -1120,6 +1185,7 @@ mod tests {
             command_sequence: 0,
             expected_command: None,
             expected_action: None,
+            expected_camera_sequence: None,
             expected_graphics_sequence: None,
             action_sequence: 0,
             captured: false,
@@ -1378,6 +1444,43 @@ mod tests {
     }
 
     #[test]
+    fn native_scenario_camera_waits_for_the_controller_to_apply_the_requested_mode() {
+        let directory = super::super::tests::Directory::new();
+        let (mut app, mut scenario, _) = action_app(&directory);
+        let hash = ContentHash::from_bytes([4; 32]);
+        app.insert_resource(
+            ObservationSink::new(&directory.root.join("camera.jsonl"), hash, hash, hash).unwrap(),
+        )
+        .init_resource::<PlayerRuntimeSnapshot>()
+        .init_resource::<PendingPlayerControlCommand>();
+        let world = app.world_mut();
+        assert_eq!(
+            set_camera(world, &mut scenario, PlayerCameraMode::ThirdPerson),
+            Ok(true)
+        );
+        for _ in 0..2 {
+            assert_eq!(
+                set_camera(world, &mut scenario, PlayerCameraMode::FirstPerson),
+                Ok(false)
+            );
+        }
+        let (sequence, command) = world
+            .resource_mut::<PendingPlayerControlCommand>()
+            .drain_tick();
+        assert_eq!(sequence, Some(1));
+        assert!(command.toggle_camera);
+        world
+            .resource_mut::<PlayerRuntimeSnapshot>()
+            .last_applied_sequence = sequence;
+        assert!(set_camera(world, &mut scenario, PlayerCameraMode::FirstPerson).is_err());
+        world.resource_mut::<PlayerRuntimeSnapshot>().camera_mode = PlayerCameraMode::FirstPerson;
+        assert_eq!(
+            set_camera(world, &mut scenario, PlayerCameraMode::FirstPerson),
+            Ok(true)
+        );
+    }
+
+    #[test]
     fn vertical_swim_waits_for_sampled_input_and_releases_it() {
         let directory = super::super::tests::Directory::new();
         let (mut app, mut scenario, _) = action_app(&directory);
@@ -1587,6 +1690,7 @@ mod tests {
             command_sequence: 0,
             expected_command: Some(NativeGameplayCommand::Save),
             expected_action: None,
+            expected_camera_sequence: None,
             expected_graphics_sequence: None,
             action_sequence: 0,
             captured: false,

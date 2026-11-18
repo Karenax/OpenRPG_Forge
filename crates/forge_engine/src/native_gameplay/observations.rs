@@ -14,6 +14,7 @@ pub(super) struct ObservationSink {
     archive: ContentHash,
     functional: ContentHash,
     started: Instant,
+    include_frames: bool,
     last_tick: u64,
     last_sequence: u64,
     last_ready: Option<bool>,
@@ -41,12 +42,16 @@ impl ObservationSink {
             archive,
             functional,
             started: Instant::now(),
+            include_frames: true,
             last_tick: u64::MAX,
             last_sequence: u64::MAX,
             last_ready: None,
             bytes: 0,
             error: None,
         })
+    }
+    pub(super) fn use_scenario_markers_only(&mut self) {
+        self.include_frames = false;
     }
     fn write(&mut self, value: &serde_json::Value) -> Result<(), String> {
         let mut bytes = serde_json::to_vec(value).map_err(|e| e.to_string())?;
@@ -118,6 +123,14 @@ impl ObservationSink {
             self.error = Some(error);
         }
     }
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy run condition parameter"
+)]
+pub(super) fn record_frames(sink: Res<ObservationSink>) -> bool {
+    sink.include_frames
 }
 
 #[allow(

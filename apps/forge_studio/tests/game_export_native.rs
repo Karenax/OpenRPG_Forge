@@ -23,7 +23,7 @@ use forge_project::{
 use forge_studio_frontend::{
     game_export_native::export_game, game_export_protocol::GameExportRequest,
 };
-use std::{cell::Cell, path::PathBuf};
+use std::{cell::Cell, fmt::Write as _, path::PathBuf};
 
 struct Fixture(PathBuf);
 impl Fixture {
@@ -253,6 +253,7 @@ fn frontend_cannot_supply_kit_paths_and_missing_kit_creates_no_export() {
         version: "1.0.0".into(),
         publisher: "Auteur".into(),
         license_text: "Usage local".into(),
+        redistributable: false,
     };
     let mut untrusted = serde_json::to_value(&request).unwrap();
     untrusted["kit_path"] = "C:/untrusted".into();
@@ -294,6 +295,24 @@ fn frontend_cannot_supply_kit_paths_and_missing_kit_creates_no_export() {
     std::fs::write(&existing, b"existing export").unwrap();
     let kit_root = fixture.0.join("kit");
     let manifest = kit(&kit_root);
+    let public_request = GameExportRequest {
+        redistributable: true,
+        ..request.clone()
+    };
+    let private_kit_error = export_game(
+        &host,
+        &exports,
+        &public_request,
+        || {
+            Ok((
+                VerifiedGameKit::read(&kit_root, &manifest)?,
+                bytes_sha256(&manifest),
+            ))
+        },
+        |_, _, _, _| panic!("private kit must reject redistributable export before building"),
+    )
+    .unwrap_err();
+    assert!(private_kit_error.contains("usage privé"));
     let attempted = Cell::new(false);
     let failure = export_game(
         &host,
@@ -445,6 +464,7 @@ fn saved_procedural_game_builds_a_private_candidate_and_rejects_a_changed_kit() 
         version: "1.0.0".into(),
         publisher: "Auteur".into(),
         license_text: "Usage local".into(),
+        redistributable: false,
     };
     let kit_root = fixture.0.join("kit");
     let manifest = kit(&kit_root);
@@ -517,6 +537,66 @@ fn saved_procedural_game_builds_a_private_candidate_and_rejects_a_changed_kit() 
     standalone::validate_game_closure(&application, &[module]).unwrap();
     assert_eq!(std::fs::read(&existing).unwrap(), b"previous export");
     assert_eq!(std::fs::read_dir(&exports).unwrap().count(), 2);
+
+    let reviewed_root = fixture.0.join("reviewed-kit");
+    let mut reviewed: GameKitManifest = serde_json::from_slice(&kit(&reviewed_root)).unwrap();
+    reviewed.files.sort_unstable_by(|a, b| a.path.cmp(&b.path));
+    let mut inventory = String::new();
+    for entry in &reviewed.files {
+        writeln!(
+            inventory,
+            "{}\t{}\t{}",
+            entry.path, entry.bytes, entry.sha256
+        )
+        .unwrap();
+    }
+    let review = serde_json::json!({
+        "schema":"forge.delivery.game-kit-rights-review.v1",
+        "platform":reviewed.platform,
+        "source_revision":reviewed.source_revision,
+        "files_sha256":bytes_sha256(inventory.as_bytes()),
+        "evidence_sha256":bytes_sha256(b"Original procedural fixture with inert kit"),
+    });
+    let review_path = "licenses/redistribution-review.json";
+    reviewed.files.push(kit_file(
+        &reviewed_root,
+        review_path,
+        &serde_json::to_vec(&review).unwrap(),
+    ));
+    reviewed.license_paths.push(review_path.into());
+    reviewed.schema = "forge.delivery.game-kit.v2".into();
+    reviewed.rights = Rights::Redistributable;
+    let reviewed = serde_json::to_vec(&reviewed).unwrap();
+    let load_reviewed = || {
+        Ok((
+            VerifiedGameKit::read(&reviewed_root, &reviewed)?,
+            bytes_sha256(&reviewed),
+        ))
+    };
+    let private = export_game(
+        &host,
+        &fixture.0.join("reviewed-local"),
+        &request,
+        load_reviewed,
+        build,
+    )
+    .unwrap();
+    assert_eq!(private.rights, Rights::PrivateLocalOnly);
+    let public_request = GameExportRequest {
+        redistributable: true,
+        license_text: "CC0-1.0".into(),
+        ..request.clone()
+    };
+    let public = export_game(
+        &host,
+        &fixture.0.join("reviewed-public"),
+        &public_request,
+        load_reviewed,
+        build,
+    )
+    .unwrap();
+    assert_eq!(public.rights, Rights::Redistributable);
+    assert!(orpmod::inspect(&public.directory.join(&public.modules[0].file), true).is_ok());
 
     // Change an inert fixture binary only after assembly, during kit revalidation.
     let loads = Cell::new(0);

@@ -264,7 +264,7 @@ fn admitted_population_uses_reference_selection_with_overlapping_source_levels()
     let admitted = prepared.admit(&selected).unwrap();
     let distant = prepared.select(&admitted, Vec3::splat(1000.0)).unwrap();
     assert_eq!((distant.detail_instances, distant.group_instances), (0, 4));
-    assert_eq!(admitted.instances.len(), 4);
+    assert_eq!(admitted.instances.iter().flatten().flatten().count(), 4);
     let returned = prepared
         .select(&admitted, Vec3::new(-64.0, 5.0, -192.0))
         .unwrap();
@@ -402,7 +402,7 @@ pub(super) fn world() -> (World, PlantMaterial) {
     (world, material)
 }
 
-fn world_material(
+pub(super) fn world_material(
     world: &mut World,
     reference: PlantMaterial,
 ) -> crate::source_vegetation::world::WorldPlantMaterial {

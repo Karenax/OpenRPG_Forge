@@ -48,8 +48,7 @@ impl ModulePackageManifest {
         used: &mut BTreeSet<&'a str>,
     ) -> Result<(), ModulePackageError> {
         if !self.placement_companions.is_empty()
-            && !(MODULE_PLACEMENT_COMPANIONS_API_VERSION
-                ..=super::MODULE_HISTORICAL_MODELS_API_VERSION)
+            && !(MODULE_PLACEMENT_COMPANIONS_API_VERSION..=super::MAX_SUPPORTED_MODULE_API_VERSION)
                 .contains(&self.compatibility.module_api_version)
         {
             return Err(ModulePackageError::Compatibility);

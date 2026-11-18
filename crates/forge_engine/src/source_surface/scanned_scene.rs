@@ -1,19 +1,26 @@
 //! Scanned draw adoption under existing common-placement roots.
 //! Collision ownership and custom shadow submission remain with the scene adapter.
 use super::{
-    scanned_draws::Frame, scanned_material::ScannedMaterial, scanned_meshes::PreparedMeshes,
+    scanned_draws::{Frame, MAX_PLACEMENTS},
+    scanned_material::ScannedMaterial,
 };
+use crate::{ManualPlacementPart, ManualPlacementProjection};
 use bevy::{
     asset::RenderAssetUsages, light::NotShadowCaster, mesh::MeshTag, prelude::*,
     render::storage::ShaderBuffer,
 };
 use forge_core::EntityId;
-use forge_engine::{ManualPlacementPart, ManualPlacementProjection};
 use std::collections::BTreeMap;
 
 #[cfg(test)]
 #[path = "scanned_scene_tests.rs"]
 mod tests;
+
+pub struct Prototype {
+    pub asset: u8,
+    pub lod: u8,
+    pub mesh: Mesh,
+}
 
 pub struct ResidentDraws {
     meshes: BTreeMap<(u8, u8), Handle<Mesh>>,
@@ -23,21 +30,41 @@ pub struct ResidentDraws {
     records_capacity: usize,
 }
 
+#[derive(Component)]
+struct DrawIdentity(EntityId, u8);
+
 impl ResidentDraws {
+    pub(super) fn owns(&self, world: &World, entity: Entity) -> bool {
+        world
+            .get::<DrawIdentity>(entity)
+            .is_some_and(|id| self.entities.get(&(id.0, id.1)) == Some(&entity))
+    }
+
+    pub(super) fn prototype_count(&self, world: &World, asset: u8) -> usize {
+        let mesh_assets = world.resource::<Assets<Mesh>>();
+        (0..3)
+            .filter(|lod| {
+                self.meshes
+                    .get(&(asset, *lod))
+                    .is_some_and(|mesh| mesh_assets.get(mesh).is_some())
+            })
+            .count()
+    }
+
     /// Install the twelve shared prototypes once, using an already resident material.
     ///
     /// # Errors
     /// Refuses missing stores/material/storage, or duplicate/incomplete prototypes.
     pub fn stage(
         world: &mut World,
-        prepared: PreparedMeshes,
+        prototypes: Vec<Prototype>,
+        placement_count: usize,
         material: Handle<ScannedMaterial>,
     ) -> Result<Self, String> {
         let mut keys = std::collections::BTreeSet::new();
-        if prepared.instances.len() > 16_384
-            || prepared.prototypes.len() != 12
-            || prepared
-                .prototypes
+        if placement_count > MAX_PLACEMENTS
+            || prototypes.len() != 12
+            || prototypes
                 .iter()
                 .any(|p| p.asset >= 4 || p.lod >= 3 || !keys.insert((p.asset, p.lod)))
         {
@@ -61,7 +88,7 @@ impl ResidentDraws {
         // Two simultaneous LODs per accepted placement. Frustum/LOD changes must
         // update contents without resizing: Bevy reuses a GPU buffer only while
         // its byte length is stable, and material bindings retain that buffer.
-        let records_capacity = prepared.instances.len().max(1) * 2;
+        let records_capacity = placement_count.max(1) * 2;
         *world
             .resource_mut::<Assets<ShaderBuffer>>()
             .get_mut(&buffer)
@@ -75,8 +102,7 @@ impl ResidentDraws {
             .ok_or("Scanned material retired")?
             .extension
             .instances = buffer.clone();
-        let meshes = prepared
-            .prototypes
+        let meshes = prototypes
             .into_iter()
             .map(|p| {
                 (
@@ -145,7 +171,7 @@ impl ResidentDraws {
         frame: &Frame,
         roots: &BTreeMap<EntityId, Entity>,
     ) -> Result<(), String> {
-        if frame.draws.len() != frame.records.len() || frame.draws.len() > 32_768 {
+        if frame.draws.len() != frame.records.len() || frame.draws.len() > MAX_PLACEMENTS * 2 {
             return Err("Scanned frame population differs".into());
         }
         let mut wanted = BTreeMap::new();
@@ -214,6 +240,7 @@ impl ResidentDraws {
                 Visibility::Inherited,
                 ChildOf(root),
                 ManualPlacementPart(draw.placement_id),
+                DrawIdentity(draw.placement_id, draw.lod),
                 NotShadowCaster,
             );
             let entity = if let Some(entity) = entity {

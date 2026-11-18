@@ -1,7 +1,9 @@
 use super::*;
+use crate::source_surface::LightingBindings;
+use crate::source_surface::package::MaterialParameters;
+use crate::source_surface::scanned_draws::Draw;
+use crate::source_surface::scanned_material::ScannedExtension;
 use forge_core::{AssetId, ContentHash, Transform as DomainTransform};
-use forge_engine::source_surface::LightingBindings;
-use forge_engine::source_surface::package::MaterialParameters;
 use forge_project::zone_authoring::placements::ManualPlacement;
 
 fn setup() -> (
@@ -14,7 +16,7 @@ fn setup() -> (
     world.init_resource::<Assets<Mesh>>();
     world.init_resource::<Assets<ShaderBuffer>>();
     world.init_resource::<Assets<ScannedMaterial>>();
-    let base = crate::tidewater_assets::materials::prepare(
+    let base = crate::source_surface::package::material::prepare_with_lighting(
         &MaterialParameters {
             kind: 0,
             textures: vec!["cpu-test".into()],
@@ -24,7 +26,7 @@ fn setup() -> (
         },
         &BTreeMap::from([("cpu-test".into(), Handle::default())]),
         &LightingBindings {
-            scene_lighting: forge_engine::source_lighting::SceneLighting::new(
+            scene_lighting: crate::source_lighting::SceneLighting::new(
                 [0.0, 1.0, 0.0],
                 [1.0; 3],
                 [[0.0; 3]; 9],
@@ -33,12 +35,12 @@ fn setup() -> (
             environment: Handle::default(),
             hill_shadow: Handle::default(),
             object_shadow: Handle::default(),
-            object_settings: forge_engine::source_shadows::ObjectShadowSettings::default(),
+            object_settings: crate::source_shadows::ObjectShadowSettings::default(),
             clouds: [Vec4::ZERO; 5],
             cloud_shadow: None,
             wind: Vec4::ZERO,
             flags: Vec4::ZERO,
-            caustics: forge_engine::source_surface::underwater::CausticMaterialInputs::disabled(
+            caustics: crate::source_surface::underwater::CausticMaterialInputs::disabled(
                 &mut Assets::<Image>::default(),
             ),
             ground_bounce: None,
@@ -53,7 +55,7 @@ fn setup() -> (
         .resource_mut::<Assets<ScannedMaterial>>()
         .add(ScannedMaterial {
             base,
-            extension: super::super::scanned_material::ScannedExtension {
+            extension: ScannedExtension {
                 heights: Handle::default(),
                 terrain_domain: Vec4::ZERO,
                 terrain_sun: Vec4::ZERO,
@@ -65,30 +67,14 @@ fn setup() -> (
         });
     let prototypes = (0..4)
         .flat_map(|asset| {
-            (0..3).map(move |lod| super::super::scanned_meshes::Prototype {
+            (0..3).map(move |lod| Prototype {
                 asset,
                 lod,
                 mesh: Mesh::from(Cuboid::default()),
             })
         })
         .collect();
-    let root = std::path::PathBuf::from(std::env::var("FORGE_DEBRIS_SCANNED_FIXTURE").unwrap());
-    let package = forge_tidewater_assets::tidewater_debris::scanned::ScannedPackage::load(
-        &std::fs::read(root.join("package.json")).unwrap(),
-        |name, _| std::fs::read(root.join(name)).map_err(|e| e.to_string()),
-    )
-    .unwrap();
-    let geometry =
-        forge_tidewater_assets::tidewater_debris::scanned::geometry::prepare(&package).unwrap();
-    let resident = ResidentDraws::stage(
-        &mut world,
-        PreparedMeshes {
-            prototypes,
-            instances: geometry.instances.into_iter().take(2).collect(),
-        },
-        material,
-    )
-    .unwrap();
+    let resident = ResidentDraws::stage(&mut world, prototypes, 2, material).unwrap();
     let roots = (0..4)
         .map(|i| {
             let placement = placement(i);
@@ -123,7 +109,7 @@ fn placement(i: usize) -> ManualPlacement {
 fn frame(n: usize) -> Frame {
     Frame {
         draws: (0..n)
-            .map(|i| super::super::scanned_draws::Draw {
+            .map(|i| Draw {
                 placement_id: placement(i / 2).id,
                 transform: DomainTransform::IDENTITY,
                 asset: 0,
@@ -145,7 +131,6 @@ fn bytes(world: &World, buffer: &Handle<ShaderBuffer>) -> Vec<u8> {
         .unwrap()
 }
 #[test]
-#[ignore = "Requires the byte-pinned acquired package; run the documented external-fixture replay"]
 fn camera_population_and_empty_frames_keep_buffer_size_and_clear_tail() {
     let (mut world, mut resident, roots, buffer) = setup();
     assert_eq!(bytes(&world, &buffer).len(), 64);
@@ -167,7 +152,6 @@ fn camera_population_and_empty_frames_keep_buffer_size_and_clear_tail() {
     }
 }
 #[test]
-#[ignore = "Requires the byte-pinned acquired package; run the documented external-fixture replay"]
 fn placement_growth_reserves_then_retains_allocation() {
     let (mut world, mut resident, roots, buffer) = setup();
     for n in [6, 1, 0, 8, 2] {
@@ -176,7 +160,6 @@ fn placement_growth_reserves_then_retains_allocation() {
     }
 }
 #[test]
-#[ignore = "Requires the byte-pinned acquired package; run the documented external-fixture replay"]
 fn rejected_frame_keeps_previous_upload_and_entities() {
     let (mut world, mut resident, roots, buffer) = setup();
     resident.synchronize(&mut world, &frame(4), &roots).unwrap();

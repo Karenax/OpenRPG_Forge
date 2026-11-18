@@ -13,6 +13,7 @@ fn main() {
             "export_game",
             "preview_aurora_bundle",
             "import_aurora_bundle",
+            "run_aurora_gameplay",
             "read_asset_library",
             "read_asset_model",
             "read_asset_physics",

@@ -201,6 +201,32 @@ class GameKitTests(unittest.TestCase):
         self.assertEqual({path.name for path in bins.iterdir()}, {'forge-studio.exe', 'game-export-kit'})
         self.assertFalse(receipt['runtime_verified'] or receipt['installation_verified'] or receipt['distribution_qualified'])
 
+    def test_reviewed_kit_preserves_scope_through_studio_staging(self):
+        self.assemble()
+        files = kit.inventory(self.args.output / 'game-export-kit')
+        rows = ''.join(f"{item['path']}\t{item['bytes']}\t{item['sha256']}\n" for item in files)
+        review = self.root / 'rights-review.json'
+        write(review, {'schema': 'forge.delivery.game-kit-rights-review.v1',
+                       'platform': kit.PLATFORM,
+                       'source_revision': build_delivery.digest(self.source_path),
+                       'files_sha256': hashlib.sha256(rows.encode('utf-8')).hexdigest(),
+                       'evidence_sha256': hashlib.sha256(b'fixture review evidence').hexdigest()})
+        self.args.redistribution_review = review
+        self.args.redistribution_review_sha256 = '0' * 64
+        self.args.output = self.root / 'reviewed-kit'
+        with self.assertRaisesRegex(ValueError, 'review pin differs'):
+            self.assemble()
+        self.assertFalse(self.args.output.exists())
+        self.args.redistribution_review_sha256 = build_delivery.digest(review)
+        fixture = self.prepare_studio_package()
+        receipt = self.stage_studio_package(fixture)
+        root, _, _, assembly_pin, _, bins = fixture
+        verified = kit.read_assembled(root, assembly_pin, build_delivery.digest(self.source_path))
+        self.assertEqual(verified.manifest['rights'], 'redistributable')
+        self.assertEqual(receipt['status'], 'REDISTRIBUTABLE_STAGED_ONLY')
+        self.assertEqual((bins / 'game-export-kit' / kit.KIT_RIGHTS_REVIEW).read_bytes(), review.read_bytes())
+        self.assertFalse(verified.receipt['distribution_qualified'])
+
     def test_adjacent_staging_refuses_stale_studio_or_sources(self):
         fixture = self.prepare_studio_package()
         bins = fixture[-1]
@@ -246,7 +272,7 @@ class GameKitTests(unittest.TestCase):
         source_pin = build_delivery.digest(self.source_path)
         with self.assertRaisesRegex(ValueError, 'receipt pin differs'):
             kit.read_assembled(root, 'f'*64, source_pin)
-        with self.assertRaisesRegex(ValueError, 'current private'):
+        with self.assertRaisesRegex(ValueError, 'current build-only'):
             kit.read_assembled(root, receipt_pin, 'f'*64)
         (root/'game-export-kit'/kit.RUNTIME).write_bytes(b'changed')
         with self.assertRaisesRegex(ValueError, 'files differ'):
@@ -265,16 +291,16 @@ class GameKitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unexpected entries'):
             kit.read_assembled(root, receipt_pin, source_pin)
 
-    def test_reader_rejects_public_rights_even_when_rehashed(self):
+    def test_reader_rejects_relabeled_private_kit_even_when_rehashed(self):
         self.assemble()
         root = self.args.output
         manifest_path = root/'forge-kit/game-export-v1.json'
-        manifest = json.loads(manifest_path.read_bytes()); manifest['rights'] = 'public'
+        manifest = json.loads(manifest_path.read_bytes()); manifest['rights'] = 'redistributable'
         write(manifest_path, manifest)
         receipt_path = root/'game-kit-assembly-receipt.json'
         receipt = json.loads(receipt_path.read_bytes()); receipt['kit_manifest_sha256'] = build_delivery.digest(manifest_path)
         write(receipt_path, receipt)
-        with self.assertRaisesRegex(ValueError, 'private candidate'):
+        with self.assertRaisesRegex(ValueError, 'supported candidate'):
             kit.read_assembled(root, build_delivery.digest(receipt_path), build_delivery.digest(self.source_path))
 
     def test_reader_rejects_unsupported_notice_schema_even_when_rehashed(self):

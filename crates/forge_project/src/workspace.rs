@@ -31,7 +31,7 @@ pub const MAX_PROJECTS: usize = 64;
 pub const MAX_MODULES: usize = 256;
 pub const MAX_ZONES: usize = 4096;
 pub const MAX_NAME_BYTES: usize = 256;
-pub const MAX_MODULE_ORIGIN_PACKAGE_BYTES: u64 = 256 * 1024 * 1024;
+pub const MAX_MODULE_ORIGIN_PACKAGE_BYTES: u64 = 512 * 1024 * 1024;
 const SCHEMA: &str = "forge.workspace";
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

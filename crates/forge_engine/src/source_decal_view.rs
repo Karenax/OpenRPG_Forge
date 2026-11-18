@@ -95,6 +95,7 @@ impl SourceDecalView {
         })
     }
 
+    #[must_use]
     pub fn targets(&self) -> [Handle<Image>; 2] {
         self.targets.clone()
     }
@@ -125,13 +126,12 @@ impl SourceDecalView {
         Ok(())
     }
 
+    #[must_use]
     pub fn status(&self) -> SourceDecalViewStatus {
-        self.status
-            .lock()
-            .map(|status| status.clone())
-            .unwrap_or_else(|_| {
-                SourceDecalViewStatus::Refused("État du rendu des toiles indisponible".into())
-            })
+        self.status.lock().map_or_else(
+            |_| SourceDecalViewStatus::Refused("État du rendu des toiles indisponible".into()),
+            |status| status.clone(),
+        )
     }
 }
 
@@ -154,6 +154,11 @@ impl Plugin for SourceDecalViewPlugin {
     }
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    clippy::type_complexity,
+    reason = "Bevy supplies the optional per-view attachments and renderer resources as system parameters."
+)]
 fn encode(
     view: ViewQuery<(
         Option<&SourceDecalView>,

@@ -160,6 +160,12 @@ pub struct ExpectedManual {
     pub transform: Transform,
     #[serde(default, skip_serializing_if = "is_false")]
     pub non_colliding: bool,
+    /// Exact local source collision population for a scanned placement.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scanned_collision_primitives: Option<usize>,
+    /// Collision proxies owned by a stall's independent visual mesh.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stall_colliders: Option<usize>,
     /// This placement belongs to the admitted fish host, independently of its
     /// collision policy. Other animated objects may also be non-colliding.
     #[serde(default, skip_serializing_if = "is_false")]
@@ -237,6 +243,10 @@ pub struct ExpectedProjection {
     pub functional_hash: ContentHash,
     pub visuals: Vec<GameplayVisualBinding>,
     pub manual: Vec<ExpectedManual>,
+    #[serde(default, skip_serializing_if = "is_zero_count")]
+    pub attached_fish: usize,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub source_stall: bool,
     #[serde(default)]
     pub building_count: usize,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -294,6 +304,8 @@ pub struct ObservedStreamedTerrain {
     pub maximum_cpu_mesh_bytes: u64,
     pub pending: bool,
     pub physics_ready: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub physics_hold_reason: Option<String>,
     pub error: Option<String>,
     pub source_synchronized: bool,
     pub hlod: ObservedTerrainHlod,
@@ -312,6 +324,8 @@ pub struct ObservedProceduralTerrain {
     pub committed_transitions: u64,
     pub pending: bool,
     pub physics_ready: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub physics_hold_reason: Option<String>,
     pub error: Option<String>,
     pub source_synchronized: bool,
     pub hlod: ObservedTerrainHlod,
@@ -363,6 +377,9 @@ pub struct ObservedManual {
     pub identity: ExpectedManual,
     pub mesh_primitives: usize,
     pub registered_primitives: usize,
+    /// Resident scanned LOD prototypes, independently of current camera visibility.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scanned_prototypes: Option<usize>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_physics: Option<ObservedSourcePhysics>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -401,6 +418,44 @@ mod particle_admission_tests {
     use super::*;
 
     #[test]
+    fn scanned_report_requires_resident_prototypes_and_exact_collisions_outside_view() {
+        let expected = ExpectedManual {
+            entity_id: EntityId::deterministic("scanned placement"),
+            asset: VisualAssetPin {
+                asset_id: forge_core::AssetId::deterministic("scan"),
+                sha256: forge_core::bytes_sha256(b"scan"),
+            },
+            transform: Transform::IDENTITY,
+            non_colliding: true,
+            fish: false,
+            scanned_collision_primitives: Some(0),
+            stall_colliders: None,
+            source_physics: None,
+            source_particles: None,
+        };
+        let mut observed = ObservedManual {
+            identity: expected.clone(),
+            mesh_primitives: 0,
+            registered_primitives: 0,
+            scanned_prototypes: Some(3),
+            source_physics: None,
+            source_particles: None,
+        };
+        let verify = |row: &ObservedManual| {
+            verify_manual(
+                std::slice::from_ref(&expected),
+                &std::collections::BTreeMap::from([(expected.entity_id, row)]),
+            )
+        };
+        assert!(verify(&observed).is_ok());
+        observed.scanned_prototypes = Some(2);
+        assert!(verify(&observed).is_err());
+        observed.scanned_prototypes = Some(3);
+        observed.registered_primitives = 1;
+        assert!(verify(&observed).is_err());
+    }
+
+    #[test]
     fn particle_report_requires_owned_output_and_keeps_effect_geometry_nonphysical() {
         let hash = forge_core::bytes_sha256(b"original particle carrier");
         let expected = ExpectedManual {
@@ -411,6 +466,8 @@ mod particle_admission_tests {
             },
             transform: Transform::IDENTITY,
             non_colliding: false,
+            scanned_collision_primitives: None,
+            stall_colliders: None,
             fish: false,
             source_physics: None,
             source_particles: Some(Box::new(
@@ -426,6 +483,7 @@ mod particle_admission_tests {
             identity: expected.clone(),
             mesh_primitives: 1,
             registered_primitives: 0,
+            scanned_prototypes: None,
             source_physics: None,
             source_particles: Some(ObservedSourceParticles {
                 owners: 1,
@@ -516,9 +574,21 @@ pub struct ObservedSceneWind {
     pub cloud_step_xz: Option<[f32; 2]>,
 }
 
+/// Serialized scene lighting readback for the runtime evidence report.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ObservedSceneLighting {
+    pub readback_bytes: usize,
+    pub payload_sha256: ContentHash,
+    pub direction_color_sh_vec4: [[f32; 4]; 11],
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub received_frame: Option<u32>,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectionObservation {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scene_lighting_readback: Option<ObservedSceneLighting>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wind: Option<ObservedSceneWind>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -651,8 +721,30 @@ fn verify_world_projection(
         observed.graphics.as_ref(),
         observed.frame,
         expected.imported.is_some(),
-        expected.manual.iter().any(|placement| placement.fish),
+        expected.attached_fish > 0 || expected.manual.iter().any(|placement| placement.fish),
     )?;
+    let scanned_draws = observed
+        .manual
+        .iter()
+        .any(|row| row.identity.scanned_collision_primitives.is_some() && row.mesh_primitives != 0);
+    let scanned_inventory = observed.graphics.as_ref().is_some_and(|graphics| {
+        graphics
+            .scopes
+            .iter()
+            .any(|scope| scope.name == "scanned_debris")
+    });
+    if scanned_draws != scanned_inventory {
+        return Err("Graphics inventory differs from the active scanned draws".into());
+    }
+    let stall_inventory = observed.graphics.as_ref().is_some_and(|graphics| {
+        graphics
+            .scopes
+            .iter()
+            .any(|scope| scope.name == "source_stalls")
+    });
+    if expected.source_stall != stall_inventory {
+        return Err("Graphics inventory differs from the admitted source stall".into());
+    }
     verify_species(expected, observed)?;
     verify_imported_mode(
         expected.imported.as_ref(),
@@ -974,7 +1066,39 @@ fn verify_manual(
         let row = rows
             .get(&expected.entity_id)
             .ok_or("A canonical manual placement has no observed scene")?;
+        if let Some(colliders) = expected.scanned_collision_primitives {
+            if row.identity != *expected
+                || expected.non_colliding != (colliders == 0)
+                || expected.fish
+                || expected.stall_colliders.is_some()
+                || expected.source_physics.is_some()
+                || expected.source_particles.is_some()
+                || row.source_physics.is_some()
+                || row.source_particles.is_some()
+                || row.scanned_prototypes != Some(3)
+                || row.mesh_primitives > 2
+                || row.registered_primitives != colliders
+            {
+                return Err(
+                    "A scanned placement's identity, resident prototypes or colliders differ"
+                        .into(),
+                );
+            }
+            row.identity
+                .transform
+                .validate()
+                .map_err(|error| error.to_string())?;
+            continue;
+        }
         let collision_ready = match (&expected.source_physics, &row.source_physics) {
+            (None, None) if expected.stall_colliders.is_some() => {
+                !expected.non_colliding
+                    && !expected.fish
+                    && expected.source_particles.is_none()
+                    && row.mesh_primitives == 1
+                    && expected.stall_colliders == Some(row.registered_primitives)
+                    && row.registered_primitives > 0
+            }
             (Some(pin), Some(physics)) => {
                 !expected.non_colliding
                     && !expected.fish
@@ -1007,6 +1131,7 @@ fn verify_manual(
         if expected.fish && !expected.non_colliding
             || row.identity != *expected
             || row.mesh_primitives == 0
+            || row.scanned_prototypes.is_some()
             || !collision_ready
             || !particles_ready
         {
@@ -1119,6 +1244,7 @@ mod procedural_streaming_tests {
             committed_transitions: 1,
             pending: false,
             physics_ready: true,
+            physics_hold_reason: None,
             error: None,
             source_synchronized: true,
             hlod: ObservedTerrainHlod {
@@ -1162,14 +1288,18 @@ fn verify_static_hlod(
     let objects = expected
         .manual
         .iter()
-        .filter(|placement| !placement.non_colliding)
+        .filter(|placement| {
+            !placement.non_colliding && placement.scanned_collision_primitives.is_none()
+        })
         .count()
         .checked_add(expected.building_count)
         .ok_or("Static source count overflow")?;
     let parts = observed
         .manual
         .iter()
-        .filter(|row| !row.identity.non_colliding)
+        .filter(|row| {
+            !row.identity.non_colliding && row.identity.scanned_collision_primitives.is_none()
+        })
         .try_fold(
             expected
                 .building_count
@@ -1539,6 +1669,7 @@ mod solar_observation_tests {
             start_minutes: 0,
             azimuth_degrees: 0,
             day_length_seconds: None,
+            diffuse_lighting: None,
         };
         let actual = ObservedSolarClock {
             start_minutes: 0,

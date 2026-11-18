@@ -26,7 +26,7 @@ impl ModulePackageManifest {
         used: &mut BTreeSet<&'a str>,
     ) -> Result<(), ModulePackageError> {
         if !self.local_light_packages.is_empty()
-            && !(MODULE_LOCAL_LIGHTS_API_VERSION..=super::MODULE_HISTORICAL_MODELS_API_VERSION)
+            && !(MODULE_LOCAL_LIGHTS_API_VERSION..=super::MAX_SUPPORTED_MODULE_API_VERSION)
                 .contains(&self.compatibility.module_api_version)
         {
             return Err(ModulePackageError::Compatibility);

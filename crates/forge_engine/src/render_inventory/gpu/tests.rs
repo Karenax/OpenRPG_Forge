@@ -214,6 +214,22 @@ fn scoped_receipts_revoke_independently_and_cannot_reuse_primary_or_released_tok
     assert_eq!(primary.completed_frame(f.app.world()), Some(28));
     assert!(scoped.covers_frame(f.app.world(), 27));
     assert!(!scoped.covers_frame(f.app.world(), 28));
+    assert!(acquire_scoped_at_frame(f.app.world(), owner, f.identity, 1, 27).is_some());
+    assert!(acquire_scoped_at_frame(f.app.world(), owner, f.identity, 1, 28).is_none());
+    assert!(primary_covers_frame(
+        f.app.world(),
+        f.owner,
+        f.identity,
+        1,
+        28
+    ));
+    assert!(!primary_covers_frame(
+        f.app.world(),
+        owner,
+        f.identity,
+        1,
+        27
+    ));
     assert!(acquire(f.app.world(), owner, f.identity, 1).is_none());
     f.app
         .world_mut()

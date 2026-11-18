@@ -19,6 +19,10 @@ use std::collections::{BTreeMap, BTreeSet};
 impl Library {
     /// The date records admission of this copy to the local package, not a purchase.
     /// This output deliberately carries no permission for public redistribution.
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Capture and validate all selected assets against a single pinned registry"
+    )]
     pub fn export_private_models(
         &mut self,
         pins: &[(AssetId, ContentHash)],
@@ -162,26 +166,6 @@ fn capture_reconstructed_payload(
     };
     insert_file(files, payload.path.clone(), model.bytes, remaining)?;
     Ok(payload)
-}
-
-#[cfg(test)]
-mod reconstructed_budget_tests {
-    use super::*;
-
-    #[test]
-    fn rejects_over_budget_historical_payload_before_media_validation() {
-        let bytes = vec![1, 2, 3, 4];
-        let id = vault_asset_id("demo.historical");
-        let pin = bytes_sha256(&bytes);
-        let model = LibraryModel { id: "demo.historical".into(), asset_id: id, sha256: pin, bytes };
-        let mut files = BTreeMap::new();
-        let mut remaining = 3;
-        let error = capture_reconstructed_payload(model, id, pin, &mut files, &mut remaining)
-            .unwrap_err();
-        assert_eq!(error, "L’export du Vault dépasse son budget de fichiers.");
-        assert!(files.is_empty());
-        assert_eq!(remaining, 3);
-    }
 }
 
 fn capture_payload(
@@ -391,4 +375,29 @@ fn insert_file(
         .ok_or("L’export du Vault dépasse son budget de fichiers")?;
     files.insert(path, bytes);
     Ok(())
+}
+
+#[cfg(test)]
+mod reconstructed_budget_tests {
+    use super::*;
+
+    #[test]
+    fn rejects_over_budget_historical_payload_before_media_validation() {
+        let bytes = vec![1, 2, 3, 4];
+        let id = vault_asset_id("demo.historical");
+        let pin = bytes_sha256(&bytes);
+        let model = LibraryModel {
+            id: "demo.historical".into(),
+            asset_id: id,
+            sha256: pin,
+            bytes,
+        };
+        let mut files = BTreeMap::new();
+        let mut remaining = 3;
+        let error = capture_reconstructed_payload(model, id, pin, &mut files, &mut remaining)
+            .unwrap_err();
+        assert_eq!(error, "L’export du Vault dépasse son budget de fichiers.");
+        assert!(files.is_empty());
+        assert_eq!(remaining, 3);
+    }
 }

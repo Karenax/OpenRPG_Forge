@@ -152,8 +152,8 @@ impl Host {
                     .checked_add(1)
                     .ok_or("Grass selection sequence exhausted")?;
                 let report = self.resident.update(world, &cells, Visibility::Visible)?;
-                let (meshes, materials) = self.resident.handles();
                 if !self.published {
+                    let (meshes, materials) = self.resident.handles();
                     render_inventory::request_scoped(
                         world,
                         self.owner,
@@ -174,8 +174,13 @@ impl Host {
             }
         }
         let ready = self.published
-            && render_inventory::acquire_scoped(world, self.owner, self.identity, self.generation)
-                .is_some_and(|token| token.covers_frame(world, self.publication_frame));
+            && render_inventory::scoped_covers_frame(
+                world,
+                self.owner,
+                self.identity,
+                self.generation,
+                self.publication_frame,
+            );
         let mut status = Status {
             identity: Some(self.identity),
             ready,

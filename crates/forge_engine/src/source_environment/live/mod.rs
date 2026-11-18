@@ -139,7 +139,7 @@ pub fn stage(
 }
 
 /// Bind a stable 176-byte material lighting buffer. Its SH tail is copied only
-/// at an environment swap; its direct-light prefix is updated on every frame.
+/// at an environment swap; its direct-light prefix follows the current frame.
 pub fn bind_lighting(
     world: &mut World,
     handle: Handle<bevy::render::storage::ShaderBuffer>,
@@ -201,7 +201,7 @@ pub fn submit(world: &mut World, input: FrameInput) -> Result<u64, String> {
     if !can_submit(world) {
         return Err("Environment frame still pending or failed".into());
     }
-    super::controller::Controller::default().plan(input.dt, input.sun, input.force)?;
+    super::controller::validate_input(input.dt, input.sun)?;
     lighting::direct(&input.global)?;
     if input.cloud_view > 1
         || input.cloud_step == 0

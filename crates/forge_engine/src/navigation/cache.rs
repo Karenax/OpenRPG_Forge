@@ -108,6 +108,7 @@ pub(super) struct NativeJob {
     pub input: TileInput,
     pub started: std::time::Instant,
     pub task: Task<(
+        String,
         Result<BuiltTile, String>,
         forge_navigation::ElapsedObservation,
     )>,

@@ -865,12 +865,21 @@ class EngineBoundaries(unittest.TestCase):
             self.assertFalse(validator.is_build_input(f"scripts/hivemind/candidates/proof.{extension}"))
         self.assertTrue(validator.is_build_input("crates/forge_tidewater/examples/support/proof.rs"))
         self.assertTrue(validator.is_build_input("scripts/hivemind-other/build.py"))
+        for path in ("scripts/assets/retire_exact_unity_overlays.py",
+                     "scripts/assets/unity_shared_overlay.py",
+                     "scripts/assets/prepare_candidate_shared_overlays.py"):
+            self.assertFalse(validator.is_build_input(path))
+            self.assertTrue(validator.is_orchestration_input("../../../" + path))
+        self.assertTrue(validator.is_build_input("scripts/assets/vault_storage.py"))
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "crates/probe/src/lib.rs"
             source.parent.mkdir(parents=True)
             source.write_text('include!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../scripts/hivemind/candidates/proof.rs"));')
             with patch.object(validator, "SOURCE", root):
+                with self.assertRaisesRegex(ValueError, "orchestration"):
+                    validator.source_inventories()
+                source.write_text('include_str!("../../../scripts/assets/retire_exact_unity_overlays.py");')
                 with self.assertRaisesRegex(ValueError, "orchestration"):
                     validator.source_inventories()
                 source.write_text("// Product-owned source.\n")

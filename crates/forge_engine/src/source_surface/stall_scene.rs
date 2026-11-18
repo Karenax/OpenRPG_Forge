@@ -3,6 +3,9 @@
 // Revision 1438b1ab; see third_party/tidewater/LICENSE.
 //! Connect the full source lighting model to the existing common scene receivers.
 use super::stall_shader::{self as full_shader, SceneHooks};
+pub mod live;
+#[cfg(feature = "physics-rapier")]
+pub mod placement;
 
 fn take_function(source: &mut String, name: &str) -> Result<String, String> {
     let marker = format!("fn {name}(");

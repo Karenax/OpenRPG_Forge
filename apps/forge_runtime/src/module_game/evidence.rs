@@ -109,7 +109,12 @@ pub fn prepare(
     };
     let measure_frames = frame_times::enabled(std::env::var_os("FORGE_GAME_FRAME_TIMES"))?;
     let non_colliding = manual.non_colliding_ids();
+    let scanned_collisions = manual.scanned_collision_primitives();
     let fish = manual.fish_ids();
+    let attached_fish = manual.attached_fish;
+    let source_stall = manual.has_source_stall();
+    let stall_ids = manual.source_stall_ids();
+    let stall_collider_count = source_stall.then(|| forge_engine::fish_stand_colliders().len());
     let manual = manual.accepted();
     let (terrain, _) = loaded.zone.head().effective()?;
     let streamed_terrain = terrain
@@ -158,6 +163,8 @@ pub fn prepare(
             .gameplay_visuals
             .clone()
             .unwrap_or_default(),
+        attached_fish,
+        source_stall,
         manual: manual
             .iter()
             .map(|placement| ExpectedManual {
@@ -167,7 +174,10 @@ pub fn prepare(
                     sha256: placement.asset_hash,
                 },
                 transform: placement.transform,
-                non_colliding: non_colliding.contains(&placement.id),
+                non_colliding: non_colliding.contains(&placement.id)
+                    || scanned_collisions.get(&placement.id) == Some(&0),
+                scanned_collision_primitives: scanned_collisions.get(&placement.id).copied(),
+                stall_colliders: stall_collider_count.filter(|_| stall_ids.contains(&placement.id)),
                 fish: fish.contains(&placement.id),
                 source_physics: placement.physics.clone(),
                 source_particles: placement.particles.clone(),

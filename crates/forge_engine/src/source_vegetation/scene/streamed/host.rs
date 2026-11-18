@@ -224,6 +224,7 @@ impl PreparedHost {
                 wind_frequency: self.presentation.wind_speed_hz,
             }
             .install(app)?;
+            app.add_systems(Last, shadow_range::omit_unused_bevy_sun_casters);
         }
         app.insert_resource(Pending(Some(self)))
             .init_resource::<HostStatus>()

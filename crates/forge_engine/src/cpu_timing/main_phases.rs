@@ -1,8 +1,9 @@
-//! Wall-clock phase boundaries for the native walk measurement only.
+//! Wall-clock phase boundaries shared by the native runtime and walk measurements.
 //! The outside interval includes Last, rendering, presentation and runner waits;
 //! it is not a GPU timer or a measurement of one specific subsystem.
-use bevy::{app::MainScheduleOrder, ecs::schedule::ScheduleLabel, prelude::*};
-use std::time::Instant;
+use bevy::{
+    app::MainScheduleOrder, ecs::schedule::ScheduleLabel, platform::time::Instant, prelude::*,
+};
 
 pub const NAMES: [&str; 5] = [
     "outside_first_to_post_update",
@@ -10,6 +11,14 @@ pub const NAMES: [&str; 5] = [
     "fixed_main_loop",
     "update",
     "spawn_scene_through_post_update",
+];
+
+const PROFILE_NAMES: [&str; 5] = [
+    "app.main.outside_first_to_post_update",
+    "app.main.first_through_pre_update",
+    "app.main.fixed_loop",
+    "app.main.update",
+    "app.main.spawn_scene_through_post_update",
 ];
 
 #[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
@@ -36,10 +45,17 @@ impl CpuPhases {
 
 #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameter")]
 fn mark<const INDEX: usize>(mut phases: ResMut<CpuPhases>) {
+    let has_previous_boundary = phases.previous.is_some();
     phases.record(INDEX, Instant::now());
+    if has_previous_boundary {
+        super::record(PROFILE_NAMES[INDEX], phases.pending[INDEX]);
+    }
 }
 
 pub fn install(app: &mut App) {
+    if app.world().contains_resource::<CpuPhases>() {
+        return;
+    }
     app.init_resource::<CpuPhases>()
         .add_systems(Boundary(0), mark::<0>)
         .add_systems(Boundary(1), mark::<1>)
@@ -83,6 +99,12 @@ mod tests {
     fn installed_boundaries_execute_in_the_real_main_schedule() {
         let mut app = App::new();
         install(&mut app);
+        let schedule_count = app.world().resource::<MainScheduleOrder>().labels.len();
+        install(&mut app);
+        assert_eq!(
+            app.world().resource::<MainScheduleOrder>().labels.len(),
+            schedule_count
+        );
         app.update();
         app.update();
         assert!(app.world().resource::<CpuPhases>().latest.is_some());

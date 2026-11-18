@@ -2,16 +2,20 @@
 use super::super::world::SourceMaterial;
 use super::{ImportedPlant, Vegetation, View};
 use bevy::{
-    camera::visibility::NoFrustumCulling, light::NotShadowCaster, mesh::MeshTag, prelude::*,
+    camera::visibility::NoFrustumCulling,
+    light::NotShadowCaster,
+    mesh::MeshTag,
+    platform::collections::{HashMap, HashSet},
+    prelude::*,
     render::storage::ShaderBuffer,
 };
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 pub mod picking;
 
 struct LevelAssets<M: SourceMaterial> {
     mesh: Handle<Mesh>,
     material: Handle<M>,
-    entities: BTreeMap<usize, Entity>,
+    entities: HashMap<usize, Entity>,
     order: Vec<Entity>,
 }
 pub struct Resident<M: SourceMaterial> {
@@ -71,7 +75,7 @@ impl<M: SourceMaterial> Resident<M> {
                     levels.push(LevelAssets {
                         mesh: world.resource_mut::<Assets<Mesh>>().add(level.mesh.clone()),
                         material: world.resource_mut::<Assets<M>>().add(material),
-                        entities: BTreeMap::new(),
+                        entities: HashMap::new(),
                         order: Vec::new(),
                     });
                 }
@@ -248,7 +252,7 @@ impl<M: SourceMaterial> Resident<M> {
                             && world.get::<Transform>(entity) == Some(&Transform::IDENTITY)
                             && world.get::<ChildOf>(entity).is_none()
                             && world.get::<Visibility>(entity) == Some(&Visibility::Visible)
-                            && world.get::<NoFrustumCulling>(entity).is_some()
+                            && super::streamed::plant_culling_intact(world, entity)
                             && world.get::<NotShadowCaster>(entity).is_none() == M::enable_shadows()
                             && group.identities.as_ref().is_none_or(|ids| {
                                 world.get::<ImportedPlant>(entity).is_some_and(|plant| {
@@ -271,34 +275,53 @@ impl<M: SourceMaterial> Resident<M> {
         if selected.len() != self.scene.groups.len() {
             return Err("Plant selection omits a source group".into());
         }
+        let mut membership = Vec::with_capacity(selected.len());
         for ((group, assets), selection) in self.scene.groups.iter().zip(&self.levels).zip(selected)
         {
-            if selection.len() != assets.len()
-                || selection.iter().any(|ids| {
-                    ids.iter().any(|&id| id >= group.records.len())
-                        || ids.iter().copied().collect::<BTreeSet<_>>().len() != ids.len()
-                })
-            {
+            if selection.len() != assets.len() {
                 return Err("Invalid plant level/instance selection".into());
             }
+            let mut levels = Vec::with_capacity(selection.len());
+            for ids in selection {
+                let mut desired = HashSet::with_capacity(ids.len());
+                for &index in ids {
+                    if index >= group.records.len() || !desired.insert(index) {
+                        return Err("Invalid plant level/instance selection".into());
+                    }
+                }
+                levels.push(desired);
+            }
+            membership.push(levels);
         }
         let mut report = SelectionReport::default();
-        for ((group, levels), selection) in
-            self.scene.groups.iter().zip(&mut self.levels).zip(selected)
+        for (((group, levels), selection), membership) in self
+            .scene
+            .groups
+            .iter()
+            .zip(&mut self.levels)
+            .zip(selected)
+            .zip(membership)
         {
-            for (assets, ids) in levels.iter_mut().zip(selection) {
-                let desired: BTreeSet<_> = ids.iter().copied().collect();
+            for ((assets, ids), desired) in levels.iter_mut().zip(selection).zip(membership) {
+                let mut removed = Vec::new();
                 assets.entities.retain(|index, entity| {
-                    if desired.contains(index) && world.get_entity(*entity).is_ok() {
+                    if desired.contains(index) {
                         return true;
                     }
-                    world.despawn(*entity);
-                    report.removed += 1;
+                    removed.push((*index, *entity));
                     false
                 });
+                // Keep entity slot reuse deterministic across identical selections.
+                removed.sort_unstable_by_key(|&(index, _)| index);
+                report.removed += removed.len();
+                for (_, entity) in removed {
+                    world.despawn(entity);
+                }
                 assets.order.clear();
                 for &index in ids {
-                    let entity = if let Some(&entity) = assets.entities.get(&index) {
+                    let entity = if let Some(&entity) = assets.entities.get(&index)
+                        && world.get_entity(entity).is_ok()
+                    {
                         report.retained += 1;
                         if world.get::<Visibility>(entity) != Some(&visibility) {
                             world.entity_mut(entity).insert(visibility);
@@ -323,7 +346,9 @@ impl<M: SourceMaterial> Resident<M> {
                             });
                         }
                         let entity = entity.id();
-                        assets.entities.insert(index, entity);
+                        if assets.entities.insert(index, entity).is_some() {
+                            report.removed += 1;
+                        }
                         report.spawned += 1;
                         entity
                     };
@@ -338,7 +363,9 @@ impl<M: SourceMaterial> Resident<M> {
     /// Retire only this projection's entities. Shared textures remain library-owned.
     pub fn retire(self, world: &mut World) {
         for level in self.levels.into_iter().flatten() {
-            for entity in level.entities.into_values() {
+            let mut entities: Vec<_> = level.entities.into_iter().collect();
+            entities.sort_unstable_by_key(|&(index, _)| index);
+            for (_, entity) in entities {
                 world.despawn(entity);
             }
         }

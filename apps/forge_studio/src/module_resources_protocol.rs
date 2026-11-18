@@ -93,9 +93,11 @@ impl Chunk {
         if header.len() > MAX_CHUNK_HEADER || bytes.is_empty() || bytes.len() > CHUNK_BYTES {
             return Err("Module resource chunk exceeds its binary wire bounds".into());
         }
+        let header_bytes = u32::try_from(header.len())
+            .map_err(|_| "Module resource header exceeds its binary wire bounds")?;
         let mut wire = Vec::with_capacity(CHUNK_PREFIX + header.len() + bytes.len());
         wire.extend_from_slice(CHUNK_MAGIC);
-        wire.extend_from_slice(&(header.len() as u32).to_le_bytes());
+        wire.extend_from_slice(&header_bytes.to_le_bytes());
         wire.extend_from_slice(&header);
         wire.extend_from_slice(&bytes);
         Ok(wire)

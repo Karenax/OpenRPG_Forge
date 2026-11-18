@@ -290,7 +290,7 @@ fn command_for_state(
                 .into_owned(),
         );
     }
-    let mut command = Command::new(executable);
+    let mut command = Command::new(manifest::executable_path(&executable)?.as_os_str());
     command.current_dir(&app_root);
     for (key, _) in std::env::vars_os() {
         if key.to_str().is_some_and(|key| {

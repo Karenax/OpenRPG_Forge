@@ -15,6 +15,8 @@ use bevy::{
 };
 use mesh::{DATA, TINT};
 pub mod capture;
+#[cfg(feature = "physics-rapier")]
+pub mod debris_collisions;
 mod flare_sun;
 pub mod geometry;
 pub mod mesh;
@@ -22,8 +24,23 @@ pub mod nature;
 #[cfg(feature = "physics-rapier")]
 pub mod objects;
 pub mod package;
+pub mod pebble_cells;
+pub mod pebble_material;
+pub mod pebble_scene;
 pub mod receivers;
+pub mod scanned_draws;
+#[cfg(feature = "physics-rapier")]
+pub mod scanned_host;
+pub mod scanned_images;
+pub mod scanned_material;
+#[cfg(feature = "physics-rapier")]
+pub mod scanned_meshes;
+#[cfg(feature = "physics-rapier")]
+pub mod scanned_scene;
+#[cfg(feature = "physics-rapier")]
+pub mod scanned_shadow;
 pub mod scene;
+pub mod stall_assets;
 pub mod stall_material;
 pub mod stall_programs;
 pub mod stall_scene;

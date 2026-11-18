@@ -250,6 +250,7 @@ impl PreparedNativeGameplay {
             app.insert_resource(observations).add_systems(
                 FixedUpdate,
                 observations::record
+                    .run_if(observations::record_frames)
                     .after(process_commands)
                     .after(crate::PlayerControllerSet::Camera),
             );

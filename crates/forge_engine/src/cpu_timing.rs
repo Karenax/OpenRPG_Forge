@@ -1,4 +1,6 @@
 //! Opt-in native CPU timings. No sampling, source-check bypass or GPU-time claim.
+pub mod main_phases;
+
 #[cfg(not(target_arch = "wasm32"))]
 mod native {
     use std::{

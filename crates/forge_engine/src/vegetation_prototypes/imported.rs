@@ -689,13 +689,13 @@ impl ImportedTreePresentation {
                             .get_resource::<bevy::diagnostic::FrameCount>()
                             .is_some_and(|stamp| stamp.0 >= frame.max(required))
                 } else {
-                    crate::render_inventory::acquire_scoped(
+                    crate::render_inventory::scoped_covers_frame(
                         world,
                         self.owner,
                         self.identity,
                         self.generation,
+                        frame.max(required),
                     )
-                    .is_some_and(|token| token.covers_frame(world, frame.max(required)))
                 }
         })
     }

@@ -65,6 +65,18 @@ fn angle(a: [f64; 3], b: [f64; 3]) -> f64 {
     let dot = a.into_iter().zip(b).map(|(a, b)| a * b).sum::<f64>();
     (dot / (length_a * length_b).sqrt()).clamp(-1.0, 1.0).acos()
 }
+
+pub(super) fn validate_input(dt: f64, sun: [f64; 3]) -> Result<(), String> {
+    if !dt.is_finite()
+        || dt < 0.0
+        || sun.iter().any(|v| !v.is_finite())
+        || (sun.iter().map(|v| v * v).sum::<f64>() - 1.0).abs() > 0.001
+    {
+        return Err("Invalid environment refresh input".into());
+    }
+    Ok(())
+}
+
 impl Controller {
     #[must_use]
     pub const fn front(&self) -> u8 {
@@ -75,13 +87,7 @@ impl Controller {
     /// one step per frame. Mips contains two dispatches; publication is separate.
     /// Planning does not mutate the live controller or acknowledge GPU completion.
     pub fn plan(&self, dt: f64, sun: [f64; 3], force: bool) -> Result<Planned, String> {
-        if !dt.is_finite()
-            || dt < 0.0
-            || sun.iter().any(|v| !v.is_finite())
-            || (sun.iter().map(|v| v * v).sum::<f64>() - 1.0).abs() > 0.001
-        {
-            return Err("Invalid environment refresh input".into());
-        }
+        validate_input(dt, sun)?;
         let mut next = self.clone();
         next.revision = self
             .revision

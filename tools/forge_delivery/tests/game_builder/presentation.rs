@@ -100,6 +100,17 @@ fn presentation_is_pinned_licensed_installed_and_projected_without_source_paths(
     )
     .unwrap();
     assert_eq!(candidate.rights, Rights::PrivateLocalOnly);
+    let redistributable = redistributable_application(
+        fixture.root(),
+        &candidate.directory.join(candidate.application_file),
+    );
+    let (_, revision) = archive::inspect(&redistributable).unwrap();
+    let public_source = fixture.root().join("public-presentation");
+    archive::extract(&redistributable, &public_source, &revision).unwrap();
+    assert!(matches!(
+        standalone::VerifiedGameApplication::read(&public_source, &revision),
+        Err(error) if error.contains("redistribution") && error.contains("not explicitly allowed")
+    ));
     let installed = fixture.installation("presentation");
     let prepared = prepare_candidate_install(
         &candidate.directory,

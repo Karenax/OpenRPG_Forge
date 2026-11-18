@@ -599,10 +599,12 @@ impl ResidentTiles {
         if representative.is_some() && representative != self.root_key {
             if let Some(old) = self.root_key.and_then(|k| self.tiles.get_mut(&k)) {
                 old.entity = None;
+                self.entities.remove(&root);
             }
             if let Some(tile) = representative.and_then(|k| self.tiles.get_mut(&k))
                 && let Some(entity) = tile.entity.take()
             {
+                self.entities.remove(&entity);
                 world.despawn(entity);
             }
             self.root_key = representative;
@@ -632,7 +634,7 @@ impl ResidentTiles {
                 }
                 root
             } else {
-                *tile.entity.get_or_insert_with(|| {
+                tile.entity.unwrap_or_else(|| {
                     world
                         .spawn((
                             Mesh3d(tile.mesh.clone()),
@@ -646,7 +648,10 @@ impl ResidentTiles {
                         .id()
                 })
             };
-            tile.entity = Some(entity);
+            if tile.entity != Some(entity) {
+                tile.entity = Some(entity);
+                self.entities.insert(entity, k);
+            }
             if world
                 .get::<MeshMaterial3d<M>>(entity)
                 .is_none_or(|binding| binding.0 != material)
@@ -655,15 +660,19 @@ impl ResidentTiles {
                     .entity_mut(entity)
                     .insert(MeshMaterial3d(material.clone()));
             }
-            if let Some(consumer) = consumer
-                && world.get::<crate::source_surface::capture::CaptureConsumer>(entity)
-                    != Some(&consumer)
-            {
-                world.entity_mut(entity).insert(consumer);
-            } else if consumer.is_none() && entity != root {
-                world
-                    .entity_mut(entity)
-                    .remove::<crate::source_surface::capture::CaptureConsumer>();
+            if entity != root {
+                let bound = world
+                    .get::<crate::source_surface::capture::CaptureConsumer>(entity)
+                    .copied();
+                if bound != consumer {
+                    if let Some(consumer) = consumer {
+                        world.entity_mut(entity).insert(consumer);
+                    } else {
+                        world
+                            .entity_mut(entity)
+                            .remove::<crate::source_surface::capture::CaptureConsumer>();
+                    }
+                }
             }
             if world.get::<Visibility>(entity) != Some(&Visibility::Inherited) {
                 world.entity_mut(entity).insert(Visibility::Inherited);
@@ -680,7 +689,7 @@ impl ResidentTiles {
                 world.entity_mut(entity).insert(Visibility::Hidden);
             }
         }
-        if representative.is_none() {
+        if representative.is_none() && world.get::<Visibility>(root) != Some(&Visibility::Hidden) {
             world.entity_mut(root).insert(Visibility::Hidden);
         }
         let excess = self.tiles.len().saturating_sub(active.len().max(256));
@@ -694,16 +703,11 @@ impl ResidentTiles {
             oldest.sort_unstable();
             for (_, k) in oldest.into_iter().take(excess) {
                 if let Some(entity) = self.tiles.remove(&k).and_then(|tile| tile.entity) {
+                    self.entities.remove(&entity);
                     world.despawn(entity);
                 }
             }
         }
-        self.entities.clear();
-        self.entities.extend(
-            self.tiles
-                .iter()
-                .filter_map(|(key, tile)| tile.entity.map(|entity| (entity, *key))),
-        );
     }
 }
 
@@ -942,6 +946,8 @@ mod tests {
             original[1].1
         );
         assert_eq!(tiles.tiles[&key(&node(2))].entity, original[2].2);
+        assert!(tiles.owns(&world, root));
+        assert!(!tiles.entities.contains_key(&original[1].2.unwrap()));
         assert_eq!(tiles.counts(), [3, 4]);
     }
     #[test]
@@ -1045,6 +1051,14 @@ mod tests {
         assert_eq!(tiles.counts(), [300, 300]);
         select(&mut tiles, &mut world, root, &[node(0), node(1)]);
         assert_eq!(tiles.counts(), [2, 256]);
+        assert_eq!(
+            tiles.entities.len(),
+            tiles
+                .tiles
+                .values()
+                .filter(|tile| tile.entity.is_some())
+                .count()
+        );
     }
     #[test]
     fn empty_selection_hides_then_recovers_the_surface() {

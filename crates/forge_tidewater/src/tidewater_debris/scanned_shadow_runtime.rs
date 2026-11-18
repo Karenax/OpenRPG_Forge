@@ -1,83 +1,25 @@
-//! Ephemeral scanned casters submitted to the existing three-cascade graph.
-use super::{scanned_draws, scanned_meshes::PreparedMeshes, scanned_placements::SourcePlacements};
-use bevy::{
-    mesh::{Indices, VertexAttributeValues},
-    prelude::*,
-};
-use forge_engine::source_shadows::casters::textured::{MeshBytes, Pose};
+//! Tidewater asset bindings for the common scanned shadow renderer.
+use super::{scanned_draws, scanned_placements::SourcePlacements};
+use forge_engine::source_shadows::casters::textured::Pose;
 use forge_project::zone_authoring::placements::ManualPlacement;
 
-/// Retain only the four acquired near prototypes; share their buffers between owners.
-/// # Errors
-/// Refuses missing positions/indices or incomplete near-LOD inventory.
-pub fn geometry(prepared: &PreparedMeshes) -> Result<Vec<MeshBytes>, String> {
-    let mut near: Vec<_> = prepared.prototypes.iter().filter(|p| p.lod == 0).collect();
-    near.sort_by_key(|p| p.asset);
-    if near.len() != 4
-        || near
-            .iter()
-            .enumerate()
-            .any(|(i, p)| usize::from(p.asset) != i)
-    {
-        return Err("Scanned near caster inventory differs".into());
-    }
-    near.into_iter()
-        .map(|prototype| {
-            let Some(VertexAttributeValues::Float32x3(positions)) =
-                prototype.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
-            else {
-                return Err("Scanned caster positions absent".into());
-            };
-            let Some(Indices::U32(indices)) = prototype.mesh.indices() else {
-                return Err("Scanned caster indices absent".into());
-            };
-            Ok(MeshBytes {
-                vertices: positions
-                    .iter()
-                    .flatten()
-                    .flat_map(|v| v.to_le_bytes())
-                    .collect(),
-                indices: indices.iter().flat_map(|v| v.to_le_bytes()).collect(),
-            })
-        })
-        .collect()
-}
+pub use forge_engine::source_surface::scanned_shadow::geometry;
 
-/// Keep an entry per accepted placement, enabling only the source's near-LOD draws.
+/// Derive caster poses from the authored placements and their Tidewater asset ordinals.
+///
 /// # Errors
-/// Refuses absent source variations or malformed per-draw storage references.
+/// Propagates the shared renderer's validation of variations and storage tags.
 pub fn poses(
     source: &SourcePlacements,
     placements: &[ManualPlacement],
     frame: &scanned_draws::Frame,
 ) -> Result<Vec<Pose>, String> {
-    placements
-        .iter()
-        .map(|placement| {
-            let owner = source
-                .definitions
-                .get(&placement.asset_id)
-                .ok_or("Scanned caster variation absent")?;
-            let draw = frame
-                .draws
-                .iter()
-                .find(|d| d.placement_id == placement.id && d.lod == 0);
-            let data = if let Some(draw) = draw {
-                *frame
-                    .records
-                    .get(usize::try_from(draw.tag).map_err(|e| e.to_string())?)
-                    .ok_or("Scanned caster tag out of bounds")?
-            } else {
-                [f32::from(owner.source.asset), 0.0, 1.0, 1.0]
-            };
-            Ok(Pose {
-                asset: owner.source.asset,
-                model: forge_engine::domain_transform_to_bevy(placement.transform).to_matrix(),
-                data,
-                enabled: draw.is_some(),
-            })
-        })
-        .collect()
+    forge_engine::source_surface::scanned_shadow::poses(placements, frame, |asset| {
+        source
+            .definitions
+            .get(&asset)
+            .map(|owner| owner.source.asset)
+    })
 }
 
 #[cfg(test)]

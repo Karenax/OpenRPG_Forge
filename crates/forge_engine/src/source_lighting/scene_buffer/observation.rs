@@ -9,11 +9,13 @@ use bevy::{
     },
 };
 
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Sample {
     pub readback_bytes: usize,
     pub payload_sha256: forge_core::ContentHash,
     pub direction_color_sh_vec4: [[f32; 4]; 11],
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub received_frame: Option<u32>,
 }
 
 #[derive(Resource, Default)]
@@ -71,8 +73,15 @@ pub fn observe_while_held(world: &mut World, held: bool) -> Result<(), String> {
     clippy::needless_pass_by_value,
     reason = "Bevy readback observer parameters"
 )]
-fn receive(event: On<ReadbackComplete>, mut observation: ResMut<GpuObservation>) {
-    observation.0 = decode(&event.data);
+fn receive(
+    event: On<ReadbackComplete>,
+    frame: Option<Res<bevy::diagnostic::FrameCount>>,
+    mut observation: ResMut<GpuObservation>,
+) {
+    observation.0 = decode(&event.data).map(|mut sample| {
+        sample.received_frame = frame.as_deref().map(|frame| frame.0);
+        sample
+    });
 }
 
 fn decode(bytes: &[u8]) -> Option<Sample> {
@@ -91,6 +100,7 @@ fn decode(bytes: &[u8]) -> Option<Sample> {
             readback_bytes: bytes.len(),
             payload_sha256: forge_core::bytes_sha256(payload),
             direction_color_sh_vec4: values,
+            received_frame: None,
         })
 }
 

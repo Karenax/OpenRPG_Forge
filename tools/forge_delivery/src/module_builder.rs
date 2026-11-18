@@ -229,7 +229,14 @@ fn prepare(
     };
     companions::supply_lights(origin.as_ref(), &zone, &mut payloads)?;
     orpmod::validate_module_catalog(catalog, publishing)?;
-    validate_models(head, catalog, companions.objects.as_ref(), &companions.fish)?;
+    validate_models(
+        head,
+        catalog,
+        companions.objects.as_ref(),
+        &companions.fish,
+        companions.scanned_debris.as_ref(),
+        companions.source_stall.as_ref(),
+    )?;
     let light_packages = lights::prepare(&zone, &payloads)?;
     let placement_packages = placement_companions::prepare(&zone, &payloads)?;
     let has_placement_packages = !placement_packages.is_empty();
@@ -312,6 +319,8 @@ fn prepare(
         placement_companions: placement_packages,
         environments: companions.environment.iter().cloned().collect(),
         objects: companions.objects.iter().cloned().collect(),
+        scanned_debris: companions.scanned_debris.iter().cloned().collect(),
+        source_stalls: companions.source_stall.iter().cloned().collect(),
         fish_profiles: companions.fish.clone(),
         vegetation: companions.vegetation.iter().cloned().collect(),
         creator: None,
@@ -479,6 +488,8 @@ fn validate_models(
     catalog: &GovernedImportCatalog,
     objects: Option<&ModuleObjectBinding>,
     fish: &[ModuleFishBinding],
+    scanned_debris: Option<&ModuleScannedDebrisBinding>,
+    source_stall: Option<&ModuleSourceStallBinding>,
 ) -> Result<()> {
     let require = |id, pin| {
         if catalog.assets.iter().any(|asset| {
@@ -502,6 +513,17 @@ fn validate_models(
             ModuleObjectSource::SourceSurfaces { assets, .. } => assets
                 .iter()
                 .any(|asset| asset.asset_id == p.asset_id && asset.sha256 == p.asset_hash),
+        }) {
+            return Ok(());
+        }
+        if scanned_debris.is_some_and(|binding| {
+            binding.package.manifest.sha256 == p.asset_hash
+                && binding.assets.binary_search(&p.asset_id).is_ok()
+        }) {
+            return Ok(());
+        }
+        if source_stall.is_some_and(|binding| {
+            binding.asset_id == p.asset_id && binding.package.manifest.sha256 == p.asset_hash
         }) {
             return Ok(());
         }

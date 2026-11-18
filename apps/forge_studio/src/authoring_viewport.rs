@@ -254,6 +254,11 @@ pub(super) fn observe(
         }
         return;
     }
+    if super::web::browser_gpu().is_err() {
+        super::authoring_loading::finish();
+        report("Vue 3D indisponible. Ouvrez le Studio dans un environnement compatible WebGPU pour afficher la carte.".into());
+        return;
+    }
     if document.sampled_source.is_some() {
         super::authoring_loading::begin("Préparation du terrain, des modèles et des textures…");
         let resources = match crate::authoring_assets::imported_buildings::ensure_for_projection(

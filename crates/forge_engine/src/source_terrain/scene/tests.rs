@@ -94,7 +94,11 @@ fn data_only_reference_profile_prepares_real_scene_and_other_domains_fail_closed
     let (plan, heights) = sampled_plan([2048, 2048], 1.0, -90.0);
     let geometry = lod::ViewGeometry::new(&plan).unwrap();
     let prepared =
-        PreparedTerrain::for_host(&plan, &heights, &package, &geometry, Some(0.0)).unwrap();
+        PreparedTerrain::for_host(&plan, &heights, &package, &geometry, Some(0.0), false).unwrap();
+    assert!(
+        matches!(&prepared.fragment.source, bevy::shader::Source::Wgsl(code)
+        if !code.contains("fn sourceLocalLights(") && code.contains("fn terrainUnderwaterDirect("))
+    );
     assert!(prepared.geometry.is_some());
     assert_eq!(prepared.normal.len(), 22_369_620);
     assert!(!prepared.edited);
@@ -123,7 +127,12 @@ fn rectangular_scene_preparation_keeps_matching_domain_edits_and_normal_dimensio
     let plan = SampledTerrainPlan::from_document(&document, &heights).unwrap();
     let package = rectangular_package([11, 19], 0.5, -12.0);
     let geometry = lod::ViewGeometry::new(&plan).unwrap();
-    let prepared = PreparedTerrain::for_host(&plan, &heights, &package, &geometry, None).unwrap();
+    let prepared =
+        PreparedTerrain::for_host(&plan, &heights, &package, &geometry, None, true).unwrap();
+    assert!(
+        matches!(&prepared.fragment.source, bevy::shader::Source::Wgsl(code)
+        if code.contains("fn sourceLocalLights("))
+    );
     assert_eq!(prepared.normal_dimensions, [11, 19]);
     assert_eq!(prepared.normal.len(), 1_060); // 11x19, 5x9, 2x4, 1x2, 1x1 RGBA.
     assert!(prepared.edited);
@@ -134,6 +143,7 @@ fn rectangular_scene_preparation_keeps_matching_domain_edits_and_normal_dimensio
             &rectangular_package([11, 19], 0.5, -90.0),
             None,
             None,
+            true,
         )
         .is_err()
     );
@@ -143,10 +153,11 @@ fn rectangular_scene_preparation_keeps_matching_domain_edits_and_normal_dimensio
             &rectangular_package([11, 19], 1.0, -12.0),
             None,
             None,
+            true,
         )
         .is_err()
     );
-    assert!(PreparedTerrain::with_geometry(&plan, &package, None, Some(f64::NAN)).is_err());
+    assert!(PreparedTerrain::with_geometry(&plan, &package, None, Some(f64::NAN), true).is_err());
 
     // This exercises CPU staging and asset ownership, without claiming a GPU render.
     let mut world = World::new();
@@ -176,6 +187,7 @@ fn rectangular_scene_preparation_keeps_matching_domain_edits_and_normal_dimensio
         },
     };
     let resident = prepared.stage(&mut world, bindings.clone()).unwrap();
+    assert!(world.contains_resource::<CdlodReceivesSourceSun>());
     let images = world.resource::<Assets<Image>>();
     let normal = images.get(&resident.normals.image).unwrap();
     assert_eq!([normal.width(), normal.height()], [11, 19]);
@@ -209,8 +221,9 @@ fn rectangular_scene_preparation_keeps_matching_domain_edits_and_normal_dimensio
 
     let mut invalid = bindings;
     invalid.environment = bevy::asset::uuid_handle!("2ad336a7-c709-4e75-9f35-2cfbca140249");
-    let rejected = PreparedTerrain::with_geometry(&plan, &package, None, None).unwrap();
+    let rejected = PreparedTerrain::with_geometry(&plan, &package, None, None, true).unwrap();
     assert!(rejected.stage(&mut world, invalid).is_err());
+    assert!(world.contains_resource::<CdlodReceivesSourceSun>());
     assert_eq!(world.resource::<ResidentTerrain>().entity, resident.entity);
 }
 

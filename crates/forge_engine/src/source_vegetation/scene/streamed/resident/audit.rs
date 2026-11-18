@@ -1,9 +1,15 @@
 //! Incremental CPU identity audit; GPU fences are still acquired on every ready call.
-use super::{Resident, SourceMaterial, StreamedPlantPart};
+use super::{PlantShadowBounds, Resident, SourceMaterial, StreamedPlantPart};
 use crate::source_vegetation::scene::ImportedPlant;
 use bevy::{
-    camera::visibility::NoFrustumCulling, ecs::query::QueryState, light::NotShadowCaster,
-    mesh::MeshTag, prelude::*,
+    camera::{
+        primitives::Aabb,
+        visibility::{NoAutoAabb, NoFrustumCulling},
+    },
+    ecs::query::QueryState,
+    light::NotShadowCaster,
+    mesh::MeshTag,
+    prelude::*,
 };
 
 // Required and forbidden components make removals/archetype moves observable
@@ -16,7 +22,10 @@ type Shape<M> = (
     With<MeshTag>,
     With<Transform>,
     With<Visibility>,
-    With<NoFrustumCulling>,
+    Or<(
+        With<NoFrustumCulling>,
+        (With<PlantShadowBounds>, With<Aabb>, With<NoAutoAabb>),
+    )>,
     With<StreamedPlantPart>,
     Without<ChildOf>,
 );
@@ -30,6 +39,9 @@ type Changes<M> = Or<(
     Changed<StreamedPlantPart>,
     Changed<ChildOf>,
     Changed<NoFrustumCulling>,
+    Changed<PlantShadowBounds>,
+    Changed<Aabb>,
+    Changed<NoAutoAabb>,
     Changed<NotShadowCaster>,
 )>;
 
@@ -44,14 +56,18 @@ pub(super) struct Audit<M: SourceMaterial> {
 
 impl<M: SourceMaterial> Audit<M> {
     pub(super) fn new(world: &mut World) -> Self {
+        let marker = world.register_component::<ImportedPlant>();
         let removed = [
-            world.register_component::<ImportedPlant>(),
+            marker,
             world.register_component::<Mesh3d>(),
             world.register_component::<MeshMaterial3d<M>>(),
             world.register_component::<MeshTag>(),
             world.register_component::<Transform>(),
             world.register_component::<Visibility>(),
             world.register_component::<NoFrustumCulling>(),
+            world.register_component::<PlantShadowBounds>(),
+            world.register_component::<Aabb>(),
+            world.register_component::<NoAutoAabb>(),
             world.register_component::<StreamedPlantPart>(),
             world.register_component::<ChildOf>(),
             world.register_component::<NotShadowCaster>(),
@@ -60,7 +76,7 @@ impl<M: SourceMaterial> Audit<M> {
             shadowed: world.query_filtered(),
             unshadowed: world.query_filtered(),
             changes: world.query_filtered(),
-            guard: crate::render_inventory::audit::Guard::new(removed),
+            guard: crate::render_inventory::audit::Guard::new(marker, removed),
             #[cfg(test)]
             complete_audits: 0,
         }

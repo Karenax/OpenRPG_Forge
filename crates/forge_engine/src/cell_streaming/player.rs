@@ -1,7 +1,7 @@
 //! Opt-in ownership of a single default Rapier pipeline and player terrain readiness.
 //! Keep all active body envelopes resident; never freeze only the visible player
 //! while distant dynamics continue over evicted ground. No authored state is changed.
-use super::{CellStreamingObserver, CellStreamingProtection, CellStreamingStats, State, requested};
+use super::{CellStreamingObserver, CellStreamingProtection, CellStreamingStats, State};
 use crate::{ForgePlayerCharacter, PlayerControllerSet, PlayerSimulationReady};
 use bevy::{ecs::change_detection::Tick, prelude::*};
 use bevy_rapier3d::prelude::{
@@ -28,6 +28,7 @@ pub enum PlayerCellStreamingSet {
 #[derive(Resource, Clone, Debug, Default, Serialize)]
 pub struct PlayerCellStreamingStatus {
     pub ready: bool,
+    pub hold_reason: Option<&'static str>,
     pub protected_cells: usize,
     pub blocked_fixed_ticks: u64,
     pub error: Option<String>,
@@ -66,8 +67,11 @@ impl Plugin for PlayerCellStreamingPlugin {
 }
 
 fn guard(world: &mut World) {
-    let result = refresh(world);
-    let ready = result.as_ref().is_ok_and(|&value| value);
+    let (hold_reason, error) = match refresh(world) {
+        Ok(hold_reason) => (hold_reason, None),
+        Err(error) => (Some("terrain_projection_error"), Some(error)),
+    };
+    let ready = hold_reason.is_none();
     // SyncBackend still admits the new static colliders while simulation is held.
     // Nothing advances until the next guard observes their actual backend shapes.
     for mut config in world.query::<&mut RapierConfiguration>().iter_mut(world) {
@@ -76,7 +80,6 @@ fn guard(world: &mut World) {
     world.resource_mut::<PlayerSimulationReady>().0 = ready;
     let count = world.resource::<CellStreamingProtection>().cells.len();
     let mut status = world.resource_mut::<PlayerCellStreamingStatus>();
-    let error = result.err();
     if status.error != error
         && let Some(message) = &error
     {
@@ -84,6 +87,7 @@ fn guard(world: &mut World) {
     }
     status.error = error;
     status.ready = ready;
+    status.hold_reason = hold_reason;
     status.protected_cells = count;
     if !status.ready {
         status.blocked_fixed_ticks = status.blocked_fixed_ticks.saturating_add(1);
@@ -110,8 +114,8 @@ fn enforce(world: &mut World) {
                 .translation
                 .is_some_and(|v| !v.is_finite() || v.x.hypot(v.z) > margin)
         });
-    let projected_ready = refresh(world).is_ok_and(|value| value);
-    if host_ready && projected_ready && !invalid {
+    let projection_hold = refresh(world).unwrap_or(Some("terrain_projection_error"));
+    if host_ready && projection_hold.is_none() && !invalid {
         return;
     }
     hold_player_simulation(world);
@@ -120,6 +124,14 @@ fn enforce(world: &mut World) {
         status.blocked_fixed_ticks = status.blocked_fixed_ticks.saturating_add(1);
     }
     status.ready = false;
+    status.hold_reason = Some(if invalid {
+        "character_motion_envelope"
+    } else {
+        status
+            .hold_reason
+            .or(projection_hold)
+            .unwrap_or("host_simulation")
+    });
     if invalid {
         status.error = Some("Character motion exceeds the protected fixed-step envelope".into());
     }
@@ -236,7 +248,8 @@ impl TemporarySimulationHold {
     }
 }
 
-fn refresh(world: &mut World) -> Result<bool, String> {
+// None admits the fixed step. Some identifies which check is still waiting.
+fn refresh(world: &mut World) -> Result<Option<&'static str>, String> {
     let contexts: Vec<_> = world
         .query_filtered::<Entity, With<RapierConfiguration>>()
         .iter(world)
@@ -254,7 +267,7 @@ fn refresh(world: &mut World) -> Result<bool, String> {
     }
     let policy = world.resource::<State>().policy.clone();
     if !boundary::ready(world, &policy)? {
-        return Ok(false);
+        return Ok(Some("map_boundary_backend"));
     }
     let players: Vec<_> = world
         .query_filtered::<Entity, With<ForgePlayerCharacter>>()
@@ -280,26 +293,45 @@ fn refresh(world: &mut World) -> Result<bool, String> {
     world.resource_mut::<CellStreamingObserver>().position_xz_m = position;
     world.resource_mut::<CellStreamingProtection>().cells = protected;
     let state = world.resource::<State>();
-    // Planning validates counts and both byte budgets before any pipeline can advance.
-    let plan = state
-        .stream
-        .prepare_with_protected_cells(position, &world.resource::<CellStreamingProtection>().cells)
-        .map_err(|error| error.to_string())?;
-    let current = requested(world, state)?;
+    let request = super::requested(world, state)?;
     // A failed asynchronous job may have recorded its request without admitting
-    // its payload. Never infer readiness from that request identity alone.
+    // its payload. Keep physics held until the explicit retry verifies it.
     if let Some(error) = &world.resource::<CellStreamingStats>().last_error {
         return Err(format!("Streamed terrain request failed: {error}"));
     }
-    if state.pending.is_some() || state.last_request.as_ref() != Some(&current) {
-        return Ok(false);
+    if state.pending.is_some() {
+        return Ok(Some("terrain_preparation"));
     }
-    if state.requested_source.is_some()
-        || !plan.acquisitions().is_empty()
-        || !plan.retirements().is_empty()
-    {
-        return Ok(false);
+    if state.last_request.is_none() {
+        return Ok(Some("initial_terrain_admission"));
     }
+    if state.requested_source.is_some() {
+        return Ok(Some("terrain_source_change"));
+    }
+    // The two fixed-step guards and Update can share the plan for this exact
+    // request. Update consumes it before it can change the resident set.
+    if !state.last_request_admitted || state.last_request.as_ref() != Some(&request) {
+        let mut state = world.resource_mut::<State>();
+        if state
+            .prepared_plan
+            .as_ref()
+            .is_none_or(|(planned, _)| planned != &request)
+        {
+            let plan = state
+                .stream
+                .prepare_with_protected_cells(position, &request.protected)
+                .map_err(|error| error.to_string())?;
+            state.prepared_plan = Some((request, plan));
+        }
+        let (_, plan) = state.prepared_plan.as_ref().expect("current terrain plan");
+        if !plan.acquisitions().is_empty() || !plan.retirements().is_empty() {
+            return Ok(Some("terrain_resident_cell_change"));
+        }
+    }
+    // A changed body envelope can request the same resident cells. The plan
+    // already validates the coverage and budgets, and the live colliders below
+    // prove it is safe to advance before Update records that request.
+    let state = world.resource::<State>();
     for (key, cell) in state.stream.resident() {
         let live = state
             .live
@@ -315,10 +347,10 @@ fn refresh(world: &mut World) -> Result<bool, String> {
             .collider_entity
             .ok_or("Full streamed terrain collider is absent")?;
         if !crate::physics::static_collider_ready(world, collider_entity) {
-            return Ok(false);
+            return Ok(Some("terrain_collider_backend"));
         }
     }
-    Ok(true)
+    Ok(None)
 }
 
 fn body_coverage(world: &mut World, policy: &CellStreamingPolicy) -> Result<Vec<CellKey>, String> {

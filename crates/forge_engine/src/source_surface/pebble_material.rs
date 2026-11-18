@@ -1,12 +1,12 @@
 //! Pebble surface on the shared Village lighting receiver and existing Bevy device.
 //! Shader bodies originate from Tidewater 1438b1ab; scene maps remain runtime-owned.
+use super::SourceSurfaceMaterial;
 use bevy::{
     pbr::{ExtendedMaterial, MaterialExtension},
     prelude::*,
     render::{render_resource::AsBindGroup, storage::ShaderBuffer},
     shader::ShaderRef,
 };
-use forge_engine::source_surface::SourceSurfaceMaterial;
 
 pub const SHADER: Handle<Shader> =
     bevy::asset::uuid_handle!("e5ff54d0-0b27-4cee-9ce6-391dfef8ce70");
@@ -113,7 +113,7 @@ pub fn shader_source(source: &str) -> Result<String, String> {
             return Err("Pebble shader interface differs".into());
         }
     }
-    forge_engine::source_surface::receivers::scene_shader_source(source)
+    super::receivers::scene_shader_source(source)
 }
 
 /// Install only a verified caller-supplied program in an existing renderer.
@@ -122,7 +122,7 @@ pub fn shader_source(source: &str) -> Result<String, String> {
 /// Returns interface/resource errors without an `AssetServer` fixture fallback.
 pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
     let source = shader_source(source)?;
-    forge_engine::source_surface::receivers::install_scene_receivers(world)?;
+    super::receivers::install_scene_receivers(world)?;
     world
         .get_resource_mut::<Assets<Shader>>()
         .ok_or("Pebble shader assets unavailable")?

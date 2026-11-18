@@ -1,5 +1,8 @@
-//! Native package bytes go through the same bounded binary IPC as asset imports.
+//! Read the selected file in bounded slices before native module admission.
 use super::Creation;
+use crate::module_import_protocol::{
+    CHUNK_BYTES, Control, OFFSET_HEADER, UPLOAD_HEADER, size_error,
+};
 use forge_project::{
     authoring::workspace::WorkspaceHostState, workspace::MAX_MODULE_ORIGIN_PACKAGE_BYTES,
 };
@@ -25,7 +28,7 @@ pub(super) fn ModuleImportControls(controls: Creation, blocked: Signal<bool>) ->
             return;
         }
         if file.size() == 0.0 || file.size() > MAX_MODULE_ORIGIN_PACKAGE_BYTES as f64 {
-            error.set("Choisissez un fichier .orpmod de 256 Mio maximum.".into());
+            error.set(size_error());
             return;
         }
         controls.busy.set(true);
@@ -70,11 +73,53 @@ pub(super) fn ModuleImportControls(controls: Creation, blocked: Signal<bool>) ->
     }
 }
 
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "The file picker checks the exact byte length against the bounded import size."
+)]
 async fn import_file(file: web_sys::File) -> Result<WorkspaceHostState, String> {
-    let buffer = wasm_bindgen_futures::JsFuture::from(file.array_buffer())
-        .await
-        .map_err(|_| "Impossible de lire le fichier sélectionné.")?;
-    let bytes = js_sys::Uint8Array::new(&buffer);
-    let result = crate::web::invoke_tauri_raw("import_module_package", bytes.as_ref()).await?;
+    let length = file.size() as u32;
+    let upload =
+        serde_wasm_bindgen::from_value(send_control(Control::Start { bytes: length }).await?)
+            .map_err(|error| error.to_string())?;
+    let result = upload_file(&file, length, upload).await;
+    if result.is_err() {
+        let _ = send_control(Control::Cancel { upload }).await;
+    }
+    result
+}
+
+async fn upload_file(
+    file: &web_sys::File,
+    length: u32,
+    upload: u32,
+) -> Result<WorkspaceHostState, String> {
+    let token = upload.to_string();
+    for offset in (0..length).step_by(CHUNK_BYTES) {
+        let end = length.min(offset + CHUNK_BYTES as u32);
+        let slice = file
+            .slice_with_f64_and_f64(f64::from(offset), f64::from(end))
+            .map_err(|_| "Impossible de lire le fichier sélectionné.")?;
+        let buffer = wasm_bindgen_futures::JsFuture::from(slice.array_buffer())
+            .await
+            .map_err(|_| "Impossible de lire le fichier sélectionné.")?;
+        let bytes = js_sys::Uint8Array::new(&buffer);
+        crate::web::invoke_tauri_with_headers(
+            "import_module_package",
+            bytes.as_ref(),
+            &[
+                (UPLOAD_HEADER, &token),
+                (OFFSET_HEADER, &offset.to_string()),
+            ],
+        )
+        .await?;
+    }
+    let result = send_control(Control::Finish { upload }).await?;
     serde_wasm_bindgen::from_value(result).map_err(|error| error.to_string())
+}
+
+async fn send_control(control: Control) -> Result<wasm_bindgen::JsValue, String> {
+    let control = serde_wasm_bindgen::to_value(&control).map_err(|error| error.to_string())?;
+    crate::web::invoke_tauri_raw("import_module_package", &control).await
 }

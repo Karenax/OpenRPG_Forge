@@ -4,9 +4,68 @@ Ouverture propriétaire : 23 octobre 2026. Objectif : clôture sur preuves.
 Autorités : `PROJECT_CONTEXT.md`, `MIGRATION_ROADMAP.md`, `AGENTS.md`, ADR-0034.
 Checkout commun : `E:/OpenRPG_Forge/OpenRPG_Forge-Rust`, branche `Rust`.
 
-État au 7 novembre : **R7-01 à R7-06 qualifiés localement sous Windows**.
-Le 049 privé couvre les volets Windows de R7-07, R7-09 et R7-10. Leurs
-volets Linux et R7-08 restent ouverts. Voir l'[état courant](../HANDOFF.md#gate-7-etat-courant)
+**Clôture locale le 18 novembre 2026.** Le propriétaire valide la clôture
+avec les preuves Windows acquises et reporte Linux et le rejeu du 063 sur
+Windows propre. Voir le [rapport de clôture](../evidence/gate7/GATE7_CLOSURE_20261118.md).
+Le plan et les réserves datées ci-dessous conservent la portée de chaque essai.
+Les candidats privés 049 et 050 couvrent les parcours sur Windows propre.
+Le Studio 057 installé sur l'hôte importe le module de débris scannés,
+exporte le jeu et reprend sa sauvegarde via le launcher livré. Le 058
+couvre ce parcours sur Tidewater solaire. Le cycle natif Studio
+057 → 058 → 057 a préservé les trois fichiers auteur contrôlés.
+Le [Studio 060](../HANDOFF.md#gate-7-studio-060-export-grand-plateau)
+s’installe sur Windows sans SDK avec WebView2 Fixed Version géré et
+exporte Le Grand Plateau avec le kit Windows revu pour redistribution.
+Un [second invité](../HANDOFF.md#gate-7-joueur-060-grand-plateau) sans SDK
+ni Studio installe le jeu, lance et reprend une partie sur la Radeon
+RX 7800 XT, puis désinstalle le jeu avec sa sauvegarde intacte. Les cycles
+natifs 059 → 060 → 059 préservent les fichiers auteur et la sauvegarde.
+La [désinstallation native du Studio 060](../HANDOFF.md#gate-7-studio-060-desinstallation)
+conserve le workspace de qualification et les quatre fichiers de son export.
+La [relecture des licences](../HANDOFF.md#gate-7-windows-060-licences-chaine)
+relie le kit et le jeu livré. Le [Setup 060](../HANDOFF.md#gate-7-studio-060-evergreen-ltsc)
+s’installe, vérifie son paquet et ouvre le Studio sur Windows LTSC sans
+SDK avec Evergreen enregistré. Le [rejeu auteur sur l’hôte](../HANDOFF.md#gate-7-studio-060-evergreen-hote)
+produit sous Evergreen les quatre fichiers exacts du parcours sur Windows
+propre avec Fixed Version. Les deux VM Windows ont été supprimées sur
+demande du propriétaire.
+Le [candidat Windows 061](../HANDOFF.md#gate-7-studio-061-export-grand-plateau)
+regroupe le Studio, le CLI et le kit avec le moteur mesuré sur Tidewater.
+L’export du Grand Plateau depuis le Studio installé sur l’hôte a passé
+la relecture complète du paquet jeu. Le [parcours joueur 061](../HANDOFF.md#gate-7-joueur-061-grand-plateau)
+vérifie installation, lancement, sauvegarde, reprise et désinstallation
+native dans un profil isolé sur l’hôte.
+Le [candidat Windows 062](../HANDOFF.md#gate-7-windows-062) embarque le runtime
+du comparatif Tidewater à 1080p où les intervalles de plus de 33,33 ms
+passent de 18 à 3. Le Studio mis à jour exporte Le Grand Plateau sous
+Evergreen sur l’hôte. Le jeu installé reprend la sauvegarde du 061 et la
+conserve après désinstallation. Les licences des trois paquets sont
+relues. La preuve sur Windows propre est rattachée au 060.
+Le [runtime après déplacement du tri de navigation](../HANDOFF.md#gate-7-tidewater-navigation-tri-worker)
+atteint les cinq repères du comparatif à 1080p avec zéro intervalle de plus
+de 33,33 ms, contre trois pour le 062 et un pour Tidewater 012. Le résultat
+porte sur ce trajet. Le [candidat Windows 063](../HANDOFF.md#gate-7-windows-063)
+embarque le binaire exact. Sur l’hôte, le Studio mis à jour exporte le
+Grand Plateau, le jeu reprend la sauvegarde 061 et sa désinstallation la
+préserve. Les licences des trois paquets passent la relecture. Le parcours
+sur Windows propre reste rattaché au 060.
+Le [rejeu groupé des quatre profils 062](../HANDOFF.md#gate-7-windows-062-quatre-profils)
+confirme leur application, leur persistance et leur rendu à une même
+pose Tidewater. Les p95 des intervalles moteur vont de 15,19 à 16,39 ms
+à 1080p sur cette pose.
+Le volet Linux est reporté à la demande du propriétaire. Le Studio 011
+a exporté Le Grand Plateau sous Ubuntu sans SDK. Un invité distinct
+a installé le jeu et repris sa sauvegarde sous llvmpipe. La vue 3D
+du Studio reste à qualifier.
+Le kit 055 atteint 15,59 ms en moyenne sur un trajet Tidewater au profil
+Moyen. À 1440p, la variante retenue du moteur commun rend la pose du
+village à 10,20 ms de GPU actif médian, contre 8,16 ms pour le lecteur
+012 en présentation indépendante. Le dernier essai de simplification
+du shader sans peinture a été retiré après mesure. Le [passage sans profilage](../HANDOFF.md#gate-7-tidewater-pose-sans-profilage)
+retrouve la pose attendue et une projection prête. Après fermeture d’une
+session ETW orpheline, la collecte fournit un CSV sur une fenêtre mêlant
+présentation composée et indépendante. La parité de performance et les
+droits des contenus privés restent ouverts. Voir l'[état courant](../HANDOFF.md#gate-7-etat-courant)
 et la [matrice d'acceptation](../evidence/gate7/GATE7_PROGRESS_20261023.md#matrice-dacceptation).
 
 Le 10 novembre, le frontend Web release a été construit avec les deltas
@@ -114,8 +173,7 @@ sans Studio côté joueur, l'isolation des sauvegardes entre deux jeux et le
 cycle d'installation du Studio et du jeu exporté. Voir le
 [suivi des critères](../evidence/gate7/GATE7_PROGRESS_20261023.md).
 Les lots 042, 046 et 047 qualifient la migration et la reprise Windows
-sur des parcours ciblés. Le 048 retire la cible Hub du checkout. Le
-candidat réunifié doit encore couvrir les critères de Gate 7.
+sur des parcours ciblés. Le 048 retire la cible Hub du checkout. Le candidat réunifié 063 est rapproché des critères dans le rapport de clôture.
 
 1. **G7-D1 — Borner la transition sur les entrées courantes.** Inventorier les
    commandes Hub/launcher/Studio, leurs consommateurs, tests, chemins installés,
@@ -177,12 +235,13 @@ candidat réunifié doit encore couvrir les critères de Gate 7.
    ne suffit pas. Rapprocher les dix critères et leurs réserves sans déduire un
    résultat visuel/performance d'un test de contrat, d'un build ou d'un renommage.
    Sortie : mêmes critères Gate 7, preuves finales du nouveau parcours et verdict
-   conservé ouvert tant qu'une exigence manque ; aucune Gate 8 ou publication implicite.
+   soumis au propriétaire. Sa décision du 18 novembre reporte Linux et le rejeu
+   du 063 sur Windows propre. Gate 8 reste planifiée.
 
 ### Rattachement aux critères existants de Gate 7
 
 Cette décision précise le produit à qualifier ; elle ne remplace pas les dix
-critères par une nouvelle liste et n'abaisse aucune exigence. État courant :
+critères par une nouvelle liste. État avant la décision de clôture du 18 novembre :
 R7-03 qualifié localement sous Windows sur son reçu du 27 octobre, R7-01/R7-02/R7-04/R7-05/R7-06 sur les
 rapprochements du 5 novembre ; quatre critères ouverts. Aucun lot D1–D6 ne vaut à
 lui seul clôture d'un critère.
@@ -325,7 +384,13 @@ appariée avec le lecteur historique restent ouverts. Le 10 novembre,
 deux paires en ordre inverse sur le trajet Tidewater ont mesuré
 17,30–17,42 ms avec le runtime 050 contre 22,34–22,71 ms avec le 049
 livré. Le véritable lecteur 012 a aussi été rejoué sur le pilote courant
-dans son scénario fixe et rotatif à 2560 × 1440. Les reçus et leurs
+dans son scénario fixe et rotatif à 2560 × 1440. Le 14 novembre, avec la
+même résolution, le même mode FIFO et les 20 mêmes réglages graphiques,
+le moteur commun mesure 20,86 ms en moyenne en troisième personne et
+21,45 ms en première personne sur une phase immobile, contre 10,42 à
+10,44 ms pour le 012. En première personne, le départ et l'orientation
+coïncident. Le champ vertical historique, la charge de rendu et les
+chemins de mesure restent à rapprocher. Les reçus et leurs
 périmètres figurent dans la [passation](../HANDOFF.md#gate-7-etat-courant).
 
 L'inventaire R7-08
@@ -340,6 +405,11 @@ Tidewater à l'export, avec contrôle du reçu et des données du module.
 Les droits finaux des dérivés et des autres composants livrés restent à
 établir. Le 049 conserve sa réserve historique pour `drain_filter_polyfill`.
 Le 050 a été construit à partir du graphe Web corrigé, qui exclut ce paquet.
+Le terrain et les documents de gameplay originaux du Grand Plateau sont
+autorisés sous CC0-1.0 pour le prochain candidat. La fabrique reproduit le
+module source et Studio 050 a vérifié son aller-retour en mode redistribution
+sur l'hôte Windows. La distribution du jeu complet reste à qualifier pour
+les composants de son kit.
 Le Studio Windows a aussi passé le cycle 042 → 049 → 042 → 049,
 désinstallation et réinstallation du 049. Le contrôle vérifie le
 paquet Studio, son lancement et les 42 fichiers auteur conservés.
@@ -377,6 +447,121 @@ Tidewater. Raccorder les autres effets et le mouvement des objets aux mêmes
 propriétaires, puis vérifier une carte entièrement différente et comparer le
 rendu et les performances aux mêmes réglages. La qualification complète des
 scènes source et de leurs compagnons physiques et particulaires reste à terminer.
+
+Le 15 novembre, le rapprochement des appels confirme que la locomotion
+amphibie et le calcul des stations littorales de la référence utilisent
+déjà `forge_engine`. Deux chemins de débris restent propres au lecteur
+de référence `tidewater_plant_probe` : le champ de galets qui suit la caméra
+et les instances de débris scannés. Le moteur fournit les dérivations de
+shaders temporels et la politique de LOD des scans. La sélection des
+cellules de galets, leur matériau et leur résidence ont rejoint
+`forge_engine::source_surface`. Tidewater réexporte ces modules et fournit
+les données de sa carte. `cargo check` passe pour `tidewater_plant_probe`.
+Reçu `tidewater-pebble-shared-engine-check-20261115.log.receipt.json`,
+SHA-256 `94fa4c902f2507f59ff05cf95c80721b126ca5c8502afd9e27cde57d76487fdd`.
+La préparation des dessins scannés, leur matériau et la gestion de leurs
+instances sont également dans `forge_engine::source_surface`. Les seuils
+de distance, les données de variation et le décodage du paquet restent
+fournis par l'adaptateur Tidewater. Les trois tests de résidence du moteur
+passent avec des maillages synthétiques. Reçu
+`tidewater-scanned-shared-engine-tests-20261115.log.receipt.json`, SHA-256
+`8e26f3e33ac6ac7197a68d8334e933a923db2fc35beed378d6c07194ccbb1e4c`.
+Le lecteur Tidewater compile avec ce raccord. Reçu
+`tidewater-scanned-shared-probe-check-20261115.log.receipt.json`, SHA-256
+`da5960952f1173821e442ce7f0226e869c41b798f9da30b5f34c23e1b4730576`.
+Il reste à raccorder les galets et les scans au lancement d'un jeu exporté,
+puis à exercer ce chemin
+sur un module qui déclare ces entrées.
+Le lanceur historique fournit les répertoires `content/debris` au lecteur.
+Pour le jeu exporté, reprendre la lecture par empreinte du paquet `.orpmod`
+utilisée pour les objets et les poissons. Le lecteur des ressources
+scannées est maintenant dans `forge_assets::source_scanned_package`. Il
+vérifie l'empreinte admise par l'appelant, les descripteurs, les tailles
+et les empreintes de chaque fichier. Le format source existant est
+conservé et l'adaptateur Tidewater utilise la même empreinte historique.
+Les quatre tests autonomes du lecteur et de son adaptateur passent.
+Quatre replays avec fichiers acquis sont ignorés. Reçu
+`tidewater-scanned-package-common-reader-20261115.log.receipt.json`, SHA-256
+`abfd09597ea0953fa533b680b681d1031435b613c0d6a8dc5c78f1d70a2ba588`.
+Le décodage des prototypes et des mipmaps utilise désormais ce même
+lecteur. La géométrie vérifie le nombre d'instances annoncé par le
+paquet. Le moteur prépare les maillages et les images depuis ces données.
+Le lecteur Tidewater compile avec ce chemin. Reçu
+`tidewater-scanned-shared-decoding-check-20261115.log.receipt.json`, SHA-256
+`55083f54d29a35dbdfb5675056b4607acd7d0a1039be959b75720842e4726f17`.
+Le moteur prépare aussi le matériau des débris, ses textures et le tampon
+des types, après avoir vérifié les ressources du terrain. Tidewater fournit
+les paramètres de son terrain et appelle ce service commun. Le probe
+compile avec ce chemin. Reçu
+`tidewater-scanned-shared-material-stage-20261115.log.receipt.json`, SHA-256
+`62f42ef0f442fd5576aea13be0c90f5840e6733ea8d477e9b033b7a99f784c67`.
+La préparation des ombres des débris appartient aussi au moteur. Elle
+réutilise les quatre maillages proches, les paramètres de fondu du rendu
+visible et la cible de cascades de la scène. Tidewater fournit la
+correspondance entre les assets de ses placements et les variantes du
+paquet. Le probe compile avec ce chemin. Reçu
+`tidewater-scanned-shared-shadow-stage-20261115.log.receipt.json`, SHA-256
+`4d7bf90c67ea0e0c83b02424dcebadca8406273e75651bdecb8b0ef7128e2d5c`.
+Le lecteur commun vérifie les collisions locales et leur correspondance
+avec les poses scannées. Le moteur convertit les formes validées pour
+Rapier. Tidewater conserve son inventaire acquis, l'empreinte d'origine
+et les libellés des variantes. Deux rejeux avec les octets d'origine
+passent, dont le refus d'une matrice altérée et l'égalité des lectures
+synchrone et asynchrone. Reçu
+`tidewater-scanned-common-collision-fixture-20261115.log.receipt.json`,
+SHA-256 `66cfeaf6b2703998ed9d5e008be5953863aceb274937263fd23c9b563a6f42bc`.
+La compilation du probe passe. Reçu
+`tidewater-scanned-common-collision-probe-20261115.log.receipt.json`,
+SHA-256 `f59514c65fd6f712b654b86692986988a3f797210e2aaaa72cf10023cef3e884`.
+Le manifeste `.orpmod` API 15 peut déclarer ce paquet privé par zone.
+Son admission vérifie l'inventaire, l'empreinte du shader, les identités de variantes,
+les images et les collisions. Un aller-retour sur les données d'origine
+relit 141 variantes depuis le cache installé, avec le shader exact et
+les propriétaires de collisions. Un test des paquets existants utilise
+le même chemin d'admission. Reçu
+`tidewater-scanned-private-module-transport-verified-20261115.log.receipt.json`,
+SHA-256 `d7407e2a04ba6b58eec9fda17e11701db4638dd2b4adeb6eb7a514840d57891a`.
+Le Studio conserve les ressources d'une origine déjà admise au réexport.
+Dans le chemin normal du jeu, les placements sauvegardés sont résolus
+vers les variantes et le moteur commun prépare le rendu et les
+collisions. La zone doit fournir son terrain source et son éclairage.
+Le probe Tidewater réutilise le même code de préparation et de rendu.
+Le contrôle de compilation Windows du runtime, du Studio et d'Aurora
+passe. Reçu `tidewater-scanned-module-consumers-check-20261115.log.receipt.json`,
+SHA-256 `6a05e05fea2e79af4ae0842201dad92162222bb9b1a2a78664789876c03deb7c`.
+Le probe Tidewater compile aussi avec ce composant commun. Reçu
+`tidewater-scanned-shared-host-probe-check-20261115.log.receipt.json`,
+SHA-256 `1e3efa20ffe51fb56171bbf1b8151bdec5be7852467cfb282922056acbf4eaf6`.
+Le module privé de rejeu part du paquet terrain et éclairage déjà
+qualifié `terrain-runtime.orpmod`. Il porte 141 placements acquis et
+quatre copies de troncs positionnées près du départ sur le relief
+échantillonné. Le paquet assemblé a pour SHA-256
+`6a0bdc5f108bcec6fa0a6942fb0c9addb6ca3ba9b31d64f43761a56261b27d4b`.
+Le reçu d'assemblage `module-scanned-debris-20261115/scanned-input.json`
+sur F: porte le SHA-256
+`04b8982dce7232aa83e2b5424cc055366e880361392e5981abd1aaf76a1aaa8c`.
+Le premier lancement Release a ouvert le jeu sur RX 7800 XT avec
+Vulkan. Le contrôle graphique a refusé un matériau absent de son
+inventaire et le jeu s'est arrêté avant la capture. Reçu
+`module-scanned-debris-20261115/native-001/module-runtime-report.json`,
+SHA-256 `9b39efb2c574c243c533058a2801327f09ceb10221982ed86d5331882614a09f`.
+L'inventaire graphique prend désormais en compte les maillages possédés
+par la scène scannée, leurs quatre images et le tampon d'instances,
+ainsi que les ressources du matériau de base. Le rapport distingue les
+trois prototypes résidents des maillages visibles et vérifie le nombre
+exact de formes locales par placement, y compris zéro. Avec le binaire
+corrigé, ce même paquet a rendu la scène sur RX 7800 XT avec Vulkan et
+terminé ses 360 images avec projection prête. Les 145 placements ont
+chacun trois prototypes résidents. Le nombre de formes enregistré
+correspond à chaque placement : 64 avec une forme et 81 sans forme.
+La capture vérifiée montre les troncs témoins près du départ.
+Reçus `module-scanned-debris-20261115/native-002/module-runtime-report.json`
+et `module-scanned-debris-20261115/native-002/scanned-debris.png` sur F:.
+SHA-256 respectifs
+`be38c1922f4ffa811e7f7123ccacda612943f90bbd7ff687044df9d8efd11612`
+et `5893ac8574b51022b0e50cbd56ef6d7d2498b88b35c4e906662b82ac0b37d2f9`.
+Le contact en jeu et la comparaison des temps de rendu avec la référence
+restent à mesurer sur un trajet apparié.
 
 Un module synthétique indépendant utilise depuis le 2 novembre le propriétaire
 et le cycle communs des scènes source en mode de qualification épinglé, avec

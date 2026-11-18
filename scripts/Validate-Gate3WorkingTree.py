@@ -14,6 +14,12 @@ import tomllib
 SOURCE = Path(__file__).resolve().parents[1]
 PREFIXES = ("apps/", "crates/", "tools/", "third_party/", ".cargo/", "scripts/", ".github/", "examples/")
 ROOT_INPUTS = {"Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "deny.toml", ".gitignore"}
+# The delivery library preparation command imports this shared reader.
+ASSET_DELIVERY_INPUTS = frozenset({'scripts/assets/vault_storage.py'})
+SOURCE_SCOPE_EXCLUSIONS = (
+    'scripts/hivemind/** (orchestration/acquisition only; product includes refused)',
+    'scripts/assets/** (conversion orchestration except explicit delivery inputs)',
+)
 # Acquired static inputs retained by the currently installed Studio .5.
 LOCAL_ASSET_MANIFEST_SHA256 = '3d7f2dd80580b65dee3da1b88b3d826d0d98aac940621f85be794787dcb18ac6'
 
@@ -57,8 +63,17 @@ def is_build_input(name):
     source_inventories refuses direct product includes back into orchestration
     before excluding it; consumed static assets retain their separate pins.
     """
-    return (name in ROOT_INPUTS or name.startswith(PREFIXES)) and not (
-        name.startswith('scripts/hivemind/'))
+    return (name in ROOT_INPUTS or name.startswith(PREFIXES)) and not is_orchestration_input(name)
+
+
+def is_orchestration_input(name):
+    name = name.replace('\\', '/').casefold()
+    path = '/' + name.strip('/') + '/'
+    if '/scripts/hivemind/' in path:
+        return True
+    if '/scripts/assets/' in path:
+        return not any(path.endswith('/' + item + '/') for item in ASSET_DELIVERY_INPUTS)
+    return False
 
 
 def require_product_owned_includes():
@@ -74,8 +89,8 @@ def require_product_owned_includes():
             macros = re.findall(r'\binclude(?:_str|_bytes)?!\s*\((.*?)\)\s*;', source, re.S)
             macros += re.findall(r'#\[path\s*=\s*(.*?)\]', source, re.S)
             for macro in macros:
-                target = ''.join(re.findall(r'"([^"]*)"', macro)).replace('\\', '/').casefold()
-                require('hivemind' not in target.split('/'),
+                target = ''.join(re.findall(r'"([^"]*)"', macro))
+                require(not is_orchestration_input(target),
                         f'Product source includes orchestration input: {path}')
 
     def compilation_paths(value):
@@ -96,7 +111,7 @@ def require_product_owned_includes():
             continue
         document = tomllib.loads(path.read_text(encoding='utf-8-sig'))
         for target in compilation_paths(document):
-            require('hivemind' not in target.replace('\\', '/').casefold().split('/'),
+            require(not is_orchestration_input(target),
                     f'Product manifest references orchestration input: {path}')
 
 

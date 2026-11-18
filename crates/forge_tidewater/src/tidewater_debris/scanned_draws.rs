@@ -1,94 +1,37 @@
-//! Disposable draw records projected from accepted common placements.
+//! Tidewater inputs for the shared scanned draw projection.
 use super::{scanned_lod, scanned_placements::SourcePlacements};
-use forge_core::{EntityId, Transform};
-use forge_project::zone_authoring::placements::{ManualPlacement, PlacementChanges};
+use forge_core::EntityId;
+use forge_engine::source_surface::scanned_draws::{self, Instance};
+pub use forge_engine::source_surface::scanned_draws::{Draw, Frame};
+use forge_project::zone_authoring::placements::ManualPlacement;
 use forge_tidewater_assets::tidewater_debris::scanned;
 
-pub struct Draw {
-    pub placement_id: EntityId,
-    pub transform: Transform,
-    pub asset: u8,
-    pub lod: u8,
-    /// Index into `Frame::records`, to publish as the renderer's `MeshTag`.
-    pub tag: u32,
-    pub casts_shadow: bool,
-}
-
-pub struct Frame {
-    pub draws: Vec<Draw>,
-    /// Source iData: asset ordinal, immutable random variation, fade, outgoing.
-    pub records: Vec<[f32; 4]>,
-}
-
-/// Resolve a complete frame before changing renderer entities or storage buffers.
-/// The camera adapter supplies sphere/frustum intersection, including six metres
-/// of caster margin. Edited scale expands the original world radius conservatively.
+/// Project the acquired placements using Tidewater's LOD and frustum settings.
 ///
 /// # Errors
-/// Rejects malformed placements/camera, absent variations, wrong revisions and
-/// frames exceeding 16,384 instances. Failure publishes no partial frame.
-#[allow(
-    clippy::cast_possible_truncation,
-    reason = "Bounded tags and acquired random values are converted to the renderer's u32/f32 ABI."
-)]
+/// Propagates violations of the common scanned draw contract.
 pub fn prepare(
     source: &SourcePlacements,
     placements: &[ManualPlacement],
     camera: [f64; 3],
-    mut intersects: impl FnMut(EntityId, [f64; 3], f64) -> bool,
+    intersects: impl FnMut(EntityId, [f64; 3], f64) -> bool,
 ) -> Result<Frame, String> {
-    PlacementChanges::between(&[], placements)?;
-    if placements.len() > 16_384 || camera.iter().any(|v| !v.is_finite()) {
-        return Err("Invalid scanned frame camera or placement budget".into());
-    }
-    let mut frame = Frame {
-        draws: Vec::new(),
-        records: Vec::new(),
-    };
-    for placement in placements {
-        if placement.asset_hash != scanned::revision() {
-            return Err("Scanned placement revision differs".into());
-        }
-        let owner = source
-            .definitions
-            .get(&placement.asset_id)
-            .ok_or("Scanned source variation absent")?;
-        let p = placement.transform.translation_m;
-        let position = [f64::from(p.x), f64::from(p.y), f64::from(p.z)];
-        let scale = placement.transform.scale;
-        let radius = owner.radius_m
-            * (f64::from(scale.x) / owner.source.sx)
-                .max(f64::from(scale.y) / owner.source.sy)
-                .max(f64::from(scale.z) / owner.source.sz);
-        let distance = position
-            .into_iter()
-            .zip(camera)
-            .map(|(a, b)| (a - b).powi(2))
-            .sum::<f64>()
-            .sqrt();
-        for bucket in scanned_lod::select(
-            distance,
-            radius,
-            intersects(placement.id, position, radius + 6.0),
-        )? {
-            let tag = frame.records.len() as u32;
-            frame.records.push([
-                f32::from(owner.source.asset),
-                owner.source.rnd as f32,
-                bucket.fade,
-                if bucket.outgoing { 1.0 } else { 0.0 },
-            ]);
-            frame.draws.push(Draw {
-                placement_id: placement.id,
-                transform: placement.transform,
+    scanned_draws::prepare(
+        placements,
+        scanned::revision(),
+        scanned_lod::POLICY,
+        camera,
+        scanned_draws::SOURCE_CASTER_MARGIN_M,
+        |asset| {
+            source.definitions.get(&asset).map(|owner| Instance {
                 asset: owner.source.asset,
-                lod: bucket.lod,
-                tag,
-                casts_shadow: bucket.casts_shadow(),
-            });
-        }
-    }
-    Ok(frame)
+                random_variation: owner.source.rnd,
+                reference_scale: [owner.source.sx, owner.source.sy, owner.source.sz],
+                radius_m: owner.radius_m,
+            })
+        },
+        intersects,
+    )
 }
 
 #[cfg(test)]

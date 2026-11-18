@@ -24,8 +24,12 @@ mod ocean;
 mod ocean_fixture;
 #[path = "orpmod/placement_companions.rs"]
 mod placement_companions;
+#[path = "orpmod/scanned_debris.rs"]
+mod scanned_debris;
 #[path = "orpmod/source_graph.rs"]
 mod source_graph;
+#[path = "orpmod/source_stall.rs"]
+mod source_stall;
 #[path = "orpmod/species.rs"]
 mod species;
 #[path = "support/water_package.rs"]
@@ -133,6 +137,8 @@ impl Fixture {
             placement_companions: Vec::new(),
             environments: Vec::new(),
             objects: Vec::new(),
+            scanned_debris: Vec::new(),
+            source_stalls: Vec::new(),
             fish_profiles: Vec::new(),
             vegetation: Vec::new(),
             creator: None,
@@ -303,7 +309,7 @@ fn catalog_identity_and_runtime_compatibility_are_checked_against_files() {
     assert!(orpmod::validate_directory(&f.source, false).is_err());
     let mut f = Fixture::new("compat");
     f.manifest.compatibility.module_api_version =
-        forge_project::module_package::MODULE_HISTORICAL_MODELS_API_VERSION + 1;
+        forge_project::module_package::MAX_SUPPORTED_MODULE_API_VERSION + 1;
     f.save();
     assert!(orpmod::validate_directory(&f.source, false).is_err());
 }

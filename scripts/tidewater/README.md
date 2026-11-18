@@ -241,6 +241,10 @@ not final scene lighting or exact pixel parity; forest differences remain.
 atmosphere, SkyPro clouds and environment for 120 cold frames and writes SH
 irradiance plus the six-face/six-mip half-float specular cube. This is a defined
 cold-state acquisition, not a replay of App precompile/readback history.
+
+Use `--generated-clouds DIRECTORY` to acquire the cube and SH with the
+seven RGBA8 mips and dither produced by `generate-cloud-textures.py`.
+The capture records the hashes of the supplied volume and dither.
 Add `--clouds` to acquire the six original default `SkyProClouds` kernels,
 seven volume-noise mips, blue noise, notices, effective uniforms for all 120
 frames, and twelve intermediate textures at frames 1/120 (including the two

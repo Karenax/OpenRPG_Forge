@@ -1,6 +1,6 @@
 //! Native destinations and authoring snapshots never come from the `WebView`.
 use forge_core::{AreaId, AssetId, ContentHash, bytes_sha256};
-use forge_delivery::module_builder::ExportedModule;
+use forge_delivery::module_builder::{CompanionInput, ExportedModule, build_module_with_history};
 use forge_studio_frontend::module_export_protocol::{ModuleExportRequest, ModuleExportResult};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::sync::{Mutex, OnceLock};
@@ -170,17 +170,7 @@ pub(super) fn build_snapshot(
         .transpose()?;
     let (retained_assets, mut origin_assets) = origin_documents
         .as_ref()
-        .map(|documents| {
-            let retained = documents
-                .module
-                .assets
-                .iter()
-                .map(|asset| asset.asset_id)
-                .collect::<Vec<_>>();
-            let supplied =
-                origin_asset_pins(&documents.module.objects, &documents.module.fish_profiles);
-            (retained, supplied)
-        })
+        .map(origin_export_assets)
         .unwrap_or_default();
     let reference = if origin.is_none() && module.workspace_hash.is_some() {
         let (scene, objects) = installed_reference(module)?;
@@ -231,7 +221,6 @@ pub(super) fn build_snapshot(
         origin_documents.as_ref(),
         ensure_source_budget(module, &snapshot)?,
     )?;
-    use forge_delivery::module_builder::{CompanionInput, build_module_with_history};
     let input = reference
         .as_ref()
         .map_or(CompanionInput::Origin(origin), CompanionInput::Reference);
@@ -244,6 +233,23 @@ pub(super) fn build_snapshot(
         input,
         historical_models,
     )
+}
+
+fn origin_export_assets(
+    documents: &forge_delivery::orpmod::OriginDocuments,
+) -> (Vec<AssetId>, OriginAssetPins) {
+    let module = &documents.module;
+    let retained = module.assets.iter().map(|asset| asset.asset_id).collect();
+    let mut supplied = origin_asset_pins(&module.objects, &module.fish_profiles);
+    for binding in &module.scanned_debris {
+        supplied.extend(
+            binding
+                .assets
+                .iter()
+                .map(|id| (binding.area_id, *id, binding.package.manifest.sha256)),
+        );
+    }
+    (retained, supplied)
 }
 
 fn installed_reference(

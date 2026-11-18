@@ -137,11 +137,26 @@ pub fn lod_program(
     programs::for_package(package).map(|(_, lod)| lod)
 }
 
+/// The installed CDLOD fragment uses the engine's source sun and shadow graph.
+#[derive(Resource)]
+pub(crate) struct CdlodReceivesSourceSun;
+
+impl CdlodReceivesSourceSun {
+    fn publish(world: &mut World, enabled: bool) {
+        if enabled {
+            world.insert_resource(Self);
+        } else {
+            world.remove_resource::<Self>();
+        }
+    }
+}
+
 /// Install the caller's verified shader source, with no filesystem fallback.
 pub fn install_shader(app: &mut App, source: &str) -> Result<(), String> {
     if source.trim().is_empty() || source.len() > 1_000_000 {
         return Err("Invalid terrain surface shader".into());
     }
+    let receives_source_sun = source == programs::SURFACE;
     let lighting = crate::source_lighting::scene_uniform::prepare(source)?;
     crate::source_lighting::scene_buffer::install(app.world_mut(), &lighting.seed)?;
     paint::install_neutral(app.world_mut())?;
@@ -158,5 +173,6 @@ pub fn install_shader(app: &mut App, source: &str) -> Result<(), String> {
             Shader::from_wgsl(source, "source-package-terrain.wgsl"),
         )
         .map_err(|e| e.to_string())?;
+    CdlodReceivesSourceSun::publish(app.world_mut(), receives_source_sun);
     Ok(())
 }

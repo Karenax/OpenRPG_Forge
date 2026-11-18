@@ -768,6 +768,8 @@ fn build_manifest(
         vegetation: Vec::new(),
         environments: Vec::new(),
         objects: Vec::new(),
+        scanned_debris: Vec::new(),
+        source_stalls: Vec::new(),
         fish_profiles: Vec::new(),
         terrain_surfaces: Vec::new(),
         ocean_inputs: Vec::new(),

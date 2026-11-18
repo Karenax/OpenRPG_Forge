@@ -47,9 +47,25 @@ pub struct ModuleSolarClock {
     pub azimuth_degrees: i16,
     /// None pauses the clock. A duration must be nonzero.
     pub day_length_seconds: Option<u32>,
+    /// When absent, the live HDR graph supplies diffuse lighting.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diffuse_lighting: Option<ModuleDiffuseLighting>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ModuleDiffuseLighting {
+    /// Preserve the acquired SH and scale per channel by solar irradiance.
+    CapturedIrradiance,
 }
 
 impl ModuleSolarClock {
+    /// Captured diffuse lighting can run while the acquired reflections stay resident.
+    #[must_use]
+    pub const fn requires_live_environment(self) -> bool {
+        self.diffuse_lighting.is_none()
+    }
+
     pub fn validate(self) -> Result<(), ModulePackageError> {
         if self.captured_minutes > 1440
             || self.start_minutes > 1440
@@ -71,7 +87,7 @@ impl ModulePackageManifest {
         used: &mut BTreeSet<&'a str>,
     ) -> Result<(), ModulePackageError> {
         if !self.environments.is_empty()
-            && !(MODULE_ENVIRONMENT_API_VERSION..=super::MODULE_HISTORICAL_MODELS_API_VERSION)
+            && !(MODULE_ENVIRONMENT_API_VERSION..=super::MAX_SUPPORTED_MODULE_API_VERSION)
                 .contains(&self.compatibility.module_api_version)
         {
             return Err(ModulePackageError::Compatibility);
@@ -99,7 +115,10 @@ impl ModulePackageManifest {
             if let Some(clock) = binding.solar_clock {
                 clock.validate()?;
                 if self.compatibility.module_api_version < super::MODULE_SOLAR_CLOCK_API_VERSION
-                    || programs.is_none()
+                    || (programs.is_none() && clock.requires_live_environment())
+                    || (clock.diffuse_lighting.is_some()
+                        && self.compatibility.module_api_version
+                            < super::MODULE_CAPTURED_DIFFUSE_API_VERSION)
                 {
                     return Err(ModulePackageError::Compatibility);
                 }

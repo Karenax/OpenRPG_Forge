@@ -40,6 +40,55 @@ const DEFAULT_LIMIT: usize = 24;
 const MAX_LIMIT: usize = 48;
 const SOURCE_SUPPORT_REGISTRY: &str = "metadata/asset-source-support-registry.v1.json";
 
+// A source card and a converted model may use the same original identity in
+// different pipeline packs. Remove only the syntactic pack-variant marker;
+// the full asset name, original GUID and LOD suffix remain part of the key.
+fn counterpart_identity(id: &str) -> String {
+    if let Some((base, rest)) = id.split_once(".variant-")
+        && let Some((variant, asset)) = rest.split_once('.')
+        && !variant.is_empty()
+        && variant.bytes().all(|b| b.is_ascii_hexdigit())
+    {
+        return format!("{base}.{asset}");
+    }
+    id.to_owned()
+}
+
+// Compare the Unity asset path while retaining every segment except the render
+// pipeline. The Vault prefix on source_file is not part of the Unity path.
+fn pipeline_asset_key(path: &str) -> Option<String> {
+    let normalized = path.replace('\\', "/").to_ascii_lowercase();
+    let start = if normalized.starts_with("assets/") { 0 } else { normalized.find("/assets/")? + 1 };
+    let asset = &normalized[start..];
+    let mut found = false;
+    let mut result = Vec::new();
+    for part in asset.split('/') {
+        if part.is_empty() || part == "." || part == ".." { return None; }
+        if matches!(part, "urp" | "hdrp" | "hdrp(default)" | "hdrp (default)") {
+            if found { return None; }
+            found = true;
+            result.push("<pipeline>");
+        } else { result.push(part); }
+    }
+    found.then(|| result.join("/"))
+}
+
+fn converted_pipeline_counterpart(owner: &Value, source: &Value, variation: &Value, owner_pack: &str) -> bool {
+    let Some(source_pack) = source.get("pack_id").and_then(Value::as_str) else { return false; };
+    if source_pack.split(".variant-").next() != owner_pack.split(".variant-").next() { return false; }
+    let Some(owner_prefab) = owner.get("source_prefab").and_then(Value::as_str).and_then(pipeline_asset_key) else { return false; };
+    let Some(source_prefab) = source.get("source_file").and_then(Value::as_str).and_then(pipeline_asset_key) else { return false; };
+    let Some(owner_mesh) = owner.get("source_fbx").and_then(Value::as_str).and_then(pipeline_asset_key) else { return false; };
+    let Some(components) = source.get("source_components").and_then(Value::as_array) else { return false; };
+    if components.len() != 1 { return false; }
+    let component = &components[0];
+    let source_mesh = component.get("mesh_source").and_then(Value::as_str).and_then(pipeline_asset_key);
+    let pin = variation.get("fbx_sha256").and_then(Value::as_str);
+    owner_prefab == source_prefab && source_mesh.as_deref() == Some(owner_mesh.as_str())
+        && pin.is_some_and(|s| s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit()))
+        && component.get("mesh_source_sha256").and_then(Value::as_str) == pin
+}
+
 #[derive(Clone, Debug)]
 struct StoredAsset {
     card: LibraryCard,
@@ -572,6 +621,10 @@ impl Library {
         }))
     }
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Validate all catalogue entries against one registry read and one shared budget"
+    )]
     fn build_snapshot(
         &self,
         registry_raw: &[u8],
@@ -664,9 +717,7 @@ impl Library {
             let Some(variants) = asset.details.get("consolidated_sources") else {
                 continue;
             };
-            if asset.card.availability != "source_support" {
-                return Err("variantes source sur un modèle converti".to_owned());
-            }
+            let converted_owner = asset.card.availability != "source_support";
             let variants = variants.as_array().ok_or("variantes source invalides")?;
             for variant in variants {
                 let id = required(variant, "retired_id")?;
@@ -674,17 +725,46 @@ impl Library {
                 let variation = variant.get("source_variation");
                 let known_variation = variation == Some(&serde_json::json!({"kind":"lod_thresholds_only"}))
                     || variation == Some(&serde_json::json!({"kind":"lod_collider_only"}))
-                    || variation == Some(&serde_json::json!({"kind":"pipeline_light_only"}));
+                    || variation == Some(&serde_json::json!({"kind":"pipeline_light_only"}))
+                    || variation == Some(&serde_json::json!({"kind":"prefab_root_name_only"}));
+                let distinct_guid = variation == Some(&serde_json::json!({"kind":"shared_source_distinct_guid"}));
+                let converted_counterpart = variation == Some(&serde_json::json!({"kind":"converted_counterpart"}));
+                let pipeline_counterpart = variation.and_then(|v| v.get("kind")).and_then(Value::as_str)
+                    == Some("converted_pipeline_counterpart")
+                    && variation.is_some_and(|v| converted_pipeline_counterpart(&asset.details, original, v, &asset.card.pack));
+                if converted_owner {
+                    let same_identity = |candidate: &str| {
+                        counterpart_identity(candidate) == counterpart_identity(id)
+                    };
+                    let matches_owner = same_identity(&asset.card.id)
+                        || asset.details.get("consolidated_variants").and_then(Value::as_array)
+                            .is_some_and(|aliases| aliases.iter().any(|alias|
+                                alias.get("retired_id").and_then(Value::as_str).is_some_and(same_identity)));
+                    if !(converted_counterpart && matches_owner || pipeline_counterpart)
+                        || original.get("license").and_then(Value::as_str) != Some(asset.license.as_str())
+                        || variant.get("preserve_distinct_preview") != Some(&Value::Bool(true))
+                    {
+                        return Err("correspondance de source convertie invalide".to_owned());
+                    }
+                }
+                let allowed_variation =
+                    known_variation || distinct_guid || (converted_owner && (converted_counterpart || pipeline_counterpart));
                 if id.len() > MAX_ID || required(original, "id")? != id || by_id.contains_key(id)
                     || original.get("consolidated_sources").is_some()
                     || (original.get("source_sha256") != asset.details.get("source_sha256")
-                        && !known_variation)
-                    || (variation.is_some() && !known_variation)
-                    || original.get("source_meta_sha256") != asset.details.get("source_meta_sha256")
+                        && !known_variation && !converted_owner)
+                    || (variation.is_some() && !allowed_variation)
+                    || (original.get("source_meta_sha256") != asset.details.get("source_meta_sha256") && !distinct_guid && !converted_owner)
                     || (original.get("preview_sha256") != asset.details.get("preview_sha256")
                         && variant.get("preserve_distinct_preview") != Some(&Value::Bool(true)))
                 {
                     return Err("identité ou contenu de variante source invalide".to_owned());
+                }
+                if distinct_guid {
+                    self.verify_distinct_guid_metadata(original, &asset.details)?;
+                }
+                if variation == Some(&serde_json::json!({"kind":"prefab_root_name_only"})) {
+                    self.verify_prefab_root_name_only(original, &asset.details)?;
                 }
                 let legacy = self.make_source_support_asset(original, &mut cache)?;
                 if legacy_sources.insert(id.to_owned(), legacy).is_some()
@@ -754,7 +834,20 @@ impl Library {
             .and_then(Value::as_str)
             .ok_or_else(|| format!("empreinte {name} absente"))?;
         let path = self.safe_from(pack, name)?;
+        #[cfg(not(test))]
         let raw = read_limited(&path, MAX_JSON)?;
+        #[cfg(test)]
+        let raw = if name == "details.v1.json" {
+            match std::env::var("OPENRPG_TEST_STAGED_DETAILS") {
+                Ok(staged) => {
+                    let bytes = read_limited(Path::new(&staged), MAX_JSON)?;
+                    if same_hash(&bytes, expected) { bytes } else { read_limited(&path, MAX_JSON)? }
+                }
+                Err(_) => read_limited(&path, MAX_JSON)?,
+            }
+        } else {
+            read_limited(&path, MAX_JSON)?
+        };
         *total = total.saturating_add(raw.len() as u64);
         if *total > MAX_TOTAL_JSON || !same_hash(&raw, expected) {
             return Err(format!("limite ou empreinte invalide pour {name}"));
@@ -1004,6 +1097,81 @@ impl Library {
         let meta = self.safe_relative(required(item, "source_meta_file")?)?;
         if !same_file_hash(&meta, required(item, "source_meta_sha256")?, MAX_JSON)? {
             return Err("empreinte des métadonnées Unity incohérente".to_owned());
+        }
+        Ok(())
+    }
+
+    fn verify_distinct_guid_metadata(&self, original: &Value, owner: &Value) -> Result<(), String> {
+        if required(original, "source_sha256")? != required(owner, "source_sha256")? {
+            return Err("sources de GUID distincts différentes".to_owned());
+        }
+        let mut normalized = Vec::new();
+        for item in [original, owner] {
+            let guid = required(item, "source_guid")?;
+            if guid.len() != 32 || !guid.bytes().all(|b| b.is_ascii_hexdigit()) {
+                return Err("GUID Unity invalide".to_owned());
+            }
+            let path = self.safe_relative(required(item, "source_meta_file")?)?;
+            let bytes = read_limited(&path, MAX_JSON)?;
+            if !same_hash(&bytes, required(item, "source_meta_sha256")?) {
+                return Err("empreinte des métadonnées Unity incohérente".to_owned());
+            }
+            let text = std::str::from_utf8(&bytes).map_err(|_| "métadonnées Unity non UTF-8")?;
+            let mut count = 0;
+            let mut lines = Vec::new();
+            for line in text.lines() {
+                if let Some(value) = line.strip_prefix("guid: ") {
+                    if value != guid { return Err("GUID et métadonnées Unity incohérents".to_owned()); }
+                    count += 1;
+                    lines.push("guid: <GUID>");
+                } else {
+                    lines.push(line);
+                }
+            }
+            if count != 1 { return Err("GUID Unity absent ou répété".to_owned()); }
+            normalized.push(lines.join("\n"));
+        }
+        if required(original, "source_guid")? == required(owner, "source_guid")?
+            || normalized[0] != normalized[1]
+        {
+            return Err("métadonnées Unity différentes au-delà du GUID".to_owned());
+        }
+        Ok(())
+    }
+
+    fn verify_prefab_root_name_only(&self, original: &Value, owner: &Value) -> Result<(), String> {
+        let mut normalized = Vec::new();
+        let mut names = Vec::new();
+        for item in [original, owner] {
+            let asset_path = required(item, "source_asset_path")?;
+            let path = Path::new(asset_path);
+            if !path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("prefab")) {
+                return Err("source Unity non prefab".to_owned());
+            }
+            let name = path.file_stem().and_then(|s| s.to_str()).ok_or("nom prefab invalide")?;
+            let source = self.safe_relative(required(item, "source_file")?)?;
+            let bytes = read_limited(&source, MAX_SOURCE_SUPPORT)?;
+            if !same_hash(&bytes, required(item, "source_sha256")?) {
+                return Err("empreinte de prefab incohérente".to_owned());
+            }
+            let text = std::str::from_utf8(&bytes).map_err(|_| "prefab non UTF-8")?;
+            let target = format!("  m_Name: {name}");
+            let mut count = 0;
+            let mut lines = Vec::new();
+            for line in text.lines() {
+                if line == target {
+                    count += 1;
+                    lines.push("  m_Name: <ROOT-NAME>");
+                } else {
+                    lines.push(line);
+                }
+            }
+            if count != 1 { return Err("nom prefab absent ou répété".to_owned()); }
+            names.push(name.to_owned());
+            normalized.push(lines.join("\n"));
+        }
+        if names[0] == names[1] || normalized[0] != normalized[1] {
+            return Err("prefabs différents au-delà du nom".to_owned());
         }
         Ok(())
     }
@@ -1838,6 +2006,10 @@ mod tests {
 
     #[test]
     #[ignore = "Requires an explicit private Vault and prepared consolidation stage"]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Qualifies one private fixture from pin lookup through export"
+    )]
     fn staged_real_consolidation_resolves_and_exports_legacy_models() {
         let stage = std::env::var("OPENRPG_CONSOLIDATION_STAGE").unwrap();
         let vault = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
@@ -2258,16 +2430,22 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Validates card, original model bytes and export against the same fixture"
+    )]
     fn consolidated_legacy_reference_returns_original_bytes_without_an_extra_card() {
         fn model(id: &str) -> Vec<u8> {
             let mut json =
                 format!(r#"{{"asset":{{"version":"2.0"}},"extras":{{"id":"{id}"}}}}"#).into_bytes();
-            while json.len() % 4 != 0 {
+            while !json.len().is_multiple_of(4) {
                 json.push(b' ');
             }
             let total = 20 + json.len() + 8 + 4;
             let mut bytes = b"glTF".to_vec();
-            for n in [2_u32, total as u32, json.len() as u32, 0x4e4f_534a] {
+            let total = u32::try_from(total).unwrap();
+            let json_size = u32::try_from(json.len()).unwrap();
+            for n in [2_u32, total, json_size, 0x4e4f_534a] {
                 bytes.extend_from_slice(&n.to_le_bytes());
             }
             bytes.extend_from_slice(&json);
@@ -2285,7 +2463,7 @@ mod tests {
         let prefix = &old[..20 + json_len];
         let tail = &old[20 + json_len..];
         let recipe = serde_json::json!({"schema":"openrpg.legacy-glb-recipe.v1",
-            "prefix_hex":prefix.iter().map(|b| format!("{b:02x}")).collect::<String>(),
+            "prefix_hex":legacy::encode_test_hex(prefix),
             "shared_tail_sha256":sha256(tail),"logical_sha256":old_sha,"logical_bytes":old.len()});
         let pack = root.join("metadata/rev/demo/one");
         let catalog_path = root.join("normalized/demo/catalog.v1.json");
@@ -3246,6 +3424,55 @@ mod tests {
         add_source_support_with_pack(root, "demo")
     }
 
+    #[test]
+    fn distinct_guid_alias_requires_matching_payload_and_metadata() {
+        let (root, _) = fixture();
+        let lib = Library::new(&root).unwrap();
+        let a_guid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        let b_guid = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        let meta_a = format!("fileFormatVersion: 2\nguid: {a_guid}\nPrefabImporter:\n  userData: \n");
+        let meta_b = format!("fileFormatVersion: 2\nguid: {b_guid}\nPrefabImporter:\n  userData: \n");
+        fs::write(root.join("a.meta"), &meta_a).unwrap();
+        fs::write(root.join("b.meta"), &meta_b).unwrap();
+        let a = serde_json::json!({"source_guid":a_guid,"source_sha256":sha256(b"shared"),
+            "source_meta_file":"a.meta","source_meta_sha256":sha256(meta_a.as_bytes())});
+        let mut b = serde_json::json!({"source_guid":b_guid,"source_sha256":sha256(b"shared"),
+            "source_meta_file":"b.meta","source_meta_sha256":sha256(meta_b.as_bytes())});
+        assert!(lib.verify_distinct_guid_metadata(&a, &b).is_ok());
+        b["source_sha256"] = sha256(b"different").into();
+        assert!(lib.verify_distinct_guid_metadata(&a, &b).is_err());
+        b["source_sha256"] = sha256(b"shared").into();
+        let changed = meta_b.replace("userData: ", "userData: changed");
+        fs::write(root.join("b.meta"), &changed).unwrap();
+        b["source_meta_sha256"] = sha256(changed.as_bytes()).into();
+        assert!(lib.verify_distinct_guid_metadata(&a, &b).is_err());
+        fs::write(root.join("b.meta"), &meta_b).unwrap();
+        assert!(lib.verify_distinct_guid_metadata(&a, &b).is_err());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn prefab_name_alias_requires_all_other_fields_to_match() {
+        let (root, _) = fixture();
+        let lib = Library::new(&root).unwrap();
+        let text_a = "GameObject:\n  m_Name: Smoke\n  m_Layer: 0\n";
+        let text_b = "GameObject:\n  m_Name: Fire\n  m_Layer: 0\n";
+        fs::write(root.join("a.prefab"), text_a).unwrap();
+        fs::write(root.join("b.prefab"), text_b).unwrap();
+        let a = serde_json::json!({"source_asset_path":"Assets/Smoke.prefab","source_file":"a.prefab",
+            "source_sha256":sha256(text_a.as_bytes())});
+        let mut b = serde_json::json!({"source_asset_path":"Assets/Fire.prefab","source_file":"b.prefab",
+            "source_sha256":sha256(text_b.as_bytes())});
+        assert!(lib.verify_prefab_root_name_only(&a, &b).is_ok());
+        let changed = text_b.replace("m_Layer: 0", "m_Layer: 1");
+        fs::write(root.join("b.prefab"), &changed).unwrap();
+        b["source_sha256"] = sha256(changed.as_bytes()).into();
+        assert!(lib.verify_prefab_root_name_only(&a, &b).is_err());
+        fs::write(root.join("b.prefab"), text_b).unwrap();
+        assert!(lib.verify_prefab_root_name_only(&a, &b).is_err());
+        let _ = fs::remove_dir_all(root);
+    }
+
     fn add_source_support_with_pack(root: &Path, pack: &str) -> String {
         let id = format!("{pack}.source-helper");
         let source_rel = "originals/source-support/helper.fbx";
@@ -3302,6 +3529,132 @@ mod tests {
         )
         .unwrap();
         id
+    }
+
+    #[test]
+    fn pipeline_counterpart_remains_searchable_by_previous_id() {
+        let (root, _) = fixture();
+        add_source_support(&root);
+        let pointer_path = root.join(SOURCE_SUPPORT_REGISTRY);
+        let mut pointer: Value = serde_json::from_slice(&fs::read(&pointer_path).unwrap()).unwrap();
+        let source_path = root.join(pointer["path"].as_str().unwrap());
+        let mut catalog: Value = serde_json::from_slice(&fs::read(&source_path).unwrap()).unwrap();
+        let mut old = catalog["assets"][0].clone();
+        let old_id = "demo.variant-deadbeef.prefab-a-different-guid";
+        let pin = "a".repeat(64);
+        old["id"] = old_id.into(); old["pack_id"] = "demo.variant-deadbeef".into();
+        let prior_source = root.join(old["source_file"].as_str().unwrap());
+        let new_source = root.join("normalized/demo/source/Assets/Demo/URP/A.prefab");
+        fs::create_dir_all(new_source.parent().unwrap()).unwrap();
+        fs::copy(prior_source, new_source).unwrap();
+        old["source_file"] = "normalized/demo/source/Assets/Demo/URP/A.prefab".into();
+        old["source_components"] = serde_json::json!([{"mesh_source":"Assets/Demo/URP/A.fbx", "mesh_source_sha256":pin}]);
+        catalog["assets"] = serde_json::json!([]);
+        let raw = serde_json::to_vec(&catalog).unwrap();
+        let hash = sha256(&raw); fs::write(source_path, raw).unwrap();
+        pointer["sha256"] = hash.clone().into(); pointer["revision"] = hash.into();
+        fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
+        let pack_dir = root.join("metadata/rev/demo/one");
+        let mut details: Value = serde_json::from_slice(&fs::read(pack_dir.join("details.v1.json")).unwrap()).unwrap();
+        let profiles: Value = serde_json::from_slice(&fs::read(pack_dir.join("profiles.v1.json")).unwrap()).unwrap();
+        let cat_path = root.join("normalized/demo/catalog.v1.json");
+        let catalog: Value = serde_json::from_slice(&fs::read(&cat_path).unwrap()).unwrap();
+        details["assets"][0]["source_prefab"] = "Assets/Demo/HDRP(Default)/A.prefab".into();
+        details["assets"][0]["source_fbx"] = "Assets/Demo/HDRP(Default)/A.fbx".into();
+        details["assets"][0]["consolidated_sources"] = serde_json::json!([{
+            "retired_id":old_id,"original_detail":old,
+            "source_variation":{"kind":"converted_pipeline_counterpart","fbx_sha256":pin},
+            "preserve_distinct_preview":true
+        }]);
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &cat_path);
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+            query:LibraryQuery { text:old_id.into(), ..LibraryQuery::default() }
+        }).unwrap() else { panic!() };
+        assert_eq!(page.assets.len(), 1);
+        assert_eq!(page.assets[0].id, "demo.arbre-eclaire");
+        let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+            id:old_id.into(), revision:page.revision,
+        }).unwrap() else { panic!() };
+        assert_eq!(detail.card.id, old_id);
+        details["assets"][0]["consolidated_sources"][0]["original_detail"]["source_components"][0]["mesh_source_sha256"] = "b".repeat(64).into();
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &cat_path);
+        assert!(Library::new(&root).unwrap().execute(LibraryRequest::Search { query:LibraryQuery::default() }).is_err());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn pipeline_counterpart_requires_matching_paths_pack_and_mesh_pin() {
+        let pin = "a".repeat(64);
+        let owner = serde_json::json!({"source_prefab":"Assets/HIVEMIND/Demo/HDRP(Default)/Props/A.prefab",
+            "source_fbx":"Assets/HIVEMIND/Demo/HDRP(Default)/Props/A.fbx"});
+        let mut source = serde_json::json!({"pack_id":"demo.variant-deadbeef",
+            "source_file":"normalized/demo/source/Assets/HIVEMIND/Demo/URP/Props/A.prefab",
+            "source_components":[{"mesh_source":"Assets/HIVEMIND/Demo/URP/Props/A.fbx","mesh_source_sha256":pin}]});
+        let variation = serde_json::json!({"kind":"converted_pipeline_counterpart","fbx_sha256":pin});
+        assert!(converted_pipeline_counterpart(&owner, &source, &variation, "demo"));
+        source["source_components"][0]["mesh_source_sha256"] = "b".repeat(64).into();
+        assert!(!converted_pipeline_counterpart(&owner, &source, &variation, "demo"));
+        source["source_components"][0]["mesh_source_sha256"] = pin.into();
+        source["source_file"] = "normalized/demo/source/Assets/HIVEMIND/Demo/URP/Props/B.prefab".into();
+        assert!(!converted_pipeline_counterpart(&owner, &source, &variation, "demo"));
+        assert!(pipeline_asset_key("Assets/Demo/URP/../A.prefab").is_none());
+    }
+
+    #[test]
+    fn converted_counterpart_keeps_source_details_and_search_identity() {
+        let (root, _) = fixture();
+        add_source_support(&root);
+        let pointer_path = root.join(SOURCE_SUPPORT_REGISTRY);
+        let mut pointer: Value = serde_json::from_slice(&fs::read(&pointer_path).unwrap()).unwrap();
+        let source_path = root.join(pointer["path"].as_str().unwrap());
+        let mut catalog: Value = serde_json::from_slice(&fs::read(&source_path).unwrap()).unwrap();
+        let mut old = catalog["assets"][0].clone();
+        let old_id = "demo.variant-deadbeef.arbre-eclaire";
+        old["id"] = old_id.into();
+        old["pack_id"] = "demo.variant-deadbeef".into();
+        catalog["assets"] = serde_json::json!([]);
+        let source_raw = serde_json::to_vec(&catalog).unwrap();
+        let source_hash = sha256(&source_raw);
+        fs::write(source_path, source_raw).unwrap();
+        pointer["sha256"] = source_hash.clone().into();
+        pointer["revision"] = source_hash.into();
+        fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
+
+        let pack_dir = root.join("metadata/rev/demo/one");
+        let mut details: Value = serde_json::from_slice(&fs::read(pack_dir.join("details.v1.json")).unwrap()).unwrap();
+        let profiles: Value = serde_json::from_slice(&fs::read(pack_dir.join("profiles.v1.json")).unwrap()).unwrap();
+        let cat_path = root.join("normalized/demo/catalog.v1.json");
+        let catalog: Value = serde_json::from_slice(&fs::read(&cat_path).unwrap()).unwrap();
+        details["assets"][0]["consolidated_sources"] = serde_json::json!([{
+            "retired_id":old_id, "original_detail":old,
+            "source_variation":{"kind":"converted_counterpart"},
+            "preserve_distinct_preview":true
+        }]);
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &cat_path);
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+            query: LibraryQuery { text: old_id.into(), pack: "demo.variant-deadbeef".into(), ..LibraryQuery::default() },
+        }).unwrap() else { panic!() };
+        assert_eq!(page.assets.len(), 1);
+        assert_eq!(page.assets[0].id, "demo.arbre-eclaire");
+        let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+            id: old_id.into(), revision: page.revision.clone(),
+        }).unwrap() else { panic!() };
+        assert_eq!(detail.card.id, old_id);
+        assert_eq!(detail.card.availability, "source_support");
+        assert!(library.execute(LibraryRequest::Model { id: old_id.into(), revision: page.revision }).is_err());
+
+        details["assets"][0]["consolidated_sources"][0]["retired_id"] = "demo.variant-deadbeef.unrelated".into();
+        details["assets"][0]["consolidated_sources"][0]["original_detail"]["id"] = "demo.variant-deadbeef.unrelated".into();
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &cat_path);
+        assert!(Library::new(&root).unwrap().execute(LibraryRequest::Search { query:LibraryQuery::default() }).is_err());
+        details["assets"][0]["consolidated_sources"][0]["retired_id"] = old_id.into();
+        details["assets"][0]["consolidated_sources"][0]["original_detail"]["id"] = old_id.into();
+        details["assets"][0]["consolidated_sources"][0]["original_detail"]["license"] = "different".into();
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &cat_path);
+        assert!(Library::new(&root).unwrap().execute(LibraryRequest::Search { query:LibraryQuery::default() }).is_err());
+        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
@@ -3949,6 +4302,129 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Requires an explicitly published private model-source counterpart stage"]
+    fn live_model_source_counterparts_keep_search_details_and_previews() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_MODEL_SOURCE_STAGE").unwrap();
+        let mapping = std::env::var("OPENRPG_MODEL_SOURCE_MAPPING").unwrap();
+        let ids = std::env::var("OPENRPG_MODEL_SOURCE_IDS").unwrap();
+        let stage = Path::new(&stage);
+        let manifest: Value = serde_json::from_slice(&fs::read(stage.join("stage.json")).unwrap()).unwrap();
+        let mapping: Value = serde_json::from_slice(&fs::read(mapping).unwrap()).unwrap();
+        let ids: Vec<String> = serde_json::from_slice(&fs::read(ids).unwrap()).unwrap();
+        assert_eq!(manifest["source_count"].as_u64(), Some(ids.len() as u64));
+        let rows: HashMap<_, _> = mapping["rows"].as_array().unwrap().iter()
+            .map(|row| (row["source_id"].as_str().unwrap(), row)).collect();
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let mut thumbnails = 0;
+        for id in &ids {
+            let owner = rows[id.as_str()]["model_ids"][0].as_str().unwrap();
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text:id.clone(), limit:MAX_LIMIT, ..LibraryQuery::default() }
+            }).unwrap() else { panic!("search expected") };
+            assert!(page.assets.iter().any(|card| card.id == owner), "{id}");
+            assert!(!page.assets.iter().any(|card| card.id == *id), "{id}");
+            let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+                id:id.clone(), revision:page.revision.clone(),
+            }).unwrap() else { panic!("legacy source details expected") };
+            assert_eq!(detail.card.id, *id);
+            assert_eq!(detail.card.availability, "source_support");
+            assert!(detail.source_path.is_some());
+            assert!(detail.model_path.is_none());
+            if detail.card.has_thumbnail {
+                let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                    id:id.clone(), revision:page.revision.clone(),
+                }).unwrap() else { panic!("source thumbnail expected") };
+                assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+                thumbnails += 1;
+            }
+            assert!(library.execute(LibraryRequest::Model {
+                id:id.clone(), revision:page.revision.clone(),
+            }).is_err());
+            let LibraryResponse::Details { detail: owner_detail } = library.execute(LibraryRequest::Details {
+                id:owner.to_owned(), revision:page.revision,
+            }).unwrap() else { panic!("converted owner details expected") };
+            assert!(owner_detail.model_path.is_some());
+            assert!(owner_detail.details["consolidated_sources"].as_array().unwrap().iter()
+                .any(|alias| alias["retired_id"] == id.as_str()));
+        }
+        eprintln!("Verified {} converted-source aliases and {} source previews", ids.len(), thumbnails);
+    }
+
+    #[test]
+    #[ignore = "Requires a private Vault and staged shared preview metadata"]
+    fn staged_shared_preview_deltas_keep_source_and_model_aliases() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_SHARED_PREVIEW_STAGE").unwrap();
+        let stage = Path::new(&stage);
+        let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
+        let source_raw = fs::read(stage.join("catalog.json")).unwrap();
+        assert_eq!(sha256(&source_raw), plan["new_catalog_sha256"]);
+        let source: Value = serde_json::from_slice(&source_raw).unwrap();
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let registry_raw = library.read_registry().unwrap();
+        let support = library.read_source_support_registry().unwrap().unwrap();
+        assert_eq!(sha256(&registry_raw), plan["model_registry_sha256"]);
+        assert_eq!(sha256(&support), plan["source_registry_sha256"]);
+        let mut registry: Value = serde_json::from_slice(&registry_raw).unwrap();
+        let packs = plan["packs"].as_object().unwrap();
+        assert_eq!(packs.len(), 1);
+        let (pack, pin) = packs.iter().next().unwrap();
+        let details_raw = fs::read(stage.join(pin["file"].as_str().unwrap())).unwrap();
+        assert_eq!(sha256(&details_raw), pin["sha256"]);
+        registry["packs"][pack]["files"]["details.v1.json"] = pin["sha256"].clone();
+        let details: Value = serde_json::from_slice(&details_raw).unwrap();
+        let old_paths: std::collections::HashSet<_> = plan["rows"].as_array().unwrap().iter()
+            .map(|row| row["old"].as_str().unwrap().to_owned()).collect();
+        let mut samples: Vec<(String, String)> = Vec::new();
+        for card in source["assets"].as_array().unwrap() {
+            let owner = card["id"].as_str().unwrap();
+            if card.get("preview_reconstruction_history").and_then(Value::as_array)
+                .is_some_and(|rows| rows.iter().any(|r| r["original_path"].as_str().is_some_and(|p| old_paths.contains(p)))) {
+                samples.push((owner.to_owned(), owner.to_owned()));
+            }
+            for alias in card.get("consolidated_sources").and_then(Value::as_array).into_iter().flatten() {
+                if alias["original_preview_reconstruction"]["original_path"].as_str().is_some_and(|p| old_paths.contains(p)) {
+                    samples.push((alias["retired_id"].as_str().unwrap().to_owned(), owner.to_owned()));
+                }
+            }
+            if samples.len() >= 8 { break; }
+        }
+        let source_samples = samples.len();
+        for card in details["assets"].as_array().unwrap() {
+            let owner = card["id"].as_str().unwrap();
+            for alias in card.get("consolidated_sources").and_then(Value::as_array).into_iter().flatten() {
+                if alias["original_preview_reconstruction"]["original_path"].as_str().is_some_and(|p| old_paths.contains(p)) {
+                    samples.push((alias["retired_id"].as_str().unwrap().to_owned(), owner.to_owned()));
+                }
+            }
+            if samples.len() >= source_samples + 8 { break; }
+        }
+        assert!(source_samples > 0 && samples.len() > source_samples);
+        let revision = "staged-shared-preview-deltas".to_owned();
+        let raw = serde_json::to_vec(&registry).unwrap();
+        let mut snapshot = library.build_snapshot(&raw, Some(&source_raw), Some(&support), revision.clone()).unwrap();
+        // Keep the real registry pin so execute() does not replace this test-only staged snapshot.
+        snapshot.registry_raw = registry_raw;
+        library.snapshot = Some(snapshot);
+        for (id, owner) in &samples {
+            let LibraryResponse::Page { page } = library.execute(LibraryRequest::Search {
+                query: LibraryQuery { text: id.clone(), limit: MAX_LIMIT, ..LibraryQuery::default() }
+            }).unwrap() else { panic!("search expected") };
+            assert!(page.assets.iter().any(|asset| &asset.id == owner), "{id}");
+            let LibraryResponse::Details { detail } = library.execute(LibraryRequest::Details {
+                id: id.clone(), revision: revision.clone(),
+            }).unwrap() else { panic!("source detail expected") };
+            assert_eq!(&detail.card.id, id);
+            let LibraryResponse::Thumbnail { bytes } = library.execute(LibraryRequest::Thumbnail {
+                id: id.clone(), revision: revision.clone(),
+            }).unwrap() else { panic!("thumbnail expected") };
+            assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+        }
+        eprintln!("Verified {} staged source and {} model-alias thumbnails", source_samples, samples.len() - source_samples);
+    }
+
+    #[test]
     #[ignore = "Requires an explicit private Vault and staged source aliases"]
     fn staged_source_aliases_preserve_search_and_details() {
         let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
@@ -4068,6 +4544,56 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Requires an explicit private Vault and materialized nested preview stage"]
+    fn staged_nested_preview_redirects_preserve_aliases() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
+        let stage = std::env::var("OPENRPG_MODEL_PREVIEW_STAGE").unwrap();
+        let plan: Value = serde_json::from_slice(&fs::read(Path::new(&stage).join("plan.json")).unwrap()).unwrap();
+        assert!(matches!(plan["schema"].as_str(), Some("openrpg.nested-preview-stage.v1" | "openrpg.nested-preview-batch-stage.v1")));
+        let library = Library::new(Path::new(&root)).unwrap();
+        let registry = library.read_registry().unwrap();
+        let support = library.read_source_support_registry().unwrap().unwrap();
+        let published = std::env::var("OPENRPG_NESTED_PREVIEW_PUBLISHED").ok().as_deref() == Some("1");
+        if !published { assert_eq!(plan["registry_sha256"], sha256(&registry)); }
+        assert_eq!(plan["source_registry_sha256"], sha256(&support));
+        let mut staged: Value = serde_json::from_slice(&registry).unwrap();
+        for (pack, pins) in plan["packs"].as_object().unwrap() {
+            let revision = required(pins, "revision").unwrap();
+            let entry = &mut staged["packs"][pack];
+            if published { assert_eq!(entry["revision"], revision); continue; }
+            entry["path"] = Value::String(format!("metadata/asset-import-revisions/{pack}/{revision}"));
+            entry["revision"] = Value::String(revision.to_owned());
+            entry["files"] = serde_json::json!({
+                "details.v1.json": required(pins, "details.v1.json").unwrap(),
+                "profiles.v1.json": required(pins, "profiles.v1.json").unwrap()
+            });
+        }
+        let source = library.read_source_support_catalog(Some(&support)).unwrap();
+        let snapshot = library.build_snapshot(&serde_json::to_vec(&staged).unwrap(),
+            source.as_ref().map(|s| s.catalog_raw.as_slice()), Some(&support), "nested-preview-test".to_owned()).unwrap();
+        let ids = plan["preview_ids"].as_array().unwrap();
+        for id in ids {
+            let id = id.as_str().unwrap();
+            let (_, variant) = find_legacy_alias(&snapshot, vault_asset_id(id)).unwrap().unwrap();
+            assert_eq!(variant["original_detail"]["id"], id);
+            let source_catalog = variant["original_detail"]["source_catalog"].as_str().unwrap();
+            let catalog_entry = plan["catalogs"].as_array().unwrap().iter()
+                .find(|entry| entry["new"] == source_catalog).unwrap();
+            let catalog_bytes = fs::read(Path::new(source_catalog)).unwrap();
+            assert_eq!(sha256(&catalog_bytes), catalog_entry["new_sha256"].as_str().unwrap());
+            let catalog: Value = serde_json::from_slice(&catalog_bytes).unwrap();
+            let assets = catalog["assets"].as_array().unwrap();
+            let item = assets.iter().find(|asset| asset["id"] == id).unwrap();
+            let shared = item["preview_vault"].as_str().unwrap();
+            let path = library.lexical_from(&library.root, shared).unwrap();
+            let bytes = read_limited(&path, MAX_THUMBNAIL).unwrap();
+            assert!(is_png(&bytes));
+            assert!(same_hash(&bytes, item["preview_sha256"].as_str().unwrap()));
+        }
+        eprintln!("Verified {} staged nested preview aliases", ids.len());
+    }
+
+    #[test]
     #[ignore = "Requires an explicit private Vault and materialized preview catalogs"]
     fn staged_model_preview_relinks_load_all_thumbnails() {
         let root = std::env::var("OPENRPG_ASSET_VAULT").unwrap();
@@ -4167,7 +4693,7 @@ mod tests {
         let stage = std::env::var("OPENRPG_MODEL_PREVIEW_STAGE").unwrap();
         let stage = Path::new(&stage);
         let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
-        assert!(matches!(plan["schema"].as_str(), Some("openrpg.model-catalog-redirect-stage.v1" | "openrpg.nested-archive-relink-stage.v1")));
+        assert!(matches!(plan["schema"].as_str(), Some("openrpg.model-catalog-redirect-stage.v1" | "openrpg.nested-archive-relink-stage.v1" | "openrpg.viking-fbx-relink-stage.v1")));
         let ids: BTreeSet<_> = plan["changed_ids"].as_array().unwrap().iter()
             .map(|v| v.as_str().unwrap().to_owned()).collect();
         assert!(!ids.is_empty());
@@ -4228,7 +4754,7 @@ mod tests {
         let stage = std::env::var("OPENRPG_MODEL_PREVIEW_STAGE").unwrap();
         let stage = Path::new(&stage);
         let plan: Value = serde_json::from_slice(&fs::read(stage.join("plan.json")).unwrap()).unwrap();
-        assert!(matches!(plan["schema"].as_str(), Some("openrpg.model-catalog-redirect-stage.v1" | "openrpg.nested-archive-relink-stage.v1")));
+        assert!(matches!(plan["schema"].as_str(), Some("openrpg.model-catalog-redirect-stage.v1" | "openrpg.nested-archive-relink-stage.v1" | "openrpg.viking-fbx-relink-stage.v1")));
         let ids: BTreeSet<_> = plan["changed_ids"].as_array().unwrap().iter()
             .map(|v| v.as_str().unwrap().to_owned()).collect();
         let mut library = Library::new(Path::new(&root)).unwrap();

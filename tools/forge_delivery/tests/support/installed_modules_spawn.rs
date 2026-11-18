@@ -20,6 +20,14 @@ fn admitted_selection_reaches_the_spawner_with_only_server_prepared_arguments() 
                 assert!(command.get_envs().all(|(name, _)| {
                     name != std::ffi::OsStr::new(GAME_DEFAULT_DISPLAY_MODE_ENV)
                 }));
+                #[cfg(target_os = "linux")]
+                assert_eq!(
+                    command
+                        .get_envs()
+                        .find(|(name, _)| *name == "XAUTHORITY")
+                        .and_then(|(_, value)| value),
+                    std::env::var_os("XAUTHORITY").as_deref(),
+                );
                 Ok(37)
             },
         )
